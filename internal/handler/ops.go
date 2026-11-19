@@ -38,7 +38,9 @@ func NewOps(db *gorm.DB, signer *jwtx.Signer) *OpsHandler {
 	bus := event.Default()
 
 	points := service.NewPointsService(db)
-	decorations := service.NewDecorationService(db, nil)
+	// 装饰品购买需扣钱包：钱包表归用户域，由 user 域实现 WalletDebitor 在此注入。
+	decorations := service.NewDecorationService(db,
+		service.NewUserWallet(service.NewDeps(db, nil, nil, nil, nil)))
 	achievements := service.NewAchievementService(db, points, decorations, bus)
 	opsSubscribeOnce.Do(func() { achievements.Subscribe(bus) })
 

@@ -4,7 +4,7 @@ package model
 // 后续业务实体落地后可删除。表名 samples。
 type Sample struct {
 	BaseModel
-	Name  string `gorm:"type:varchar(128);not null" json:"name"`
+	Name   string `gorm:"type:varchar(128);not null" json:"name"`
 	Remark string `gorm:"type:varchar(255)" json:"remark"`
 }
 

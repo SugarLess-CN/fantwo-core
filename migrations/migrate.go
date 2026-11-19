@@ -32,6 +32,7 @@ func Run(db *gorm.DB) error {
 	// 其底层表归各自域。
 	for _, m := range []func(*gorm.DB) error{
 		MigrateUser,    // 用户域：用户/RBAC/设备/签到/关注/认证/注销/钱包流水
+		MigrateContent, // 内容域：文章/评论/合集/标签/分类
 		MigrateOps,     // 运营域：积分/成就/表情包/装饰品/轮播/举报/邀请
 		MigrateTrade,   // 交易域：订单/支付/佣金流水/审核记录/队列去重
 		MigrateInfra,   // 基础设施域：系统配置 + 上传文件
@@ -40,6 +41,10 @@ func Run(db *gorm.DB) error {
 		if err := m(db); err != nil {
 			return err
 		}
+	}
+	// 种子数据（幂等：按 code 先查再建，已存在则跳过）。
+	if err := SeedOps(db); err != nil {
+		return err
 	}
 	return nil
 }

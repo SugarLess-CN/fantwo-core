@@ -36,9 +36,9 @@ type AddPointsInput struct {
 	Amount      int    `json:"amount" binding:"required"`
 	Source      string `json:"source" binding:"required"`
 	Description string `json:"description"`
-	RelatedType string `json:"related_type"`
-	RelatedID   string `json:"related_id"`
-	ValidDays   int    `json:"valid_days"`
+	RelatedType string `json:"relatedType"`
+	RelatedID   string `json:"relatedId"`
+	ValidDays   int    `json:"validDays"`
 }
 
 // SpendPointsInput 消费积分入参（对齐原 SpendPointsDto）。
@@ -46,14 +46,14 @@ type SpendPointsInput struct {
 	Amount      int    `json:"amount" binding:"required"`
 	Source      string `json:"source" binding:"required"`
 	Description string `json:"description"`
-	RelatedType string `json:"related_type"`
-	RelatedID   string `json:"related_id"`
+	RelatedType string `json:"relatedType"`
+	RelatedID   string `json:"relatedId"`
 }
 
 // PointsChangeResult 积分变动结果（发放/消费共用）。
 type PointsChangeResult struct {
 	Amount        int                      `json:"amount"`
-	CurrentPoints int                      `json:"current_points"`
+	CurrentPoints int                      `json:"currentPoints"`
 	Transaction   *model.PointsTransaction `json:"transaction"`
 }
 
@@ -202,6 +202,52 @@ func (s *PointsService) AddByRule(userID, activityCode, relatedType, relatedID s
 		RelatedID:   relatedID,
 		ValidDays:   activity.ValidDays,
 	})
+}
+
+// TryAddByRule 按活动代码发放积分，用于事件驱动的自动发分（如 order.paid）：
+// 活动不存在 / 已停用 / 已达限额时返回 applied=false 且不报错（避免日志噪音）。
+func (s *PointsService) TryAddByRule(userID, activityCode, relatedType, relatedID string) (*PointsChangeResult, bool, error) {
+	if userID == "" || activityCode == "" {
+		return nil, false, nil
+	}
+	activity, err := s.activities.FindByCode(s.DB, activityCode)
+	if err != nil {
+		return nil, false, err
+	}
+	if activity == nil || !activity.IsActive {
+		return nil, false, nil
+	}
+	if activity.DailyLimit > 0 {
+		dayStart := time.Now().Truncate(24 * time.Hour)
+		n, err := s.txs.CountTodayBySource(s.DB, userID, activityCode, dayStart)
+		if err != nil {
+			return nil, false, err
+		}
+		if n >= int64(activity.DailyLimit) {
+			return nil, false, nil
+		}
+	}
+	if activity.TotalLimit > 0 {
+		n, err := s.txs.CountBySource(s.DB, userID, activityCode)
+		if err != nil {
+			return nil, false, err
+		}
+		if n >= int64(activity.TotalLimit) {
+			return nil, false, nil
+		}
+	}
+	res, err := s.Add(userID, AddPointsInput{
+		Amount:      activity.RewardPoints,
+		Source:      activity.Code,
+		Description: activity.Name,
+		RelatedType: relatedType,
+		RelatedID:   relatedID,
+		ValidDays:   activity.ValidDays,
+	})
+	if err != nil {
+		return nil, false, err
+	}
+	return res, true, nil
 }
 
 // Balance 查询余额（无账户视为 0）。
@@ -421,25 +467,25 @@ type PointsStatistics struct {
 		Spent  int64 `json:"spent"`
 	} `json:"transactions"`
 	Points struct {
-		TotalEarned   int64 `json:"total_earned"`
-		TotalSpent    int64 `json:"total_spent"`
-		InCirculation int64 `json:"in_circulation"`
+		TotalEarned   int64 `json:"totalEarned"`
+		TotalSpent    int64 `json:"totalSpent"`
+		InCirculation int64 `json:"inCirculation"`
 	} `json:"points"`
 	Users struct {
-		ActiveUsers int64 `json:"active_users"`
+		ActiveUsers int64 `json:"activeUsers"`
 	} `json:"users"`
 	Activities struct {
 		Total  int64 `json:"total"`
 		Active int64 `json:"active"`
 	} `json:"activities"`
 	Tasks struct {
-		TotalRecords   int64  `json:"total_records"`
+		TotalRecords   int64  `json:"totalRecords"`
 		Completed      int64  `json:"completed"`
 		Claimed        int64  `json:"claimed"`
-		CompletionRate string `json:"completion_rate"`
-		ClaimRate      string `json:"claim_rate"`
+		CompletionRate string `json:"completionRate"`
+		ClaimRate      string `json:"claimRate"`
 	} `json:"tasks"`
-	BySource []SourceStat `json:"by_source"`
+	BySource []SourceStat `json:"bySource"`
 }
 
 // SourceStat 按来源统计。

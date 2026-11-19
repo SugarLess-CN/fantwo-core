@@ -16,13 +16,13 @@ const (
 // WalletTransaction 钱包流水表。
 type WalletTransaction struct {
 	BaseModel
-	UserID        string  `gorm:"column:user_id;type:char(36);index:idx_wallet_user,priority:1;not null" json:"user_id"`
+	UserID        string  `gorm:"column:user_id;type:char(36);index:idx_wallet_user,priority:1;not null" json:"userId"`
 	Type          string  `gorm:"column:type;type:varchar(32);index:idx_wallet_user,priority:2;not null" json:"type"`
 	Amount        float64 `gorm:"column:amount;type:numeric(12,2);not null" json:"amount"`
-	BalanceBefore float64 `gorm:"column:balance_before;type:numeric(12,2)" json:"balance_before"`
-	BalanceAfter  float64 `gorm:"column:balance_after;type:numeric(12,2)" json:"balance_after"`
-	OrderID       *string `gorm:"column:order_id;type:char(36)" json:"order_id"`
-	PaymentID     *string `gorm:"column:payment_id;type:char(36)" json:"payment_id"`
+	BalanceBefore float64 `gorm:"column:balance_before;type:numeric(12,2)" json:"balanceBefore"`
+	BalanceAfter  float64 `gorm:"column:balance_after;type:numeric(12,2)" json:"balanceAfter"`
+	OrderID       *string `gorm:"column:order_id;type:char(36)" json:"orderId"`
+	PaymentID     *string `gorm:"column:payment_id;type:char(36)" json:"paymentId"`
 	Description   *string `gorm:"column:description;type:varchar(255)" json:"description"`
 	Remark        *string `gorm:"column:remark;type:varchar(255)" json:"remark"`
 }

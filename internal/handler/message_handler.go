@@ -326,7 +326,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 		return
 	}
 	var in struct {
-		MessageIDs []string `json:"message_ids"`
+		MessageIDs []string `json:"messageIds"`
 	}
 	if err := c.ShouldBindJSON(&in); err != nil {
 		response.Fail(c, errcode.ErrBadRequest)

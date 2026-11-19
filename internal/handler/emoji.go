@@ -304,7 +304,7 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 		return
 	}
 	var body struct {
-		EmojiID string `json:"emoji_id" binding:"required"`
+		EmojiID string `json:"emojiId" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))

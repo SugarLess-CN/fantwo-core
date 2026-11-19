@@ -45,14 +45,14 @@ type AuditRecord struct {
 	// Provider aliyun / tencent / none
 	Provider string `gorm:"type:varchar(20)" json:"provider"`
 	// Status PENDING / PASSED / BLOCKED / REVIEW / FAILED
-	Status string `gorm:"type:varchar(20);index" json:"status"`
-	Action string `gorm:"type:varchar(20)" json:"action"`
-	Label  string `gorm:"type:varchar(128)" json:"label"`
-	Reason string `gorm:"type:text" json:"reason"`
+	Status string  `gorm:"type:varchar(20);index" json:"status"`
+	Action string  `gorm:"type:varchar(20)" json:"action"`
+	Label  string  `gorm:"type:varchar(128)" json:"label"`
+	Reason string  `gorm:"type:text" json:"reason"`
 	Score  float64 `gorm:"type:decimal(8,4)" json:"score"`
 	// ResultDetail provider 原始返回摘要。
 	ResultDetail map[string]interface{} `gorm:"type:jsonb;serializer:json" json:"result_detail"`
-	AuditedAt    *time.Time `json:"audited_at"`
+	AuditedAt    *time.Time             `json:"audited_at"`
 }
 
 // TableName 表名。
@@ -60,8 +60,8 @@ func (AuditRecord) TableName() string { return "audit_records" }
 
 // QueueMessage 队列消息去重表（审核 handler 幂等：msg_id 已存在则跳过）。
 type QueueMessage struct {
-	MsgID      string     `gorm:"type:varchar(64);primaryKey;column:msg_id" json:"msg_id"`
-	Queue      string     `gorm:"type:varchar(64)" json:"queue"`
+	MsgID       string    `gorm:"type:varchar(64);primaryKey;column:msg_id" json:"msg_id"`
+	Queue       string    `gorm:"type:varchar(64)" json:"queue"`
 	ProcessedAt time.Time `gorm:"autoCreateTime" json:"processed_at"`
 }
 

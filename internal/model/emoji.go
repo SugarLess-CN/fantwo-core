@@ -21,16 +21,16 @@ type Emoji struct {
 	URL      string `gorm:"type:varchar(500);not null;comment:表情图片地址" json:"url"`
 	Code     string `gorm:"type:varchar(50);index;comment:表情代码，如 :smile:" json:"code"`
 	Type     string `gorm:"type:varchar(10);default:user;index;comment:system/user" json:"type"`
-	UserID   string `gorm:"type:char(36);index;comment:所属用户（系统表情为空）" json:"user_id"`
+	UserID   string `gorm:"type:char(36);index;comment:所属用户（系统表情为空）" json:"userId"`
 	Category string `gorm:"type:varchar(50);index;comment:分类" json:"category"`
 	Tags     string `gorm:"type:text;comment:标签，逗号分隔" json:"tags"`
-	UseCount int64  `gorm:"not null;default:0;index;comment:使用次数" json:"use_count"`
-	IsPublic bool   `gorm:"not null;default:true;comment:是否公开" json:"is_public"`
+	UseCount int64  `gorm:"not null;default:0;index;comment:使用次数" json:"useCount"`
+	IsPublic bool   `gorm:"not null;default:true;comment:是否公开" json:"isPublic"`
 	Status   string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status"`
 	Width    int    `gorm:"not null;default:0;comment:宽" json:"width"`
 	Height   int    `gorm:"not null;default:0;comment:高" json:"height"`
-	FileSize int64  `gorm:"not null;default:0;comment:文件大小（字节）" json:"file_size"`
-	MimeType string `gorm:"type:varchar(64);comment:MIME 类型" json:"mime_type"`
+	FileSize int64  `gorm:"not null;default:0;comment:文件大小（字节）" json:"fileSize"`
+	MimeType string `gorm:"type:varchar(64);comment:MIME 类型" json:"mimeType"`
 }
 
 // TableName 表名。
@@ -39,8 +39,8 @@ func (Emoji) TableName() string { return "emojis" }
 // EmojiFavorite 表情收藏（user_id + emoji_id 逻辑唯一，应用层保证）。
 type EmojiFavorite struct {
 	BaseModel
-	UserID  string `gorm:"type:char(36);index:idx_emoji_favorite,priority:1;comment:用户ID" json:"user_id"`
-	EmojiID string `gorm:"type:char(36);index:idx_emoji_favorite,priority:2;comment:表情ID" json:"emoji_id"`
+	UserID  string `gorm:"type:char(36);index:idx_emoji_favorite,priority:1;comment:用户ID" json:"userId"`
+	EmojiID string `gorm:"type:char(36);index:idx_emoji_favorite,priority:2;comment:表情ID" json:"emojiId"`
 }
 
 // TableName 表名。
@@ -51,9 +51,9 @@ type EmojiPack struct {
 	BaseModel
 	Name        string `gorm:"type:varchar(100);not null;comment:表情包名称" json:"name"`
 	Description string `gorm:"type:text;comment:描述" json:"description"`
-	CoverURL    string `gorm:"type:varchar(500);comment:封面地址" json:"cover_url"`
-	UserID      string `gorm:"type:char(36);index;comment:创建者" json:"user_id"`
-	IsPublic    bool   `gorm:"not null;default:false;comment:是否公开" json:"is_public"`
+	CoverURL    string `gorm:"type:varchar(500);comment:封面地址" json:"coverUrl"`
+	UserID      string `gorm:"type:char(36);index;comment:创建者" json:"userId"`
+	IsPublic    bool   `gorm:"not null;default:false;comment:是否公开" json:"isPublic"`
 	Status      string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status"`
 }
 
@@ -63,8 +63,8 @@ func (EmojiPack) TableName() string { return "emoji_packs" }
 // EmojiPackItem 表情包内条目（pack_id + emoji_id 逻辑唯一，应用层保证）。
 type EmojiPackItem struct {
 	BaseModel
-	PackID  string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:1;comment:表情包ID" json:"pack_id"`
-	EmojiID string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:2;comment:表情ID" json:"emoji_id"`
+	PackID  string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:1;comment:表情包ID" json:"packId"`
+	EmojiID string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:2;comment:表情ID" json:"emojiId"`
 	Sort    int    `gorm:"not null;default:0;comment:排序" json:"sort"`
 }
 
@@ -79,12 +79,12 @@ type EmojiQuery struct {
 	Type          string `form:"type"`
 	Category      string `form:"category"`
 	Keyword       string `form:"keyword"`
-	IsPublic      *bool  `form:"is_public"`
+	IsPublic      *bool  `form:"isPublic"`
 	Status        string `form:"status"`
-	UserID        string `form:"user_id"`
-	OnlyFavorites bool   `form:"only_favorites"`
-	SortBy        string `form:"sort_by"`
-	SortOrder     string `form:"sort_order"`
+	UserID        string `form:"userId"`
+	OnlyFavorites bool   `form:"onlyFavorites"`
+	SortBy        string `form:"sortBy"`
+	SortOrder     string `form:"sortOrder"`
 }
 
 // EmojiInput 表情创建/更新入参。
@@ -95,11 +95,11 @@ type EmojiInput struct {
 	Type     *string `json:"type"`
 	Category *string `json:"category"`
 	Tags     *string `json:"tags"`
-	IsPublic *bool   `json:"is_public"`
+	IsPublic *bool   `json:"isPublic"`
 	Width    *int    `json:"width"`
 	Height   *int    `json:"height"`
-	FileSize *int64  `json:"file_size"`
-	MimeType *string `json:"mime_type"`
+	FileSize *int64  `json:"fileSize"`
+	MimeType *string `json:"mimeType"`
 	Status   *string `json:"status"`
 }
 
@@ -107,17 +107,17 @@ type EmojiInput struct {
 type EmojiPackQuery struct {
 	Page     int    `form:"page"`
 	Limit    int    `form:"limit"`
-	UserID   string `form:"user_id"`
+	UserID   string `form:"userId"`
 	Keyword  string `form:"keyword"`
 	Status   string `form:"status"`
-	IsPublic *bool  `form:"is_public"`
+	IsPublic *bool  `form:"isPublic"`
 }
 
 // EmojiPackInput 表情包创建/更新入参。
 type EmojiPackInput struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
-	CoverURL    *string `json:"cover_url"`
-	IsPublic    *bool   `json:"is_public"`
+	CoverURL    *string `json:"coverUrl"`
+	IsPublic    *bool   `json:"isPublic"`
 	Status      *string `json:"status"`
 }

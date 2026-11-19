@@ -73,19 +73,19 @@ type CursorMeta struct {
 type PrivateMessageVO struct {
 	model.PrivateMessage
 	Type       string       `json:"type"` // 固定 "private"
-	IsRead     bool         `json:"is_read"`
-	IsRecalled bool         `json:"is_recalled"`
+	IsRead     bool         `json:"isRead"`
+	IsRecalled bool         `json:"isRecalled"`
 	Sender     *UserBriefVO `json:"sender"`
 	Receiver   *UserBriefVO `json:"receiver"`
 }
 
 // ConversationVO 会话列表项（对齐源端 getPrivateConversations 的 data 元素）。
 type ConversationVO struct {
-	ConversationID string            `json:"conversation_id"`
+	ConversationID string            `json:"conversationId"`
 	Counterpart    *UserBriefVO      `json:"counterpart"`
-	LatestMessage  *PrivateMessageVO `json:"latest_message"`
-	UnreadCount    int64             `json:"unread_count"`
-	LastMessageAt  *time.Time        `json:"last_message_at"`
+	LatestMessage  *PrivateMessageVO `json:"latestMessage"`
+	UnreadCount    int64             `json:"unreadCount"`
+	LastMessageAt  *time.Time        `json:"lastMessageAt"`
 }
 
 // ConversationListVO 会话列表结果体。
@@ -102,10 +102,10 @@ type PrivateHistoryVO struct {
 
 // ReadResultVO 标记已读结果（对齐源端 markConversationAsRead 返回）。
 type ReadResultVO struct {
-	ConversationID string     `json:"conversation_id"`
-	CounterpartID  string     `json:"counterpart_id"`
-	MessageIDs     []string   `json:"message_ids"`
-	ReadAt         *time.Time `json:"read_at"`
+	ConversationID string     `json:"conversationId"`
+	CounterpartID  string     `json:"counterpartId"`
+	MessageIDs     []string   `json:"messageIds"`
+	ReadAt         *time.Time `json:"readAt"`
 }
 
 // ReadReceiptVO 已读回执（WS privateMessagesReadReceipt / privateConversationRead 载荷）。
@@ -121,14 +121,14 @@ type ReadReceiptVO struct {
 type BlockedUserVO struct {
 	ID          string       `json:"id"`
 	Reason      *string      `json:"reason"`
-	CreatedAt   time.Time    `json:"created_at"`
+	CreatedAt   time.Time    `json:"createdAt"`
 	BlockedUser *UserBriefVO `json:"blockedUser"`
 }
 
 // SendPrivateInput 发送私信入参（对齐 SendPrivateMessageDto）。
 type SendPrivateInput struct {
 	Content     string                 `json:"content"`
-	MessageKind string                 `json:"message_kind"`
+	MessageKind string                 `json:"messageKind"`
 	Payload     map[string]interface{} `json:"payload"`
 }
 

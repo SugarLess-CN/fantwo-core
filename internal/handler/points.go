@@ -90,7 +90,7 @@ func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 		Limit:  atoiDefault(c.Query("limit"), 0),
 		Type:   c.Query("type"),
 		Source: c.Query("source"),
-		UserID: c.Query("user_id"),
+		UserID: c.Query("userId"),
 	}
 	list, total, err := h.Points.Transactions(q)
 	if err != nil {

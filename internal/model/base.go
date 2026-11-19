@@ -18,10 +18,13 @@ import (
 //
 // ID 采用 UUID 字符串（string(36)），与原 TypeORM 侧 uuid 主键语义对齐；
 // DeletedAt 使用 soft_delete 插件的索引列，语义同 TypeORM 的 @DeleteDateColumn。
+//
+// 命名口径（全局决策，见 AGENTS.md）：数据库列名 snake_case（gorm 自动按字段名蛇形），
+// 对外 JSON 一律 camelCase（对齐原 NestJS DTO / 前端契约）。
 type BaseModel struct {
-	ID        string               `gorm:"type:char(36);primaryKey" json:"id"`
-	CreatedAt time.Time            `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time            `gorm:"autoUpdateTime" json:"updated_at"`
+	ID        string                `gorm:"type:char(36);primaryKey" json:"id"`
+	CreatedAt time.Time             `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updatedAt"`
 	DeletedAt soft_delete.DeletedAt `gorm:"index" json:"-"`
 }
 

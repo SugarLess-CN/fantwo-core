@@ -166,7 +166,7 @@ func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 		return
 	}
 	var body struct {
-		DecorationID string `json:"decoration_id" binding:"required"`
+		DecorationID string `json:"decorationId" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
@@ -187,8 +187,8 @@ func (h *OpsHandler) DecorationGift(c *gin.Context) {
 		return
 	}
 	var body struct {
-		ToUserID     string `json:"to_user_id" binding:"required"`
-		DecorationID string `json:"decoration_id" binding:"required"`
+		ToUserID     string `json:"toUserId" binding:"required"`
+		DecorationID string `json:"decorationId" binding:"required"`
 		Message      string `json:"message"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {

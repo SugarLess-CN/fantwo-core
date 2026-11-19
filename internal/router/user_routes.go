@@ -13,6 +13,7 @@ package router
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
@@ -24,6 +25,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hibiken/asynq"
 )
+
+// registerUserSubscribersOnce 保证跨域事件订阅只注册一次（多次构造引擎不重复订阅）。
+var registerUserSubscribersOnce sync.Once
 
 // RegisterUserRoutes 注册用户域全部路由（认证 / 用户 / RBAC）。
 func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
@@ -213,6 +217,9 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 
 	// 权限列表别名 GET /admin/permissions/all
 	v1.GET("/admin/permissions/all", auth, canPermRead, permH.List)
+
+	// ------------------- 跨域事件订阅（report.handled 封禁 / invite.used 回写） -------------------
+	registerUserSubscribersOnce.Do(func() { service.RegisterUserEventSubscribers(deps) })
 
 	// ------------------- 初始化：RBAC 种子（幂等；DB 不可用则跳过） -------------------
 	if opt.DB != nil {

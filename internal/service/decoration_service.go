@@ -138,8 +138,8 @@ func (s *DecorationService) MyAchievementBadges(userID string, page, limit int) 
 
 // CurrentDecorations 当前佩戴（头像框 / 评论气泡）。
 type CurrentDecorations struct {
-	AvatarFrame   *model.UserDecoration `json:"avatar_frame"`
-	CommentBubble *model.UserDecoration `json:"comment_bubble"`
+	AvatarFrame   *model.UserDecoration `json:"avatarFrame"`
+	CommentBubble *model.UserDecoration `json:"commentBubble"`
 }
 
 // MyCurrent 当前佩戴。

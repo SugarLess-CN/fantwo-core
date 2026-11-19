@@ -48,11 +48,19 @@ func New(opt Option) *gin.Engine {
 	// 业务 API：/api/v1
 	v1 := r.Group("/api/v1")
 	{
+		// 根探测（对齐原 AppController.getHello，swagger 路径 "/"）
+		v1.GET("", appHello)
+
 		// 各业务域在此统一注册（见 registry.go；每域一行，勿交叉改动）
 		RegisterAll(v1, opt)
 	}
 
 	return r
+}
+
+// appHello 根探测接口（对齐原 AppController_getHello）。
+func appHello(c *gin.Context) {
+	response.Success(c, gin.H{"hello": "PicArt API"})
 }
 
 // health 存活探针：{code:0, message:"ok", data:{...}}。

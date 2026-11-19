@@ -193,7 +193,7 @@ type AchievementStats struct {
 	Total          int64  `json:"total"`
 	Completed      int64  `json:"completed"`
 	Claimed        int64  `json:"claimed"`
-	CompletionRate string `json:"completion_rate"`
+	CompletionRate string `json:"completionRate"`
 }
 
 // Stats 统计。
@@ -387,7 +387,7 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 type ClaimResult struct {
 	Points       int    `json:"points"`
 	Exp          int    `json:"exp"`
-	DecorationID string `json:"decoration_id,omitempty"`
+	DecorationID string `json:"decorationId,omitempty"`
 }
 
 // ClaimAllResult 一键领取结果。
@@ -449,6 +449,24 @@ func (s *AchievementService) Subscribe(bus *event.Bus) {
 			codes = append(codes, "LOGIN_30_DAYS")
 		}
 		s.batchSafe(p.UserID, codes, "user.dailyLogin")
+	})
+
+	// 订单支付成功（交易域发布）：会员订单推进会员成就，并按可配置的
+	// ORDER_PAID 积分活动发放积分（活动未配置则静默跳过，规则由管理员在活动表定义）。
+	bus.Subscribe(event.EventOrderPaid, func(payload interface{}) {
+		p, ok := asOrderPaid(payload)
+		if !ok || p.UserID == "" {
+			return
+		}
+		if p.Type == model.OrderTypeMembership {
+			s.batchSafe(p.UserID, []string{"BECOME_MEMBER"}, event.EventOrderPaid)
+		}
+		if s.points != nil {
+			// applied=false 表示未配置 ORDER_PAID 活动或已达限额，属正常情况
+			if _, _, err := s.points.TryAddByRule(p.UserID, "ORDER_PAID", "order", p.OrderID); err != nil {
+				log.Printf("[WARN] 支付成功积分发放失败 user=%s order=%s err=%v", p.UserID, p.OrderID, err)
+			}
+		}
 	})
 
 	bus.Subscribe(event.EventUserLevelUp, func(payload interface{}) {
@@ -554,6 +572,17 @@ func asDailyLogin(payload interface{}) (event.UserDailyLoginPayload, bool) {
 		return *p, true
 	}
 	return event.UserDailyLoginPayload{}, false
+}
+
+// asOrderPaid 载荷断言（交易域 OrderPaidPayload）。
+func asOrderPaid(payload interface{}) (event.OrderPaidPayload, bool) {
+	if p, ok := payload.(event.OrderPaidPayload); ok {
+		return p, true
+	}
+	if p, ok := payload.(*event.OrderPaidPayload); ok && p != nil {
+		return *p, true
+	}
+	return event.OrderPaidPayload{}, false
 }
 
 // asLevelUp 载荷断言。
