@@ -5,6 +5,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -169,6 +170,21 @@ func (h *RoleHandler) AssignMenus(c *gin.Context) {
 // Menus GET /role/{id}/menus（读取角色菜单 + 全量菜单清单）。
 func (h *RoleHandler) Menus(c *gin.Context) {
 	out, e := h.svc.RoleMenus(c.Request.Context(), c.Param("id"))
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, out)
+}
+
+// MyMenus GET /profile/menus：当前登录用户的菜单树。
+func (h *RoleHandler) MyMenus(c *gin.Context) {
+	uid := middleware.CurrentUserID(c)
+	var perms []string
+	if claims := middleware.ClaimsFrom(c); claims != nil {
+		perms = claims.Permissions
+	}
+	out, e := h.svc.MyMenus(c.Request.Context(), uid, perms)
 	if e != nil {
 		response.Fail(c, e)
 		return

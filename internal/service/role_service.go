@@ -486,6 +486,71 @@ func (s *RoleService) RoleMenus(ctx context.Context, roleID string) (map[string]
 	return map[string]interface{}{"roleId": roleID, "menus": menus, "allMenus": DefaultMenuKeys}, nil
 }
 
+// MenuNode 菜单树节点（对齐 swagger /profile/menus 的树形结构）。
+type MenuNode struct {
+	Key      string      `json:"key"`
+	Title    string      `json:"title"`
+	Children []*MenuNode `json:"children,omitempty"`
+}
+
+// menuTitles 菜单键的中文标题（用于返回展示名）。
+var menuTitles = map[string]string{
+	"dashboard": "仪表盘", "users": "用户管理", "roles": "角色管理", "permissions": "权限管理",
+	"articles": "文章管理", "comments": "评论管理", "categories": "分类管理", "tags": "标签管理",
+	"collections": "合集管理", "uploads": "上传管理", "orders": "订单管理", "payments": "支付管理",
+	"reports": "举报管理", "points": "积分管理", "achievements": "成就管理",
+	"decorations": "装饰品管理", "emojis": "表情包管理", "banners": "轮播管理",
+	"audit": "内容审核", "config": "系统配置", "statistics": "统计分析", "certifications": "认证审核",
+}
+
+// MyMenus 当前用户可见菜单树：取其全部角色的菜单键并集，按 DefaultMenuKeys 顺序输出。
+// super-admin（含 * / admin 权限）返回全部菜单。
+func (s *RoleService) MyMenus(ctx context.Context, userID string, perms []string) (map[string]interface{}, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, e
+	}
+	isAdmin := false
+	for _, p := range perms {
+		if p == "*" || p == "admin" || p == "user:manage" {
+			isAdmin = true
+			break
+		}
+	}
+	var allowed []string
+	if isAdmin {
+		allowed = DefaultMenuKeys
+	} else {
+		var roleIDs []string
+		if err := s.d.DB.Table("user_roles").Where("user_id = ?", userID).Pluck("role_id", &roleIDs).Error; err != nil {
+			return nil, errcode.ErrInternal
+		}
+		seen := map[string]struct{}{}
+		for _, rid := range roleIDs {
+			keys, err := s.d.Roles.MenuKeys(s.d.DB, rid)
+			if err != nil {
+				return nil, errcode.ErrInternal
+			}
+			for _, k := range keys {
+				seen[k] = struct{}{}
+			}
+		}
+		for _, k := range DefaultMenuKeys {
+			if _, ok := seen[k]; ok {
+				allowed = append(allowed, k)
+			}
+		}
+	}
+	nodes := make([]*MenuNode, 0, len(allowed))
+	for _, k := range allowed {
+		title := menuTitles[k]
+		if title == "" {
+			title = k
+		}
+		nodes = append(nodes, &MenuNode{Key: k, Title: title})
+	}
+	return map[string]interface{}{"menus": nodes, "total": len(nodes)}, nil
+}
+
 // bumpRoleUsers 递增角色下全部用户的权限版本，返回影响人数。
 func (s *RoleService) bumpRoleUsers(ctx context.Context, roleID string) int {
 	var ids []string

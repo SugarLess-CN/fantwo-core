@@ -13,6 +13,8 @@ package infra
 
 import (
 	"context"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"strings"
 	"time"
 
@@ -104,7 +106,7 @@ func (s *Statistics) Overview(ctx context.Context) (*OverviewResult, error) {
 		ActiveMembers int64
 		TodayNew      int64
 	}
-	if err := db.Table("users").
+	if err := db.Table(model.User{}.TableName()).
 		Select(`COUNT(*) AS total,
 			COALESCE(SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END),0) AS active,
 			COALESCE(SUM(CASE WHEN status = 'BANNED' THEN 1 ELSE 0 END),0) AS banned,
@@ -303,9 +305,9 @@ func (s *Statistics) Trends(ctx context.Context, days int) (*TrendsResult, error
 	db := s.db.WithContext(ctx)
 	start := startOfDayNDaysAgo(days)
 
-	users := s.dailyCount(db, "users", "created_at", start, "")
-	articles := s.dailyCount(db, "articles", "created_at", start, "")
-	comments := s.dailyCount(db, "comments", "created_at", start, "")
+	users := s.dailyCount(db, model.User{}.TableName(), "created_at", start, "")
+	articles := s.dailyCount(db, model.Article{}.TableName(), "created_at", start, "")
+	comments := s.dailyCount(db, model.Comment{}.TableName(), "created_at", start, "")
 	paidOrders, revenue := s.dailyPaidOrders(db, start)
 
 	series := make([]TrendPoint, 0, days)

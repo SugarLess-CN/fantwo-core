@@ -98,6 +98,9 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		me.POST("/profile/phone/code", userH.SendBindPhoneCode) // 任务书别名
 		me.GET("/user/profile/favorites", userH.Favorites)
 		me.GET("/profile/favorites", userH.Favorites) // 任务书别名
+		// 我的菜单树（swagger /profile/menus；此前未注册）
+		me.GET("/profile/menus", roleH.MyMenus)
+		me.GET("/user/profile/menus", roleH.MyMenus)
 		me.GET("/user/profile/favorites/:productId", userH.FavoriteDetail)
 		me.GET("/profile/favorites/:productId", userH.FavoriteDetail) // 任务书别名
 
@@ -155,7 +158,10 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	admin.Use(auth)
 	{
 		admin.POST("", canUserCreate, userH.Create)
-		admin.GET("", canUserRead, userH.FindAll)
+		// 全站用户列表属管理能力：收紧为 user:manage。
+		// 原项目此处是 @NoAuth() 公开列表（会泄露全部用户），我方按安全加固处理；
+		// 普通用户查看他人主页仍可走 GET /user/:id（user:read）。
+		admin.GET("", canUserManage, userH.FindAll)
 		admin.PATCH("/:id", canUserWrite, userH.Update)
 		admin.DELETE("/:id", canUserDelete, userH.Remove)
 		admin.GET("/:id", canUserRead, userH.FindOne)
