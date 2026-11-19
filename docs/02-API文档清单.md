@@ -45,7 +45,7 @@
 ## 2. 全局约定
 
 ### servers / basePath
-- `servers` 为空数组，文档未说明部署地址。所有路径自带全局前缀 `api/v1`（如 `api/v1/user/list`），即 basePath = `/api/v1`。
+- `servers` 为空数组，且所有路径均不带前缀（如 `/user/list`、`/article`），swagger 层面未声明 basePath。源码级全局前缀（原项目 `api/v1`）不在本 swagger 内体现，Go 重构时以源码为准。
 
 ### 鉴权方案（securitySchemes）
 
