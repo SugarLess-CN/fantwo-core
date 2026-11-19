@@ -388,9 +388,14 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
-	if _, err := s.d.Users.FindPlainByID(s.d.DB, id); IsNotFound(err) {
+	before, err := s.d.Users.FindPlainByID(s.d.DB, id)
+	if IsNotFound(err) {
 		return nil, errcode.ErrUserNotExist
 	}
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	wasComplete := isProfileComplete(before)
 	fields := map[string]interface{}{}
 	if in.Nickname != nil {
 		fields["nickname"] = *in.Nickname
@@ -436,6 +441,10 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	user, err := s.d.Users.FindByID(s.d.DB, id)
 	if err != nil {
 		return nil, errcode.ErrInternal
+	}
+	// 管理员补齐资料同样算「资料补全」，与本人更新保持一致的事件语义。
+	if !wasComplete && isProfileComplete(user) {
+		publishProfileCompleted(id)
 	}
 	return buildUserView(user, true, isMembershipActive(user)), nil
 }

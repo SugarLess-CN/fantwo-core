@@ -37,6 +37,13 @@ func Default() *Bus { return defaultBus }
 // SetDefault 替换全局总线（测试用）。
 func SetDefault(b *Bus) { defaultBus = b }
 
+// SubscriberCount 某主题的订阅者数量（诊断用：0 表示无人监听，事件会被静默丢弃）。
+func (b *Bus) SubscriberCount(topic string) int {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return len(b.subs[topic])
+}
+
 // Subscribe 订阅主题（可重复注册，按注册顺序调用）。
 func (b *Bus) Subscribe(topic string, h Handler) {
 	b.mu.Lock()
