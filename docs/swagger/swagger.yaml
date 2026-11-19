@@ -94,6 +94,25 @@ paths:
       tags:
       - 成就
   /achievement/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除成就定义
+      tags:
+      - 成就
     get:
       parameters:
       - description: 成就 ID
@@ -109,6 +128,33 @@ paths:
           schema:
             $ref: '#/definitions/internal_handler.ResponseBody'
       summary: 成就详情
+      tags:
+      - 成就
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新成就定义
       tags:
       - 成就
   /achievement/{id}/claim:
@@ -308,6 +354,621 @@ paths:
       summary: 更新文章
       tags:
       - 文章
+  /article/{id}/browse/progress:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 上报阅读进度
+      tags:
+      - 文章
+  /article/{id}/dislike:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消点踩
+      tags:
+      - 文章
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 点踩文章
+      tags:
+      - 文章
+  /article/{id}/dislike/status:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 点踩状态
+      tags:
+      - 文章
+  /article/{id}/favorite:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消收藏
+      tags:
+      - 文章
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 收藏文章
+      tags:
+      - 文章
+  /article/{id}/favorite/status:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 收藏状态
+      tags:
+      - 文章
+  /article/{id}/featured:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 设置/取消精华
+      tags:
+      - 文章
+  /article/{id}/like:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 点赞文章
+      tags:
+      - 文章
+  /article/{id}/like/count:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 点赞数
+      tags:
+      - 文章
+  /article/{id}/like/status:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 点赞状态
+      tags:
+      - 文章
+  /article/{id}/profile-pin:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 设置/取消主页置顶
+      tags:
+      - 文章
+  /article/{id}/share:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 分享文章
+      tags:
+      - 文章
+  /article/author/{id}:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 作者主页文章
+      tags:
+      - 文章
+  /article/browse:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 清空浏览历史
+      tags:
+      - 文章
+  /article/browse/{articleId}:
+    delete:
+      parameters:
+      - description: articleId
+        in: path
+        name: articleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除浏览记录
+      tags:
+      - 文章
+    get:
+      parameters:
+      - description: articleId
+        in: path
+        name: articleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 单条浏览记录
+      tags:
+      - 文章
+  /article/browse/batch-delete:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量删除浏览记录
+      tags:
+      - 文章
+  /article/browse/history:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 浏览历史
+      tags:
+      - 文章
+  /article/browse/recent:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 最近浏览
+      tags:
+      - 文章
+  /article/browse/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 浏览统计
+      tags:
+      - 文章
+  /article/disliked/list:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我点踩的文章
+      tags:
+      - 文章
+  /article/drafts:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的草稿箱
+      tags:
+      - 文章
+  /article/favorited/list:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我收藏的文章
+      tags:
+      - 文章
+  /article/hot-search:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 热搜词
+      tags:
+      - 文章
+  /article/liked:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我赞过的文章
+      tags:
+      - 文章
+  /article/published/ids:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 已发布文章 ID 列表
+      tags:
+      - 文章
+  /article/recommend/{id}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 相关文章推荐
+      tags:
+      - 文章
+  /article/search:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 文章搜索（ES）
+      tags:
+      - 文章
+  /auth/sms/login:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 手机验证码登录
+      tags:
+      - 用户认证
+  /auth/sms/send:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 发送短信验证码
+      tags:
+      - 用户认证
   /banners:
     get:
       produces:
@@ -772,7 +1433,97 @@ paths:
       summary: 合集内文章列表
       tags:
       - 合集
+  /collection/{id}/items/order:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 调整合集内文章顺序
+      tags:
+      - 合集
+  /collection/article/{articleId}/info:
+    get:
+      parameters:
+      - description: articleId
+        in: path
+        name: articleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 文章合集信息
+      tags:
+      - 合集
+  /collection/check/{articleId}:
+    get:
+      parameters:
+      - description: articleId
+        in: path
+        name: articleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 文章所在合集检查
+      tags:
+      - 合集
   /comment:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 全部评论（管理端）
+      tags:
+      - 评论
     post:
       consumes:
       - application/json
@@ -824,6 +1575,98 @@ paths:
       summary: 删除评论
       tags:
       - 评论
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 评论详情
+      tags:
+      - 评论
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新评论
+      tags:
+      - 评论
+  /comment/{id}/like:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 点赞评论
+      tags:
+      - 评论
+  /comment/{id}/pin:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 设置/取消评论置顶
+      tags:
+      - 评论
   /comment/article/{id}:
     get:
       parameters:
@@ -850,6 +1693,45 @@ paths:
       summary: 文章评论列表
       tags:
       - 评论
+  /comment/article/{id}/count:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 文章评论数
+      tags:
+      - 评论
+  /comment/user/{userId}:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 用户评论列表
+      tags:
+      - 评论
   /config:
     get:
       parameters:
@@ -871,6 +1753,26 @@ paths:
       security:
       - BearerAuth: []
       summary: 配置列表（管理端）
+      tags:
+      - 系统配置
+    patch:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量更新配置
       tags:
       - 系统配置
     post:
@@ -932,6 +1834,33 @@ paths:
       security:
       - BearerAuth: []
       summary: 配置项详情
+      tags:
+      - 系统配置
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 按 ID 更新配置项
       tags:
       - 系统配置
   /config/advertisement:
@@ -1023,6 +1952,124 @@ paths:
           schema:
             $ref: '#/definitions/internal_handler.ResponseBody'
       summary: 公开配置
+      tags:
+      - 系统配置
+  /config/sensitive-words:
+    delete:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除敏感词
+      tags:
+      - 系统配置
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 敏感词列表
+      tags:
+      - 系统配置
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 新增敏感词
+      tags:
+      - 系统配置
+  /config/sensitive-words/batch:
+    delete:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量删除敏感词
+      tags:
+      - 系统配置
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量导入敏感词
+      tags:
+      - 系统配置
+  /config/sensitive-words/clear-cache:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 清空敏感词缓存
       tags:
       - 系统配置
   /content-audit/articles/{id}/review:
@@ -1225,6 +2272,225 @@ paths:
       summary: 装饰品详情
       tags:
       - 装饰品
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新装饰品
+      tags:
+      - 装饰品
+  /decoration/achievement-badges/my:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的成就徽章
+      tags:
+      - 装饰品
+  /decoration/activity:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 装饰品活动列表
+      tags:
+      - 装饰品
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建装饰品限时活动
+      tags:
+      - 装饰品
+  /decoration/activity/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除装饰品活动
+      tags:
+      - 装饰品
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 活动详情
+      tags:
+      - 装饰品
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新装饰品活动
+      tags:
+      - 装饰品
+  /decoration/activity/claim/{activityId}:
+    post:
+      parameters:
+      - description: activityId
+        in: path
+        name: activityId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 领取活动奖励
+      tags:
+      - 装饰品
+  /decoration/activity/progress/my:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的活动进度
+      tags:
+      - 装饰品
+  /decoration/clean-expired:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 清理过期装饰品（管理触发）
+      tags:
+      - 装饰品
+  /decoration/gift:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 赠送装饰品
+      tags:
+      - 装饰品
   /decoration/purchase:
     post:
       consumes:
@@ -1248,6 +2514,26 @@ paths:
       summary: 购买装饰品
       tags:
       - 装饰品
+  /decoration/unuse/{decorationId}:
+    post:
+      parameters:
+      - description: decorationId
+        in: path
+        name: decorationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 卸下装饰品
+      tags:
+      - 装饰品
   /decoration/use/{decorationId}:
     post:
       parameters:
@@ -1266,6 +2552,40 @@ paths:
       security:
       - BearerAuth: []
       summary: 佩戴装饰品
+      tags:
+      - 装饰品
+  /decoration/user/{userId}:
+    get:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 指定用户装饰品
+      tags:
+      - 装饰品
+  /decoration/user/current/decorations:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我当前佩戴的装饰品
       tags:
       - 装饰品
   /decoration/user/my:
@@ -1317,6 +2637,25 @@ paths:
       tags:
       - 表情包
   /emoji/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除表情
+      tags:
+      - 表情包
     get:
       parameters:
       - description: 表情 ID
@@ -1334,7 +2673,53 @@ paths:
       summary: 表情详情
       tags:
       - 表情包
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新表情
+      tags:
+      - 表情包
   /emoji/{id}/favorite:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消收藏表情
+      tags:
+      - 表情包
     post:
       parameters:
       - description: 表情 ID
@@ -1352,6 +2737,52 @@ paths:
       security:
       - BearerAuth: []
       summary: 收藏表情
+      tags:
+      - 表情包
+  /emoji/{id}/use:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 记录表情使用
+      tags:
+      - 表情包
+  /emoji/categories/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 表情分类
+      tags:
+      - 表情包
+  /emoji/favorites/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我收藏的表情
       tags:
       - 表情包
   /emoji/packs:
@@ -1389,6 +2820,25 @@ paths:
       tags:
       - 表情包
   /emoji/packs/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除表情包
+      tags:
+      - 表情包
     get:
       parameters:
       - description: 表情包 ID
@@ -1404,6 +2854,144 @@ paths:
           schema:
             $ref: '#/definitions/internal_handler.ResponseBody'
       summary: 表情包详情
+      tags:
+      - 表情包
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新表情包
+      tags:
+      - 表情包
+  /emoji/packs/{id}/emojis:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 向表情包添加表情
+      tags:
+      - 表情包
+  /emoji/packs/{id}/emojis/{emojiId}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: emojiId
+        in: path
+        name: emojiId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 从表情包移除表情
+      tags:
+      - 表情包
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: emojiId
+        in: path
+        name: emojiId
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新包内表情
+      tags:
+      - 表情包
+  /emoji/popular/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 热门表情
+      tags:
+      - 表情包
+  /emoji/recent/list:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我最近使用的表情
       tags:
       - 表情包
   /emoji/upload:
@@ -1578,6 +3166,113 @@ paths:
       summary: 创建站内消息
       tags:
       - 消息
+  /message/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除消息
+      tags:
+      - 消息
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 消息详情
+      tags:
+      - 消息
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新消息
+      tags:
+      - 消息
+  /message/{id}/read:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 单条已读
+      tags:
+      - 消息
+  /message/batch:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量操作（已读/删除）
+      tags:
+      - 消息
   /message/private/{userId}:
     post:
       consumes:
@@ -1611,6 +3306,59 @@ paths:
       summary: 发送私信
       tags:
       - 消息
+  /message/private/block/{userId}:
+    delete:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消拉黑
+      tags:
+      - 消息
+    post:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 拉黑用户
+      tags:
+      - 消息
+  /message/private/blocks:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的拉黑列表
+      tags:
+      - 消息
   /message/private/conversations:
     get:
       parameters:
@@ -1634,6 +3382,161 @@ paths:
       summary: 私信会话列表
       tags:
       - 消息
+  /message/private/conversations/{userId}/messages:
+    get:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 私信历史
+      tags:
+      - 消息
+  /message/private/conversations/{userId}/read:
+    post:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 整会话已读
+      tags:
+      - 消息
+  /message/private/read-batch:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量私信已读
+      tags:
+      - 消息
+  /message/private/recall/{id}:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 撤回私信
+      tags:
+      - 消息
+  /message/read-all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 全部已读
+      tags:
+      - 消息
+  /message/search:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 消息高级查询
+      tags:
+      - 消息
+  /message/unread/count:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 未读计数
+      tags:
+      - 消息
+  /order:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 全部订单（管理端）
+      tags:
+      - 订单
   /order/{id}:
     get:
       parameters:
@@ -1656,6 +3559,26 @@ paths:
       security:
       - BearerAuth: []
       summary: 订单详情
+      tags:
+      - 订单
+  /order/{id}/cancel:
+    put:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消订单
       tags:
       - 订单
   /order/{id}/refund:
@@ -1744,6 +3667,86 @@ paths:
       summary: 创建会员订单
       tags:
       - 订单
+  /order/no/{orderNo}:
+    get:
+      parameters:
+      - description: orderNo
+        in: path
+        name: orderNo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 按订单号查询
+      tags:
+      - 订单
+  /order/pending:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的待支付订单
+      tags:
+      - 订单
+  /order/user:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的订单
+      tags:
+      - 订单
+  /order/wallet/balance:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 钱包余额
+      tags:
+      - 订单
   /payment/create:
     post:
       consumes:
@@ -1815,6 +3818,90 @@ paths:
               type: string
             type: object
       summary: 微信支付异步回调
+      tags:
+      - 支付
+  /payment/order/{orderId}:
+    get:
+      parameters:
+      - description: orderId
+        in: path
+        name: orderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 按订单查支付记录
+      tags:
+      - 支付
+  /payment/record/{id}:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 支付记录详情
+      tags:
+      - 支付
+  /payment/test/epay-signature:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 易支付签名调试
+      tags:
+      - 支付
+  /payment/user:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的支付记录
       tags:
       - 支付
   /permission:
@@ -1945,7 +4032,46 @@ paths:
       summary: 积分活动列表
       tags:
       - 积分
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建积分活动
+      tags:
+      - 积分
   /points/activities/{id}:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除积分活动
+      tags:
+      - 积分
     get:
       parameters:
       - description: 活动 ID
@@ -1961,6 +4087,33 @@ paths:
           schema:
             $ref: '#/definitions/internal_handler.ResponseBody'
       summary: 积分活动详情
+      tags:
+      - 积分
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新积分活动
       tags:
       - 积分
   /points/activities/{id}/claim:
@@ -2043,6 +4196,54 @@ paths:
       summary: 花积分
       tags:
       - 积分
+  /points/statistics:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 积分统计
+      tags:
+      - 积分
+  /points/tasks/my:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的积分任务
+      tags:
+      - 积分
+  /points/tasks/my/{activityId}:
+    get:
+      parameters:
+      - description: activityId
+        in: path
+        name: activityId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的任务进度
+      tags:
+      - 积分
   /points/transactions:
     get:
       parameters:
@@ -2066,6 +4267,86 @@ paths:
       summary: 我的积分流水
       tags:
       - 积分
+  /points/transactions/all:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 全部积分流水（管理端）
+      tags:
+      - 积分
+  /points/users/{userId}/balance:
+    get:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 指定用户积分余额
+      tags:
+      - 积分
+  /points/users/{userId}/transactions:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 指定用户积分流水
+      tags:
+      - 积分
+  /profile/menus:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的菜单树
+      tags:
+      - 角色
   /report:
     get:
       produces:
@@ -2659,6 +4940,25 @@ paths:
       tags:
       - 标签
   /tag/{id}/follow:
+    delete:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消关注标签
+      tags:
+      - 标签
     post:
       parameters:
       - description: 标签 ID
@@ -2759,6 +5059,20 @@ paths:
       summary: 删除上传记录
       tags:
       - 上传
+  /upload/avatar:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 上传头像（走图片审核）
+      tags:
+      - 上传
   /upload/config:
     get:
       produces:
@@ -2838,6 +5152,62 @@ paths:
       security:
       - BearerAuth: []
       summary: 上传记录详情
+      tags:
+      - 上传
+  /upload/migration/metadata:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 回填元数据
+      tags:
+      - 上传
+  /upload/migration/process:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 执行本地→S3 迁移
+      tags:
+      - 上传
+  /upload/migration/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 迁移统计
       tags:
       - 上传
   /upload/presign:
@@ -2964,6 +5334,220 @@ paths:
       summary: 用户详情
       tags:
       - 用户管理
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新用户（管理端）
+      tags:
+      - 用户管理
+  /user/{id}/follow:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 关注用户
+      tags:
+      - 用户管理
+  /user/{id}/followers:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 粉丝列表
+      tags:
+      - 用户管理
+  /user/{id}/followers/count:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 粉丝数
+      tags:
+      - 用户管理
+  /user/{id}/followings:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 关注列表
+      tags:
+      - 用户管理
+  /user/{id}/followings/count:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 关注数
+      tags:
+      - 用户管理
+  /user/{id}/membership/check:
+    get:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 会员状态检查
+      tags:
+      - 用户管理
+  /user/{id}/unfollow:
+    post:
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消关注
+      tags:
+      - 用户管理
+  /user/account/deletion:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 申请注销账号
+      tags:
+      - 用户管理
+  /user/account/deletion/cancel:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 取消注销申请
+      tags:
+      - 用户管理
+  /user/account/status:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 注销申请状态
+      tags:
+      - 用户管理
   /user/certification/apply:
     post:
       consumes:
@@ -3001,6 +5585,26 @@ paths:
       summary: 我的身份标识
       tags:
       - 用户认证
+  /user/certification/identity/{userId}:
+    get:
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 指定用户身份标识
+      tags:
+      - 用户认证
   /user/certification/status:
     get:
       produces:
@@ -3013,6 +5617,162 @@ paths:
       security:
       - BearerAuth: []
       summary: 我的认证状态
+      tags:
+      - 用户认证
+  /user/commission/calculate:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 佣金试算
+      tags:
+      - 用户管理
+  /user/commission/config:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 读取佣金配置
+      tags:
+      - 用户管理
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 设置佣金配置
+      tags:
+      - 用户管理
+  /user/config:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的用户配置
+      tags:
+      - 用户管理
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新用户配置
+      tags:
+      - 用户管理
+  /user/config/commission:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新全局佣金配置
+      tags:
+      - 用户管理
+  /user/config/notifications:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新通知偏好
+      tags:
+      - 用户管理
+  /user/email/verification:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 发送邮箱验证码
       tags:
       - 用户认证
   /user/login:
@@ -3064,6 +5824,123 @@ paths:
       summary: 退出登录
       tags:
       - 用户认证
+  /user/logout-all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 全端退出登录
+      tags:
+      - 用户认证
+  /user/membership/batch-check:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 批量会员状态检查
+      tags:
+      - 用户管理
+  /user/oauth/github/callback:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: GitHub 回调（重定向模式）
+      tags:
+      - 用户认证
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: GitHub 回调（SPA 模式换本站 token）
+      tags:
+      - 用户认证
+  /user/oauth/github/url:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: GitHub 授权链接
+      tags:
+      - 用户认证
+  /user/password/change:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 修改密码
+      tags:
+      - 用户认证
+  /user/password/reset:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 邮箱验证码重置密码
+      tags:
+      - 用户认证
   /user/profile:
     get:
       produces:
@@ -3107,6 +5984,114 @@ paths:
       security:
       - BearerAuth: []
       summary: 更新当前用户资料
+      tags:
+      - 用户管理
+  /user/profile/contact:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 修改联系方式
+      tags:
+      - 用户管理
+  /user/profile/favorites:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的收藏夹
+      tags:
+      - 用户管理
+  /user/profile/favorites/{productId}:
+    get:
+      parameters:
+      - description: productId
+        in: path
+        name: productId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 收藏项详情
+      tags:
+      - 用户管理
+  /user/profile/phone:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 绑定手机号
+      tags:
+      - 用户管理
+  /user/profile/phone/code:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 发送绑定手机验证码
       tags:
       - 用户管理
   /user/refresh-token:
@@ -3166,6 +6151,129 @@ paths:
       summary: 用户注册
       tags:
       - 用户认证
+  /user/sign-in:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 每日签到
+      tags:
+      - 用户管理
+  /user/sign-in/records:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 签到记录
+      tags:
+      - 用户管理
+  /user/sign-in/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 签到统计
+      tags:
+      - 用户管理
+  /user/wallet/balance:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 钱包余额
+      tags:
+      - 用户管理
+  /user/wallet/statistics:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 钱包统计
+      tags:
+      - 用户管理
+  /user/wallet/transactions:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 钱包流水
+      tags:
+      - 用户管理
+  /user/wallet/withdraw:
+    post:
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 钱包提现
+      tags:
+      - 用户管理
 schemes:
 - http
 - https

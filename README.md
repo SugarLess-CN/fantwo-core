@@ -46,14 +46,19 @@ curl http://127.0.0.1:3000/swagger/doc.json              # 原始 OpenAPI
 - 开关：`swagger.enabled` / `SWAGGER_ENABLED`（默认 `false`，**生产不要开**）。
 - 注册：`internal/router/swagger_routes.go` 的 `RegisterSwaggerRoutes(r gin.IRouter, cfg)`；
   参数用 `gin.IRouter` 接口，故 `*gin.Engine`（根路径）与 `*gin.RouterGroup`（业务前缀）都能传。
-  当前两处各调用一次：`router.go` 挂根路径、`registry.go` 挂 `/api/v1` 别名。
-  如只想保留根路径，删掉 `registry.go` 末尾那一行即可。
+  **唯一入口：根路径 `/swagger/*any`**（`router.go` 的 `New()` 里挂载），registry 不再挂别名。
 - `docs/swagger/` 是生成物但**入库**：它是交付物，且让未装 swag CLI 的人也能直接看文档。
   改动注解后务必重跑第 2 步，否则文档与代码不一致。
-- 注解现状：已覆盖 user/auth、article、comment、order、payment、message 的核心端点
-  （23 路径 / 30 操作 / 7 个 tag）；其余域按业务批次逐步补齐。
-  新增端点写法：在 handler 函数上方注释块内加 `@Summary/@Tags/@Param/@Success/@Router`，
+- 注解现状：**236 路径 / 308 操作 / 24 个 tag**（覆盖全部业务域，
+  操作数超过原项目 swagger.json 的 275 —— 本项目额外挂了 `/auth/*`、`/admin/roles/*` 等别名路由）。
+  用户管理 37 · 文章 34 · 装饰品 21 · 表情包 21 · 用户认证 20 · 消息 19 · 系统配置 17 · 积分 16 ·
+  角色 13 · 合集 11 · 上传 11 · 评论 10 · 订单 10 · 标签 10 · 成就 8 · 支付 8 · 轮播 6 ·
+  内容审核 6 · 邀请 6 · 权限 6 · 举报 6 · 分类 5 · 搜索 5 · 统计 2。
+- 新增端点写法：在 handler 函数上方注释块内加 `@Summary/@Tags/@Param/@Success/@Security/@Router`，
   响应类型统一引用 `handler.ResponseBody`（分页用 `handler.ResponsePageBody`）。
+  `NoAuth` / 可选登录的公开端点**不写** `@Security BearerAuth`。
+- 注解完整性自查：`python tmp/audit_annotations.py` 会列出所有未带 `@Summary` 的 handler 方法
+  （脚本在 tmp/，不入库；当前输出 `合计未注解方法：0`）。
 
 ## 健康检查与可观测
 

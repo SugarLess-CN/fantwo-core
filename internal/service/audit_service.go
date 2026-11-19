@@ -33,44 +33,75 @@ const (
 
 // AuditConfig 审核配置（config 表聚合）。
 type AuditConfig struct {
-	Provider       string
-	CommentEnabled bool
-	AvatarEnabled  bool
-	ImageEnabled   bool
-	ArticleEnabled bool
-	AutoBlock      bool
-	ReviewMode     string // auto / manual
+	Provider       string `json:"provider"`
+	CommentEnabled bool   `json:"commentEnabled"`
+	AvatarEnabled  bool   `json:"avatarEnabled"`
+	ImageEnabled   bool   `json:"imageEnabled"`
+	ArticleEnabled bool   `json:"articleEnabled"`
+	AutoBlock      bool   `json:"autoBlock"`
+	ReviewMode     string `json:"reviewMode"` // auto / manual
 	// Tencent 腾讯云 CMS
-	TencentSecretID  string
-	TencentSecretKey string
-	TencentRegion    string
-	TencentTextBiz   string
-	TencentImageBiz  string
+	TencentSecretID  string `json:"tencentSecretId"`
+	TencentSecretKey string `json:"-"`
+	TencentRegion    string `json:"tencentRegion"`
+	TencentTextBiz   string `json:"tencentTextBiz"`
+	TencentImageBiz  string `json:"tencentImageBiz"`
 	// Aliyun 阿里云 green
-	AliyunAccessKeyID     string
-	AliyunAccessKeySecret string
-	AliyunRegion          string
+	AliyunAccessKeyID     string `json:"aliyunAccessKeyId"`
+	AliyunAccessKeySecret string `json:"-"`
+	AliyunRegion          string `json:"aliyunRegion"`
 }
 
 // AuditResult 统一审核结果。
 type AuditResult struct {
-	Passed     bool
-	Action     string // pass / review / block
-	Label      string
-	Reason     string
-	Score      float64
-	DetailJSON string
+	Passed     bool    `json:"passed"`
+	Action     string  `json:"action"` // pass / review / block
+	Label      string  `json:"label"`
+	Reason     string  `json:"reason"`
+	Score      float64 `json:"score"`
+	DetailJSON string  `json:"detailJson"`
 }
 
 // AuditService 审核业务。
 type AuditService struct {
 	DB    *gorm.DB
 	asynq *asynq.Client
+	// sensitive 本地敏感词检查（返回命中的词与是否命中）。
+	// 与云 provider 相互独立：即使 provider=none，本地敏感词也必须生效。
+	sensitive func(text string) (string, bool)
 }
 
 // NewAuditService 构造。
 func NewAuditService(db *gorm.DB, c *asynq.Client) *AuditService {
 	return &AuditService{DB: db, asynq: c}
+}
+
+// SetSensitiveChecker 注入本地敏感词检查（由装配层传 infra.ConfigService.CheckText）。
+func (s *AuditService) SetSensitiveChecker(fn func(text string) (string, bool)) *AuditService {
+	s.sensitive = fn
+	return s
+}
+
+// checkSensitive 本地敏感词检查：命中即按 autoBlock 决定 block / review。
+func (s *AuditService) checkSensitive(content string) (AuditResult, bool) {
+	if s.sensitive == nil || content == "" {
+		return AuditResult{}, false
+	}
+	word, hit := s.sensitive(content)
+	if !hit {
+		return AuditResult{}, false
+	}
+	cfg := s.LoadAuditConfig()
+	action := model.AuditActionReview
+	if cfg.AutoBlock {
+		action = model.AuditActionBlock
+	}
+	return AuditResult{
+		Passed: action == model.AuditActionPass,
+		Action: action,
+		Label:  "sensitive_word",
+		Reason: "命中本地敏感词：" + word,
+	}, true
 }
 
 // LoadAuditConfig 从 config 表读审核配置（key 对齐原仓库 content_audit_*）。
@@ -146,6 +177,10 @@ func aliyunImageService(scene string) string {
 
 // AuditText 同步文本审核（provider 路由 + 场景开关；未启用直接放行）。
 func (s *AuditService) AuditText(scene, content string, userID string) AuditResult {
+	// 本地敏感词优先（与云 provider 无关，provider=none 时也生效）
+	if r, hit := s.checkSensitive(content); hit {
+		return r
+	}
 	cfg := s.LoadAuditConfig()
 	if !cfg.sceneEnabled(scene) {
 		return AuditResult{Passed: true, Action: model.AuditActionPass}
@@ -475,7 +510,21 @@ func (s *AuditService) emitStatusChanged(r *model.AuditRecord) {
 // ---------- 人工复审（管理端） ----------
 
 // ListPendingArticles 待审核文章列表（articles 表局部视图）。
-func (s *AuditService) ListPendingArticles(page, limit int) ([]map[string]interface{}, int64, error) {
+// PendingArticleItem 待审核文章条目（对外 camelCase）。
+//
+// 此前直接用 []map[string]interface{} 查询，Find 会原样返回数据库列名
+// （author_id / created_at），违反全局 camelCase 口径，故改为显式结构映射。
+type PendingArticleItem struct {
+	ID         string    `json:"id"`
+	Title      string    `json:"title"`
+	AuthorID   string    `json:"authorId"`
+	CategoryID *string   `json:"categoryId"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+// ListPendingArticles 待审核文章分页。
+func (s *AuditService) ListPendingArticles(page, limit int) ([]PendingArticleItem, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -483,17 +532,17 @@ func (s *AuditService) ListPendingArticles(page, limit int) ([]map[string]interf
 		limit = 20
 	}
 	var total int64
-	if err := s.DB.Table("articles").Where("status = ?", "PENDING").Count(&total).Error; err != nil {
+	if err := s.DB.Table(model.Article{}.TableName()).Where("status = ?", "PENDING").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	var rows []map[string]interface{}
-	err := s.DB.Table("articles").
+	out := make([]PendingArticleItem, 0, limit)
+	err := s.DB.Table(model.Article{}.TableName()).
 		Select("id, title, author_id, category_id, status, created_at").
 		Where("status = ?", "PENDING").
 		Order("created_at DESC").
 		Offset((page - 1) * limit).Limit(limit).
-		Find(&rows).Error
-	return rows, total, err
+		Scan(&out).Error
+	return out, total, err
 }
 
 // ReviewArticleInput 人工复审入参。
@@ -504,11 +553,16 @@ type ReviewArticleInput struct {
 
 // ReviewArticle 人工复审：只发 article.status.changed 事件（content 域负责落库与计数）。
 func (s *AuditService) ReviewArticle(articleID string, in ReviewArticleInput, operatorID string) (map[string]interface{}, error) {
-	var row map[string]interface{}
-	if err := s.DB.Table("articles").Select("id, status").First(&row, "id = ?", articleID).Error; err != nil {
-		return nil, errcode.ErrNotFound.With("文章不存在")
+	// 用实体查询而非 First(&map)：GORM 对 map 目标的 First 语义不可靠，
+	// 曾导致「文章存在却返回 404 文章不存在」。
+	var art model.Article
+	if err := s.DB.Select("id", "status").First(&art, "id = ?", articleID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errcode.ErrNotFound.With("文章不存在")
+		}
+		return nil, err
 	}
-	status, _ := row["status"].(string)
+	status := art.Status
 	if status != "PENDING" {
 		return nil, errcode.ErrBadRequest.With("该文章不处于待审核状态")
 	}

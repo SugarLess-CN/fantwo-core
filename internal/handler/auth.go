@@ -147,6 +147,13 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 }
 
 // LogoutAll POST /user/logout-all（另挂 POST /auth/logout-all）：全端登出。
+//
+//	@Summary	全端退出登录
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/logout-all [post]
 func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
 	if e := h.svc.LogoutAll(c.Request.Context(), userID); e != nil {
@@ -157,6 +164,13 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 }
 
 // SendSmsCode POST /auth/sms/send：发送短信验证码。
+//
+//	@Summary	发送短信验证码
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/auth/sms/send [post]
 func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 	var req struct {
 		Phone string `json:"phone"`
@@ -176,6 +190,13 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 }
 
 // SmsLogin POST /auth/sms/login：手机号 + 验证码登录（未注册自动建号）。
+//
+//	@Summary	手机验证码登录
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/auth/sms/login [post]
 func (h *AuthHandler) SmsLogin(c *gin.Context) {
 	var req struct {
 		Phone string `json:"phone"`
@@ -196,6 +217,13 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 }
 
 // SendEmailCode POST /user/email/verification：邮箱验证码。
+//
+//	@Summary	发送邮箱验证码
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/email/verification [post]
 func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 	var req struct {
 		Email string `json:"email"`
@@ -216,6 +244,13 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 }
 
 // ResetPassword POST /user/password/reset：邮箱验证码重置密码。
+//
+//	@Summary	邮箱验证码重置密码
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/password/reset [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req struct {
 		Email       string `json:"email"`
@@ -233,6 +268,14 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 }
 
 // ChangePassword POST /user/password/change：原密码校验后改密。
+//
+//	@Summary	修改密码
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	var req struct {
 		OldPassword string `json:"oldPassword"`
@@ -269,6 +312,12 @@ func deviceIDOf(c *gin.Context) string {
 
 // GithubURL GET /user/oauth/github/url：返回 GitHub 授权链接 + state。
 // 未配置 client_id/secret 时返回 400 / code=4022（既有占位语义保留）。
+//
+//	@Summary	GitHub 授权链接
+//	@Tags		用户认证
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/github/url [get]
 func (h *AuthHandler) GithubURL(c *gin.Context) {
 	out, e := h.svc.GithubAuthURL(c.Request.Context())
 	if e != nil {
@@ -279,6 +328,13 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 }
 
 // GithubCallback POST /user/oauth/github/callback：SPA 模式，用 code 换本站双 token。
+//
+//	@Summary	GitHub 回调（SPA 模式换本站 token）
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
 	var req struct {
 		Code  string `json:"code"`
@@ -299,6 +355,12 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 }
 
 // GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。
+//
+//	@Summary	GitHub 回调（重定向模式）
+//	@Tags		用户认证
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/github/callback [get]
 func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 	loc := h.svc.GithubRedirectURL(c.Request.Context(),
 		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))

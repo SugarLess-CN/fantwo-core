@@ -76,7 +76,7 @@ func RegisterMessageRoutes(v1 *gin.RouterGroup, opt Option) {
 			// 参数段最后
 			msg.GET("/:id", h.Detail)
 			msg.PATCH("/:id", middleware.RequirePermissions("message:manage"), h.Update)
-			msg.DELETE("/:id", middleware.RequirePermissions("message:delete", "message:manage"), h.Remove)
+			msg.DELETE("/:id", middleware.RequirePermissions("message:manage", "message:manage"), h.Remove)
 			msg.POST("/:id/read", h.MarkRead)
 		}
 	}

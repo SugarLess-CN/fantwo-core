@@ -282,6 +282,13 @@ func (h *RoleHandler) Menus(c *gin.Context) {
 }
 
 // MyMenus GET /profile/menus：当前登录用户的菜单树。
+//
+//	@Summary	我的菜单树
+//	@Tags		角色
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/profile/menus [get]
 func (h *RoleHandler) MyMenus(c *gin.Context) {
 	uid := middleware.CurrentUserID(c)
 	var perms []string

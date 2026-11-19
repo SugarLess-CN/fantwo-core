@@ -30,7 +30,11 @@ const (
 type AuditRecord struct {
 	BaseModel
 	// MsgID asynq 任务 ID（msg_id），消费端以此幂等去重。
-	MsgID string `gorm:"type:varchar(64);uniqueIndex;comment:asynq 任务ID" json:"msgId"`
+	//
+	// 必须用指针：记录在「提交审核」时创建、此时尚无任务 ID；若用 string 零值，
+	// 多条记录都是空串会撞 uniqueIndex（SQLSTATE 23505，曾导致文章审核记录只进第一条）。
+	// PostgreSQL 下多个 NULL 不参与唯一约束，故用 *string + 入队后回填。
+	MsgID *string `gorm:"type:varchar(64);uniqueIndex;comment:asynq 任务ID" json:"msgId"`
 	Scene string `gorm:"type:varchar(20);index;comment:场景 comment/avatar/image/article" json:"scene"`
 	// BizType 业务对象类型：article / comment / upload / user_avatar
 	BizType string `gorm:"type:varchar(30);index" json:"bizType"`

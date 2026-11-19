@@ -1,7 +1,7 @@
 // 基础设施域路由：系统配置（13 操作 + 按 id/key 直取扩展 + 敏感词管理）。
 //
-// 权限点同时接受原实现的 setting:read / setting:update / setting:create
-// 与任务书约定的 config:manage 命名（RequirePermissions 为 OR 语义）。
+// 权限点统一使用权限表实际存在的 config:read / config:update
+// （此前引用的 setting:* 与 config:manage 在 RBAC 种子中不存在，导致端点对所有用户 403）。
 //
 // 路由顺序注意：/config/public、/config/advertisement、/config/key/:key、
 // /config/group/:group 等静态段必须先于 /config/:id 注册，避免被参数段吞掉。
@@ -31,8 +31,8 @@ func RegisterConfigRoutes(v1 *gin.RouterGroup, opt Option) {
 	h := handler.NewConfigHandler(infraConfigSvc(opt))
 	g := v1.Group("/config")
 
-	read := []string{"setting:read", "config:manage"}
-	write := []string{"setting:update", "setting:create", "config:manage"}
+	read := []string{"config:read", "config:update"}
+	write := []string{"config:update"}
 
 	// 公开端点（对齐原 @NoAuth）
 	g.GET("/public", h.Public)

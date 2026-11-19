@@ -53,6 +53,15 @@ func (h *CommentHandler) Create(c *gin.Context) {
 }
 
 // FindAll 全部评论 GET /comment（权限 comment:manage，管理端）。
+//
+//	@Summary	全部评论（管理端）
+//	@Tags		评论
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/comment [get]
 func (h *CommentHandler) FindAll(c *gin.Context) {
 	q := commentListQuery(c)
 	list, total, e := h.svc.FindAllComments(c.Request.Context(), actorOf(c), q)
@@ -84,6 +93,13 @@ func (h *CommentHandler) FindByArticle(c *gin.Context) {
 }
 
 // FindOne 评论详情 GET /comment/:id（可选登录）。
+//
+//	@Summary	评论详情
+//	@Tags		评论
+//	@Produce	json
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/comment/{id} [get]
 func (h *CommentHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindCommentDetail(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -94,6 +110,16 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 }
 
 // Update 更新评论 PATCH /comment/:id（权限 comment:update）。
+//
+//	@Summary	更新评论
+//	@Tags		评论
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/comment/{id} [patch]
 func (h *CommentHandler) Update(c *gin.Context) {
 	var req service.UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -109,6 +135,16 @@ func (h *CommentHandler) Update(c *gin.Context) {
 }
 
 // SetPin 设置评论置顶 PATCH /comment/:id/pin。
+//
+//	@Summary	设置/取消评论置顶
+//	@Tags		评论
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/comment/{id}/pin [patch]
 func (h *CommentHandler) SetPin(c *gin.Context) {
 	var req service.SetCommentPinRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.IsPinned == nil {
@@ -143,6 +179,14 @@ func (h *CommentHandler) Remove(c *gin.Context) {
 }
 
 // Like 点赞评论 POST /comment/:id/like。
+//
+//	@Summary	点赞评论
+//	@Tags		评论
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/comment/{id}/like [post]
 func (h *CommentHandler) Like(c *gin.Context) {
 	out, e := h.svc.Like(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -153,6 +197,14 @@ func (h *CommentHandler) Like(c *gin.Context) {
 }
 
 // UserComments 用户评论列表 GET /comment/user/:userId。
+//
+//	@Summary	用户评论列表
+//	@Tags		评论
+//	@Produce	json
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/comment/user/{userId} [get]
 func (h *CommentHandler) UserComments(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.UserComments(c.Request.Context(), c.Param("userId"), actorOf(c), page, limit)
@@ -164,6 +216,13 @@ func (h *CommentHandler) UserComments(c *gin.Context) {
 }
 
 // Count 文章评论数 GET /comment/article/:id/count。
+//
+//	@Summary	文章评论数
+//	@Tags		评论
+//	@Produce	json
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/comment/article/{id}/count [get]
 func (h *CommentHandler) Count(c *gin.Context) {
 	out, e := h.svc.CommentCount(c.Request.Context(), c.Param("id"))
 	if e != nil {

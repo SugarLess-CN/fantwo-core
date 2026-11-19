@@ -184,6 +184,14 @@ func (h *TagHandler) Follow(c *gin.Context) {
 }
 
 // Unfollow 取消关注标签 DELETE /tag/:id/follow。
+//
+//	@Summary	取消关注标签
+//	@Tags		标签
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/{id}/follow [delete]
 func (h *TagHandler) Unfollow(c *gin.Context) {
 	out, e := h.svc.Unfollow(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {

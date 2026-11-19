@@ -271,7 +271,9 @@ func (s *ConfigService) UpdateAll(items []ConfigInput) error {
 	if len(items) == 0 {
 		return errcode.ErrBadRequest.With("配置列表不能为空")
 	}
-	return s.db.Transaction(func(tx *gorm.DB) error {
+	// 收集实际改动的 key，事务提交后统一失效缓存（含 Redis，多实例一致）
+	changed := make([]string, 0, len(items))
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, it := range items {
 			var c model.Config
 			var err error
@@ -289,9 +291,23 @@ func (s *ConfigService) UpdateAll(items []ConfigInput) error {
 			if err := tx.Model(&model.Config{}).Where("id = ?", c.ID).Update("value", it.Value).Error; err != nil {
 				return svcInternal("更新配置失败: %v", err)
 			}
+			changed = append(changed, c.Key)
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	for _, key := range changed {
+		s.invalidate(key)
+	}
+	// 敏感词被批量改写时同步重建前缀树
+	for _, key := range changed {
+		if key == model.ConfigKeySensitiveWords {
+			_ = s.ReloadSensitiveWords()
+		}
+	}
+	return nil
 }
 
 // UpdateGroup 批量更新某分组（先校验分组存在，再逐项更新）。

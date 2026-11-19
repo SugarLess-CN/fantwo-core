@@ -77,6 +77,16 @@ func (h *OpsHandler) DecorationGet(c *gin.Context) {
 }
 
 // DecorationUpdate PATCH /decoration/:id（管理端）。
+//
+//	@Summary	更新装饰品
+//	@Tags		装饰品
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/{id} [patch]
 func (h *OpsHandler) DecorationUpdate(c *gin.Context) {
 	var in model.DecorationInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -131,6 +141,14 @@ func (h *OpsHandler) DecorationMyList(c *gin.Context) {
 }
 
 // DecorationUserList GET /decoration/user/:userId。
+//
+//	@Summary	指定用户装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/user/{userId} [get]
 func (h *OpsHandler) DecorationUserList(c *gin.Context) {
 	lr, err := h.Decoration.UserDecorations(c.Param("userId"), c.Query("type"),
 		atoiDefault(c.Query("page"), 1), atoiDefault(c.Query("limit"), 0))
@@ -142,6 +160,13 @@ func (h *OpsHandler) DecorationUserList(c *gin.Context) {
 }
 
 // DecorationMyBadges GET /decoration/achievement-badges/my。
+//
+//	@Summary	我的成就徽章
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/achievement-badges/my [get]
 func (h *OpsHandler) DecorationMyBadges(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -157,6 +182,13 @@ func (h *OpsHandler) DecorationMyBadges(c *gin.Context) {
 }
 
 // DecorationMyCurrent GET /decoration/user/current/decorations。
+//
+//	@Summary	我当前佩戴的装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/user/current/decorations [get]
 func (h *OpsHandler) DecorationMyCurrent(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -193,6 +225,14 @@ func (h *OpsHandler) DecorationUse(c *gin.Context) {
 }
 
 // DecorationUnuse POST /decoration/unuse/:decorationId。
+//
+//	@Summary	卸下装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		decorationId path string true "decorationId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/unuse/{decorationId} [post]
 func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -237,6 +277,14 @@ func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 }
 
 // DecorationGift POST /decoration/gift。
+//
+//	@Summary	赠送装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/gift [post]
 func (h *OpsHandler) DecorationGift(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -260,6 +308,13 @@ func (h *OpsHandler) DecorationGift(c *gin.Context) {
 }
 
 // DecorationCleanExpired POST /decoration/clean-expired。
+//
+//	@Summary	清理过期装饰品（管理触发）
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/clean-expired [post]
 func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 	n, err := h.Decoration.CleanExpired()
 	if err != nil {
@@ -272,6 +327,14 @@ func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 // ---- 装饰品活动 ----
 
 // DecorationActivityCreate POST /decoration/activity（管理端）。
+//
+//	@Summary	创建装饰品限时活动
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity [post]
 func (h *OpsHandler) DecorationActivityCreate(c *gin.Context) {
 	var in model.DecorationActivityInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -287,6 +350,15 @@ func (h *OpsHandler) DecorationActivityCreate(c *gin.Context) {
 }
 
 // DecorationActivityList GET /decoration/activity。
+//
+//	@Summary	装饰品活动列表
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/decoration/activity [get]
 func (h *OpsHandler) DecorationActivityList(c *gin.Context) {
 	lr, err := h.Decoration.Activities(c.Query("status"), c.Query("type"),
 		atoiDefault(c.Query("page"), 1), atoiDefault(c.Query("limit"), 0))
@@ -298,6 +370,14 @@ func (h *OpsHandler) DecorationActivityList(c *gin.Context) {
 }
 
 // DecorationActivityGet GET /decoration/activity/:id。
+//
+//	@Summary	活动详情
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity/{id} [get]
 func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 	a, err := h.Decoration.GetActivity(c.Param("id"))
 	if err != nil {
@@ -308,6 +388,16 @@ func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 }
 
 // DecorationActivityUpdate PATCH /decoration/activity/:id（管理端）。
+//
+//	@Summary	更新装饰品活动
+//	@Tags		装饰品
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity/{id} [patch]
 func (h *OpsHandler) DecorationActivityUpdate(c *gin.Context) {
 	var in model.DecorationActivityInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -323,6 +413,14 @@ func (h *OpsHandler) DecorationActivityUpdate(c *gin.Context) {
 }
 
 // DecorationActivityDelete DELETE /decoration/activity/:id（管理端）。
+//
+//	@Summary	删除装饰品活动
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity/{id} [delete]
 func (h *OpsHandler) DecorationActivityDelete(c *gin.Context) {
 	if err := h.Decoration.DeleteActivity(c.Param("id")); err != nil {
 		fail(c, err)
@@ -332,6 +430,13 @@ func (h *OpsHandler) DecorationActivityDelete(c *gin.Context) {
 }
 
 // DecorationMyActivityProgress GET /decoration/activity/progress/my。
+//
+//	@Summary	我的活动进度
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity/progress/my [get]
 func (h *OpsHandler) DecorationMyActivityProgress(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -346,6 +451,14 @@ func (h *OpsHandler) DecorationMyActivityProgress(c *gin.Context) {
 }
 
 // DecorationActivityClaim POST /decoration/activity/claim/:activityId。
+//
+//	@Summary	领取活动奖励
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		activityId path string true "activityId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/activity/claim/{activityId} [post]
 func (h *OpsHandler) DecorationActivityClaim(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {

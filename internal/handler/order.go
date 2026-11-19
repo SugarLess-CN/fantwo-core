@@ -41,6 +41,15 @@ func bindOrderQuery(c *gin.Context) model.OrderQuery {
 }
 
 // ListAll GET /order（管理员：所有订单）。
+//
+//	@Summary	全部订单（管理端）
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/order [get]
 func (h *OrderHandler) ListAll(c *gin.Context) {
 	q := bindOrderQuery(c)
 	q.Page, q.Limit = pageTx(c)
@@ -53,6 +62,15 @@ func (h *OrderHandler) ListAll(c *gin.Context) {
 }
 
 // ListMine GET /order/user（我的订单分页）。
+//
+//	@Summary	我的订单
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/order/user [get]
 func (h *OrderHandler) ListMine(c *gin.Context) {
 	q := bindOrderQuery(c)
 	q.Page, q.Limit = pageTx(c)
@@ -65,6 +83,15 @@ func (h *OrderHandler) ListMine(c *gin.Context) {
 }
 
 // ListPending GET /order/pending（待支付订单）。
+//
+//	@Summary	我的待支付订单
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/order/pending [get]
 func (h *OrderHandler) ListPending(c *gin.Context) {
 	list, err := h.Svc.ListPendingOrders(middleware.CurrentUserID(c))
 	if err != nil {
@@ -94,6 +121,14 @@ func (h *OrderHandler) Get(c *gin.Context) {
 }
 
 // GetByNo GET /order/no/:orderNo。
+//
+//	@Summary	按订单号查询
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		orderNo path string true "orderNo"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/order/no/{orderNo} [get]
 func (h *OrderHandler) GetByNo(c *gin.Context) {
 	order, err := h.Svc.GetOrderByNo(c.Param("orderNo"), middleware.CurrentUserID(c), hasManage(c))
 	if err != nil {
@@ -104,6 +139,14 @@ func (h *OrderHandler) GetByNo(c *gin.Context) {
 }
 
 // Cancel PUT /order/:id/cancel（PENDING→CANCELLED）。
+//
+//	@Summary	取消订单
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/order/{id}/cancel [put]
 func (h *OrderHandler) Cancel(c *gin.Context) {
 	order, err := h.Svc.CancelOrder(c.Param("id"), middleware.CurrentUserID(c), hasManage(c))
 	if err != nil {
@@ -197,6 +240,13 @@ func (h *OrderHandler) CreateMembership(c *gin.Context) {
 }
 
 // WalletBalance GET /order/wallet/balance（钱包余额）。
+//
+//	@Summary	钱包余额
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/order/wallet/balance [get]
 func (h *OrderHandler) WalletBalance(c *gin.Context) {
 	wallet, err := h.Svc.GetWalletBalance(middleware.CurrentUserID(c))
 	if err != nil {

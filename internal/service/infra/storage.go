@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
@@ -152,9 +153,38 @@ func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMet
 		}
 		uploads = append(uploads, *up)
 	}
+	// 本地图片：同步并行处理（水印 + 缩略图 + 原图元数据），
+	// 让上传响应直接带回处理后的 size / thumbnails / watermarked，
+	// 前端一次拿到完整数据，无需再轮询 /upload/info。
+	//
+	// 并发上限 3：单张 20MB 图处理约百毫秒级，串行 10 张会明显拖慢上传响应。
+	sem := make(chan struct{}, 3)
+	var wg sync.WaitGroup
+	for i := range uploads {
+		up := &uploads[i]
+		if up.Storage != model.UploadStorageLocal || !filecheck.IsProcessableImage(up.MimeType) {
+			continue
+		}
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(item *model.Upload) {
+			defer wg.Done()
+			defer func() { <-sem }()
+			f.processImageThumbnails(item)
+		}(up)
+	}
+	wg.Wait()
+
 	// URL 基准：本地存储且未配 CDN 时，以请求域名补全为绝对地址。
 	for i := range uploads {
 		uploads[i].URL = absolutizeURL(uploads[i].URL, baseURL)
+	}
+	// 回读：把异步/同步处理写入的 size / thumbnails / original / watermarked 带回响应
+	for i := range uploads {
+		if fresh, err := f.GetFileInfo(uploads[i].ID); err == nil {
+			uploads[i] = *fresh
+			uploads[i].URL = absolutizeURL(uploads[i].URL, baseURL)
+		}
 	}
 	return uploads, nil
 }
@@ -268,11 +298,9 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 func (f *Infra) dispatchAsync(up *model.Upload) {
 	switch {
 	case filecheck.IsProcessableImage(up.MimeType):
-		// 图片：本地直接生成缩略图；S3 需先下载再处理（见 s3_image.go）
+		// 本地图片由 HandleUpload 同步并行处理（见下），这里只处理 S3（需先下载）
 		if up.Storage == model.UploadStorageS3 {
 			go f.processS3Image(up)
-		} else {
-			go f.processImageThumbnails(up)
 		}
 	case filecheck.Kind(up.MimeType) == filecheck.KindVideo:
 		go f.enqueueVideoCompression(up)
@@ -698,7 +726,10 @@ func (f *Infra) GetFileInfo(id string) (*model.Upload, error) {
 }
 
 // ListUpload 分页文件列表（对齐 findAll，管理端 upload:list）。
-func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder string) ([]model.Upload, int64, error) {
+//
+// onlyUserID 非空时只返回该用户上传的文件——用于「无 upload:list 权限的登录用户
+// 查看自己的上传」（普通用户视角），避免把全站文件暴露给普通账号。
+func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder, onlyUserID string) ([]model.Upload, int64, error) {
 	if f.db == nil {
 		return nil, 0, svcUnavailable("数据库不可用")
 	}
@@ -718,10 +749,18 @@ func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder string) ([]model.U
 		total int64
 		list  []model.Upload
 	)
-	if err := f.db.Model(&model.Upload{}).Count(&total).Error; err != nil {
+	q := f.db.Model(&model.Upload{})
+	if onlyUserID != "" {
+		q = q.Where("user_id = ?", onlyUserID)
+	}
+	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, errcode.ErrInternal.Withf("统计上传文件失败: %v", err)
 	}
-	if err := f.db.Order(order).Offset((page - 1) * limit).Limit(limit).Find(&list).Error; err != nil {
+	q2 := f.db.Order(order)
+	if onlyUserID != "" {
+		q2 = q2.Where("user_id = ?", onlyUserID)
+	}
+	if err := q2.Offset((page - 1) * limit).Limit(limit).Find(&list).Error; err != nil {
 		return nil, 0, errcode.ErrInternal.Withf("查询上传文件失败: %v", err)
 	}
 	return list, total, nil

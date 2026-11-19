@@ -137,6 +137,15 @@ func (h *MessageHandler) List(c *gin.Context) {
 }
 
 // Search GET /message/search：高级查询（type/isRead/isBroadcast/keyword/senderId/receiverId）。
+//
+//	@Summary	消息高级查询
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/message/search [get]
 func (h *MessageHandler) Search(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -169,6 +178,14 @@ func (h *MessageHandler) Search(c *gin.Context) {
 }
 
 // Detail GET /message/:id：单条详情。
+//
+//	@Summary	消息详情
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/{id} [get]
 func (h *MessageHandler) Detail(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -183,6 +200,16 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 }
 
 // Update PATCH /message/:id：更新消息（发送者或 message:manage）。
+//
+//	@Summary	更新消息
+//	@Tags		消息
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/{id} [patch]
 func (h *MessageHandler) Update(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -202,6 +229,14 @@ func (h *MessageHandler) Update(c *gin.Context) {
 }
 
 // Remove DELETE /message/:id：删除消息（发送者或 message:manage）。
+//
+//	@Summary	删除消息
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/{id} [delete]
 func (h *MessageHandler) Remove(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -215,6 +250,14 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 }
 
 // MarkRead POST /message/:id/read：单条已读。
+//
+//	@Summary	单条已读
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/{id}/read [post]
 func (h *MessageHandler) MarkRead(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -228,6 +271,13 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 }
 
 // MarkAllRead POST /message/read-all：全部已读。
+//
+//	@Summary	全部已读
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/read-all [post]
 func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -244,6 +294,14 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 }
 
 // Batch POST /message/batch：批量操作（read / delete）。
+//
+//	@Summary	批量操作（已读/删除）
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/batch [post]
 func (h *MessageHandler) Batch(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -263,6 +321,13 @@ func (h *MessageHandler) Batch(c *gin.Context) {
 }
 
 // UnreadCount GET /message/unread/count：未读计数。
+//
+//	@Summary	未读计数
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/unread/count [get]
 func (h *MessageHandler) UnreadCount(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -333,6 +398,14 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 }
 
 // PrivateHistory GET /message/private/conversations/:userId/messages：私信历史（读后自动已读）。
+//
+//	@Summary	私信历史
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/conversations/{userId}/messages [get]
 func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -347,6 +420,14 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 }
 
 // PrivateConversationRead POST /message/private/conversations/:userId/read：整会话已读。
+//
+//	@Summary	整会话已读
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/conversations/{userId}/read [post]
 func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -361,6 +442,14 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 }
 
 // PrivateReadBatch POST /message/private/read-batch：批量私信已读。
+//
+//	@Summary	批量私信已读
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/read-batch [post]
 func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -382,6 +471,14 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 }
 
 // RecallPrivate POST /message/private/recall/:id：撤回私信。
+//
+//	@Summary	撤回私信
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/recall/{id} [post]
 func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -400,6 +497,14 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 }
 
 // BlockUser POST /message/private/block/:userId：拉黑。
+//
+//	@Summary	拉黑用户
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/block/{userId} [post]
 func (h *MessageHandler) BlockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -422,6 +527,14 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 }
 
 // UnblockUser DELETE /message/private/block/:userId：取消拉黑。
+//
+//	@Summary	取消拉黑
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/block/{userId} [delete]
 func (h *MessageHandler) UnblockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -436,6 +549,13 @@ func (h *MessageHandler) UnblockUser(c *gin.Context) {
 }
 
 // Blocks GET /message/private/blocks：拉黑列表。
+//
+//	@Summary	我的拉黑列表
+//	@Tags		消息
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/message/private/blocks [get]
 func (h *MessageHandler) Blocks(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {

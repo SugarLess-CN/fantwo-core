@@ -21,8 +21,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
@@ -56,7 +58,17 @@ func (h *UploadHandler) List(c *gin.Context) {
 	if limit < 1 || limit > 100 {
 		limit = 20
 	}
-	list, total, err := h.svc.ListUpload(page, limit, c.Query("sortBy"), c.Query("sortOrder"))
+	// 权限降级：有 upload:list 看全站（原实现语义）；否则只返回自己的上传，
+	// 避免普通登录用户被 403 挡住「我的上传」这类前端场景，同时不泄露他人文件。
+	onlyUserID := ""
+	if !infraHasPermission(c, "upload:list") {
+		onlyUserID = infraCurrentUserID(c)
+		if onlyUserID == "" {
+			response.Fail(c, errcode.ErrForbidden)
+			return
+		}
+	}
+	list, total, err := h.svc.ListUpload(page, limit, c.Query("sortBy"), c.Query("sortOrder"), onlyUserID)
 	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
@@ -115,6 +127,13 @@ func (h *UploadHandler) Config(c *gin.Context) {
 func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 
 // UploadAvatar POST /upload/avatar（固定 scene=avatar，不加水印）。
+//
+//	@Summary	上传头像（走图片审核）
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/avatar [post]
 func (h *UploadHandler) UploadAvatar(c *gin.Context) { h.upload(c, infra.SceneAvatar) }
 
 // upload 两个上传端点的共用实现（对齐 UploadController.handleUpload）。
@@ -223,6 +242,13 @@ func (h *UploadHandler) Confirm(c *gin.Context) {
 }
 
 // MigrationStats GET /upload/migration/stats（upload:manage）。
+//
+//	@Summary	迁移统计
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/migration/stats [get]
 func (h *UploadHandler) MigrationStats(c *gin.Context) {
 	stats, err := h.svc.MigrationStats(c.Request.Context())
 	if err != nil {
@@ -234,6 +260,14 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 
 // MigrationProcess POST /upload/migration/process（upload:manage）。
 // 参数可来自 query（limit、dryRun）或 body（对齐原实现两处都读）。
+//
+//	@Summary	执行本地→S3 迁移
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/migration/process [post]
 func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	dryRun := c.Query("dryRun") == "true"
@@ -259,6 +293,14 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 }
 
 // MigrationMetadata POST /upload/migration/metadata（upload:manage）。
+//
+//	@Summary	回填元数据
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/migration/metadata [post]
 func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	res, err := h.svc.MigrationFillMetadata(c.Request.Context(), limit)
@@ -378,4 +420,22 @@ func infraErrOrNil(err error) *errcode.Err {
 		return e
 	}
 	return errcode.ErrInternal.With(err.Error())
+}
+
+// infraHasPermission 判断当前 claims 是否含某权限点（OR 语义单点查）。
+func infraHasPermission(c *gin.Context, perm string) bool {
+	raw, exists := c.Get(middleware.CtxUserKey)
+	if !exists {
+		return false
+	}
+	claims, ok := raw.(*jwtx.Claims)
+	if !ok || claims == nil {
+		return false
+	}
+	for _, p := range claims.Permissions {
+		if p == perm {
+			return true
+		}
+	}
+	return false
 }

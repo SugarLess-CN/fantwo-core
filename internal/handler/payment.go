@@ -106,6 +106,14 @@ func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 }
 
 // Record GET /payment/record/:id（查询支付记录）。
+//
+//	@Summary	支付记录详情
+//	@Tags		支付
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/payment/record/{id} [get]
 func (h *PaymentHandler) Record(c *gin.Context) {
 	p, err := h.Svc.GetPaymentRecord(c.Param("id"), middleware.CurrentUserID(c))
 	if err != nil {
@@ -116,6 +124,14 @@ func (h *PaymentHandler) Record(c *gin.Context) {
 }
 
 // ByOrder GET /payment/order/:orderId（查询订单支付记录）。
+//
+//	@Summary	按订单查支付记录
+//	@Tags		支付
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		orderId path string true "orderId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/payment/order/{orderId} [get]
 func (h *PaymentHandler) ByOrder(c *gin.Context) {
 	p, err := h.Svc.GetPaymentByOrder(c.Param("orderId"), middleware.CurrentUserID(c))
 	if err != nil {
@@ -126,6 +142,15 @@ func (h *PaymentHandler) ByOrder(c *gin.Context) {
 }
 
 // Mine GET /payment/user（查询用户支付记录）。
+//
+//	@Summary	我的支付记录
+//	@Tags		支付
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/payment/user [get]
 func (h *PaymentHandler) Mine(c *gin.Context) {
 	page, limit := pageTx(c)
 	list, total, err := h.Svc.ListUserPayments(middleware.CurrentUserID(c), page, limit)
@@ -137,6 +162,14 @@ func (h *PaymentHandler) Mine(c *gin.Context) {
 }
 
 // EpaySignature POST /payment/test/epay-signature（管理端：易支付签名自测，不真实下单）。
+//
+//	@Summary	易支付签名调试
+//	@Tags		支付
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/payment/test/epay-signature [post]
 func (h *PaymentHandler) EpaySignature(c *gin.Context) {
 	var body struct {
 		Params map[string]string `json:"params"`

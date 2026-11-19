@@ -101,6 +101,14 @@ func LoadInfra() *InfraConfig {
 
 	v.SetDefault("storage.driver", "local")
 	v.SetDefault("storage.local_dir", "./uploads")
+	// 注意：viper 的 Unmarshal 只遍历 AllSettings()，AutomaticEnv 不会把
+	// 「无默认值且不在配置文件里」的键加入其中 —— 所以**每个可能用环境变量
+	// 覆盖的键都必须在这里 SetDefault**，否则 S3_ENDPOINT / CDN_BASE_URL 等
+	// 环境变量会被静默忽略（与 internal/config/config.go 踩的是同一个坑）。
+	v.SetDefault("s3.endpoint", "")
+	v.SetDefault("s3.bucket", "")
+	v.SetDefault("s3.access_key", "")
+	v.SetDefault("s3.secret_key", "")
 	v.SetDefault("s3.region", "us-east-1")
 	v.SetDefault("s3.use_ssl", false)
 	v.SetDefault("s3.force_path_style", true)
@@ -121,6 +129,11 @@ func LoadInfra() *InfraConfig {
 	})
 	v.SetDefault("search.enabled", false)
 	v.SetDefault("search.articles_index", "picart_articles")
+	// search.addresses 是切片：viper 的 Unmarshal 不会从环境变量解析数组，
+	// 这里给空切片占位（让键进入 AllSettings），真正的 env 解析见下方显式处理；
+	// search.address 是单值兜底键（SEARCH_ADDRESS），两者在下方取并集。
+	v.SetDefault("search.addresses", []string{})
+	v.SetDefault("search.address", "")
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
@@ -135,13 +148,41 @@ func LoadInfra() *InfraConfig {
 	_ = v.Unmarshal(cfg)
 
 	// 切片类配置的显式 env 覆盖：viper 的 AutomaticEnv 只对「读取单键」生效，
-	// Unmarshal 到 []string 时不会解析环境变量（已知限制）。这里手工兜一层，
-	// 支持 SEARCH_ADDRESSES 的两种写法：JSON 数组或逗号分隔。
-	if raw := strings.TrimSpace(os.Getenv("SEARCH_ADDRESSES")); raw != "" {
-		cfg.Search.Addresses = parseListEnv(raw)
+	// Unmarshal 到 []string 时不会解析环境变量（已知限制），因此显式兜一层。
+	//
+	// 支持三种来源，取并集（去重、去空）：
+	//   1) config.yaml 的 search.addresses（已由 Unmarshal 读入 cfg）
+	//   2) 环境变量 SEARCH_ADDRESSES：JSON 数组或逗号分隔
+	//   3) 环境变量 SEARCH_ADDRESS / 配置项 search.address：单个地址
+	addresses := make([]string, 0, 4)
+	seen := map[string]struct{}{}
+	addAddr := func(a string) {
+		a = strings.TrimSpace(a)
+		if a == "" {
+			return
+		}
+		if _, ok := seen[a]; ok {
+			return
+		}
+		seen[a] = struct{}{}
+		addresses = append(addresses, a)
 	}
-	if v := strings.TrimSpace(os.Getenv("SEARCH_ENABLED")); v != "" {
-		cfg.Search.Enabled = v == "1" || strings.EqualFold(v, "true")
+	for _, a := range cfg.Search.Addresses {
+		addAddr(a)
+	}
+	if raw := strings.TrimSpace(os.Getenv("SEARCH_ADDRESSES")); raw != "" {
+		for _, a := range parseListEnv(raw) {
+			addAddr(a)
+		}
+	}
+	addAddr(os.Getenv("SEARCH_ADDRESS"))
+	addAddr(v.GetString("search.address"))
+	cfg.Search.Addresses = addresses
+
+	// 布尔/字符串键的显式 env 兜底（SetDefault 后 AutomaticEnv 已能生效，这里再保一层，
+	// 防止有人用 1/0、yes/no 之类非标准写法被 cast 成 false）。
+	if raw := strings.TrimSpace(os.Getenv("SEARCH_ENABLED")); raw != "" {
+		cfg.Search.Enabled = raw == "1" || strings.EqualFold(raw, "true") || strings.EqualFold(raw, "yes")
 	}
 
 	// 存储驱动归一化：空值/未知值回退 local，避免拼写错误导致上传静默失败。

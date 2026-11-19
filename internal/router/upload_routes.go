@@ -65,15 +65,16 @@ func RegisterUploadRoutes(v1 *gin.RouterGroup, opt Option) {
 	g.GET("/info/:id", h.Info)
 
 	// 需登录 + 权限点
-	g.GET("", append(infraChain(opt, "upload:list"), h.List)...)
+	// 列表：仅要求登录；有 upload:list 者看全站，其余只看自己（handler 内降级）
+	g.GET("", append(infraChain(opt), h.List)...)
 	g.POST("/file", append(infraChain(opt, "upload:create"), h.UploadFile)...)
 	g.POST("/avatar", append(infraChain(opt, "upload:create"), h.UploadAvatar)...)
 	g.POST("/presign", append(infraChain(opt, "upload:create"), h.Presign)...)
 	g.POST("/confirm", append(infraChain(opt, "upload:create"), h.Confirm)...)
 
 	// 管理端点
-	g.GET("/migration/stats", append(infraChain(opt, "upload:manage"), h.MigrationStats)...)
-	g.POST("/migration/process", append(infraChain(opt, "upload:manage"), h.MigrationProcess)...)
-	g.POST("/migration/metadata", append(infraChain(opt, "upload:manage"), h.MigrationMetadata)...)
-	g.DELETE("/:id", append(infraChain(opt, "upload:manage"), h.Remove)...)
+	g.GET("/migration/stats", append(infraChain(opt, "upload:delete"), h.MigrationStats)...)
+	g.POST("/migration/process", append(infraChain(opt, "upload:delete"), h.MigrationProcess)...)
+	g.POST("/migration/metadata", append(infraChain(opt, "upload:delete"), h.MigrationMetadata)...)
+	g.DELETE("/:id", append(infraChain(opt, "upload:delete"), h.Remove)...)
 }

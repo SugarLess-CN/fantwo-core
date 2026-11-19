@@ -64,6 +64,15 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 }
 
 // UpdateContact PATCH /user/profile/contact：修改邮箱/手机号（带验证码校验走 BindPhone）。
+//
+//	@Summary	修改联系方式
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/profile/contact [patch]
 func (h *UserHandler) UpdateContact(c *gin.Context) {
 	var in service.UpdateProfileInput
 	if !bindJSON(c, &in) {
@@ -78,6 +87,14 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 }
 
 // SendBindPhoneCode POST /user/profile/phone/code：发送绑定手机验证码。
+//
+//	@Summary	发送绑定手机验证码
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/profile/phone/code [post]
 func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 	var req struct {
 		Phone string `json:"phone"`
@@ -94,6 +111,14 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 }
 
 // BindPhone POST /user/profile/phone：绑定手机号。
+//
+//	@Summary	绑定手机号
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/profile/phone [post]
 func (h *UserHandler) BindPhone(c *gin.Context) {
 	var in service.BindPhoneInput
 	if !bindJSON(c, &in) {
@@ -107,6 +132,14 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 }
 
 // DeletionRequest POST /user/account/deletion：提交注销（status→1，7 天冷静期）。
+//
+//	@Summary	申请注销账号
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/account/deletion [post]
 func (h *UserHandler) DeletionRequest(c *gin.Context) {
 	var in service.RequestDeletionInput
 	_ = c.ShouldBindJSON(&in) // 允许空体
@@ -119,6 +152,13 @@ func (h *UserHandler) DeletionRequest(c *gin.Context) {
 }
 
 // DeletionStatus GET /user/account/status：注销状态。
+//
+//	@Summary	注销申请状态
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/account/status [get]
 func (h *UserHandler) DeletionStatus(c *gin.Context) {
 	out, e := h.svc.DeletionStatus(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -129,6 +169,13 @@ func (h *UserHandler) DeletionStatus(c *gin.Context) {
 }
 
 // DeletionCancel POST /user/account/deletion/cancel：撤销注销。
+//
+//	@Summary	取消注销申请
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/account/deletion/cancel [post]
 func (h *UserHandler) DeletionCancel(c *gin.Context) {
 	out, e := h.svc.CancelDeletion(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -139,6 +186,15 @@ func (h *UserHandler) DeletionCancel(c *gin.Context) {
 }
 
 // Favorites GET /user/profile/favorites：我的收藏分页。
+//
+//	@Summary	我的收藏夹
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/user/profile/favorites [get]
 func (h *UserHandler) Favorites(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.ListFavorites(c.Request.Context(), middleware.CurrentUserID(c), page, limit)
@@ -150,6 +206,14 @@ func (h *UserHandler) Favorites(c *gin.Context) {
 }
 
 // FavoriteDetail GET /user/profile/favorites/{productId}：收藏详情（productId 即 articleId）。
+//
+//	@Summary	收藏项详情
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		productId path string true "productId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/profile/favorites/{productId} [get]
 func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 	out, e := h.svc.FavoriteDetail(c.Request.Context(), middleware.CurrentUserID(c), c.Param("productId"))
 	if e != nil {
@@ -231,6 +295,16 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 }
 
 // Update PATCH /user/{id}：管理员更新用户。
+//
+//	@Summary	更新用户（管理端）
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id} [patch]
 func (h *UserHandler) Update(c *gin.Context) {
 	var in service.UpdateUserInput
 	if !bindJSON(c, &in) {
@@ -263,6 +337,13 @@ func (h *UserHandler) Remove(c *gin.Context) {
 }
 
 // GetConfig GET /user/config：当前用户配置。
+//
+//	@Summary	我的用户配置
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/config [get]
 func (h *UserHandler) GetConfig(c *gin.Context) {
 	p, e := h.svc.GetConfig(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -273,6 +354,15 @@ func (h *UserHandler) GetConfig(c *gin.Context) {
 }
 
 // UpdateConfig PATCH /user/config：更新配置。
+//
+//	@Summary	更新用户配置
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/config [patch]
 func (h *UserHandler) UpdateConfig(c *gin.Context) {
 	var in service.UpdateConfigInput
 	if !bindJSON(c, &in) {
@@ -286,6 +376,15 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 }
 
 // UpdateNotifications PATCH /user/config/notifications：通知设置。
+//
+//	@Summary	更新通知偏好
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/config/notifications [patch]
 func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 	var in service.NotificationInput
 	if !bindJSON(c, &in) {
@@ -299,6 +398,15 @@ func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 }
 
 // UpdateCommissionSettings PATCH /user/config/commission：抽成设置。
+//
+//	@Summary	更新全局佣金配置
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/config/commission [patch]
 func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 	var in service.UpdateConfigInput
 	if !bindJSON(c, &in) {
@@ -312,6 +420,13 @@ func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 }
 
 // GetCommissionConfig GET /user/commission/config。
+//
+//	@Summary	读取佣金配置
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/commission/config [get]
 func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 	out, e := h.svc.CommissionConfig(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -322,6 +437,14 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 }
 
 // SetCommissionConfig POST /user/commission/config。
+//
+//	@Summary	设置佣金配置
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/commission/config [post]
 func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 	var in service.SetCommissionInput
 	if !bindJSON(c, &in) {
@@ -335,6 +458,14 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 }
 
 // CalculateCommission POST /user/commission/calculate。
+//
+//	@Summary	佣金试算
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/commission/calculate [post]
 func (h *UserHandler) CalculateCommission(c *gin.Context) {
 	var req struct {
 		Amount float64 `json:"amount"`
@@ -352,6 +483,14 @@ func (h *UserHandler) CalculateCommission(c *gin.Context) {
 }
 
 // CheckMembership GET /user/{id}/membership/check。
+//
+//	@Summary	会员状态检查
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id}/membership/check [get]
 func (h *UserHandler) CheckMembership(c *gin.Context) {
 	out, e := h.svc.CheckMembership(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -362,6 +501,14 @@ func (h *UserHandler) CheckMembership(c *gin.Context) {
 }
 
 // BatchCheckMembership POST /user/membership/batch-check。
+//
+//	@Summary	批量会员状态检查
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/membership/batch-check [post]
 func (h *UserHandler) BatchCheckMembership(c *gin.Context) {
 	out, e := h.svc.BatchCheckMembership(c.Request.Context())
 	if e != nil {

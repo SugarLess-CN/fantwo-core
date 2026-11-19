@@ -92,6 +92,16 @@ func (h *OpsHandler) AchievementGet(c *gin.Context) {
 }
 
 // AchievementUpdate PATCH /achievement/:id（管理端）。
+//
+//	@Summary	更新成就定义
+//	@Tags		成就
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/{id} [patch]
 func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 	var in model.AchievementInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -107,6 +117,14 @@ func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 }
 
 // AchievementDelete DELETE /achievement/:id（管理端）。
+//
+//	@Summary	删除成就定义
+//	@Tags		成就
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/{id} [delete]
 func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 	if err := h.Achievement.Delete(c.Param("id")); err != nil {
 		fail(c, err)

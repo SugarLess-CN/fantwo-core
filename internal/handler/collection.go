@@ -185,6 +185,16 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 }
 
 // ReorderItems 合集内文章重排 PUT /collection/:id/items/order。
+//
+//	@Summary	调整合集内文章顺序
+//	@Tags		合集
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id}/items/order [put]
 func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 	var req service.ReorderCollectionItemsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -200,6 +210,14 @@ func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 }
 
 // CheckArticle 检查文章是否在合集中 GET /collection/check/:articleId。
+//
+//	@Summary	文章所在合集检查
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		articleId path string true "articleId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/check/{articleId} [get]
 func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 	out, e := h.svc.CheckArticle(c.Request.Context(), actorOf(c), c.Param("articleId"))
 	if e != nil {
@@ -210,6 +228,14 @@ func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 }
 
 // ArticleCollectionInfo 文章所在合集信息 GET /collection/article/:articleId/info。
+//
+//	@Summary	文章合集信息
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		articleId path string true "articleId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/article/{articleId}/info [get]
 func (h *CollectionHandler) ArticleCollectionInfo(c *gin.Context) {
 	out, e := h.svc.ArticleCollectionInfo(c.Request.Context(), actorOf(c), c.Param("articleId"))
 	if e != nil {

@@ -14,7 +14,11 @@ func RegisterAuditRoutes(v1 *gin.RouterGroup, opt Option) {
 	if opt.DB == nil {
 		return
 	}
-	h := &handler.AuditHandler{Svc: service.NewAuditService(opt.DB, queue.FromRedisClient(opt.Redis))}
+	auditSvc := service.NewAuditService(opt.DB, queue.FromRedisClient(opt.Redis))
+	if cfgSvc := infraConfigSvc(opt); cfgSvc != nil {
+		auditSvc.SetSensitiveChecker(cfgSvc.CheckText) // 本地敏感词与云 provider 独立生效
+	}
+	h := &handler.AuditHandler{Svc: auditSvc}
 	auth := middleware.JWTAuth(opt.Signer)
 	perm := middleware.RequirePermissions
 

@@ -76,6 +76,15 @@ func (h *ArticleHandler) List(c *gin.Context) {
 }
 
 // Drafts 当前用户草稿 GET /article/drafts。
+//
+//	@Summary	我的草稿箱
+//	@Tags		文章
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/article/drafts [get]
 func (h *ArticleHandler) Drafts(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.FindDrafts(c.Request.Context(), actorOf(c), page, limit)
@@ -87,6 +96,13 @@ func (h *ArticleHandler) Drafts(c *gin.Context) {
 }
 
 // Recommendations 相关文章 GET /article/recommend/:id。
+//
+//	@Summary	相关文章推荐
+//	@Tags		文章
+//	@Produce	json
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/article/recommend/{id} [get]
 func (h *ArticleHandler) Recommendations(c *gin.Context) {
 	list, e := h.svc.FindRecommendations(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -97,6 +113,14 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 }
 
 // Search 搜索文章 GET /article/search。
+//
+//	@Summary	文章搜索（ES）
+//	@Tags		文章
+//	@Produce	json
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/article/search [get]
 func (h *ArticleHandler) Search(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
@@ -115,6 +139,12 @@ func (h *ArticleHandler) Search(c *gin.Context) {
 }
 
 // HotSearch 热门搜索词 GET /article/hot-search。
+//
+//	@Summary	热搜词
+//	@Tags		文章
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/article/hot-search [get]
 func (h *ArticleHandler) HotSearch(c *gin.Context) {
 	limit := intQuery(c, "limit", 10)
 	list, e := h.svc.HotSearch(c.Request.Context(), limit, c.Query("keyword"))
@@ -126,6 +156,14 @@ func (h *ArticleHandler) HotSearch(c *gin.Context) {
 }
 
 // ByAuthor 按作者取文章 GET /article/author/:id。
+//
+//	@Summary	作者主页文章
+//	@Tags		文章
+//	@Produce	json
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/article/author/{id} [get]
 func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
@@ -144,6 +182,12 @@ func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 }
 
 // PublishedIDs 已发布文章 ID 列表 GET /article/published/ids。
+//
+//	@Summary	已发布文章 ID 列表
+//	@Tags		文章
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/article/published/ids [get]
 func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 	ids, e := h.svc.PublishedArticleIDs(c.Request.Context())
 	if e != nil {
@@ -217,6 +261,16 @@ func (h *ArticleHandler) Remove(c *gin.Context) {
 }
 
 // SetFeatured 设置精华 PATCH /article/:id/featured。
+//
+//	@Summary	设置/取消精华
+//	@Tags		文章
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/article/{id}/featured [patch]
 func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 	var req service.SetFeaturedRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.IsFeatured == nil {
@@ -232,6 +286,16 @@ func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 }
 
 // SetProfilePin 设置个人主页置顶 PATCH /article/:id/profile-pin。
+//
+//	@Summary	设置/取消主页置顶
+//	@Tags		文章
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/article/{id}/profile-pin [patch]
 func (h *ArticleHandler) SetProfilePin(c *gin.Context) {
 	var req service.SetProfilePinRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.IsPinned == nil {

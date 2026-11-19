@@ -21,6 +21,14 @@ func NewUserActionHandler(svc *service.UserService) *UserActionHandler {
 }
 
 // Follow POST /user/{id}/follow。
+//
+//	@Summary	关注用户
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id}/follow [post]
 func (h *UserActionHandler) Follow(c *gin.Context) {
 	out, e := h.svc.Follow(c.Request.Context(), middleware.CurrentUserID(c), c.Param("id"))
 	if e != nil {
@@ -31,6 +39,14 @@ func (h *UserActionHandler) Follow(c *gin.Context) {
 }
 
 // Unfollow POST /user/{id}/unfollow。
+//
+//	@Summary	取消关注
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id}/unfollow [post]
 func (h *UserActionHandler) Unfollow(c *gin.Context) {
 	out, e := h.svc.Unfollow(c.Request.Context(), middleware.CurrentUserID(c), c.Param("id"))
 	if e != nil {
@@ -41,6 +57,13 @@ func (h *UserActionHandler) Unfollow(c *gin.Context) {
 }
 
 // FollowerCount GET /user/{id}/followers/count。
+//
+//	@Summary	粉丝数
+//	@Tags		用户管理
+//	@Produce	json
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id}/followers/count [get]
 func (h *UserActionHandler) FollowerCount(c *gin.Context) {
 	out, e := h.svc.FollowerCount(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -51,6 +74,13 @@ func (h *UserActionHandler) FollowerCount(c *gin.Context) {
 }
 
 // FollowingCount GET /user/{id}/followings/count。
+//
+//	@Summary	关注数
+//	@Tags		用户管理
+//	@Produce	json
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/{id}/followings/count [get]
 func (h *UserActionHandler) FollowingCount(c *gin.Context) {
 	out, e := h.svc.FollowingCount(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -61,6 +91,14 @@ func (h *UserActionHandler) FollowingCount(c *gin.Context) {
 }
 
 // Followers GET /user/{id}/followers。
+//
+//	@Summary	粉丝列表
+//	@Tags		用户管理
+//	@Produce	json
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/user/{id}/followers [get]
 func (h *UserActionHandler) Followers(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.ListFollowers(c.Request.Context(), c.Param("id"), service.FollowListInput{
@@ -75,6 +113,14 @@ func (h *UserActionHandler) Followers(c *gin.Context) {
 }
 
 // Followings GET /user/{id}/followings。
+//
+//	@Summary	关注列表
+//	@Tags		用户管理
+//	@Produce	json
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/user/{id}/followings [get]
 func (h *UserActionHandler) Followings(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.ListFollowings(c.Request.Context(), c.Param("id"), service.FollowListInput{
@@ -89,6 +135,13 @@ func (h *UserActionHandler) Followings(c *gin.Context) {
 }
 
 // SignIn POST /user/sign-in：手动签到。
+//
+//	@Summary	每日签到
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/sign-in [post]
 func (h *UserActionHandler) SignIn(c *gin.Context) {
 	out, e := h.svc.Sign(c.Request.Context(), middleware.CurrentUserID(c), false)
 	if e != nil {
@@ -99,6 +152,15 @@ func (h *UserActionHandler) SignIn(c *gin.Context) {
 }
 
 // SignInRecords GET /user/sign-in/records。
+//
+//	@Summary	签到记录
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/user/sign-in/records [get]
 func (h *UserActionHandler) SignInRecords(c *gin.Context) {
 	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
 	list, e := h.svc.SignRecords(c.Request.Context(), middleware.CurrentUserID(c), days)
@@ -110,6 +172,13 @@ func (h *UserActionHandler) SignInRecords(c *gin.Context) {
 }
 
 // SignInStats GET /user/sign-in/stats。
+//
+//	@Summary	签到统计
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/sign-in/stats [get]
 func (h *UserActionHandler) SignInStats(c *gin.Context) {
 	out, e := h.svc.SignStats(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -120,6 +189,13 @@ func (h *UserActionHandler) SignInStats(c *gin.Context) {
 }
 
 // WalletBalance GET /user/wallet/balance。
+//
+//	@Summary	钱包余额
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/wallet/balance [get]
 func (h *UserActionHandler) WalletBalance(c *gin.Context) {
 	out, e := h.svc.WalletBalance(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -130,6 +206,15 @@ func (h *UserActionHandler) WalletBalance(c *gin.Context) {
 }
 
 // WalletTransactions GET /user/wallet/transactions。
+//
+//	@Summary	钱包流水
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/user/wallet/transactions [get]
 func (h *UserActionHandler) WalletTransactions(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.WalletTransactions(c.Request.Context(),
@@ -142,6 +227,13 @@ func (h *UserActionHandler) WalletTransactions(c *gin.Context) {
 }
 
 // WalletStatistics GET /user/wallet/statistics。
+//
+//	@Summary	钱包统计
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/wallet/statistics [get]
 func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 	out, e := h.svc.WalletStatistics(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -152,6 +244,14 @@ func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 }
 
 // WalletWithdraw POST /user/wallet/withdraw。
+//
+//	@Summary	钱包提现
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/wallet/withdraw [post]
 func (h *UserActionHandler) WalletWithdraw(c *gin.Context) {
 	var in service.WithdrawInput
 	if !bindJSON(c, &in) {
@@ -223,6 +323,14 @@ func (h *UserActionHandler) CertIdentity(c *gin.Context) {
 }
 
 // CertIdentityOf GET /user/certification/identity/{userId}。
+//
+//	@Summary	指定用户身份标识
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/certification/identity/{userId} [get]
 func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
 	out, e := h.svc.IdentityOf(c.Request.Context(), c.Param("userId"))
 	if e != nil {

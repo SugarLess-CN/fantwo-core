@@ -84,6 +84,14 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 }
 
 // UpdateAll PATCH /config（body: [{key,value}]）。
+//
+//	@Summary	批量更新配置
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config [patch]
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 	var items []infra.ConfigInput
 	if err := c.ShouldBindJSON(&items); err != nil {
@@ -208,6 +216,16 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 }
 
 // UpdateByID PATCH /config/:id。
+//
+//	@Summary	按 ID 更新配置项
+//	@Tags		系统配置
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/{id} [patch]
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 	var in infra.ConfigInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -242,6 +260,15 @@ func (h *ConfigHandler) Remove(c *gin.Context) {
 // ---------- 敏感词 ----------
 
 // ListSensitiveWords GET /config/sensitive-words。
+//
+//	@Summary	敏感词列表
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/config/sensitive-words [get]
 func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 	words, err := h.svc.SensitiveWords()
 	if err != nil {
@@ -252,6 +279,14 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 }
 
 // CreateSensitiveWord POST /config/sensitive-words（body: {word}）。
+//
+//	@Summary	新增敏感词
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 	var body struct {
 		Word string `json:"word"`
@@ -268,6 +303,14 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 }
 
 // RemoveSensitiveWord DELETE /config/sensitive-words（body: {word}）。
+//
+//	@Summary	删除敏感词
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 	var body struct {
 		Word string `json:"word"`
@@ -284,6 +327,14 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 }
 
 // BatchCreateSensitiveWords POST /config/sensitive-words/batch（body: {words:[...]}）。
+//
+//	@Summary	批量导入敏感词
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	var body struct {
 		Words []string `json:"words"`
@@ -305,6 +356,14 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 }
 
 // BatchRemoveSensitiveWords DELETE /config/sensitive-words/batch（body: {words:[...]}）。
+//
+//	@Summary	批量删除敏感词
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	var body struct {
 		Words []string `json:"words"`
@@ -326,6 +385,13 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 }
 
 // ClearSensitiveWordsCache POST /config/sensitive-words/clear-cache（对齐 refreshConfigCache）。
+//
+//	@Summary	清空敏感词缓存
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/sensitive-words/clear-cache [post]
 func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)
 	response.Success(c, gin.H{

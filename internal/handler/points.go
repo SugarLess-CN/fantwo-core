@@ -118,6 +118,15 @@ func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 }
 
 // PointsTxAll GET /points/transactions/all（管理端：全部流水）。
+//
+//	@Summary	全部积分流水（管理端）
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/points/transactions/all [get]
 func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 	q := model.PointsTxQuery{
 		Page:   atoiDefault(c.Query("page"), 1),
@@ -136,6 +145,15 @@ func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 }
 
 // PointsUserTransactions GET /points/users/:userId/transactions（管理端）。
+//
+//	@Summary	指定用户积分流水
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/points/users/{userId}/transactions [get]
 func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 	q := model.PointsTxQuery{
 		Page:   atoiDefault(c.Query("page"), 1),
@@ -154,6 +172,14 @@ func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 }
 
 // PointsUserBalance GET /points/users/:userId/balance（管理端）。
+//
+//	@Summary	指定用户积分余额
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		userId path string true "userId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/users/{userId}/balance [get]
 func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 	uid := c.Param("userId")
 	balance, err := h.Points.Balance(uid)
@@ -165,6 +191,13 @@ func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 }
 
 // PointsStatistics GET /points/statistics（管理端）。
+//
+//	@Summary	积分统计
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/statistics [get]
 func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 	st, err := h.Points.Statistics()
 	if err != nil {
@@ -175,6 +208,13 @@ func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 }
 
 // PointsMyTasks GET /points/tasks/my。
+//
+//	@Summary	我的积分任务
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/tasks/my [get]
 func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -189,6 +229,14 @@ func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 }
 
 // PointsMyTaskProgress GET /points/tasks/my/:activityId。
+//
+//	@Summary	我的任务进度
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		activityId path string true "activityId"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/tasks/my/{activityId} [get]
 func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -203,6 +251,14 @@ func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 }
 
 // PointsActivityCreate POST /points/activities（管理端）。
+//
+//	@Summary	创建积分活动
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/activities [post]
 func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 	var in model.PointsActivityInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -251,6 +307,16 @@ func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 }
 
 // PointsActivityUpdate PATCH /points/activities/:id（管理端）。
+//
+//	@Summary	更新积分活动
+//	@Tags		积分
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Param		body body object true "请求体"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/activities/{id} [patch]
 func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 	var in model.PointsActivityInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -266,6 +332,14 @@ func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 }
 
 // PointsActivityDelete DELETE /points/activities/:id（管理端）。
+//
+//	@Summary	删除积分活动
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "id"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/activities/{id} [delete]
 func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 	if err := h.Points.DeleteActivity(c.Param("id")); err != nil {
 		fail(c, err)
