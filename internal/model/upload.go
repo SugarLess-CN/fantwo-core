@@ -7,6 +7,8 @@
 // 对外响应再由 service 组装成结构化对象——避免给每个嵌套结构写 Valuer/Scanner。
 package model
 
+import "gorm.io/gorm"
+
 // 上传存储类型（原 UploadStorageType）。
 const (
 	UploadStorageLocal = "local"
@@ -94,3 +96,24 @@ type Upload struct {
 
 // TableName 表名（对齐原 TypeORM uploads）。
 func (Upload) TableName() string { return "uploads" }
+
+// BeforeCreate 落库前补默认值：jsonb 列不接受空字符串（PG 22P02），
+// 未填写的 json 列统一写 JSON null；同时保留 BaseModel 的 UUID 主键生成。
+func (u *Upload) BeforeCreate(tx *gorm.DB) error {
+	if err := u.BaseModel.BeforeCreate(tx); err != nil {
+		return err
+	}
+	if u.OriginalJSON == "" {
+		u.OriginalJSON = "null"
+	}
+	if u.ThumbsJSON == "" {
+		u.ThumbsJSON = "null"
+	}
+	if u.VideoJobJSON == "" {
+		u.VideoJobJSON = "null"
+	}
+	if u.AuditResultJS == "" {
+		u.AuditResultJS = "null"
+	}
+	return nil
+}

@@ -121,7 +121,7 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 		scene = infra.SceneImage
 	}
 
-	uploads, err := h.svc.HandleUpload(files, metadata, scene, infraRequestBaseURL(c))
+	uploads, err := h.svc.HandleUpload(files, metadata, scene, infraRequestBaseURL(c), infraCurrentUserID(c))
 	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return

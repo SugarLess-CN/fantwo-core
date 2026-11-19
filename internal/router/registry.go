@@ -42,5 +42,5 @@ func RegisterAll(v1 *gin.RouterGroup, opt Option) {
 	RegisterAuditRoutes(v1, opt)
 
 	// API 文档（骨架层；swagger.enabled=true 才注册，见 swagger_routes.go）
-	RegisterSwaggerRoutes(v1, opt.Cfg)
+	// Swagger 由 router.New 挂载在根路径 /swagger/*any（此处不再挂 /api/v1/swagger 别名）
 }

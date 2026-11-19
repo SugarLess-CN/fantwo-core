@@ -252,7 +252,8 @@ func (f *Infra) lookupUserName(userID string) (nickname, username string) {
 		Nickname *string
 		Username string
 	}
-	if err := f.db.Table("users").
+	// 用户表名由 auth-user 域定义（TableName() = "user"，user 是 PG 保留字）
+	if err := f.db.Table(model.User{}.TableName()).
 		Select("nickname, username").
 		Where("id = ?", userID).
 		Scan(&row).Error; err != nil {
