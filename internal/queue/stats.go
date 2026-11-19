@@ -6,6 +6,7 @@
 package queue
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -22,6 +23,10 @@ type QueueStat struct {
 	Scheduled int    `json:"scheduled"` // 定时待执行
 	Archived  int    `json:"archived"`  // 死信
 	Completed int    `json:"completed"` // 已完成（受 asynq 保留策略限制）
+	// Processed 历史累计处理数（asynq:{queue}:processed 计数器）。
+	// Completed 只统计「仍保留在 completed 列表」的任务，未设 retention 时恒为 0，
+	// 容易误判成「队列没工作」；Processed 才是真实吞吐，故单列。
+	Processed int64 `json:"processed"`
 }
 
 // Stats 全部队列统计结果。
@@ -67,6 +72,9 @@ func collect(rdb *redis.Client) Stats {
 	insp := asynq.NewInspectorFromRedisClient(rdb)
 	defer func() { _ = insp.Close() }()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	out := Stats{Available: true, Queues: make([]QueueStat, 0, len(QueueNames))}
 	for _, name := range QueueNames {
 		info, err := insp.GetQueueInfo(name)
@@ -90,6 +98,10 @@ func collect(rdb *redis.Client) Stats {
 			Archived:  info.Archived,
 			Completed: info.Completed,
 		}
+		// asynq 用 asynq:{queue}:processed 计数器记录历史处理量
+		if v, err := rdb.Get(ctx, "asynq:{"+name+"}:processed").Int64(); err == nil {
+			qs.Processed = v
+		}
 		out.Queues = append(out.Queues, qs)
 		out.Totals.Pending += qs.Pending
 		out.Totals.Active += qs.Active
@@ -97,6 +109,7 @@ func collect(rdb *redis.Client) Stats {
 		out.Totals.Scheduled += qs.Scheduled
 		out.Totals.Archived += qs.Archived
 		out.Totals.Completed += qs.Completed
+		out.Totals.Processed += qs.Processed
 	}
 	return out
 }
