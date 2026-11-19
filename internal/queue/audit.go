@@ -14,8 +14,8 @@ import (
 	ims "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ims/v20201229"
 	tms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tms/v20201229"
 
-	green "github.com/alibabacloud-go/green-20220302/v2/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
+	green "github.com/alibabacloud-go/green-20220302/v2/client"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -140,13 +140,13 @@ func (UserProfile) TableName() string { return "user_config" }
 // UserDevice 用户设备表（多端在线，登录/刷新/登出靠它，原 user-device.entity.ts）。
 type UserDevice struct {
 	BaseModel
-	UserID             string     `gorm:"column:user_id;type:char(36);index:idx_user_device,priority:1;not null" json:"userId"`
-	DeviceID           string     `gorm:"column:device_id;type:varchar(128);index:idx_user_device,priority:2;not null" json:"deviceId"`
-	DeviceType         *string    `gorm:"column:device_type;type:varchar(64)" json:"deviceType"`
-	DeviceName         *string    `gorm:"column:device_name;type:text" json:"deviceName"`
+	UserID     string  `gorm:"column:user_id;type:char(36);index:idx_user_device,priority:1;not null" json:"userId"`
+	DeviceID   string  `gorm:"column:device_id;type:varchar(128);index:idx_user_device,priority:2;not null" json:"deviceId"`
+	DeviceType *string `gorm:"column:device_type;type:varchar(64)" json:"deviceType"`
+	DeviceName *string `gorm:"column:device_name;type:text" json:"deviceName"`
 	// refresh_token 存 JWT 原文：带 roles/perms 的 JWT 可达数百字节，用 text 兜住。
 	// 曾因 varchar(512) 导致登录 500（SQLSTATE 22001 value too long）。
-	RefreshToken       *string    `gorm:"column:refresh_token;type:text" json:"-"`
+	RefreshToken *string `gorm:"column:refresh_token;type:text" json:"-"`
 	// hashed_refresh_token 是 SHA-256 十六进制（64 字符），128 足够。
 	HashedRefreshToken *string    `gorm:"column:hashed_refresh_token;type:varchar(128)" json:"-"`
 	LoginAt            *time.Time `gorm:"column:login_at" json:"loginAt"`

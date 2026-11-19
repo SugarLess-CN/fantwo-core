@@ -34,26 +34,26 @@ func ActiveRooms() int64 { return activeRooms.Load() }
 // EventName 事件名占位（对齐 message.gateway.ts 的事件面；payload 待业务批次定稿）。
 const (
 	// 服务端 → 客户端
-	EventConnected                 = "connected"
-	EventError                     = "error"
-	EventNewMessage                = "newMessage"
-	EventHistory                   = "history"
-	EventRead                      = "read"
-	EventAllMarkedAsRead           = "allMarkedAsRead"
-	EventUnreadCount               = "unreadCount"
-	EventPrivateMessage            = "privateMessage"
-	EventPrivateHistory            = "privateHistory"
-	EventPrivateConversations      = "privateConversations"
+	EventConnected                  = "connected"
+	EventError                      = "error"
+	EventNewMessage                 = "newMessage"
+	EventHistory                    = "history"
+	EventRead                       = "read"
+	EventAllMarkedAsRead            = "allMarkedAsRead"
+	EventUnreadCount                = "unreadCount"
+	EventPrivateMessage             = "privateMessage"
+	EventPrivateHistory             = "privateHistory"
+	EventPrivateConversations       = "privateConversations"
 	EventPrivateConversationUpdated = "privateConversationUpdated"
-	EventPrivateConversationRead   = "privateConversationRead"
-	EventPrivateMessageRecalled    = "privateMessageRecalled"
-	EventPrivateMessagesRead       = "privateMessagesRead"
-	EventJoined                    = "joined"
-	EventLeaved                    = "leaved"
-	EventProfile                   = "profile"
-	EventUserStatus                = "userStatus"
-	EventUserStatusChanged         = "userStatusChanged"
-	EventPong                      = "pong"
+	EventPrivateConversationRead    = "privateConversationRead"
+	EventPrivateMessageRecalled     = "privateMessageRecalled"
+	EventPrivateMessagesRead        = "privateMessagesRead"
+	EventJoined                     = "joined"
+	EventLeaved                     = "leaved"
+	EventProfile                    = "profile"
+	EventUserStatus                 = "userStatus"
+	EventUserStatusChanged          = "userStatusChanged"
+	EventPong                       = "pong"
 
 	// 客户端 → 服务端（处理方法占位）
 	EventJoin      = "join"
@@ -76,9 +76,9 @@ type Room struct {
 
 // Client 单个 WS 连接。
 type Client struct {
-	hub     *Hub
-	conn    *websocket.Conn
-	send    chan Frame
+	hub  *Hub
+	conn *websocket.Conn
+	send chan Frame
 	// SocketID 连接唯一标识（连接建立时生成 uuid，对齐源端 socket.id）。
 	// 不能用 RemoteAddr：同 IP 多端（NAT / 多标签页）会得到相同地址，互相覆盖 presence 集合。
 	SocketID string

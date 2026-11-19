@@ -25,9 +25,9 @@ const (
 type OrderPaidPayload struct {
 	OrderID   string  `json:"order_id"`
 	OrderNo   string  `json:"order_no"`
-	UserID    string  `json:"user_id"`    // 买家
-	AuthorID  string  `json:"author_id"`  // 卖家/作者（平台单为 "1"）
-	Type      string  `json:"type"`       // ARTICLE / MEMBERSHIP / PRODUCT / SERVICE
+	UserID    string  `json:"user_id"`   // 买家
+	AuthorID  string  `json:"author_id"` // 卖家/作者（平台单为 "1"）
+	Type      string  `json:"type"`      // ARTICLE / MEMBERSHIP / PRODUCT / SERVICE
 	Amount    float64 `json:"amount"`
 	Method    string  `json:"method"` // ALIPAY / WECHAT / EPAY / BALANCE
 	ArticleID string  `json:"article_id,omitempty"`
@@ -37,14 +37,14 @@ type OrderPaidPayload struct {
 
 // CommissionInfo 佣金明细。
 type CommissionInfo struct {
-	InviterID         string  `json:"inviter_id,omitempty"`
-	InviterAmount     float64 `json:"inviter_amount,omitempty"`
-	InviterRate       float64 `json:"inviter_rate,omitempty"`
-	AuthorAmount      float64 `json:"author_amount,omitempty"`
-	AuthorRate        float64 `json:"author_rate,omitempty"`
-	PlatformAmount    float64 `json:"platform_amount,omitempty"`
-	PlatformRate      float64 `json:"platform_rate,omitempty"`
-	CommissionRecordID string `json:"commission_record_id,omitempty"`
+	InviterID          string  `json:"inviter_id,omitempty"`
+	InviterAmount      float64 `json:"inviter_amount,omitempty"`
+	InviterRate        float64 `json:"inviter_rate,omitempty"`
+	AuthorAmount       float64 `json:"author_amount,omitempty"`
+	AuthorRate         float64 `json:"author_rate,omitempty"`
+	PlatformAmount     float64 `json:"platform_amount,omitempty"`
+	PlatformRate       float64 `json:"platform_rate,omitempty"`
+	CommissionRecordID string  `json:"commission_record_id,omitempty"`
 }
 
 // ArticleStatusChangedPayload article.status.changed 事件载荷。

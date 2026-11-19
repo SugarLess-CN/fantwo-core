@@ -60,10 +60,10 @@ type RedisConfig struct {
 
 // JWTConfig JWT 签发配置（对应原 JWT_SECRET / JWT_EXPIRES_IN）。
 type JWTConfig struct {
-	Secret             string `mapstructure:"secret"`
-	ExpiresIn          string `mapstructure:"expires_in"`           // access token 有效期，默认 1h
-	RefreshExpiresIn   string `mapstructure:"refresh_expires_in"`   // refresh token 有效期，默认 7d
-	Issuer             string `mapstructure:"issuer"`
+	Secret           string `mapstructure:"secret"`
+	ExpiresIn        string `mapstructure:"expires_in"`         // access token 有效期，默认 1h
+	RefreshExpiresIn string `mapstructure:"refresh_expires_in"` // refresh token 有效期，默认 7d
+	Issuer           string `mapstructure:"issuer"`
 }
 
 // LogConfig 日志配置。
