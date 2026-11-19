@@ -1,0 +1,18 @@
+# 临时文件、原仓库克隆、调研草稿一律不上传
+tmp/
+
+# Go 构建产物与本地环境
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.*
+.env
+.env.*
+
+# 编辑器与系统
+.DS_Store
+.idea/
+.vscode/

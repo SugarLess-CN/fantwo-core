@@ -1,0 +1,20 @@
+# >>> dsh-project-mcp-manager:mcp:begin
+- insert:
+    # 服务器一：apifox-mcp-server（读取/查询文档）
+    - id: apifox-mcp-picart
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: apifox-picart
+        transport: stdio
+        command: 'C:\Windows\System32\cmd.exe'
+        args:
+          - /c
+          - 'E:\ENV\nvm4w\nodejs\npx.cmd'
+          - '-y'
+          - 'apifox-mcp-server@0.0.18'
+          - '--project=6542782'
+        env:
+          APIFOX_ACCESS_TOKEN: 'afxp_c65976cn2QVJmnyMLA1N2tQL2VG2nueqQZ7W'
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false
+# <<< dsh-project-mcp-manager:mcp:end
