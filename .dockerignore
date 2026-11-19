@@ -1,0 +1,28 @@
+# 构建上下文裁剪
+#
+# 注意：不要排除 docs/swagger —— 代码里有
+#   _ "github.com/SugarLess-CN/fantwo-core/docs/swagger"
+# 空导入用于把 swaggo 文档注册进全局表，排除后编译会失败。
+
+.git
+.gitignore
+.github
+tmp
+uploads
+bin
+.env
+.env.*
+!.env.example
+config.yaml
+config/config.yaml
+coverage.out
+*.exe
+*.log
+Dockerfile
+docker-compose.yml
+Makefile
+.dockerignore
+
+# 文档只留 README（其余 md 不影响编译）
+*.md
+!README.md
