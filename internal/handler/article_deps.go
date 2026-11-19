@@ -14,7 +14,9 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
+	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -26,6 +28,9 @@ type ContentHandlers struct {
 	Tag        *TagHandler
 	Category   *CategoryHandler
 	Collection *CollectionHandler
+
+	// db 保存装配期连接，供后续注入（搜索日志等）复用，不再从路由层透传。
+	db *gorm.DB
 }
 
 // NewContentHandlers 装配内容域全部 handler。
@@ -43,14 +48,19 @@ func NewContentHandlers(db *gorm.DB, log *zap.Logger) *ContentHandlers {
 	commentRepo := repository.NewCommentRepository(db)
 	collectionRepo := repository.NewCollectionRepository(db)
 
-	// 作者解析器由 user 域实现（service.UserAuthorResolver，T-05b 接入）；
-	// 审核投递器仍待 audit 域产出后注入。
+	// 作者解析器 + 关注关系提供者由 user 域实现（同一个 UserAuthorResolver 实现两个接口）。
 	authorResolver := service.NewUserAuthorResolver(service.NewDeps(db, nil, nil, nil, log))
 	articleSvc := service.NewArticleService(articleRepo, tagRepo, categoryRepo, authorResolver, nil, log)
+	// 关注流：/article?type=following 使用 followee 集合过滤作者。
+	articleSvc.SetFollowProvider(authorResolver)
 	commentSvc := service.NewCommentService(commentRepo, articleRepo, authorResolver, log)
 	tagSvc := service.NewTagService(tagRepo, articleRepo, log)
 	categorySvc := service.NewCategoryService(categoryRepo, log)
 	collectionSvc := service.NewCollectionService(collectionRepo, articleRepo, log)
+
+	// 注册内容域跨域事件订阅（report.handled 删内容 / 审核状态回写）。
+	// DB 为 nil 时内部直接跳过；sync.Once 保证装配多次也只注册一次。
+	service.RegisterContentEventSubscribers(service.ContentEventDeps{DB: db, Logger: log})
 
 	return &ContentHandlers{
 		Article:    &ArticleHandler{svc: articleSvc, log: log},
@@ -58,6 +68,32 @@ func NewContentHandlers(db *gorm.DB, log *zap.Logger) *ContentHandlers {
 		Tag:        &TagHandler{svc: tagSvc, log: log},
 		Category:   &CategoryHandler{svc: categorySvc, log: log},
 		Collection: &CollectionHandler{svc: collectionSvc, log: log},
+		db:         db,
+	}
+}
+
+// BindSearchLogs 注入搜索日志服务（infra 域），使 /article/hot-search 走真实检索聚合。
+// rdb 可为 nil（无 Redis 时服务内部退化为 DB 判重）。
+func (cs *ContentHandlers) BindSearchLogs(rdb *redis.Client) {
+	if cs == nil || cs.db == nil || cs.Article == nil || cs.Article.svc == nil {
+		return
+	}
+	cs.Article.svc.SetSearchLogs(infra.NewSearchLogService(cs.db, rdb))
+}
+
+// BindAudit 注入审核提交器（装配层在 AuditService 就绪后调用）。
+//
+// 注入后：文章「请求发布」会落 PENDING 并提交审核、评论创建后立即提交审核；
+// 审核结果经 article.status.changed / comment.status.changed 事件回写（content_events.go）。
+func (cs *ContentHandlers) BindAudit(auditor *service.AuditService) {
+	if cs == nil || auditor == nil {
+		return
+	}
+	if cs.Article != nil && cs.Article.svc != nil {
+		cs.Article.svc.SetAuditor(auditor)
+	}
+	if cs.Comment != nil && cs.Comment.svc != nil {
+		cs.Comment.svc.SetAuditor(auditor)
 	}
 }
 

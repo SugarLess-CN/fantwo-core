@@ -11,7 +11,6 @@ package migrations
 import (
 	"log"
 
-	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"gorm.io/gorm"
 )
 
@@ -20,12 +19,6 @@ func Run(db *gorm.DB) error {
 	if db == nil {
 		log.Println("[WARN] 数据库不可用，跳过 AutoMigrate")
 		return nil
-	}
-	if err := db.AutoMigrate(
-		// 骨架示例实体（验证迁移链路；业务实体落地后可移除）
-		&model.Sample{},
-	); err != nil {
-		return err
 	}
 	// 各域实体清单分别维护（每域一个文件），此处依序调用。
 	// 注意：跨域只读视图（ConfigKV / UserPaymentView / ArticleOrderView 等）不参与迁移，

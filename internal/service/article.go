@@ -9,6 +9,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
+	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -30,12 +31,14 @@ type ArticleAuditor interface {
 
 // ArticleService 文章业务逻辑（对齐原 NestJS ArticleService）。
 type ArticleService struct {
-	repo    *repository.ArticleRepository
-	tags    *repository.TagRepository
-	cats    *repository.CategoryRepository
-	authors AuthorResolver
-	audit   ArticleAuditor
-	log     *zap.Logger
+	repo       *repository.ArticleRepository
+	tags       *repository.TagRepository
+	cats       *repository.CategoryRepository
+	authors    AuthorResolver
+	follow     FollowProvider
+	audit      ArticleAuditor
+	searchLogs *infra.SearchLogService
+	log        *zap.Logger
 }
 
 // NewArticleService 构造文章服务。
@@ -56,6 +59,14 @@ func NewArticleService(
 
 // SetAuthorResolver 运行期注入作者解析器（避免构造顺序耦合）。
 func (s *ArticleService) SetAuthorResolver(r AuthorResolver) { s.authors = r }
+
+// SetSearchLogs 运行期注入搜索日志服务（infra 域；/article/hot-search 真实聚合来源）。
+// 未注入或聚合为空时回退到「热门标签 + 热门分类」合成，保证端点始终可用。
+func (s *ArticleService) SetSearchLogs(l *infra.SearchLogService) { s.searchLogs = l }
+
+// SetFollowProvider 运行期注入关注关系提供者（user 域 UserAuthorResolver 实现）。
+// 未注入时 type=following 退化为最新排序，不返回错误。
+func (s *ArticleService) SetFollowProvider(p FollowProvider) { s.follow = p }
 
 // SetAuditor 运行期注入审核提交器（审核域装配后调用）。
 func (s *ArticleService) SetAuditor(a ArticleAuditor) { s.audit = a }
@@ -418,6 +429,12 @@ func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*m
 				return err
 			}
 		}
+		// 作者文章数回退（users.article_count，跨域计数由内容域维护）
+		if a.AuthorID != nil {
+			if err := repository.NewUserRepo().IncrCounter(tx, *a.AuthorID, "article_count", -1); err != nil {
+				return err
+			}
+		}
 		return commentRepo.SoftDeleteByArticle(ctx, id)
 	})
 	if err != nil {
@@ -464,15 +481,28 @@ func (s *ArticleService) List(ctx context.Context, q ArticleListQuery, actor Act
 
 	statuses := s.visibleStatuses(actor, q.Status)
 	orderBy := "sort"
+	var followeeIDs []string
 	switch q.Type {
 	case "popular":
 		orderBy = "popular"
 	case "latest":
 		orderBy = "latest"
 	case "following":
-		// 「关注流」依赖 user 域的关注关系表，本域不持有；退化为最新排序，
-		// 待 user 域提供 followee 查询后在此接入（见遗留问题清单）。
+		// 关注流：取当前用户 followee 集合作者过滤（user 域 FollowProvider）。
+		// 未登录 / 未注入提供者 / 未关注任何人时返回空列表，而非退化为全站流。
 		orderBy = "latest"
+		if actor.Anonymous() || s.follow == nil {
+			return []ArticleView{}, 0, nil
+		}
+		ids, err := s.follow.FollowingIDs(ctx, actor.UserID)
+		if err != nil {
+			s.log.Error("查询关注列表失败", zap.String("userId", actor.UserID), zap.Error(err))
+			return nil, 0, errcode.ErrInternal
+		}
+		if len(ids) == 0 {
+			return []ArticleView{}, 0, nil
+		}
+		followeeIDs = ids
 	}
 	if q.SortBy != "" {
 		switch q.SortBy {
@@ -492,6 +522,7 @@ func (s *ArticleService) List(ctx context.Context, q ArticleListQuery, actor Act
 		CategoryID: q.CategoryID,
 		TagID:      q.TagID,
 		AuthorID:   q.AuthorID,
+		AuthorIDs:  followeeIDs,
 		Status:     statuses,
 		OrderBy:    orderBy,
 		Page:       q.Page,
@@ -670,16 +701,43 @@ func (s *ArticleService) FindRecommendations(ctx context.Context, id string, act
 	return s.BuildViews(ctx, picked, actor, false), nil
 }
 
-// HotSearch 热门搜索词。
+// HotSearch 热门搜索词（GET /article/hot-search）。
 //
-// 原实现依赖搜索日志/ES 聚合；本域暂无搜索日志表，退化为「热门标签 + 热门分类」词条，
-// 待 infra 域落地搜索日志后替换为真实统计（见遗留问题清单）。
+// 数据源优先级：
+//  1. infra 域 search_logs 真实聚合（TopKeywordsByScene，近 7 天、过滤零结果词）；
+//  2. 回退：热门标签 + 热门分类合成（infra 未注入或日志为空时，保证端点不空返回）。
 func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword string) ([]map[string]interface{}, *errcode.Err) {
 	if limit <= 0 {
 		limit = 10
 	}
 	if limit > 50 {
 		limit = 50
+	}
+
+	// 优先：infra 域真实检索日志聚合（近 7 天，只统计至少命中 1 条结果的关键词）
+	if s.searchLogs != nil {
+		rows, err := s.searchLogs.TopKeywordsByScene(ctx, "article", 7, limit, 1)
+		if err != nil {
+			s.log.Warn("热搜聚合查询失败，回退标签/分类合成", zap.Error(err))
+		} else if len(rows) > 0 {
+			out := make([]map[string]interface{}, 0, len(rows))
+			for _, r := range rows {
+				if keyword != "" && !strings.Contains(strings.ToLower(r.Keyword), strings.ToLower(keyword)) {
+					continue
+				}
+				out = append(out, map[string]interface{}{
+					"keyword": r.Keyword,
+					"type":    "search",
+					"count":   r.Count,
+				})
+				if len(out) >= limit {
+					break
+				}
+			}
+			if len(out) > 0 {
+				return out, nil
+			}
+		}
 	}
 
 	items := make([]map[string]interface{}, 0, limit)

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
+	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/elastic/go-elasticsearch/v8"
 	"gorm.io/gorm"
 )
@@ -43,6 +44,9 @@ type Searcher struct {
 	mu      sync.Mutex
 	client  *elasticsearch.Client // nil 表示尚未初始化
 	initErr error                 // 初始化失败原因（避免每次重试打满日志）
+
+	// logs 检索日志（热门搜索词来源，见 search_log.go）；nil 表示不记录
+	logs *SearchLogService
 }
 
 // NewSearcher 构造搜索服务（不建立连接，首次调用才懒初始化）。
@@ -52,6 +56,12 @@ func NewSearcher(cfg config.SearchEngineConfig) *Searcher {
 	}
 	return &Searcher{cfg: cfg}
 }
+
+// WithLogs 注入检索日志服务（热门搜索词的落库与聚合）。
+func (s *Searcher) WithLogs(logs *SearchLogService) *Searcher { s.logs = logs; return s }
+
+// Logs 取检索日志服务（nil 时调用方需自行判空）。
+func (s *Searcher) Logs() *SearchLogService { return s.logs }
 
 // Enabled ES 是否已配置（enabled=true 且至少一个地址）。
 // 对齐原 isElasticsearchEnabled：未配置时 /search 系列端点返回 5030「服务未配置」。
@@ -431,6 +441,9 @@ type ArticleSearchRequest struct {
 	SortBy     string // relevance / latest / views / likes
 	Page       int
 	Limit      int
+	// UserID / IP 仅用于检索日志（游客 UserID 为空），不参与 ES 查询条件
+	UserID string
+	IP     string
 }
 
 // SearchResult 检索结果。
@@ -491,6 +504,7 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 	}
 	out := &SearchResult{Total: parsed.Hits.Total.Value, List: []map[string]interface{}{}}
 	if len(ids) == 0 {
+		s.recordSearch(req, 0)
 		return out, nil
 	}
 	var rows []map[string]interface{}
@@ -509,7 +523,29 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 			out.List = append(out.List, r)
 		}
 	}
+	s.recordSearch(req, int(out.Total))
 	return out, nil
+}
+
+// recordSearch 旁路写入检索日志（不阻塞响应、失败静默）。
+//
+// 只记第 1 页：翻页会重复计数同一关键词，导致热门词被单次深度浏览刷高。
+func (s *Searcher) recordSearch(req ArticleSearchRequest, resultCount int) {
+	if s.logs == nil || req.Page > 1 {
+		return
+	}
+	in := RecordInput{
+		Keyword:     req.Keyword,
+		UserID:      req.UserID,
+		Scene:       model.SearchSceneArticle,
+		IP:          req.IP,
+		ResultCount: resultCount,
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = s.logs.Record(ctx, in)
+	}()
 }
 
 // buildQuery 构造 ES 查询 DSL（multi_match + 分类过滤 + 排序）。

@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
+	"github.com/google/uuid"
 )
 
 // MsgUser 连接态用户（Auth 回调返回，挂到连接上）。
@@ -157,6 +157,7 @@ func (g *MsgGateway) Handler(c *gin.Context) {
 		hub:      g.Hub,
 		conn:     conn,
 		send:     make(chan Frame, 256),
+		SocketID: uuid.NewString(), // 每连接唯一（替代 RemoteAddr，支持同 IP 多端）
 		UserID:   user.ID,
 		DeviceID: deviceID,
 		Rooms:    make(map[string]struct{}),
@@ -168,7 +169,7 @@ func (g *MsgGateway) Handler(c *gin.Context) {
 
 	// 在线状态：首次上线时向 presence 房间广播 userStatusChanged
 	if g.Presence != nil {
-		becameOnline, payload := g.Presence.Connected(user.ID, socketID(conn), deviceID)
+		becameOnline, payload := g.Presence.Connected(user.ID, client.SocketID, deviceID)
 		if becameOnline {
 			g.Hub.SendToRoom(PresenceRoom(user.ID), Frame{Event: EventUserStatusChanged, Data: payload})
 		}
@@ -192,7 +193,7 @@ func (g *MsgGateway) readLoop(client *Client, user MsgUser) {
 		client.hub.unregister <- client
 		_ = client.conn.Close()
 		if g.Presence != nil {
-			becameOffline, uid, payload := g.Presence.Disconnected(socketID(client.conn))
+			becameOffline, uid, payload := g.Presence.Disconnected(client.SocketID)
 			if becameOffline {
 				g.Hub.SendToRoom(PresenceRoom(uid), Frame{Event: EventUserStatusChanged, Data: payload})
 			}
@@ -329,14 +330,6 @@ func extractToken(c *gin.Context) string {
 		token = token[7:]
 	}
 	return token
-}
-
-// socketID 用连接远端地址 + 建立时间构造稳定 id（源端用 socket.id）。
-func socketID(conn *websocket.Conn) string {
-	if conn == nil || conn.RemoteAddr() == nil {
-		return ""
-	}
-	return conn.RemoteAddr().String()
 }
 
 // dispatchErrorText 错误码 → 中文提示（对齐源端 error 帧 message 字段）。

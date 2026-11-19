@@ -31,7 +31,8 @@ type ArticleListQuery struct {
 	Keyword    string   // 关键词（标题/摘要）
 	CategoryID string   // 分类
 	TagID      string   // 标签（经 article_tags 关联）
-	AuthorID   string   // 作者
+	AuthorID   string   // 作者（单值）
+	AuthorIDs  []string // 作者集合（关注流：IN 查询）
 	Status     []string // 状态白名单；空表示按调用方给定的默认可见性
 	ExcludeIDs []string // 排除（不喜欢过滤、相关推荐排除自身）
 	OnlyPinned bool     // 仅看个人主页置顶
@@ -54,6 +55,9 @@ func applyArticleFilters(db *gorm.DB, q ArticleListQuery) *gorm.DB {
 	}
 	if q.AuthorID != "" {
 		db = db.Where("author_id = ?", q.AuthorID)
+	}
+	if len(q.AuthorIDs) > 0 {
+		db = db.Where("author_id IN ?", q.AuthorIDs)
 	}
 	if len(q.Status) > 0 {
 		db = db.Where("status IN ?", q.Status)

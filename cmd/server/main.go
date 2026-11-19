@@ -20,7 +20,6 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/router"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
-	"github.com/SugarLess-CN/fantwo-core/internal/ws"
 	"github.com/SugarLess-CN/fantwo-core/migrations"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cast"
@@ -60,11 +59,7 @@ func main() {
 		cast.ToDuration(cfg.JWT.RefreshExpiresIn),
 	)
 
-	// 6. WebSocket hub（/api/v1/ws-message，对齐原 socket.io namespace）
-	hub := ws.NewHub()
-	go hub.Run()
-
-	// 6.5 异步队列 worker（asynq；无 Redis 时跳过，不阻塞启动）
+	// 6. 异步队列 worker（asynq；无 Redis 时跳过，不阻塞启动）
 	var asynqSrv *asynq.Server
 	if rdb != nil {
 		auditSvc := service.NewAuditService(db, queue.FromRedisClient(rdb))
@@ -84,6 +79,8 @@ func main() {
 	}
 
 	// 7. 路由
+	// 注意：WebSocket 端点 /api/v1/ws-message 由消息域（message_routes.go）注册，
+	// 此处不得重复注册，否则 gin 启动即 panic（handlers are already registered）。
 	engine := router.New(router.Option{
 		Signer: signer,
 		Logger: logger,
@@ -91,7 +88,6 @@ func main() {
 		Cfg:    cfg,
 		Redis:  rdb,
 	})
-	engine.GET("/api/v1/ws-message", hub.Handler)
 
 	srv := &http.Server{
 		Addr:    ":" + cast.ToString(cfg.Server.Port),

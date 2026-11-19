@@ -14,7 +14,9 @@ package handler
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
@@ -30,13 +32,14 @@ var ErrServiceNotConfigured = &errcode.Err{
 
 // SearchHandler 搜索端点。
 type SearchHandler struct {
-	svc *infra.Searcher
-	db  *gorm.DB
+	svc  *infra.Searcher
+	db   *gorm.DB
+	logs *infra.SearchLogService // 热门搜索词聚合（nil 表示未接入）
 }
 
 // NewSearchHandler 构造搜索 handler（db 可为 nil）。
-func NewSearchHandler(svc *infra.Searcher, db *gorm.DB) *SearchHandler {
-	return &SearchHandler{svc: svc, db: db}
+func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogService) *SearchHandler {
+	return &SearchHandler{svc: svc, db: db, logs: logs}
 }
 
 // SyncArticles POST /search/sync/articles（对齐 syncArticles）。
@@ -113,6 +116,8 @@ func (h *SearchHandler) SearchArticles(c *gin.Context) {
 		SortBy:     c.DefaultQuery("sortBy", "relevance"),
 		Page:       page,
 		Limit:      limit,
+		UserID:     infraCurrentUserID(c),
+		IP:         c.ClientIP(),
 	})
 	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
@@ -165,4 +170,44 @@ func infraAtoi(s string, def int) int {
 		n = n*10 + int(ch-'0')
 	}
 	return sign * n
+}
+
+// HotKeywords GET /search/hot?days=7&limit=10&scene=&minResults=1
+//
+// 热门搜索词聚合（近 N 天 top N），公开端点：前端热搜展示与 content 域
+// /article/hot-search 均可直接使用（原实现为热门标签+分类合成，此处为真实检索数据）。
+func (h *SearchHandler) HotKeywords(c *gin.Context) {
+	days := infraAtoi(c.Query("days"), 7)
+	limit := infraAtoi(c.Query("limit"), 10)
+	minResults := infraAtoi(c.Query("minResults"), 1)
+	scene := c.Query("scene")
+
+	logs := h.logs
+	if logs == nil {
+		response.Fail(c, ErrServiceNotConfigured)
+		return
+	}
+	list, err := logs.TopKeywordsByScene(c.Request.Context(), scene, days, limit, minResults)
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{
+		"days":  days,
+		"total": len(list),
+		"list":  list,
+	})
+}
+
+// infraCurrentUserID 从 gin context 取当前用户 id（未登录返回空串）。
+func infraCurrentUserID(c *gin.Context) string {
+	raw, exists := c.Get(middleware.CtxUserKey)
+	if !exists {
+		return ""
+	}
+	claims, ok := raw.(*jwtx.Claims)
+	if !ok || claims == nil {
+		return ""
+	}
+	return claims.UserID
 }

@@ -11,6 +11,9 @@ package service
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"crypto/rand"
 	"fmt"
 	"go.uber.org/zap"
@@ -37,6 +40,7 @@ func NewAuthService(d *Deps) *AuthService {
 }
 
 // hashPassword bcrypt 哈希（cost 10，对齐原 saltRounds=10）。
+// 注意：bcrypt 输入上限 72 字节，仅用于用户密码；token 哈希必须用 hashToken。
 func hashPassword(plain string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(plain), 10)
 	return string(b), err
@@ -45,6 +49,22 @@ func hashPassword(plain string) (string, error) {
 // checkPassword bcrypt 比对。
 func checkPassword(hash, plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain)) == nil
+}
+
+// hashToken 哈希 JWT refresh token。
+//
+// 不能用 bcrypt：refresh token 是数百字节的 JWT，超出 bcrypt 的 72 字节输入上限，
+// 会直接报错（曾导致登录返回 500）。token 本身是高熵随机串，用 SHA-256 足够，
+// 且无需慢哈希。
+func hashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
+}
+
+// checkTokenHash 常量时间比对 token 哈希。
+func checkTokenHash(hash, token string) bool {
+	want := hashToken(token)
+	return subtle.ConstantTimeCompare([]byte(hash), []byte(want)) == 1
 }
 
 // LoginInput 登录入参。
@@ -175,7 +195,7 @@ func (s *AuthService) RefreshToken(ctx context.Context, in RefreshInput) (string
 	}
 	device, err := s.d.Users.FindDevice(s.d.DB, claims.UserID, in.DeviceID)
 	if err != nil || device.HashedRefreshToken == nil ||
-		!checkPassword(*device.HashedRefreshToken, in.RefreshToken) {
+		!checkTokenHash(*device.HashedRefreshToken, in.RefreshToken) {
 		return "", errcode.ErrRefreshTokenInvalid
 	}
 	user, err := s.d.Users.FindByID(s.d.DB, claims.UserID)
@@ -326,10 +346,7 @@ func (s *AuthService) issueTokens(ctx context.Context, user *model.User, deviceI
 		s.d.Logger.Error("issue refresh", zapErr(err))
 		return "", "", errcode.ErrInternal
 	}
-	hashed, err := hashPassword(refresh)
-	if err != nil {
-		return "", "", errcode.ErrInternal
-	}
+	hashed := hashToken(refresh)
 	rt := refresh
 	now := time.Now()
 	if err := s.d.Users.UpsertDevice(s.d.DB, &model.UserDevice{

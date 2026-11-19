@@ -50,6 +50,10 @@ type ConfigService struct {
 	// wordsLoaded 敏感词是否已从库加载（多个业务域各自持有 ConfigService 实例时，
 	// 首次 CheckText 会懒加载，避免漏判）。
 	wordsLoaded atomic.Bool
+	// wordsFingerprint 当前前缀树对应的词表 JSON（与 Redis 缓存值比对判脏）。
+	wordsFingerprint atomic.Value // string
+	// lastWordsSync 上次同步词表的 Unix 秒（多实例惰性刷新节流）。
+	lastWordsSync atomic.Int64
 }
 
 // NewConfigService 构造配置服务。
@@ -431,43 +435,41 @@ func (s *ConfigService) GetInt(key string, def int) int {
 	return n
 }
 
-// cached 读一级/二级缓存。
+// cached 读缓存。
+//
+// 一致性红线（多实例部署）：**Redis 可用时以 Redis 为唯一事实源**——不读进程内
+// map，否则 A 实例改了配置、B 实例内存仍是旧值，/clear-cache 也无法跨实例生效。
+// 只有在 Redis 不可用（单实例降级）时才使用进程内 map。
 func (s *ConfigService) cached(key string) (string, bool) {
+	if s.rdb != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+		defer cancel()
+		val, err := s.rdb.Get(ctx, configCachePrefix+key).Result()
+		if err != nil {
+			return "", false // miss 或 Redis 异常：一律回源 DB（宁可多查一次，不返回脏值）
+		}
+		return val, true
+	}
 	s.mu.RLock()
 	v, ok := s.cache[key]
 	s.mu.RUnlock()
-	if ok {
-		return v, true
-	}
-	if s.rdb == nil {
-		return "", false
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
-	defer cancel()
-	val, err := s.rdb.Get(ctx, configCachePrefix+key).Result()
-	if err != nil {
-		return "", false
-	}
-	s.mu.Lock()
-	s.cache[key] = val
-	s.mu.Unlock()
-	return val, true
+	return v, ok
 }
 
-// store 写两级缓存。
+// store 写缓存（有 Redis 只写 Redis；无 Redis 落进程内 map）。
 func (s *ConfigService) store(key, value string) {
+	if s.rdb != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+		defer cancel()
+		_ = s.rdb.Set(ctx, configCachePrefix+key, value, configCacheTTL).Err()
+		return
+	}
 	s.mu.Lock()
 	s.cache[key] = value
 	s.mu.Unlock()
-	if s.rdb == nil {
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
-	defer cancel()
-	_ = s.rdb.Set(ctx, configCachePrefix+key, value, configCacheTTL).Err()
 }
 
-// invalidate 使单 key 缓存失效（进程内 + Redis）。
+// invalidate 使单 key 缓存失效（Redis 为主，进程内 map 一并清理防止残留）。
 func (s *ConfigService) invalidate(key string) {
 	s.mu.Lock()
 	delete(s.cache, key)
@@ -528,6 +530,9 @@ func (s *ConfigService) SensitiveWords() ([]string, error) {
 	return words, nil
 }
 
+// wordsSyncInterval 多实例下敏感词树的同步间隔（CheckText 触发的惰性校验）。
+const wordsSyncInterval = 30 * time.Second
+
 // ReloadSensitiveWords 从配置重新加载敏感词树（启动与变更后调用）。
 func (s *ConfigService) ReloadSensitiveWords() error {
 	words, err := s.SensitiveWords()
@@ -536,7 +541,48 @@ func (s *ConfigService) ReloadSensitiveWords() error {
 	}
 	s.trie.Rebuild(words)
 	s.wordsLoaded.Store(true)
+	if payload, err := json.Marshal(words); err == nil {
+		s.wordsFingerprint.Store(string(payload))
+	}
+	s.lastWordsSync.Store(time.Now().Unix())
 	return nil
+}
+
+// syncWordsIfStale 惰性同步：每 wordsSyncInterval 校验一次 Redis 中的词表，
+// 与本地前缀树指纹不一致则重建——解决「A 实例改了敏感词，B 实例仍在用内存旧树」。
+//
+// Redis 不可用时直接返回（单实例语义，靠显式 clear-cache 刷新）。
+func (s *ConfigService) syncWordsIfStale() {
+	if s.rdb == nil {
+		return
+	}
+	now := time.Now().Unix()
+	last := s.lastWordsSync.Load()
+	if now-last < int64(wordsSyncInterval/time.Second) {
+		return
+	}
+	// 抢占式更新，避免高并发下多协程同时回源
+	if !s.lastWordsSync.CompareAndSwap(last, now) {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	raw, err := s.rdb.Get(ctx, configCachePrefix+model.ConfigKeySensitiveWords).Result()
+	if err != nil || raw == "" {
+		// Redis 无缓存：直接回源 DB（同时会回填 Redis）
+		_ = s.ReloadSensitiveWords()
+		return
+	}
+	if raw == s.wordsFingerprint.Load() {
+		return
+	}
+	var words []string
+	if err := json.Unmarshal([]byte(raw), &words); err != nil {
+		_ = s.ReloadSensitiveWords()
+		return
+	}
+	s.trie.Rebuild(words)
+	s.wordsFingerprint.Store(raw)
 }
 
 // AddSensitiveWord 添加单个敏感词（已存在则幂等成功）。
@@ -668,6 +714,8 @@ func (s *ConfigService) CheckText(text string) (string, bool) {
 	if !s.wordsLoaded.Load() && s.db != nil {
 		_ = s.ReloadSensitiveWords()
 	}
+	// 多实例惰性同步（30s 一次，Redis 为准）
+	s.syncWordsIfStale()
 	return s.trie.Match(text)
 }
 

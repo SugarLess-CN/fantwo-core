@@ -144,8 +144,11 @@ type UserDevice struct {
 	DeviceID           string     `gorm:"column:device_id;type:varchar(128);index:idx_user_device,priority:2;not null" json:"deviceId"`
 	DeviceType         *string    `gorm:"column:device_type;type:varchar(64)" json:"deviceType"`
 	DeviceName         *string    `gorm:"column:device_name;type:text" json:"deviceName"`
-	RefreshToken       *string    `gorm:"column:refresh_token;type:varchar(512)" json:"-"`
-	HashedRefreshToken *string    `gorm:"column:hashed_refresh_token;type:varchar(256)" json:"-"`
+	// refresh_token 存 JWT 原文：带 roles/perms 的 JWT 可达数百字节，用 text 兜住。
+	// 曾因 varchar(512) 导致登录 500（SQLSTATE 22001 value too long）。
+	RefreshToken       *string    `gorm:"column:refresh_token;type:text" json:"-"`
+	// hashed_refresh_token 是 SHA-256 十六进制（64 字符），128 足够。
+	HashedRefreshToken *string    `gorm:"column:hashed_refresh_token;type:varchar(128)" json:"-"`
 	LoginAt            *time.Time `gorm:"column:login_at" json:"loginAt"`
 	LastActiveAt       *time.Time `gorm:"column:last_active_at" json:"lastActiveAt"`
 }
@@ -168,8 +171,8 @@ func (UserSignIn) TableName() string { return "user_sign_in" }
 // UserBlock 用户拉黑表（原 user-block.entity.ts）。
 type UserBlock struct {
 	BaseModel
-	UserID        string  `gorm:"column:user_id;type:char(36);index:idx_user_block,priority:1;not null" json:"userId"`
-	BlockedUserID string  `gorm:"column:blocked_user_id;type:char(36);index:idx_user_block,priority:2;not null" json:"blockedUserId"`
+	UserID        string  `gorm:"column:user_id;type:char(36);uniqueIndex:uk_user_block,priority:1;not null" json:"userId"`
+	BlockedUserID string  `gorm:"column:blocked_user_id;type:char(36);uniqueIndex:uk_user_block,priority:2;not null" json:"blockedUserId"`
 	Reason        *string `gorm:"column:reason;type:varchar(255)" json:"reason"`
 }
 

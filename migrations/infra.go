@@ -12,8 +12,9 @@ import (
 // InfraModels 基础设施域全部实体（顺序按依赖：无外键，配置表先建）。
 func InfraModels() []interface{} {
 	return []interface{}{
-		&model.Config{}, // config 表：系统配置 + 敏感词
-		&model.Upload{}, // uploads 表：上传文件
+		&model.Config{},    // config 表：系统配置 + 敏感词
+		&model.Upload{},    // uploads 表：上传文件
+		&model.SearchLog{}, // search_logs 表：检索日志（热门搜索词聚合，keyword+created_at 联合索引）
 	}
 }
 

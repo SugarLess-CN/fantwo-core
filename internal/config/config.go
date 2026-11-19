@@ -68,14 +68,23 @@ func Load() (*Config, error) {
 	v := viper.New()
 
 	// 内置默认值
+	// 注意：viper 的 Unmarshal 只遍历 AllSettings()，而 AutomaticEnv 不会把
+	// 「没有 SetDefault、且未出现在配置文件里」的键加入 AllSettings。
+	// 因此**每个需要通过环境变量覆盖的键都必须在此登记默认值**，
+	// 否则 Unmarshal 读不到（曾导致 postgres.database / user / password 环境变量完全失效）。
 	v.SetDefault("server.port", 3000)
 	v.SetDefault("server.mode", "debug")
 	v.SetDefault("postgres.host", "127.0.0.1")
 	v.SetDefault("postgres.port", 5432)
+	v.SetDefault("postgres.user", "")
+	v.SetDefault("postgres.password", "")
+	v.SetDefault("postgres.database", "")
 	v.SetDefault("postgres.ssl_mode", "disable")
 	v.SetDefault("postgres.log_level", "warn")
 	v.SetDefault("redis.addr", "127.0.0.1:6379")
+	v.SetDefault("redis.password", "")
 	v.SetDefault("redis.db", 0)
+	v.SetDefault("jwt.secret", "")
 	v.SetDefault("jwt.expires_in", "1h")
 	v.SetDefault("jwt.refresh_expires_in", "168h")
 	v.SetDefault("jwt.issuer", "fantwo-core")

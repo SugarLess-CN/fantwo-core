@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -61,9 +62,12 @@ type Client struct {
 	hub     *Hub
 	conn    *websocket.Conn
 	send    chan Frame
-	UserID  string
+	// SocketID 连接唯一标识（连接建立时生成 uuid，对齐源端 socket.id）。
+	// 不能用 RemoteAddr：同 IP 多端（NAT / 多标签页）会得到相同地址，互相覆盖 presence 集合。
+	SocketID string
+	UserID   string
 	DeviceID string // 多端在线（原 deviceId header 语义）
-	Rooms   map[string]struct{}
+	Rooms    map[string]struct{}
 }
 
 // Hub 连接管理器：注册/注销、房间、广播。
@@ -190,10 +194,11 @@ func (h *Hub) Handler(c *gin.Context) {
 		return
 	}
 	client := &Client{
-		hub:  h,
-		conn: conn,
-		send: make(chan Frame, 256),
-		Rooms: make(map[string]struct{}),
+		hub:      h,
+		conn:     conn,
+		send:     make(chan Frame, 256),
+		SocketID: uuid.NewString(),
+		Rooms:    make(map[string]struct{}),
 	}
 	h.register <- client
 	client.send <- Frame{Event: EventConnected, Data: nil}

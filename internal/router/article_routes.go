@@ -11,6 +11,8 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
+	"github.com/SugarLess-CN/fantwo-core/internal/queue"
+	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +26,12 @@ var (
 func contentHandlers(opt Option) *handler.ContentHandlers {
 	contentOnce.Do(func() {
 		contentSet = handler.NewContentHandlers(opt.DB, opt.Logger)
+		// 审核提交器：与 audit 域同一构造口径（队列客户端由 Redis 派生）。
+		if opt.DB != nil {
+			contentSet.BindAudit(service.NewAuditService(opt.DB, queue.FromRedisClient(opt.Redis)))
+			// 热门搜索词走 infra 域 search_logs 真实聚合（无表时内部回退标签/分类合成）。
+			contentSet.BindSearchLogs(opt.Redis)
+		}
 	})
 	return contentSet
 }
