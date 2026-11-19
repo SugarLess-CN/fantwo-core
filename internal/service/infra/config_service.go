@@ -115,7 +115,7 @@ func (s *ConfigService) List() ([]model.Config, error) {
 		return nil, svcUnavailable("数据库不可用")
 	}
 	var out []model.Config
-	if err := s.db.Order("group ASC, key ASC").Find(&out).Error; err != nil {
+	if err := s.db.Order(`"group" ASC, key ASC`).Find(&out).Error; err != nil {
 		return nil, svcInternal("查询配置失败: %v", err)
 	}
 	return out, nil
@@ -130,7 +130,7 @@ func (s *ConfigService) ByGroup(group string) ([]model.Config, error) {
 		return nil, errcode.ErrBadRequest.With("分组不能为空")
 	}
 	var out []model.Config
-	if err := s.db.Where(`"group" = ?`, group).Order("key ASC").Find(&out).Error; err != nil {
+	if err := s.db.Where(`"group" = ?`, group).Order(`key ASC`).Find(&out).Error; err != nil {
 		return nil, svcInternal("查询分组配置失败: %v", err)
 	}
 	return out, nil
@@ -381,7 +381,7 @@ func (s *ConfigService) AdvertisementConfig() (map[string]interface{}, error) {
 		return nil, svcUnavailable("数据库不可用")
 	}
 	var rows []model.Config
-	if err := s.db.Where(`"group" = ?`, model.ConfigGroupAdvertisement).Order("key ASC").Find(&rows).Error; err != nil {
+	if err := s.db.Where(`"group" = ?`, model.ConfigGroupAdvertisement).Order(`key ASC`).Find(&rows).Error; err != nil {
 		return nil, svcInternal("查询广告配置失败: %v", err)
 	}
 	out := make(map[string]interface{}, len(rows))
