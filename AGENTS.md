@@ -7,7 +7,10 @@ Go + Gin 重构 coruni/picart 社区后端，复刻原 NestJS 服务全部功能
 - 负责：从原 NestJS 后端（https://github.com/coruni/picart.git）迁移全部业务功能到 Go + Gin；功能清单与 API 语义文档化。
 - 不负责：前端、原 NestJS 仓库的功能演进、线上部署运维。
 - API 文档权威来源：**原仓库自带 `swagger.json`**（OpenAPI 3.0.0，title `PicArt API`，description `PicArt 图片社区 API 文档`，**211 路径 / 275 操作 / 24 个 tag / 23 个业务域**），位于 `tmp/picart/swagger.json`；已整理进 `docs/02-API文档清单.md`。它与源码 `tmp/picart/src` 共同构成唯一事实来源。
-- Apifox MCP（serverName `apifox-picart`，`.dsh/mcp.yml`）：**当前 `--project=6542782` 指向的是另一个电商系统任务的项目，不属于 picart**；picart 专属 MCP 尚未配置。在 picart 自己的 project id 就位前，该 MCP 返回的任何内容**不得**用于 picart 的范围界定、接口实现或字段设计。MCP 只读，且不得通过 MCP 写文档。
+- Apifox MCP 双服务器，身份已核清（用户 2026-11-19 三次纠正）：
+  - `apifox-office`（工具后缀 p122zz，project 6542782）：**另一电商系统任务的项目，与 picart 无关，永久禁用**——曾两次误当 picart 数据源，据此派发的电商批次已全部撤回。
+  - `apifox-picart`（工具后缀 buvy0r/abp1z0）：**这才是 picart 的 MCP**，内容即 picart 社区系统 API 文档；首次 ref 读取报「broken link」，需先调 `refresh_project_oas` 重新拉取，可用后作为 swagger.json 之外的交叉校验源。picart **没有电商面**，范围 = 社区系统（swagger.json 211 路径 + 源码）。
+  - MCP 一律只读，不得用于写文档。
 
 ## 项目概览
 
@@ -48,7 +51,7 @@ Go + Gin 重构 coruni/picart 社区后端，复刻原 NestJS 服务全部功能
 - **并行派发（用户 2026-11-19 指定）**：低耦合、可并行的模块派**不同成员**同时开工，不必串行排队；有依赖或共享文件的域才串行/复用同一成员。lead 同时管理多个运行中成员，按回报到达顺序处理。
 - **大功能必查，小功能免查**：独立功能面（认证、限流、ORM、缓存、队列、文件存储、短信、任务调度等）动第一行代码前必须先调研；拼写、小工具函数、明确 bug 修复可直接写。
 - **MCP 只读**：禁止通过 MCP 写接口/改文档；MCP 仅用于读取。
-- **陷阱：数据源身份必须先验证再采信**。2026-11-17 曾把 `apifox-picart` 这个 serverName 当作“就是 picart”的依据，误采信了另一电商项目的 150 个端点文档。教训：serverName / 配置名是人写的，不能当项目身份证据；OpenAPI 返回的 `info.title` 也可能只是「默认模块」。验证手段：比对 `info.title`/`description` 与目标项目名、比对仓库自带 `swagger.json` 的路径集合、抽样看关键字（如 picart 应有 `/article` `/comment`，不应有 `guild` `profit` `cart` `douyin`）。身份未验证的第三方文档一律标注「未核验」并禁止进入实现依据。
+- **陷阱：数据源身份必须先验证再采信**。2026-11-19 最终定论（用户三次纠正后确立）：**picart 没有任何电商面**。`apifox-office` MCP（project 6542782，含 guild/profit/cart/douyin 内容）**属于另一个电商系统任务，与 picart 无关，永久禁止参与 picart 的任何决策**。曾两次误把它当 picart 数据源并据此派发「电商批次」，均已撤回。picart 唯一形态 = 社区系统：`tmp/picart/swagger.json`（211 路径）+ `tmp/picart/src` 源码。真正的 picart MCP 是 `apifox-picart`（工具后缀 abp1z0），首次 ref 读取报「broken link」，需先调 refresh/read_project_oas 重新拉取后再用。教训：serverName 是人写的，以「用户确认 + 内容比对（picart 应有 /article /comment，不应有 guild profit cart douyin）」双验，验证不过宁可不用。
 - **picart 身份基线（用于快速识别错源）**：`info.title` = `PicArt API`，`description` = `PicArt 图片社区 API 文档`，全局前缀 `api/v1`，响应包装 `{code,message,data}`，含用户/文章/评论/合集/积分/成就/装饰品/表情包/标签/分类/轮播/举报/邀请/搜索/统计/上传/订单/支付/内容审核/权限/角色/配置/信息 共 23 域。
 - **写入范围**：默认只在工作区目录树内部读写；工作区外需用户当轮明确同意。
 - 中文思考与回复；代码、命令、路径、专有名词保持原样。
