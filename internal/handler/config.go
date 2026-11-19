@@ -1,0 +1,264 @@
+// 系统配置 handler（13 个操作 + 按 id/key 直取扩展，对齐 swagger tag「系统配置」）。
+//
+// 端点与权限（原 config.controller.ts 的 @Permissions，另兼容任务书约定的 config:manage 命名）：
+//
+//	GET    /config                          setting:read         全部配置
+//	POST   /config                          setting:create       创建配置
+//	PATCH  /config                          setting:update       批量更新配置
+//	GET    /config/group/:group             setting:read         按分组取配置
+//	PATCH  /config/group/:group             setting:update       按分组批量更新
+//	GET    /config/public                   —（NoAuth）          公开配置（按分组聚合）
+//	GET    /config/advertisement            —（NoAuth）          广告配置
+//	GET    /config/key/:key                 setting:read         按 key 取配置
+//	GET    /config/:id                      setting:read         按 id 取配置
+//	PATCH  /config/:id                      setting:update       按 id 更新配置
+//	DELETE /config/:id                      setting:update       删除配置
+//	GET    /config/sensitive-words          setting:read         敏感词列表
+//	POST   /config/sensitive-words          setting:update       添加敏感词
+//	DELETE /config/sensitive-words          setting:update       删除敏感词（body: {word}）
+//	POST   /config/sensitive-words/batch    setting:update       批量添加
+//	DELETE /config/sensitive-words/batch    setting:update       批量删除
+//	POST   /config/sensitive-words/clear-cache setting:update    清除敏感词缓存
+//
+// 敏感词接口响应保留原实现的 {success, data|message} 形态，便于前端零改动对接。
+package handler
+
+import (
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
+	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
+	"github.com/gin-gonic/gin"
+)
+
+// ConfigHandler 系统配置端点。
+type ConfigHandler struct {
+	svc *infra.ConfigService
+}
+
+// NewConfigHandler 构造配置 handler。
+func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
+	return &ConfigHandler{svc: svc}
+}
+
+// List GET /config。
+func (h *ConfigHandler) List(c *gin.Context) {
+	list, err := h.svc.List()
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, list)
+}
+
+// Create POST /config。
+func (h *ConfigHandler) Create(c *gin.Context) {
+	var in infra.ConfigInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：key 必填")
+		return
+	}
+	out, err := h.svc.Create(in)
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, out)
+}
+
+// UpdateAll PATCH /config（body: [{key,value}]）。
+func (h *ConfigHandler) UpdateAll(c *gin.Context) {
+	var items []infra.ConfigInput
+	if err := c.ShouldBindJSON(&items); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
+		return
+	}
+	if err := h.svc.UpdateAll(items); err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"updated": len(items)})
+}
+
+// ByGroup GET /config/group/:group。
+func (h *ConfigHandler) ByGroup(c *gin.Context) {
+	list, err := h.svc.ByGroup(c.Param("group"))
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, list)
+}
+
+// UpdateGroup PATCH /config/group/:group。
+func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
+	var items []infra.ConfigInput
+	if err := c.ShouldBindJSON(&items); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
+		return
+	}
+	if err := h.svc.UpdateGroup(c.Param("group"), items); err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"updated": len(items)})
+}
+
+// Public GET /config/public（NoAuth）。
+func (h *ConfigHandler) Public(c *gin.Context) {
+	res, err := h.svc.PublicConfigs()
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, res)
+}
+
+// Advertisement GET /config/advertisement（NoAuth）。
+func (h *ConfigHandler) Advertisement(c *gin.Context) {
+	res, err := h.svc.AdvertisementConfig()
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, res)
+}
+
+// ByKey GET /config/key/:key。
+func (h *ConfigHandler) ByKey(c *gin.Context) {
+	cfg, err := h.svc.ByKey(c.Param("key"))
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, cfg)
+}
+
+// ByID GET /config/:id。
+func (h *ConfigHandler) ByID(c *gin.Context) {
+	cfg, err := h.svc.ByID(c.Param("id"))
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, cfg)
+}
+
+// UpdateByID PATCH /config/:id。
+func (h *ConfigHandler) UpdateByID(c *gin.Context) {
+	var in infra.ConfigInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误")
+		return
+	}
+	out, err := h.svc.Update(c.Param("id"), in)
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, out)
+}
+
+// Remove DELETE /config/:id。
+func (h *ConfigHandler) Remove(c *gin.Context) {
+	if err := h.svc.Remove(c.Param("id")); err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"deleted": true})
+}
+
+// ---------- 敏感词 ----------
+
+// ListSensitiveWords GET /config/sensitive-words。
+func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
+	words, err := h.svc.SensitiveWords()
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"success": true, "data": words, "total": len(words)})
+}
+
+// CreateSensitiveWord POST /config/sensitive-words（body: {word}）。
+func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
+	var body struct {
+		Word string `json:"word"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
+		return
+	}
+	if err := h.svc.AddSensitiveWord(body.Word); err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"success": true, "message": "敏感词添加成功"})
+}
+
+// RemoveSensitiveWord DELETE /config/sensitive-words（body: {word}）。
+func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
+	var body struct {
+		Word string `json:"word"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
+		return
+	}
+	if err := h.svc.RemoveSensitiveWord(body.Word); err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{"success": true, "message": "敏感词删除成功"})
+}
+
+// BatchCreateSensitiveWords POST /config/sensitive-words/batch（body: {words:[...]}）。
+func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
+	var body struct {
+		Words []string `json:"words"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
+		return
+	}
+	added, err := h.svc.BatchAddSensitiveWords(body.Words)
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{
+		"success": true,
+		"message": "批量添加 " + infraItoa64(int64(len(body.Words))) + " 个敏感词成功",
+		"added":   added,
+	})
+}
+
+// BatchRemoveSensitiveWords DELETE /config/sensitive-words/batch（body: {words:[...]}）。
+func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
+	var body struct {
+		Words []string `json:"words"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
+		return
+	}
+	removed, err := h.svc.BatchRemoveSensitiveWords(body.Words)
+	if err != nil {
+		response.Fail(c, infraErrOrNil(err))
+		return
+	}
+	response.Success(c, gin.H{
+		"success": true,
+		"message": "批量删除 " + infraItoa64(int64(len(body.Words))) + " 个敏感词成功",
+		"removed": removed,
+	})
+}
+
+// ClearSensitiveWordsCache POST /config/sensitive-words/clear-cache（对齐 refreshConfigCache）。
+func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
+	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)
+	response.Success(c, gin.H{
+		"success": true,
+		"message": "缓存清除成功",
+		"total":   h.svc.TrieSize(),
+	})
+}

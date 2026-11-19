@@ -90,3 +90,6 @@ type UserPaymentView struct {
 
 // TableName 表名。
 func (UserPaymentView) TableName() string { return "users" }
+
+// PaymentModels 支付域迁移实体（含佣金流水；config/users 为跨域只读视图，不参与迁移）。
+func PaymentModels() []interface{} { return []interface{}{&Payment{}, &CommissionRecord{}} }

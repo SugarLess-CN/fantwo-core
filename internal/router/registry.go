@@ -15,35 +15,29 @@ import "github.com/gin-gonic/gin"
 // 每接一个域，在此追加一行。当前尚未接入任何域（等待各成员产出）。
 func RegisterAll(v1 *gin.RouterGroup, opt Option) {
 	// 用户/认证/RBAC/message 域
-	// RegisterUserRoutes(v1, opt)
+	RegisterUserRoutes(v1, opt)
 	// RegisterRoleRoutes(v1, opt)
 	// RegisterPermissionRoutes(v1, opt)
-	// RegisterMessageRoutes(v1, opt)
+	RegisterMessageRoutes(v1, opt)
 
 	// 内容域
-	// RegisterArticleRoutes(v1, opt)
-	// RegisterCommentRoutes(v1, opt)
-	// RegisterTagRoutes(v1, opt)
-	// RegisterCategoryRoutes(v1, opt)
-	// RegisterCollectionRoutes(v1, opt)
+	RegisterArticleRoutes(v1, opt)
+	RegisterCommentRoutes(v1, opt)
+	RegisterTagRoutes(v1, opt)
+	RegisterCategoryRoutes(v1, opt)
+	RegisterCollectionRoutes(v1, opt)
 
-	// 运营域
-	// RegisterPointsRoutes(v1, opt)
-	// RegisterAchievementRoutes(v1, opt)
-	// RegisterEmojiRoutes(v1, opt)
-	// RegisterDecorationRoutes(v1, opt)
-	// RegisterBannerRoutes(v1, opt)
-	// RegisterReportRoutes(v1, opt)
-	// RegisterInviteRoutes(v1, opt)
+	// 运营域（积分/成就/表情包/装饰品/轮播/举报/邀请，实现见 ops_routes.go）
+	RegisterOpsRoutes(v1, opt)
 
 	// 基础设施域
-	// RegisterUploadRoutes(v1, opt)
-	// RegisterSearchRoutes(v1, opt)
-	// RegisterStatisticsRoutes(v1, opt)
-	// RegisterConfigRoutes(v1, opt)
+	RegisterUploadRoutes(v1, opt)
+	RegisterSearchRoutes(v1, opt)
+	RegisterStatisticsRoutes(v1, opt)
+	RegisterConfigRoutes(v1, opt)
 
 	// 交易域
-	// RegisterOrderRoutes(v1, opt)
-	// RegisterPaymentRoutes(v1, opt)
-	// RegisterAuditRoutes(v1, opt)
+	RegisterOrderRoutes(v1, opt)
+	RegisterPaymentRoutes(v1, opt)
+	RegisterAuditRoutes(v1, opt)
 }

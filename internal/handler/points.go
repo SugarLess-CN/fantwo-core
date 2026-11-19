@@ -1,0 +1,242 @@
+// 积分域 HTTP 层（原 PointsController 16 个操作）。
+package handler
+
+import (
+	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
+	"github.com/SugarLess-CN/fantwo-core/internal/service"
+	"github.com/gin-gonic/gin"
+)
+
+// PointsAdd POST /points/add（管理端：给当前登录用户加积分）。
+func (h *OpsHandler) PointsAdd(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	var in service.AddPointsInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		return
+	}
+	res, err := h.Points.Add(uid, in)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, res)
+}
+
+// PointsSpend POST /points/spend。
+func (h *OpsHandler) PointsSpend(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	var in service.SpendPointsInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		return
+	}
+	res, err := h.Points.Spend(uid, in)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, res)
+}
+
+// PointsBalance GET /points/balance。
+func (h *OpsHandler) PointsBalance(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	balance, err := h.Points.Balance(uid)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, gin.H{"user_id": uid, "points": balance})
+}
+
+// PointsTransactions GET /points/transactions（我的流水）。
+func (h *OpsHandler) PointsTransactions(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	q := model.PointsTxQuery{
+		Page:   atoiDefault(c.Query("page"), 1),
+		Limit:  atoiDefault(c.Query("limit"), 0),
+		Type:   c.Query("type"),
+		Source: c.Query("source"),
+		UserID: uid,
+	}
+	list, total, err := h.Points.Transactions(q)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	page, limit := normQuery(q.Page, q.Limit)
+	response.SuccessPage(c, list, total, page, limit)
+}
+
+// PointsTxAll GET /points/transactions/all（管理端：全部流水）。
+func (h *OpsHandler) PointsTxAll(c *gin.Context) {
+	q := model.PointsTxQuery{
+		Page:   atoiDefault(c.Query("page"), 1),
+		Limit:  atoiDefault(c.Query("limit"), 0),
+		Type:   c.Query("type"),
+		Source: c.Query("source"),
+		UserID: c.Query("user_id"),
+	}
+	list, total, err := h.Points.Transactions(q)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	page, limit := normQuery(q.Page, q.Limit)
+	response.SuccessPage(c, list, total, page, limit)
+}
+
+// PointsUserTransactions GET /points/users/:userId/transactions（管理端）。
+func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
+	q := model.PointsTxQuery{
+		Page:   atoiDefault(c.Query("page"), 1),
+		Limit:  atoiDefault(c.Query("limit"), 0),
+		Type:   c.Query("type"),
+		Source: c.Query("source"),
+		UserID: c.Param("userId"),
+	}
+	list, total, err := h.Points.Transactions(q)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	page, limit := normQuery(q.Page, q.Limit)
+	response.SuccessPage(c, list, total, page, limit)
+}
+
+// PointsUserBalance GET /points/users/:userId/balance（管理端）。
+func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
+	uid := c.Param("userId")
+	balance, err := h.Points.Balance(uid)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, gin.H{"user_id": uid, "points": balance})
+}
+
+// PointsStatistics GET /points/statistics（管理端）。
+func (h *OpsHandler) PointsStatistics(c *gin.Context) {
+	st, err := h.Points.Statistics()
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, st)
+}
+
+// PointsMyTasks GET /points/tasks/my。
+func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	list, err := h.Points.MyTasks(uid)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, list)
+}
+
+// PointsMyTaskProgress GET /points/tasks/my/:activityId。
+func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	r, err := h.Points.MyTaskProgress(uid, c.Param("activityId"))
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, r)
+}
+
+// PointsActivityCreate POST /points/activities（管理端）。
+func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
+	var in model.PointsActivityInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		return
+	}
+	a, err := h.Points.CreateActivity(in)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, a)
+}
+
+// PointsActivityList GET /points/activities（公开）。
+func (h *OpsHandler) PointsActivityList(c *gin.Context) {
+	list, err := h.Points.Activities(c.Query("type"), c.Query("keyword"))
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, list)
+}
+
+// PointsActivityGet GET /points/activities/:id（公开）。
+func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
+	a, err := h.Points.Activity(c.Param("id"))
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, a)
+}
+
+// PointsActivityUpdate PATCH /points/activities/:id（管理端）。
+func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
+	var in model.PointsActivityInput
+	if err := c.ShouldBindJSON(&in); err != nil {
+		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		return
+	}
+	a, err := h.Points.UpdateActivity(c.Param("id"), in)
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, a)
+}
+
+// PointsActivityDelete DELETE /points/activities/:id（管理端）。
+func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
+	if err := h.Points.DeleteActivity(c.Param("id")); err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, gin.H{"deleted": true})
+}
+
+// PointsActivityClaim POST /points/activities/:id/claim。
+func (h *OpsHandler) PointsActivityClaim(c *gin.Context) {
+	uid := requireUser(c)
+	if uid == "" {
+		return
+	}
+	res, err := h.Points.ClaimTaskReward(uid, c.Param("id"))
+	if err != nil {
+		fail(c, err)
+		return
+	}
+	ok(c, res)
+}

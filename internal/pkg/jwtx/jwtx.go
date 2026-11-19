@@ -20,6 +20,9 @@ type Claims struct {
 	DeviceID    string   `json:"did,omitempty"`
 	Roles       []string `json:"roles,omitempty"`
 	Permissions []string `json:"perms,omitempty"`
+	// PermVer 权限版本号：签发时 Redis user:{id}:permver 的快照。
+	// 中间件比对不一致即 401 要求重新登录（权限变更时 bump，T-05b 方案）。
+	PermVer int64 `json:"pv,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -72,6 +75,43 @@ func (s *Signer) Generate(userID string, roles, permissions []string, deviceID, 
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(s.secret)
+}
+
+// GenerateWithPermVer 签发携带权限版本号的 token（T-05b：perm_ver 方案）。
+// tokenType 语义同 Generate；permVer 为当前 Redis user:{id}:permver 值。
+func (s *Signer) GenerateWithPermVer(userID string, roles, permissions []string, deviceID, tokenType string, permVer int64) (string, error) {
+	ttl := s.accessTTL
+	if tokenType == "refresh" {
+		ttl = s.refreshTTL
+	}
+	now := time.Now()
+	claims := Claims{
+		UserID:      userID,
+		DeviceID:    deviceID,
+		Roles:       roles,
+		Permissions: permissions,
+		PermVer:     permVer,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    s.issuer,
+			Subject:   userID,
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
+			NotBefore: jwt.NewNumericDate(now),
+		},
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(s.secret)
+}
+
+// Remaining 返回 token 剩余有效期（黑名单 TTL 用；已过期返回 0）。
+func (s *Signer) Remaining(c *Claims) time.Duration {
+	if c == nil || c.ExpiresAt == nil {
+		return 0
+	}
+	d := time.Until(c.ExpiresAt.Time)
+	if d < 0 {
+		return 0
+	}
+	return d
 }
 
 // Parse 解析并校验 token，返回 claims。

@@ -86,10 +86,10 @@ var membershipPlans = map[string]struct {
 	title    string
 	lifetime bool
 }{
-	"1m":      {1, "membership_price_1m", "充值VIP会员 1个月", false},
-	"3m":      {3, "membership_price_3m", "充值VIP会员 3个月", false},
-	"6m":      {6, "membership_price_6m", "充值VIP会员 6个月", false},
-	"12m":     {12, "membership_price_12m", "充值VIP会员 12个月", false},
+	"1m":       {1, "membership_price_1m", "充值VIP会员 1个月", false},
+	"3m":       {3, "membership_price_3m", "充值VIP会员 3个月", false},
+	"6m":       {6, "membership_price_6m", "充值VIP会员 6个月", false},
+	"12m":      {12, "membership_price_12m", "充值VIP会员 12个月", false},
 	"lifetime": {0, "membership_price_lifetime", "充值VIP会员 永久", true},
 }
 
@@ -352,6 +352,18 @@ func MarkPaidInTx(tx *gorm.DB, orderID, method, thirdNo string) (*model.Order, e
 	order.PaymentMethod = method
 	order.PaidAt = &now
 	return &order, nil
+}
+
+// GetWalletBalance 钱包余额（GET /order/wallet/balance）。
+func (s *OrderService) GetWalletBalance(userID string) (float64, error) {
+	var user model.UserPaymentView
+	if err := s.DB.First(&user, "id = ?", userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, errcode.ErrNotFound.With("用户不存在")
+		}
+		return 0, err
+	}
+	return user.Wallet, nil
 }
 
 // publishOrderPaid 发布 order.paid 事件（事务提交后调用）。

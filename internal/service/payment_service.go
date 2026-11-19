@@ -10,6 +10,7 @@
 package service
 
 import (
+	"context"
 	"crypto/md5"
 	"crypto/rsa"
 	"crypto/x509"
@@ -18,6 +19,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -27,8 +29,16 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
-	"github.com/SugarLess-CN/fantwo-core/internal/queue"
+	"github.com/hibiken/asynq"
 	"github.com/smartwalle/alipay/v3"
+	"github.com/wechatpay-apiv3/wechatpay-go/core"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
+	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -46,7 +56,7 @@ type CommissionConfig struct {
 // PaymentService 支付业务。
 type PaymentService struct {
 	DB    *gorm.DB
-	asynq *queue.Client
+	asynq *asynq.Client
 	order *OrderService
 
 	// SDK 凭据缓存（config hash 变更时重建）
@@ -96,8 +106,8 @@ type EpayCfg struct {
 }
 
 // NewPaymentService 构造。
-func NewPaymentService(db *gorm.DB, asynq *queue.Client) *PaymentService {
-	return &PaymentService{DB: db, asynq: asynq, order: NewOrderService(db)}
+func NewPaymentService(db *gorm.DB, c *asynq.Client) *PaymentService {
+	return &PaymentService{DB: db, asynq: c, order: NewOrderService(db)}
 }
 
 // ---------- config 表读取 ----------
@@ -121,8 +131,8 @@ func (s *PaymentService) loadPayConfig() PayConfig {
 	boolv := func(k string) bool { return get(k, "") == "true" }
 
 	cfg := PayConfig{
-		NotifyURL: get("payment_notify_url", ""),
-		ReturnURL: get("payment_return_url", ""),
+		NotifyURL:     get("payment_notify_url", ""),
+		ReturnURL:     get("payment_return_url", ""),
 		AlipayEnabled: boolv("alipay_enabled"),
 		Alipay: AlipayCfg{
 			AppID:      get("alipay_app_id", ""),
@@ -319,16 +329,36 @@ func (s *PaymentService) createWechatPayment(record *model.Payment, order *model
 	}, nil
 }
 
-// wechatNativeOrder 调微信 v3 Native 下单（wechatpay-go 官方 SDK）。
+// wechatNativeOrder 调微信 v3 Native 下单（wechatpay-go 官方 SDK；
+// 平台证书自动更新由 WithWechatPayAutoAuthCipher 承担）。
 func (s *PaymentService) wechatNativeOrder(w *WechatCfg, order *model.Order, notifyURL string) (codeURL, prepayID string, err error) {
-	privKey, err := parseRSAPrivateKeyPEM(w.PrivateKey)
+	privKey, err := utils.LoadPrivateKey(w.PrivateKey)
+	if err != nil {
+		return "", "", fmt.Errorf("微信商户私钥解析失败: %w", err)
+	}
+	ctx := context.Background()
+	client, err := core.NewClient(ctx,
+		option.WithWechatPayAutoAuthCipher(w.MchID, w.SerialNo, privKey, w.APIv3Key))
+	if err != nil {
+		return "", "", fmt.Errorf("微信支付客户端初始化失败: %w", err)
+	}
+	svc := native.NativeApiService{Client: client}
+	resp, _, err := svc.Prepay(ctx, native.PrepayRequest{
+		Appid:       core.String(w.AppID),
+		Mchid:       core.String(w.MchID),
+		Description: core.String(order.Title),
+		OutTradeNo:  core.String(order.OrderNo),
+		NotifyUrl:   core.String(notifyURL),
+		Amount:      &native.Amount{Total: core.Int64(int64(order.Amount * 100))},
+	})
 	if err != nil {
 		return "", "", err
 	}
-	ctx := contextBackground()
-	// 懒初始化/downloader 证书自动更新由 SDK 承担
-	h := &wechatPayHelper{mchID: w.MchID, serialNo: w.SerialNo, privateKey: privKey, apiV3Key: w.APIv3Key}
-	return h.nativeOrder(ctx, order, notifyURL)
+	if resp.CodeUrl == nil {
+		return "", "", errors.New("微信下单未返回 code_url")
+	}
+	// v3 Native 下单响应只含 code_url；prepay_id 不含在本响应内
+	return *resp.CodeUrl, "", nil
 }
 
 // createEpayPayment 易支付（MD5 签名跳转）。
@@ -386,9 +416,12 @@ func epaySign(params map[string]string, appKey string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// createBalancePayment 余额支付：单事务（扣余额→支付记录 SUCCESS→订单 PAID→佣金流水）。
+// createBalancePayment 余额支付：单事务（扣余额→支付记录 SUCCESS→订单 PAID→佣金流水），
+// 事务提交成功后才发布 order.paid 事件（订阅方读得到已提交数据）。
 func (s *PaymentService) createBalancePayment(record *model.Payment, order *model.Order) (map[string]interface{}, error) {
 	var balance float64
+	var paidOrder *model.Order
+	var commission *event.CommissionInfo
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
 		var user model.UserPaymentView
 		if err := tx.Clauses(dbLocking()).First(&user, "id = ?", order.UserID).Error; err != nil {
@@ -414,14 +447,22 @@ func (s *PaymentService) createBalancePayment(record *model.Payment, order *mode
 			return err
 		}
 		// 订单 PAID + 佣金流水（同事务）
-		_, _, err := s.settleInTx(tx, record, order, model.PayMethodBalance, "")
-		return err
+		p, c, err := s.settleInTx(tx, record, order, model.PayMethodBalance, "")
+		if err != nil {
+			return err
+		}
+		paidOrder, commission = p, c
+		return nil
 	})
 	if err != nil {
 		_ = s.DB.Model(record).Updates(map[string]interface{}{
 			"status": model.PaymentStatusFailed, "error_message": err.Error(),
 		}).Error
 		return nil, err
+	}
+	// 事务已提交：发布事件（成就/通知/邀请域监听）
+	if paidOrder != nil {
+		publishOrderPaid(paidOrder, commission)
 	}
 	return map[string]interface{}{
 		"paymentId": record.ID, "status": "SUCCESS", "paymentMethod": "BALANCE", "balance": balance,
@@ -527,6 +568,8 @@ func (s *PaymentService) settleOrderPaid(orderNo, method, thirdNo string) (*mode
 	}
 
 	now := time.Now()
+	var paidOrder *model.Order
+	var commission *event.CommissionInfo
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
 		record.Status = model.PaymentStatusSuccess
 		record.ThirdPartyOrderNo = thirdNo
@@ -534,55 +577,72 @@ func (s *PaymentService) settleOrderPaid(orderNo, method, thirdNo string) (*mode
 		if err := tx.Save(&record).Error; err != nil {
 			return err
 		}
-		paid, commission, err := s.settleInTx(tx, &record, &order, method, thirdNo)
+		paid, comm, err := s.settleInTx(tx, &record, &order, method, thirdNo)
 		if err != nil {
 			return err
 		}
-		order = *paid
-		publishOrderPaid(paid, commission)
+		paidOrder, commission = paid, comm
 		return nil
 	})
 	if err != nil {
 		return nil, err
+	}
+	if paidOrder != nil {
+		order = *paidOrder
+		publishOrderPaid(paidOrder, commission) // 事务提交后发布
 	}
 	return &order, nil
 }
 
 // ---------- 三个回调 ----------
 
-// HandleAlipayNotify 支付宝回调（SDK 验签自带）。
-func (s *PaymentService) HandleAlipayNotify(form url.Values) (bool, string) {
+// HandleAlipayNotify 支付宝回调（SDK 验签自带；r 为原始请求，SDK 内部解析 form 并验签）。
+func (s *PaymentService) HandleAlipayNotify(r *http.Request) (bool, string) {
 	cfg := s.loadPayConfig()
 	client, err := s.getAlipayClient(cfg)
 	if err != nil {
 		return false, "SDK 未初始化"
 	}
-	notify, err := client.GetTradeNotification(form) // 内部完成验签
+	notification, err := client.GetTradeNotification(r) // 内部完成验签
 	if err != nil {
 		return false, "签名验证失败"
 	}
-	if notify.TradeStatus != alipay.TradeStatusSuccess && notify.TradeStatus != alipay.TradeStatusFinished {
+	if notification.TradeStatus != alipay.TradeStatusSuccess && notification.TradeStatus != alipay.TradeStatusFinished {
 		return true, ""
 	}
-	if _, err := s.settleOrderPaid(notify.OutTradeNo, model.PayMethodAlipay, notify.TradeNo); err != nil {
+	if _, err := s.settleOrderPaid(notification.OutTradeNo, model.PayMethodAlipay, notification.TradeNo); err != nil {
 		return false, err.Error()
 	}
 	return true, ""
 }
 
-// HandleWechatNotify 微信 v3 回调（SDK 验签自带）。
-func (s *PaymentService) HandleWechatNotify(headers map[string]string, body []byte) (bool, string) {
+// HandleWechatNotify 微信 v3 回调（SDK 验签自带；r 为原始请求，供 SDK 读取头与报文）。
+func (s *PaymentService) HandleWechatNotify(r *http.Request) (bool, string) {
 	cfg := s.loadPayConfig()
 	w := cfg.Wechat
 	if w.MchID == "" || w.APIv3Key == "" {
 		return false, "微信支付配置不完整"
 	}
-	outTradeNo, tradeID, err := s.wechatVerifyNotify(&w, headers, body)
+	ctx := context.Background()
+	certVisitor := downloader.MgrInstance().GetCertificateVisitor(w.MchID)
+	handler, err := notify.NewRSANotifyHandler(w.APIv3Key, verifiers.NewSHA256WithRSAVerifier(certVisitor))
 	if err != nil {
+		return false, "回调处理器初始化失败: " + err.Error()
+	}
+	transaction := new(payments.Transaction)
+	if _, err := handler.ParseNotifyRequest(ctx, r, transaction); err != nil {
 		return false, "签名验证失败: " + err.Error()
 	}
-	if outTradeNo == "" {
+	// 交易状态非 SUCCESS 不落账（幂等返回成功，微信不再重发）
+	if transaction.TradeState == nil || *transaction.TradeState != "SUCCESS" {
 		return true, ""
+	}
+	outTradeNo, tradeID := "", ""
+	if transaction.OutTradeNo != nil {
+		outTradeNo = *transaction.OutTradeNo
+	}
+	if transaction.TransactionId != nil {
+		tradeID = *transaction.TransactionId
 	}
 	if _, err := s.settleOrderPaid(outTradeNo, model.PayMethodWechat, tradeID); err != nil {
 		return false, err.Error()
@@ -611,6 +671,18 @@ func (s *PaymentService) HandleEpayNotify(query map[string]string) (bool, string
 }
 
 // ---------- 支付记录查询 ----------
+
+// TestEpaySignature 易支付签名自测：按 config 表 appKey 计算 MD5 签名（不真实下单）。
+func (s *PaymentService) TestEpaySignature(params map[string]string) (string, error) {
+	cfg := s.loadPayConfig()
+	if cfg.Epay.AppKey == "" {
+		return "", errcode.ErrBadRequest.With("易支付配置不完整")
+	}
+	if params == nil {
+		params = map[string]string{}
+	}
+	return epaySign(params, cfg.Epay.AppKey), nil
+}
 
 // GetPaymentRecord 支付记录详情。
 func (s *PaymentService) GetPaymentRecord(id, userID string) (*model.Payment, error) {
@@ -658,7 +730,7 @@ func (s *PaymentService) ListUserPayments(userID string, page, limit int) ([]mod
 
 // ---------- 辅助 ----------
 
-// parseRSAPrivateKeyPEM 解析 PEM 私钥（PKCS#1 / PKCS#8）。
+// parseRSAPrivateKeyPEM 保留：本地解析 PEM 私钥（非 SDK 路径备用）。
 func parseRSAPrivateKeyPEM(pemStr string) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(pemStr))
 	if block == nil {
@@ -676,8 +748,3 @@ func parseRSAPrivateKeyPEM(pemStr string) (*rsa.PrivateKey, error) {
 	}
 	return nil, errors.New("非 RSA 私钥")
 }
-
-func contextBackground() contextType { return contextType{} }
-
-// contextType 占位（微信 SDK 需要 context.Context；见 wechatPayHelper）。
-type contextType = struct{}

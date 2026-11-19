@@ -1,0 +1,855 @@
+package service
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/repository"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+)
+
+// AuthorResolver 作者信息解析器：由用户域实现并注入。
+// 为 nil 时文章视图只输出 authorId，不做跨域聚合（保证本域可独立编译/测试）。
+type AuthorResolver interface {
+	ResolveAuthors(ctx context.Context, userIDs []string) (map[string]AuthorBrief, error)
+}
+
+// ArticleAuditor 文章审核提交器：由审核域 AuditService 实现并注入。
+//
+// 契约（internal/service/audit_service.go 的 SubmitArticleAudit）：
+// 仅入队，不写 articles 表；审核结果经事件 article.status.changed 回写，
+// 由本域 contentStatusSubscriber 落库。为 nil 时不排队，发布请求即时生效。
+type ArticleAuditor interface {
+	SubmitArticleAudit(articleID, content string, imageURLs []string) error
+}
+
+// ArticleService 文章业务逻辑（对齐原 NestJS ArticleService）。
+type ArticleService struct {
+	repo    *repository.ArticleRepository
+	tags    *repository.TagRepository
+	cats    *repository.CategoryRepository
+	authors AuthorResolver
+	audit   ArticleAuditor
+	log     *zap.Logger
+}
+
+// NewArticleService 构造文章服务。
+// authors / audit 允许为 nil（对应跨域依赖尚未接入的中间态）。
+func NewArticleService(
+	repo *repository.ArticleRepository,
+	tags *repository.TagRepository,
+	cats *repository.CategoryRepository,
+	authors AuthorResolver,
+	audit ArticleAuditor,
+	log *zap.Logger,
+) *ArticleService {
+	if log == nil {
+		log = zap.NewNop()
+	}
+	return &ArticleService{repo: repo, tags: tags, cats: cats, authors: authors, audit: audit, log: log}
+}
+
+// SetAuthorResolver 运行期注入作者解析器（避免构造顺序耦合）。
+func (s *ArticleService) SetAuthorResolver(r AuthorResolver) { s.authors = r }
+
+// SetAuditor 运行期注入审核提交器（审核域装配后调用）。
+func (s *ArticleService) SetAuditor(a ArticleAuditor) { s.audit = a }
+
+// ErrArticleNotFound 文章不存在。
+var ErrArticleNotFound = errcode.ErrNotFound.With("文章不存在")
+
+// getArticle 取文章，不存在返回 404。
+func (s *ArticleService) getArticle(ctx context.Context, id string) (*model.Article, *errcode.Err) {
+	a, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrArticleNotFound
+		}
+		s.log.Error("查询文章失败", zap.String("id", id), zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+	return a, nil
+}
+
+// ---------- 创建 / 更新 / 删除 ----------
+
+// Create 创建文章。
+//
+// 业务要点：
+//   - 默认草稿（DRAFT）；请求 PUBLISHED 时，若已接入审核管线则落 PENDING 并投递审核，
+//     未接入则直接 PUBLISHED（对齐原 content-audit 联动）。
+//   - 标签支持 tagIds 与 tagNames 二选一：tagNames 中不存在的标签自动创建（原实现语义）。
+//   - 同步维护标签 article_count 与分类 article_count 冗余计数。
+func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArticleRequest) (*ArticleView, *errcode.Err) {
+	if actor.Anonymous() {
+		return nil, errcode.ErrUnauthorized
+	}
+
+	articleType := req.Type
+	if articleType == "" {
+		articleType = model.ArticleTypeMixed
+	}
+	// 对齐原校验：type=mixed 时 content 必填；type=video 时 videoUrl 必填
+	if articleType == model.ArticleTypeMixed && (req.Content == nil || strings.TrimSpace(*req.Content) == "") {
+		return nil, errcode.ErrBadRequest.With("当文章类型为 mixed 时，内容不能为空")
+	}
+	if articleType == model.ArticleTypeVideo && (req.VideoURL == nil || strings.TrimSpace(*req.VideoURL) == "") {
+		return nil, errcode.ErrBadRequest.With("当文章类型为 video 时，视频链接不能为空")
+	}
+
+	// 分类存在性校验（分类可为空，与原 DTO 的 categoryId 必填语义放宽为可选更安全）
+	if req.CategoryID != nil && *req.CategoryID != "" {
+		if _, err := s.cats.FindByID(ctx, *req.CategoryID); err != nil {
+			return nil, errcode.ErrBadRequest.With("分类不存在")
+		}
+	}
+
+	tagIDs, e := s.resolveTagIDs(ctx, req.TagIDs, req.TagNames)
+	if e != nil {
+		return nil, e
+	}
+
+	authorID := actor.UserID
+	a := &model.Article{
+		Title:             strings.TrimSpace(req.Title),
+		Content:           req.Content,
+		Images:            req.Images.ToJSONText(),
+		VideoURL:          req.VideoURL,
+		Cover:             req.Cover,
+		Summary:           req.Summary,
+		Type:              articleType,
+		CategoryID:        req.CategoryID,
+		AuthorID:          &authorID,
+		ActivityID:        req.ActivityID,
+		RequireLogin:      boolVal(req.RequireLogin),
+		RequireFollow:     boolVal(req.RequireFollow),
+		RequirePayment:    boolVal(req.RequirePayment),
+		RequireMembership: boolVal(req.RequireMembership),
+		ListRequireLogin:  boolVal(req.ListRequireLogin),
+		ViewPrice:         floatVal(req.ViewPrice),
+		AllowReprint:      boolVal(req.AllowReprint),
+		IsPinnedOnProfile: boolVal(req.IsPinnedOnProfile),
+		Sort:              intVal(req.Sort),
+	}
+	if a.CategoryID != nil && *a.CategoryID == "" {
+		a.CategoryID = nil
+	}
+
+	// 状态与审核
+	status := req.Status
+	if status == "" {
+		status = model.ArticleStatusDraft
+	}
+	needAudit := false
+	if status == model.ArticleStatusPublished {
+		if s.audit != nil {
+			status = model.ArticleStatusPending
+			needAudit = true
+		}
+	}
+	a.Status = status
+
+	// 设精仅管理员可写
+	if boolVal(req.IsFeatured) {
+		if !actor.IsManager() {
+			return nil, errcode.ErrForbidden.With("仅管理员可设置精华")
+		}
+		a.IsFeatured = true
+		now := time.Now()
+		a.FeaturedAt = &now
+	}
+	if a.IsPinnedOnProfile {
+		now := time.Now()
+		a.PinnedAt = &now
+	}
+
+	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := s.repo.WithTx(tx)
+		tagRepo := s.tags.WithTx(tx)
+		catRepo := s.cats.WithTx(tx)
+		if err := repo.Create(ctx, a); err != nil {
+			return err
+		}
+		if _, _, err := repo.ReplaceArticleTags(ctx, a.ID, tagIDs); err != nil {
+			return err
+		}
+		if err := tagRepo.IncrCounters(ctx, tagIDs, "article_count", 1); err != nil {
+			return err
+		}
+		if a.CategoryID != nil {
+			if err := catRepo.IncrCounter(ctx, *a.CategoryID, "article_count", 1); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		s.log.Error("创建文章失败", zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+
+	if needAudit {
+		s.enqueueAudit(a)
+	}
+	view := s.BuildViews(ctx, []model.Article{*a}, actor, true)[0]
+	return &view, nil
+}
+
+// Update 更新文章。
+//
+// 权限语义：handler 侧已用 article:update 权限点拦截（对齐原 PermissionGuard）；
+// 此处额外校验「作者本人或管理员」，避免普通持权用户越权改他人文章。
+func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req UpdateArticleRequest) (*ArticleView, *errcode.Err) {
+	if actor.Anonymous() {
+		return nil, errcode.ErrUnauthorized
+	}
+	a, e := s.getArticle(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+	if !s.canModify(a, actor) {
+		return nil, errcode.ErrForbidden.With("没有修改该文章的权限")
+	}
+
+	fields := map[string]interface{}{}
+	if req.Title != nil {
+		fields["title"] = strings.TrimSpace(*req.Title)
+	}
+	if req.Content != nil {
+		fields["content"] = *req.Content
+	}
+	if req.Summary != nil {
+		fields["summary"] = *req.Summary
+	}
+	if req.Images != nil {
+		fields["images"] = req.Images.ToJSONText()
+	}
+	if req.VideoURL != nil {
+		fields["video_url"] = *req.VideoURL
+	}
+	if req.Cover != nil {
+		fields["cover"] = *req.Cover
+	}
+	if req.Sort != nil {
+		fields["sort"] = *req.Sort
+	}
+	if req.Type != "" {
+		fields["type"] = req.Type
+	}
+	if req.CategoryID != nil {
+		if *req.CategoryID == "" {
+			fields["category_id"] = nil
+		} else {
+			if _, err := s.cats.FindByID(ctx, *req.CategoryID); err != nil {
+				return nil, errcode.ErrBadRequest.With("分类不存在")
+			}
+			fields["category_id"] = *req.CategoryID
+		}
+	}
+	if req.ActivityID != nil {
+		fields["activity_id"] = *req.ActivityID
+	}
+	if req.RequireLogin != nil {
+		fields["require_login"] = *req.RequireLogin
+	}
+	if req.RequireFollow != nil {
+		fields["require_follow"] = *req.RequireFollow
+	}
+	if req.RequirePayment != nil {
+		fields["require_payment"] = *req.RequirePayment
+	}
+	if req.RequireMembership != nil {
+		fields["require_membership"] = *req.RequireMembership
+	}
+	if req.ListRequireLogin != nil {
+		fields["list_require_login"] = *req.ListRequireLogin
+	}
+	if req.ViewPrice != nil {
+		fields["view_price"] = *req.ViewPrice
+	}
+	if req.AllowReprint != nil {
+		fields["allow_reprint"] = *req.AllowReprint
+	}
+
+	// 状态流转 + 审核联动
+	needAudit := false
+	if req.Status != "" && req.Status != a.Status {
+		status := req.Status
+		if status == model.ArticleStatusPublished && a.Status != model.ArticleStatusPublished && s.audit != nil {
+			status = model.ArticleStatusPending
+			needAudit = true
+		}
+		fields["status"] = status
+	}
+
+	// 个人主页置顶：作者或管理员
+	if req.IsPinnedOnProfile != nil {
+		fields["is_pinned_on_profile"] = *req.IsPinnedOnProfile
+		if *req.IsPinnedOnProfile {
+			fields["pinned_at"] = time.Now()
+		} else {
+			fields["pinned_at"] = nil
+		}
+	}
+	// 设精：仅管理员
+	if req.IsFeatured != nil {
+		if !actor.IsManager() {
+			return nil, errcode.ErrForbidden.With("仅管理员可设置精华")
+		}
+		fields["is_featured"] = *req.IsFeatured
+		if *req.IsFeatured {
+			fields["featured_at"] = time.Now()
+		} else {
+			fields["featured_at"] = nil
+		}
+	}
+
+	var tagIDs []string
+	hasTagChange := req.TagIDs != nil || req.TagNames != nil
+	if hasTagChange {
+		var e2 *errcode.Err
+		tagIDs, e2 = s.resolveTagIDs(ctx, req.TagIDs, req.TagNames)
+		if e2 != nil {
+			return nil, e2
+		}
+	}
+
+	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := s.repo.WithTx(tx)
+		tagRepo := s.tags.WithTx(tx)
+		catRepo := s.cats.WithTx(tx)
+
+		if err := repo.UpdateFields(ctx, id, fields); err != nil {
+			return err
+		}
+
+		// 分类计数迁移
+		if newCat, ok := fields["category_id"]; ok {
+			oldCat := a.CategoryID
+			var newCatID *string
+			if v, isStr := newCat.(string); isStr {
+				newCatID = &v
+			}
+			if !samePtr(oldCat, newCatID) {
+				if oldCat != nil {
+					if err := catRepo.IncrCounter(ctx, *oldCat, "article_count", -1); err != nil {
+						return err
+					}
+				}
+				if newCatID != nil {
+					if err := catRepo.IncrCounter(ctx, *newCatID, "article_count", 1); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		// 标签计数迁移
+		if hasTagChange {
+			removed, added, err := repo.ReplaceArticleTags(ctx, id, tagIDs)
+			if err != nil {
+				return err
+			}
+			if err := tagRepo.IncrCounters(ctx, removed, "article_count", -1); err != nil {
+				return err
+			}
+			if err := tagRepo.IncrCounters(ctx, added, "article_count", 1); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		s.log.Error("更新文章失败", zap.String("id", id), zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+
+	updated, e := s.getArticle(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+	if needAudit {
+		s.enqueueAudit(updated)
+	}
+	view := s.BuildViews(ctx, []model.Article{*updated}, actor, true)[0]
+	return &view, nil
+}
+
+// Remove 删除文章（软删）并级联清理关联与计数。
+//
+// 级联范围：文章标签关联、评论（软删）、点赞/收藏/不喜欢/浏览历史（保留记录但文章不可见，
+// 与原 onDelete CASCADE 语义相比更保守——原实现物理删除，这里保留审计痕迹）。
+func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+	if actor.Anonymous() {
+		return nil, errcode.ErrUnauthorized
+	}
+	a, e := s.getArticle(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+	if !s.canModify(a, actor) {
+		return nil, errcode.ErrForbidden.With("没有删除该文章的权限")
+	}
+
+	tagIDs, _ := s.repo.ArticleTagIDs(ctx, id)
+
+	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := s.repo.WithTx(tx)
+		tagRepo := s.tags.WithTx(tx)
+		catRepo := s.cats.WithTx(tx)
+		commentRepo := repository.NewCommentRepository(tx)
+
+		if err := repo.SoftDelete(ctx, id); err != nil {
+			return err
+		}
+		if err := repo.DeleteArticleTags(ctx, id); err != nil {
+			return err
+		}
+		if err := tagRepo.IncrCounters(ctx, tagIDs, "article_count", -1); err != nil {
+			return err
+		}
+		if a.CategoryID != nil {
+			if err := catRepo.IncrCounter(ctx, *a.CategoryID, "article_count", -1); err != nil {
+				return err
+			}
+		}
+		return commentRepo.SoftDeleteByArticle(ctx, id)
+	})
+	if err != nil {
+		s.log.Error("删除文章失败", zap.String("id", id), zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+
+	out := map[string]interface{}{"id": id, "deleted": true}
+	return &out, nil
+}
+
+// ---------- 查询 ----------
+
+// ArticleListQuery 列表查询入参（handler 从 query string 解析本域原生字段后传入）。
+type ArticleListQuery struct {
+	Title      string
+	Keyword    string
+	CategoryID string
+	TagID      string
+	AuthorID   string
+	Status     []string
+	Type       string // all / popular / latest / following
+	SortBy     string // 搜索场景：relevance / latest / views / likes
+	Page       int
+	Limit      int
+}
+
+// List 文章列表（对齐 GET /article）。
+//
+// 可见性规则：
+//   - 未登录：仅 PUBLISHED 且 listRequireLogin=false；
+//   - 登录用户：PUBLISHED 全量；
+//   - 显式传 status：仅管理员生效（对齐原 @ApiQuery 说明）。
+func (s *ArticleService) List(ctx context.Context, q ArticleListQuery, actor Actor) ([]ArticleView, int64, *errcode.Err) {
+	if q.Page <= 0 {
+		q.Page = 1
+	}
+	if q.Limit <= 0 {
+		q.Limit = 10
+	}
+	if q.Limit > 100 {
+		q.Limit = 100
+	}
+
+	statuses := s.visibleStatuses(actor, q.Status)
+	orderBy := "sort"
+	switch q.Type {
+	case "popular":
+		orderBy = "popular"
+	case "latest":
+		orderBy = "latest"
+	case "following":
+		// 「关注流」依赖 user 域的关注关系表，本域不持有；退化为最新排序，
+		// 待 user 域提供 followee 查询后在此接入（见遗留问题清单）。
+		orderBy = "latest"
+	}
+	if q.SortBy != "" {
+		switch q.SortBy {
+		case "latest":
+			orderBy = "latest"
+		case "views":
+			orderBy = "popular"
+		case "likes":
+			orderBy = "relevance"
+		}
+	}
+
+	// 匿名列表：排除仅登录可见的文章
+	rows, total, err := s.repo.List(ctx, repository.ArticleListQuery{
+		Title:      q.Title,
+		Keyword:    q.Keyword,
+		CategoryID: q.CategoryID,
+		TagID:      q.TagID,
+		AuthorID:   q.AuthorID,
+		Status:     statuses,
+		OrderBy:    orderBy,
+		Page:       q.Page,
+		Limit:      q.Limit,
+	})
+	if err != nil {
+		s.log.Error("查询文章列表失败", zap.Error(err))
+		return nil, 0, errcode.ErrInternal
+	}
+	if actor.Anonymous() {
+		rows = filterAnonymousVisible(rows)
+	}
+	return s.BuildViews(ctx, rows, actor, false), total, nil
+}
+
+// FindByAuthor 按作者取文章（作者本人可见自己全部状态，他人仅已发布）。
+func (s *ArticleService) FindByAuthor(ctx context.Context, authorID string, q ArticleListQuery, actor Actor) ([]ArticleView, int64, *errcode.Err) {
+	if q.Page <= 0 {
+		q.Page = 1
+	}
+	if q.Limit <= 0 {
+		q.Limit = 10
+	}
+	if q.Limit > 100 {
+		q.Limit = 100
+	}
+
+	var statuses []string
+	if actor.UserID == authorID {
+		// 本人主页：全部状态
+		statuses = nil
+	} else {
+		statuses = []string{model.ArticleStatusPublished}
+	}
+
+	orderBy := "latest"
+	switch q.Type {
+	case "popular":
+		orderBy = "popular"
+	}
+
+	rows, total, err := s.repo.List(ctx, repository.ArticleListQuery{
+		AuthorID:   authorID,
+		Keyword:    q.Keyword,
+		CategoryID: q.CategoryID,
+		Status:     statuses,
+		OrderBy:    orderBy,
+		Page:       q.Page,
+		Limit:      q.Limit,
+	})
+	if err != nil {
+		s.log.Error("按作者查询文章失败", zap.Error(err))
+		return nil, 0, errcode.ErrInternal
+	}
+	return s.BuildViews(ctx, rows, actor, false), total, nil
+}
+
+// FindDrafts 当前用户草稿箱（对齐 GET /article/drafts）。
+func (s *ArticleService) FindDrafts(ctx context.Context, actor Actor, page, limit int) ([]ArticleView, int64, *errcode.Err) {
+	if actor.Anonymous() {
+		return nil, 0, errcode.ErrUnauthorized
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+	rows, total, err := s.repo.List(ctx, repository.ArticleListQuery{
+		AuthorID: actor.UserID,
+		Status:   []string{model.ArticleStatusDraft},
+		OrderBy:  "latest",
+		Page:     page,
+		Limit:    limit,
+	})
+	if err != nil {
+		s.log.Error("查询草稿失败", zap.Error(err))
+		return nil, 0, errcode.ErrInternal
+	}
+	return s.BuildViews(ctx, rows, actor, false), total, nil
+}
+
+// FindOne 文章详情。
+//
+// 可见性：非发布状态仅作者本人与管理员可读（对齐原 findOne 的权限分支）。
+// 阅读量在正文返回时 +1（原实现同样在详情读时累加）。
+func (s *ArticleService) FindOne(ctx context.Context, id string, actor Actor) (*ArticleView, *errcode.Err) {
+	a, e := s.getArticle(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+	isOwner := a.AuthorID != nil && *a.AuthorID == actor.UserID
+	if a.Status != model.ArticleStatusPublished && !isOwner && !actor.IsManager() {
+		return nil, errcode.ErrForbidden.With("该文章当前不可见")
+	}
+	// 阅读量自增（失败不影响主流程）
+	if err := s.repo.IncrCounter(ctx, id, "views", 1); err != nil {
+		s.log.Warn("文章阅读量自增失败", zap.String("id", id), zap.Error(err))
+	} else {
+		a.Views++
+	}
+	view := s.BuildViews(ctx, []model.Article{*a}, actor, true)[0]
+	return &view, nil
+}
+
+// FindRecommendations 相关文章推荐（对齐 GET /article/recommend/:id）。
+//
+// 策略：同分类优先 → 有共同标签 → 排除自身与用户「不喜欢」的文章；
+// 数量不足时以热门文章补齐。
+func (s *ArticleService) FindRecommendations(ctx context.Context, id string, actor Actor) ([]ArticleView, *errcode.Err) {
+	a, e := s.getArticle(ctx, id)
+	if e != nil {
+		return nil, e
+	}
+
+	exclude := []string{id}
+	if !actor.Anonymous() {
+		if disliked, err := s.repo.AllDislikedArticleIDs(ctx, actor.UserID); err == nil {
+			exclude = append(exclude, disliked...)
+		}
+	}
+
+	pageSize := 10
+	var picked []model.Article
+	if a.CategoryID != nil {
+		rows, _, err := s.repo.List(ctx, repository.ArticleListQuery{
+			CategoryID: *a.CategoryID,
+			Status:     []string{model.ArticleStatusPublished},
+			ExcludeIDs: exclude,
+			OrderBy:    "popular",
+			Page:       1,
+			Limit:      pageSize,
+		})
+		if err != nil {
+			s.log.Warn("相关文章推荐查询失败", zap.Error(err))
+		}
+		picked = rows
+	}
+
+	// 共同标签补齐
+	if len(picked) < pageSize {
+		if tagIDs, err := s.repo.ArticleTagIDs(ctx, id); err == nil && len(tagIDs) > 0 {
+			seen := map[string]struct{}{}
+			for _, p := range picked {
+				seen[p.ID] = struct{}{}
+			}
+			for _, tagID := range tagIDs {
+				if len(picked) >= pageSize {
+					break
+				}
+				rows, _, err := s.repo.List(ctx, repository.ArticleListQuery{
+					TagID:      tagID,
+					Status:     []string{model.ArticleStatusPublished},
+					ExcludeIDs: exclude,
+					OrderBy:    "popular",
+					Page:       1,
+					Limit:      pageSize,
+				})
+				if err != nil {
+					continue
+				}
+				for _, r := range rows {
+					if _, ok := seen[r.ID]; ok {
+						continue
+					}
+					seen[r.ID] = struct{}{}
+					picked = append(picked, r)
+					if len(picked) >= pageSize {
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return s.BuildViews(ctx, picked, actor, false), nil
+}
+
+// HotSearch 热门搜索词。
+//
+// 原实现依赖搜索日志/ES 聚合；本域暂无搜索日志表，退化为「热门标签 + 热门分类」词条，
+// 待 infra 域落地搜索日志后替换为真实统计（见遗留问题清单）。
+func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword string) ([]map[string]interface{}, *errcode.Err) {
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+
+	items := make([]map[string]interface{}, 0, limit)
+
+	hotTags, err := s.tags.Hot(ctx, limit)
+	if err != nil {
+		s.log.Warn("热门标签查询失败", zap.Error(err))
+	}
+	for _, t := range hotTags {
+		if keyword != "" && !strings.Contains(strings.ToLower(t.Name), strings.ToLower(keyword)) {
+			continue
+		}
+		items = append(items, map[string]interface{}{
+			"keyword": t.Name,
+			"type":    "tag",
+			"count":   t.ArticleCount,
+		})
+		if len(items) >= limit {
+			return items, nil
+		}
+	}
+
+	// 热门分类补齐
+	cats, _, _ := s.cats.List(ctx, repository.CategoryListQuery{SortBy: "articleCount", SortOrd: "DESC", Page: 1, Limit: limit})
+	for _, c := range cats {
+		if len(items) >= limit {
+			break
+		}
+		if keyword != "" && !strings.Contains(strings.ToLower(c.Name), strings.ToLower(keyword)) {
+			continue
+		}
+		if c.ArticleCount == 0 {
+			continue
+		}
+		items = append(items, map[string]interface{}{
+			"keyword": c.Name,
+			"type":    "category",
+			"count":   c.ArticleCount,
+		})
+	}
+	return items, nil
+}
+
+// PublishedArticleIDs 已发布文章 ID 列表（对齐 GET /article/published/ids）。
+func (s *ArticleService) PublishedArticleIDs(ctx context.Context) ([]string, *errcode.Err) {
+	ids, err := s.repo.PublishedArticleIDs(ctx)
+	if err != nil {
+		s.log.Error("查询已发布文章 ID 失败", zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+	if ids == nil {
+		ids = []string{}
+	}
+	return ids, nil
+}
+
+// ---------- 内部工具 ----------
+
+// visibleStatuses 计算列表可见状态白名单。
+func (s *ArticleService) visibleStatuses(actor Actor, requested []string) []string {
+	if len(requested) > 0 && actor.IsManager() {
+		return requested
+	}
+	return []string{model.ArticleStatusPublished}
+}
+
+// canModify 是否可修改/删除该文章：作者本人或管理员。
+func (s *ArticleService) canModify(a *model.Article, actor Actor) bool {
+	if actor.IsManager() {
+		return true
+	}
+	return a.AuthorID != nil && *a.AuthorID == actor.UserID
+}
+
+// resolveTagIDs 解析标签：tagIds 优先；tagNames 中不存在的自动创建。
+func (s *ArticleService) resolveTagIDs(ctx context.Context, tagIDs, tagNames []string) ([]string, *errcode.Err) {
+	if len(tagIDs) > 0 {
+		// 校验存在性，忽略无效 ID
+		rows, err := s.tags.FindByIDs(ctx, tagIDs)
+		if err != nil {
+			s.log.Error("查询标签失败", zap.Error(err))
+			return nil, errcode.ErrInternal
+		}
+		out := make([]string, 0, len(rows))
+		for _, t := range rows {
+			out = append(out, t.ID)
+		}
+		return out, nil
+	}
+	if len(tagNames) == 0 {
+		return nil, nil
+	}
+
+	out := make([]string, 0, len(tagNames))
+	for _, name := range tagNames {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		existing, err := s.tags.FindByName(ctx, name)
+		if err == nil {
+			out = append(out, existing.ID)
+			continue
+		}
+		t := &model.Tag{Name: name}
+		if err := s.tags.Create(ctx, t); err != nil {
+			s.log.Error("自动创建标签失败", zap.String("name", name), zap.Error(err))
+			return nil, errcode.ErrInternal
+		}
+		out = append(out, t.ID)
+	}
+	return out, nil
+}
+
+// enqueueAudit 提交文章审核（未接入审核域时静默跳过）。
+//
+// 审核域只入队、不写库；状态回写由 article.status.changed 事件驱动。
+func (s *ArticleService) enqueueAudit(a *model.Article) {
+	if s.audit == nil || a == nil {
+		return
+	}
+	content := ""
+	if a.Content != nil {
+		content = *a.Content
+	}
+	images := ParseImagesList(a.Images)
+	if err := s.audit.SubmitArticleAudit(a.ID, content, images); err != nil {
+		s.log.Warn("文章审核提交失败", zap.String("id", a.ID), zap.Error(err))
+	}
+}
+
+// filterAnonymousVisible 匿名可见性过滤：剔除「仅登录后列表可见」的文章。
+func filterAnonymousVisible(rows []model.Article) []model.Article {
+	out := make([]model.Article, 0, len(rows))
+	for _, r := range rows {
+		if r.ListRequireLogin {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
+}
+
+func boolVal(p *bool) bool {
+	if p == nil {
+		return false
+	}
+	return *p
+}
+
+func intVal(p *int) int {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func floatVal(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func samePtr(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
+}

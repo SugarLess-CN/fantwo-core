@@ -4,8 +4,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // 订单状态（对齐原 enum）。
@@ -67,3 +65,6 @@ type OrderQuery struct {
 	UserID  string `form:"user_id"`
 	Keyword string `form:"keyword"` // 订单号模糊
 }
+
+// OrderModels 订单域迁移实体（migrations.Run 中追加）。
+func OrderModels() []interface{} { return []interface{}{&Order{}} }

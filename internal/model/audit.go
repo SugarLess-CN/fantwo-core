@@ -67,3 +67,6 @@ type QueueMessage struct {
 
 // TableName 表名。
 func (QueueMessage) TableName() string { return "queue_messages" }
+
+// AuditModels 审核域迁移实体（审核记录 + 队列幂等去重表）。
+func AuditModels() []interface{} { return []interface{}{&AuditRecord{}, &QueueMessage{}} }
