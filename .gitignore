@@ -16,3 +16,8 @@ coverage.*
 .DS_Store
 .idea/
 .vscode/
+
+# 项目运行时
+config.yaml
+*.log
+bin/

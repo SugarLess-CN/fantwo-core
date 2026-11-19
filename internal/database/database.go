@@ -25,8 +25,8 @@ func InitPostgres(cfg *config.PostgresConfig) (*gorm.DB, error) {
 		return nil, fmt.Errorf("postgres.database 未配置")
 	}
 	dsn := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Shanghai",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database,
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Shanghai",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode,
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableAutomaticPing: true, // 懒连接：不主动握手

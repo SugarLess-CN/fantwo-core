@@ -4,7 +4,7 @@
 
 ## 进行中
 
-- [ ] T-05 分模块用 Go 复刻全部功能 — **T-05a 骨架搭建执行中**（子代理：目录结构/配置/DB/Redis/响应包装/JWT 中间件/错误码体系）
+- [ ] T-05 分模块用 Go 复刻全部功能 — **T-05a 骨架收尾执行中**（Team 成员 skeleton：PostgreSQL 切换 + 补齐 router/ws/queue + build/vet 验收；此前 subagent 产出未提交部分由其盘点接手）
 - [ ] T-06 每轮总结并 git commit + push，同步更新 AGENTS.md 与 todo.md
 
 ## 暂停
