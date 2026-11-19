@@ -66,8 +66,8 @@ type ReportTargetUserView struct {
 	ID string `gorm:"type:char(36);primaryKey;column:id"`
 }
 
-// TableName 用户表。
-func (ReportTargetUserView) TableName() string { return "users" }
+// TableName 用户表（用户主体表名是 user，单数；写成 users 会 relation does not exist）。
+func (ReportTargetUserView) TableName() string { return "user" }
 
 // ReportTargetArticleView 文章表局部视图。
 type ReportTargetArticleView struct {

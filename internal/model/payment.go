@@ -89,7 +89,8 @@ type UserPaymentView struct {
 }
 
 // TableName 表名。
-func (UserPaymentView) TableName() string { return "users" }
+// 注意：用户主体表名是 user（单数），写成 users 会 relation does not exist（曾致 /order/wallet/balance 500）。
+func (UserPaymentView) TableName() string { return "user" }
 
 // PaymentModels 支付域迁移实体（含佣金流水；config/users 为跨域只读视图，不参与迁移）。
 func PaymentModels() []interface{} { return []interface{}{&Payment{}, &CommissionRecord{}} }

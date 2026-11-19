@@ -121,7 +121,7 @@ func (h *OrderHandler) Refund(c *gin.Context) {
 // CreateArticle POST /order/article（创建文章订单）。
 func (h *OrderHandler) CreateArticle(c *gin.Context) {
 	var body struct {
-		ArticleID string `json:"article_id" binding:"required"`
+		ArticleID string `json:"articleId" binding:"required"`
 		Remark    string `json:"remark"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
