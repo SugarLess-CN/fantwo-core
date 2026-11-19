@@ -18,8 +18,6 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -68,9 +66,9 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	v1.POST("/user/password/reset", authH.ResetPassword)
 	v1.POST("/auth/sms/send", authH.SendSmsCode)
 	v1.POST("/auth/sms/login", authH.SmsLogin)
-	v1.GET("/user/oauth/github/url", oauthNotConfigured)
-	v1.POST("/user/oauth/github/callback", oauthNotConfigured)
-	v1.GET("/user/oauth/github/callback", oauthNotConfigured)
+	v1.GET("/user/oauth/github/url", authH.GithubURL)
+	v1.POST("/user/oauth/github/callback", authH.GithubCallback)
+	v1.GET("/user/oauth/github/callback", authH.GithubRedirect)
 
 	// ---------- 认证（需登录） ----------
 	authGroup := v1.Group("")
@@ -255,10 +253,4 @@ func userQueueClient(opt Option) *asynq.Client {
 		return nil
 	}
 	return queue.NewClient(opt.Cfg.Redis.Addr, opt.Cfg.Redis.Password)
-}
-
-// oauthNotConfigured GitHub OAuth 占位：原仓库需 GITHUB_CLIENT_ID/SECRET，
-// 未配置时按原语义返回 400（ErrGithubOAuthNotConfigured=4022）。
-func oauthNotConfigured(c *gin.Context) {
-	response.Fail(c, errcode.ErrGithubOAuthNotConfigured.With("GitHub OAuth 未配置（缺少 GITHUB_CLIENT_ID/SECRET）"))
 }

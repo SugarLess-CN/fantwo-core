@@ -19,6 +19,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// ConfigReader 配置读取能力（infra.ConfigService 实现该接口；测试可注入桩）。
+type ConfigReader interface {
+	GetString(key, def string) string
+	GetBool(key string, def bool) bool
+	GetInt(key string, def int) int
+}
+
 // Deps 用户域 service 共享依赖。
 type Deps struct {
 	DB     *gorm.DB
@@ -31,7 +38,7 @@ type Deps struct {
 	Perms  *repository.PermissionRepo
 	// Cfg 系统配置读取（复用基础设施域 ConfigService：进程内缓存 → Redis → DB）。
 	// DB/Redis 为 nil 时 GetString 返回默认值，正好构成「未配置即降级」语义。
-	Cfg *infra.ConfigService
+	Cfg ConfigReader
 	// DBUnavailable 降级提示：DB 为 nil 时业务端点返回 503。
 }
 

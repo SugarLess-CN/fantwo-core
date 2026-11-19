@@ -5,6 +5,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -263,4 +265,42 @@ func deviceIDOf(c *gin.Context) string {
 		return v
 	}
 	return c.GetHeader("Device-Id")
+}
+
+// GithubURL GET /user/oauth/github/url：返回 GitHub 授权链接 + state。
+// 未配置 client_id/secret 时返回 400 / code=4022（既有占位语义保留）。
+func (h *AuthHandler) GithubURL(c *gin.Context) {
+	out, e := h.svc.GithubAuthURL(c.Request.Context())
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, out)
+}
+
+// GithubCallback POST /user/oauth/github/callback：SPA 模式，用 code 换本站双 token。
+func (h *AuthHandler) GithubCallback(c *gin.Context) {
+	var req struct {
+		Code  string `json:"code"`
+		State string `json:"state"`
+	}
+	if !bindJSON(c, &req) {
+		return
+	}
+	user, token, refresh, e := h.svc.GithubCallback(c.Request.Context(), req.Code, req.State, deviceIDOf(c))
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, gin.H{
+		"user": service.ViewUser(user, true), "token": token,
+		"refreshToken": refresh, "id": user.ID, "isMember": service.IsMember(user),
+	})
+}
+
+// GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。
+func (h *AuthHandler) GithubRedirect(c *gin.Context) {
+	loc := h.svc.GithubRedirectURL(c.Request.Context(),
+		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))
+	c.Redirect(http.StatusFound, loc)
 }

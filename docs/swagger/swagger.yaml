@@ -10,6 +10,38 @@ definitions:
         example: 操作成功
         type: string
     type: object
+  internal_handler.ResponsePageBody:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/internal_handler.ResponsePageInner'
+      message:
+        example: 操作成功
+        type: string
+    type: object
+  internal_handler.ResponsePageInner:
+    properties:
+      list: {}
+      meta:
+        $ref: '#/definitions/internal_handler.ResponsePageMeta'
+    type: object
+  internal_handler.ResponsePageMeta:
+    properties:
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+      totalPages:
+        example: 10
+        type: integer
+    type: object
   internal_handler.loginRequest:
     properties:
       account:
@@ -176,6 +208,373 @@ paths:
       summary: 更新文章
       tags:
       - 文章
+  /comment:
+    post:
+      consumes:
+      - application/json
+      description: 对文章发表评论，入 text-audit 队列异步审核
+      parameters:
+      - description: CreateCommentRequest{articleId,content,parentId}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建评论
+      tags:
+      - 评论
+  /comment/{id}:
+    delete:
+      parameters:
+      - description: 评论 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除评论
+      tags:
+      - 评论
+  /comment/article/{id}:
+    get:
+      parameters:
+      - description: 文章 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      summary: 文章评论列表
+      tags:
+      - 评论
+  /message:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponsePageBody'
+      security:
+      - BearerAuth: []
+      summary: 我的消息列表
+      tags:
+      - 消息
+    post:
+      consumes:
+      - application/json
+      description: 创建全员/部分/个人通知；管理员（message:manage）可指定接收范围
+      parameters:
+      - description: CreateMessageInput
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建站内消息
+      tags:
+      - 消息
+  /message/private/{userId}:
+    post:
+      consumes:
+      - application/json
+      description: 向指定用户发私信；被拉黑时返回 403。发送成功后经 WS 推送 privateMessage
+      parameters:
+      - description: 接收者用户 ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: SendPrivateInput{content,type}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 发送私信
+      tags:
+      - 消息
+  /message/private/conversations:
+    get:
+      parameters:
+      - description: 游标（上一页最后一条的 cursor）
+        in: query
+        name: cursor
+        type: string
+      - description: 每页条数，默认 20
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 私信会话列表
+      tags:
+      - 消息
+  /order/{id}:
+    get:
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 订单详情
+      tags:
+      - 订单
+  /order/{id}/refund:
+    post:
+      consumes:
+      - application/json
+      description: 余额支付原路退余额；第三方支付提交原路退款申请（均落 payment 记录）
+      parameters:
+      - description: 订单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: refundRequest{reason}
+        in: body
+        name: body
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 申请退款
+      tags:
+      - 订单
+  /order/article:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: articleOrderRequest{articleId,remark}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建文章购买订单
+      tags:
+      - 订单
+  /order/membership:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: membershipOrderRequest{plan,duration,remark}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建会员订单
+      tags:
+      - 订单
+  /payment/create:
+    post:
+      consumes:
+      - application/json
+      description: 按渠道（alipay/wechat/epay/balance）生成支付参数；渠道开关与密钥来自系统配置表
+      parameters:
+      - description: CreatePaymentInput{orderId,method,...}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 发起支付
+      tags:
+      - 支付
+  /payment/notify/alipay:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: '验签通过并完成订单状态机后返回文本 "success"，否则返回 "failure: 原因"'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 支付宝异步回调
+      tags:
+      - 支付
+  /payment/notify/epay:
+    get:
+      description: 'MD5 排序验签（排除 sign/sign_type）后返回文本 "success"，否则 "fail: 原因"'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 易支付异步回调
+      tags:
+      - 支付
+  /payment/notify/wechat:
+    post:
+      consumes:
+      - application/json
+      description: 验签 + 解密后按微信 v3 规范返回 {"code":"SUCCESS"}；失败返 500 + {"code":"FAIL"}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 微信支付异步回调
+      tags:
+      - 支付
   /user:
     get:
       description: 分页查询用户，支持 keyword（或 username）模糊搜索

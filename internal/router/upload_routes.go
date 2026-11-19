@@ -25,6 +25,8 @@ func infraUploadSvc(opt Option) *infra.Infra {
 		if opt.Redis != nil {
 			infraUploadSingleton = infraUploadSingleton.WithRedis(opt.Redis)
 		}
+		// 水印参数来自 config 表（与系统配置域共用同一服务实例）
+		infraUploadSingleton = infraUploadSingleton.WithConfigService(infraConfigSvc(opt))
 	}
 	return infraUploadSingleton
 }

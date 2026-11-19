@@ -84,6 +84,10 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{"upload_max_file_count", "10", "单次上传文件数上限", ConfigTypeNumber, ConfigGroupUpload, true},
 		{"upload_compression_enabled", "true", "图片压缩开关", ConfigTypeBoolean, ConfigGroupUpload, false},
 		{"upload_watermark_enabled", "true", "图片水印开关", ConfigTypeBoolean, ConfigGroupUpload, false},
+		{"upload_watermark_text_template", "{nickname}", "水印文字模板（占位符：{nickname} {username} {site}）", ConfigTypeString, ConfigGroupUpload, false},
+		{"upload_watermark_position", "bottom-right", "水印位置：bottom-right/bottom-left/top-right/top-left/center", ConfigTypeString, ConfigGroupUpload, false},
+		{"upload_watermark_opacity_percent", "55", "水印透明度（0-100）", ConfigTypeNumber, ConfigGroupUpload, false},
+		{"upload_watermark_font_size", "0", "水印字号（0=按图片短边自适应）", ConfigTypeNumber, ConfigGroupUpload, false},
 
 		// 广告位（公开）
 		{"advertisement_enabled", "false", "广告总开关", ConfigTypeBoolean, ConfigGroupAdvertisement, true},

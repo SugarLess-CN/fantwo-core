@@ -83,6 +83,11 @@ type Upload struct {
 	VideoCompressionStatus string `gorm:"column:video_compression_status;type:varchar(16);not null;default:pending;index:idx_upload_video_status" json:"videoCompressionStatus"`
 	VideoJobJSON           string `gorm:"column:video_compression_job;type:jsonb" json:"-"`
 
+	// Scene 上传场景（avatar / image / other）：avatar 不加水印（对齐原 skipScenes）
+	Scene string `gorm:"column:scene;type:varchar(16);not null;default:image;index:idx_upload_scene" json:"scene"`
+	// UserID 上传者（游客上传为 NULL）；水印取昵称、管理端按人筛选都用它
+	UserID *string `gorm:"column:user_id;type:char(36);index:idx_upload_user" json:"userId"`
+
 	AuditStatus   string `gorm:"column:audit_status;type:varchar(16);not null;default:pending" json:"auditStatus"`
 	AuditResultJS string `gorm:"column:audit_result;type:jsonb" json:"-"`
 }

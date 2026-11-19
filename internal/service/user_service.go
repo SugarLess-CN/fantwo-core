@@ -723,3 +723,6 @@ func ViewUser(u *model.User, masked bool) *UserView {
 
 // Deps 暴露共享依赖（handler 层构造其它 service 时复用同一套依赖）。
 func (s *UserService) Deps() *Deps { return s.d }
+
+// IsMember 会员是否有效（对外暴露给 handler 拼装响应）。
+func IsMember(u *model.User) bool { return isMembershipActive(u) }

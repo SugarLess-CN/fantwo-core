@@ -279,6 +279,18 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 // ---------- 私信 ----------
 
 // SendPrivate POST /message/private/:userId：发送私信。
+//
+//	@Summary		发送私信
+//	@Description	向指定用户发私信；被拉黑时返回 403。发送成功后经 WS 推送 privateMessage
+//	@Tags			消息
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			userId	path		string	true	"接收者用户 ID"
+//	@Param			body	body		object	true	"SendPrivateInput{content,type}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		403		{object}	ResponseBody
+//	@Router			/message/private/{userId} [post]
 func (h *MessageHandler) SendPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -298,6 +310,15 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 }
 
 // PrivateConversations GET /message/private/conversations：会话列表（游标分页）。
+//
+//	@Summary		私信会话列表
+//	@Tags			消息
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			cursor	query		string	false	"游标（上一页最后一条的 cursor）"
+//	@Param			limit	query		int		false	"每页条数，默认 20"
+//	@Success		200		{object}	ResponseBody
+//	@Router			/message/private/conversations [get]
 func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {

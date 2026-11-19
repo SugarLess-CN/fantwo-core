@@ -607,7 +607,7 @@ func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfi
 			fields["avatar"] = p.AvatarURL
 		}
 		_ = s.d.Users.UpdateFields(s.d.DB, user.ID, fields)
-		return s.d.Users.FindByID(s.d.DB, user.ID)
+		return s.findUserOrErr(user.ID)
 	} else if !IsNotFound(err) {
 		return nil, errcode.ErrInternal
 	}
@@ -617,7 +617,7 @@ func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfi
 			_ = s.d.Users.UpdateFields(s.d.DB, existing.ID, map[string]interface{}{
 				"github_id": p.ID, "github_username": p.Login,
 			})
-			return s.d.Users.FindByID(s.d.DB, existing.ID)
+			return s.findUserOrErr(existing.ID)
 		} else if !IsNotFound(err) {
 			return nil, errcode.ErrInternal
 		}
@@ -663,7 +663,7 @@ func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfi
 		return nil, errcode.ErrInternal
 	}
 	_ = s.d.Users.CreateProfile(s.d.DB, &model.UserProfile{UserID: user.ID})
-	return s.d.Users.FindByID(s.d.DB, user.ID)
+	return s.findUserOrErr(user.ID)
 }
 
 // randomState 生成 OAuth state（16 字节 hex）。
@@ -673,4 +673,16 @@ func randomState() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+// findUserOrErr 取用户并转统一错误。
+func (s *AuthService) findUserOrErr(id string) (*model.User, *errcode.Err) {
+	user, err := s.d.Users.FindByID(s.d.DB, id)
+	if IsNotFound(err) {
+		return nil, errcode.ErrUserNotExist
+	}
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	return user, nil
 }

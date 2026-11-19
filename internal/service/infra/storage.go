@@ -84,6 +84,8 @@ type Infra struct {
 	cfg    *config.InfraConfig
 	rdb    *redis.Client
 	client *minio.Client // driver=s3 时非 nil
+	// cfgSvc 配置服务（水印参数等运行期可调项）；nil 时用 InfraConfig 默认值
+	cfgSvc *ConfigService
 }
 
 // New 构建基础设施域服务。
@@ -107,6 +109,9 @@ func New(db *gorm.DB, cfg *config.InfraConfig) *Infra {
 // WithRedis 注入 Redis（敏感词缓存失效等用）。
 func (f *Infra) WithRedis(r *redis.Client) *Infra { f.rdb = r; return f }
 
+// WithConfigService 注入配置服务（水印模板/位置/透明度等运行期参数来源）。
+func (f *Infra) WithConfigService(cs *ConfigService) *Infra { f.cfgSvc = cs; return f }
+
 // ---------- 上传主流程 ----------
 
 // UploadRequest multipart 上传请求（/upload/file 与 /upload/avatar 共用）。
@@ -124,7 +129,7 @@ type UploadMetaItem struct {
 
 // HandleUpload 上传入口（scene 固定为 avatar 时无水印）。
 // 返回 model.Upload 列表（service 已将 jsonb 列组装为结构化字段）。
-func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMetaItem, scene string, baseURL string) ([]model.Upload, error) {
+func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMetaItem, scene, baseURL, userID string) ([]model.Upload, error) {
 	if len(files) == 0 {
 		return nil, errcode.ErrBadRequest.With("上传文件不能为空")
 	}
@@ -141,7 +146,7 @@ func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMet
 
 	uploads := make([]model.Upload, 0, len(files))
 	for i, fh := range files {
-		up, err := f.uploadOne(fh, metaAt(metadata, i), scene)
+		up, err := f.uploadOne(fh, metaAt(metadata, i), scene, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +164,7 @@ func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMet
 // 水印：原实现由 watermark.service 在压缩阶段叠加（avatar 场景跳过）。
 // Go 侧暂未落绘制（需要中文字体资源，见汇报的遗留项）；此处保留 scene 判定入口，
 // 接入时在 processImageThumbnails 前设置 up.Watermarked 并绘制即可。
-func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene string) (*model.Upload, error) {
+func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, userID string) (*model.Upload, error) {
 	// 1) 大小限制
 	if err := f.checkSize(fh.Size, fh.Header.Get("Content-Type")); err != nil {
 		return nil, err
@@ -258,8 +263,12 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene s
 func (f *Infra) dispatchAsync(up *model.Upload) {
 	switch {
 	case filecheck.IsProcessableImage(up.MimeType):
-		// 图片：本地直接生成缩略图；视频走队列
-		go f.processImageThumbnails(up)
+		// 图片：本地直接生成缩略图；S3 需先下载再处理（见 s3_image.go）
+		if up.Storage == model.UploadStorageS3 {
+			go f.processS3Image(up)
+		} else {
+			go f.processImageThumbnails(up)
+		}
 	case filecheck.Kind(up.MimeType) == filecheck.KindVideo:
 		go f.enqueueVideoCompression(up)
 	}
@@ -320,10 +329,23 @@ func (f *Infra) processImageThumbnails(up *model.Upload) {
 	}
 	updates := map[string]interface{}{"processed": true}
 
+	// 水印：avatar 场景跳过；先备份无水印原图再覆盖主文件（对齐原 watermark.service）
+	origPath, origURL, origSize := up.Path, up.URL, up.Size
+	if opt, need := f.watermarkOptions(up); need {
+		if backup, werr := f.applyWatermarkToFile(up.Path, opt); werr == nil {
+			updates["watermarked"] = true
+			if backup != "" {
+				origPath = backup
+				origURL = f.localURL(backup)
+				origSize = fileSizeOf(backup)
+			}
+		}
+	}
+
 	// 原图元数据（宽高），供前端预留占位与瀑布流布局
-	if w, h, err := imageSize(up.Path); err == nil {
+	if w, h, err := imageSize(origPath); err == nil {
 		if payload, err := json.Marshal(model.UploadOriginal{
-			URL: up.URL, Path: up.Path, Size: up.Size, Width: w, Height: h,
+			URL: origURL, Path: origPath, Size: origSize, Width: w, Height: h,
 		}); err == nil {
 			updates["original"] = string(payload)
 		}
@@ -590,8 +612,11 @@ func (f *Infra) ConfirmS3Upload(req S3Confirm) (*model.Upload, error) {
 	if err := f.db.Create(up).Error; err != nil {
 		return nil, errcode.ErrInternal.Withf("保存上传记录失败: %v", err)
 	}
-	// S3 直传文件异步校验真实类型（Range 下载头部魔数嗅探），不合格标记 rejected。
+	// S3 直传文件异步后处理：
+	//   1) 魔数校验（Range 下载头部嗅探），不合格标记 rejected；
+	//   2) 图片走「下载 → 压缩/缩略图 → 回传」链路（s3_image.go），视频入压缩队列。
 	go f.verifyS3Magic(up)
+	f.dispatchAsync(up)
 	return up, nil
 }
 
@@ -814,6 +839,15 @@ func (f *Infra) findByHash(hash string) (*model.Upload, error) {
 		return nil, errcode.ErrInternal.Withf("查询去重记录失败: %v", err)
 	}
 	return &up, nil
+}
+
+// nullableID 空串返回 nil（DB 存 NULL，便于按「游客上传」筛）。
+func nullableID(id string) *string {
+	if strings.TrimSpace(id) == "" {
+		return nil
+	}
+	v := id
+	return &v
 }
 
 // orDefault 空值/非正数回退默认值。
