@@ -225,6 +225,8 @@ func (s *CommentService) Create(ctx context.Context, actor Actor, req CreateComm
 	}
 	// 入队审核（异步结果经 comment.status.changed 事件回写，不影响本次返回）
 	s.submitAudit(c)
+	// 事务已提交：发布创建事件（成就域消费）。
+	publishCommentCreated(c)
 	return s.BuildView(ctx, *c, actor), nil
 }
 

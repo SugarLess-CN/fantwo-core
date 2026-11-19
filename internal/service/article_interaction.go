@@ -22,8 +22,9 @@ func (s *ArticleService) Like(ctx context.Context, articleID string, actor Actor
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
-	if _, e := s.getArticle(ctx, articleID); e != nil {
-		return nil, e
+	article, e0 := s.getArticle(ctx, articleID)
+	if e0 != nil {
+		return nil, e0
 	}
 
 	reaction := req.ReactionType
@@ -52,6 +53,8 @@ func (s *ArticleService) Like(ctx context.Context, articleID string, actor Actor
 		if err := s.repo.IncrCounter(ctx, articleID, "likes", 1); err != nil {
 			s.log.Warn("点赞计数自增失败", zap.Error(err))
 		}
+		// 仅「首次点赞」发布事件（改表情/重复点赞不算），推进的是文章作者成就。
+		publishArticleReceivedLike(article, actor.UserID)
 	default:
 		s.log.Error("查询点赞失败", zap.Error(err))
 		return nil, errcode.ErrInternal

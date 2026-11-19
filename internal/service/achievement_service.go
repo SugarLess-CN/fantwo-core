@@ -12,8 +12,12 @@
 package service
 
 import (
+	"fmt"
 	"log"
+	"reflect"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
@@ -413,79 +417,290 @@ func (s *AchievementService) ClaimAll(userID string) (*ClaimAllResult, error) {
 	return result, nil
 }
 
+// achievementSubscribedTopics 成就域订阅的全部事件（唯一事实来源，单测据此断言覆盖）。
+var achievementSubscribedTopics = []string{
+	// 内容域发布
+	event.EventArticleCreated,
+	event.EventArticleReceivedLike,
+	event.EventCommentCreated,
+	// 用户域发布
+	event.EventUserFollowed,
+	event.EventUserReceivedFollow,
+	event.EventUserDailyLogin,
+	event.EventUserLevelUp,
+	event.EventUserProfileCompleted,
+	// 交易域发布
+	event.EventMembershipPurchased,
+	event.EventOrderPaid,
+	// 运营域自身（邀请码被使用 → 邀请达人成就 + 邀请积分）
+	event.EventInviteUsed,
+}
+
 // Subscribe 注册成就事件订阅（对齐原 achievement-event.service.ts 的 @OnEvent）。
-// 由路由/启动装配处调用一次；重复调用会产生重复推进，调用方需保证只调一次。
+// 由装配处（NewOps 的 sync.Once）调用一次；重复调用会重复推进，调用方需保证只调一次。
+//
+// 载荷兼容性（关键）：发布方可能用本域结构体、自己的结构体、map[string]interface{}、
+// map[string]string（audit_service 就这么发）—— 取值统一走反射 + 键名归一化，
+// 「userId / user_id / UserID」等价，避免跨域载荷形态差异导致事件静默丢失。
 func (s *AchievementService) Subscribe(bus *event.Bus) {
 	if bus == nil {
 		return
 	}
 	s.bus = bus
 
-	// 固定映射类事件：直接用代码表推进
-	for topic, codes := range event.AchievementTriggers {
-		topicCopy, codesCopy := topic, codes
-		bus.Subscribe(topicCopy, func(payload interface{}) {
-			userID := payloadUserID(topicCopy, payload)
-			if userID == "" {
+	for _, topic := range achievementSubscribedTopics {
+		t := topic
+		bus.Subscribe(t, func(payload interface{}) {
+			userID, codes, ok := resolveAchievementProgress(t, payload)
+			if !ok || userID == "" {
+				// 解析失败要显式报出来：静默丢弃正是「成就系统不工作」的现场
+				log.Printf("[WARN] 成就事件载荷无法解析 topic=%s type=%T payload=%+v", t, payload, payload)
 				return
 			}
-			if err := s.UpdateProgressBatch(userID, codesCopy, 1); err != nil {
-				log.Printf("[WARN] 推进成就失败 topic=%s user=%s err=%v", topicCopy, userID, err)
+			if len(codes) > 0 {
+				if err := s.UpdateProgressBatch(userID, codes, 1); err != nil {
+					log.Printf("[WARN] 推进成就失败 topic=%s user=%s codes=%v err=%v", t, userID, codes, err)
+				}
 			}
+			s.onAchievementEventSideEffect(t, userID, payload)
 		})
 	}
+}
 
-	// 条件类事件：按 payload 阈值决定推进哪些成就
-	bus.Subscribe(event.EventUserDailyLogin, func(payload interface{}) {
-		p, ok := asDailyLogin(payload)
-		if !ok {
-			return
+// onAchievementEventSideEffect 事件附带动作（除成就进度外的副作用）。
+func (s *AchievementService) onAchievementEventSideEffect(topic, userID string, payload interface{}) {
+	if s.points == nil {
+		return
+	}
+	switch topic {
+	case event.EventOrderPaid:
+		// 支付成功送积分：数据驱动，活动表存在启用的 ORDER_PAID 才发（未配置静默跳过）
+		orderID := payloadFieldString(payload, "orderId")
+		if _, _, err := s.points.TryAddByRule(userID, "ORDER_PAID", "order", orderID); err != nil {
+			log.Printf("[WARN] 支付成功积分发放失败 user=%s order=%s err=%v", userID, orderID, err)
 		}
+	case event.EventInviteUsed:
+		// 邀请成功给邀请人加积分（活动 INVITE_USER），与「邀请达人」成就同源不同奖励
+		inviteID := payloadFieldString(payload, "inviteId")
+		if _, _, err := s.points.TryAddByRule(userID, "INVITE_USER", "invite", inviteID); err != nil {
+			log.Printf("[WARN] 邀请成功积分发放失败 user=%s invite=%s err=%v", userID, inviteID, err)
+		}
+	}
+}
+
+// resolveAchievementProgress 把「事件 + 载荷」解析成 (要推进的用户, 成就代码集, 是否可推进)。
+//
+// 语义要点（对齐原 achievement-event.service.ts）：
+//   - article.receivedLike 推进的是**文章作者**（AuthorID），不是点赞者；
+//   - user.receivedFollow 推进的是**被关注者**（优先 targetUserId，退回 userId）；
+//   - user.followed 推进的是**关注者**（userId）；
+//   - 其余事件推进的都是 payload.userId 本人。
+func resolveAchievementProgress(topic string, payload interface{}) (string, []string, bool) {
+	switch topic {
+	case event.EventArticleCreated:
+		uid := payloadFieldString(payload, "userId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventArticleReceivedLike:
+		// 只认 authorId：取不到就放弃，绝不退回 userId（那会推进点赞者，成就归属错人）
+		uid := payloadFieldString(payload, "authorId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventCommentCreated:
+		uid := payloadFieldString(payload, "userId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventUserFollowed:
+		uid := payloadFieldString(payload, "userId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventUserReceivedFollow:
+		// 被关注者：优先显式 targetUserId，退回 userId
+		uid := payloadFieldString(payload, "targetUserId")
+		if uid == "" {
+			uid = payloadFieldString(payload, "userId")
+		}
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventMembershipPurchased:
+		uid := payloadFieldString(payload, "userId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventUserProfileCompleted:
+		uid := payloadFieldString(payload, "userId")
+		return uid, event.AchievementTriggers[topic], uid != ""
+
+	case event.EventUserDailyLogin:
+		uid := payloadFieldString(payload, "userId")
+		days := payloadFieldInt(payload, "consecutiveDays")
 		var codes []string
-		if p.ConsecutiveDays >= 7 {
+		if days >= 7 {
 			codes = append(codes, "LOGIN_7_DAYS")
 		}
-		if p.ConsecutiveDays >= 30 {
+		if days >= 30 {
 			codes = append(codes, "LOGIN_30_DAYS")
 		}
-		s.batchSafe(p.UserID, codes, "user.dailyLogin")
-	})
+		return uid, codes, uid != ""
 
-	// 订单支付成功（交易域发布）：会员订单推进会员成就，并按可配置的
-	// ORDER_PAID 积分活动发放积分（活动未配置则静默跳过，规则由管理员在活动表定义）。
-	bus.Subscribe(event.EventOrderPaid, func(payload interface{}) {
-		p, ok := asOrderPaid(payload)
-		if !ok || p.UserID == "" {
-			return
-		}
-		if p.Type == model.OrderTypeMembership {
-			s.batchSafe(p.UserID, []string{"BECOME_MEMBER"}, event.EventOrderPaid)
-		}
-		if s.points != nil {
-			// applied=false 表示未配置 ORDER_PAID 活动或已达限额，属正常情况
-			if _, _, err := s.points.TryAddByRule(p.UserID, "ORDER_PAID", "order", p.OrderID); err != nil {
-				log.Printf("[WARN] 支付成功积分发放失败 user=%s order=%s err=%v", p.UserID, p.OrderID, err)
-			}
-		}
-	})
-
-	bus.Subscribe(event.EventUserLevelUp, func(payload interface{}) {
-		p, ok := asLevelUp(payload)
-		if !ok {
-			return
-		}
+	case event.EventUserLevelUp:
+		uid := payloadFieldString(payload, "userId")
+		level := payloadFieldInt(payload, "level")
 		var codes []string
-		if p.Level >= 10 {
+		if level >= 10 {
 			codes = append(codes, "LEVEL_10")
 		}
-		if p.Level >= 30 {
+		if level >= 30 {
 			codes = append(codes, "LEVEL_30")
 		}
-		if p.Level >= 50 {
+		if level >= 50 {
 			codes = append(codes, "LEVEL_50")
 		}
-		s.batchSafe(p.UserID, codes, "user.levelUp")
-	})
+		return uid, codes, uid != ""
+
+	case event.EventInviteUsed:
+		uid := payloadFieldString(payload, "inviterId")
+		return uid, []string{"INVITE_5_USERS_ACHIEVEMENT"}, uid != ""
+
+	case event.EventOrderPaid:
+		uid := payloadFieldString(payload, "userId")
+		var codes []string
+		if payloadFieldString(payload, "type") == model.OrderTypeMembership {
+			codes = []string{"BECOME_MEMBER"}
+		}
+		return uid, codes, uid != ""
+	}
+	return "", nil, false
+}
+
+// payloadFieldString 从任意事件载荷取值（string）。
+// 支持：本域结构体、其它域结构体、struct 指针、map[string]interface{}、map[string]string、
+// json.RawMessage 之外的常见形态。键名归一化后比较（去下划线 + 转小写），
+// 因此 userId / user_id / UserID / USER_ID 等价。
+func payloadFieldString(payload interface{}, names ...string) string {
+	v, ok := payloadFieldValue(payload, names...)
+	if !ok {
+		return ""
+	}
+	switch v.Kind() {
+	case reflect.String:
+		return v.String()
+	case reflect.Interface:
+		if s, ok := v.Interface().(string); ok {
+			return s
+		}
+	case reflect.Slice: // []byte
+		if v.Type().Elem().Kind() == reflect.Uint8 {
+			return string(v.Bytes())
+		}
+	}
+	// 兜底：实现 fmt.Stringer
+	if str, ok := v.Interface().(fmt.Stringer); ok {
+		return str.String()
+	}
+	return ""
+}
+
+// payloadFieldInt 从任意事件载荷取值（int）。
+func payloadFieldInt(payload interface{}, names ...string) int {
+	v, ok := payloadFieldValue(payload, names...)
+	if !ok {
+		return 0
+	}
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return int(v.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return int(v.Uint())
+	case reflect.Float32, reflect.Float64:
+		return int(v.Float())
+	case reflect.String:
+		n := 0
+		for _, r := range v.String() {
+			if r < '0' || r > '9' {
+				return 0
+			}
+			n = n*10 + int(r-'0')
+		}
+		return n
+	}
+	return 0
+}
+
+// payloadFieldValue 反射取值：指针/接口解引用 → map 按键 → struct 按字段名或 json tag。
+func payloadFieldValue(payload interface{}, names ...string) (reflect.Value, bool) {
+	if payload == nil || len(names) == 0 {
+		return reflect.Value{}, false
+	}
+	want := make(map[string]struct{}, len(names))
+	for _, n := range names {
+		want[normFieldKey(n)] = struct{}{}
+	}
+
+	v := reflect.ValueOf(payload)
+	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return reflect.Value{}, false
+		}
+		v = v.Elem()
+	}
+
+	switch v.Kind() {
+	case reflect.Map:
+		if v.Type().Key().Kind() != reflect.String {
+			return reflect.Value{}, false
+		}
+		iter := v.MapRange()
+		for iter.Next() {
+			if _, ok := want[normFieldKey(iter.Key().String())]; ok {
+				return unwrapValue(iter.Value()), true
+			}
+		}
+	case reflect.Struct:
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+			if !f.IsExported() {
+				continue
+			}
+			if _, ok := want[normFieldKey(f.Name)]; ok {
+				return unwrapValue(v.Field(i)), true
+			}
+			if tag := f.Tag.Get("json"); tag != "" && tag != "-" {
+				if comma := strings.IndexByte(tag, ','); comma >= 0 {
+					tag = tag[:comma]
+				}
+				if tag != "" {
+					if _, ok := want[normFieldKey(tag)]; ok {
+						return unwrapValue(v.Field(i)), true
+					}
+				}
+			}
+		}
+	}
+	return reflect.Value{}, false
+}
+
+// unwrapValue 解包 interface / 指针包装（map 取值与 *string 字段都受益）。
+func unwrapValue(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return v
+		}
+		v = v.Elem()
+	}
+	return v
+}
+
+// normFieldKey 键名归一化：去下划线/连字符 + 转小写，使 snake_case 与 camelCase 等价。
+func normFieldKey(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r == '_' || r == '-' {
+			continue
+		}
+		b.WriteRune(unicode.ToLower(r))
+	}
+	return b.String()
 }
 
 // batchSafe 容错的批量推进（订阅侧统一入口，错误只记日志）。
@@ -504,96 +719,6 @@ func (s *AchievementService) publish(topic string, payload interface{}) {
 		return
 	}
 	s.bus.Publish(topic, payload)
-}
-
-// payloadUserID 从各事件载荷里取「要推进成就的用户」。
-// 语义对齐原实现：文章被点赞/被关注推进的是内容的作者（被赞/被关注方）。
-func payloadUserID(topic string, payload interface{}) string {
-	switch topic {
-	case event.EventArticleCreated:
-		if p, ok := payload.(event.ArticleCreatedPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.ArticleCreatedPayload); ok && p != nil {
-			return p.UserID
-		}
-	case event.EventArticleReceivedLike:
-		if p, ok := payload.(event.ArticleReceivedLikePayload); ok {
-			return p.AuthorID
-		}
-		if p, ok := payload.(*event.ArticleReceivedLikePayload); ok && p != nil {
-			return p.AuthorID
-		}
-	case event.EventCommentCreated:
-		if p, ok := payload.(event.CommentCreatedPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.CommentCreatedPayload); ok && p != nil {
-			return p.UserID
-		}
-	case event.EventUserFollowed:
-		if p, ok := payload.(event.UserFollowedPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.UserFollowedPayload); ok && p != nil {
-			return p.UserID
-		}
-	case event.EventUserReceivedFollow:
-		if p, ok := payload.(event.UserReceivedFollowPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.UserReceivedFollowPayload); ok && p != nil {
-			return p.UserID
-		}
-	case event.EventMembershipPurchased:
-		if p, ok := payload.(event.MembershipPurchasedPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.MembershipPurchasedPayload); ok && p != nil {
-			return p.UserID
-		}
-	case event.EventUserProfileCompleted:
-		if p, ok := payload.(event.GenericPayload); ok {
-			return p.UserID
-		}
-		if p, ok := payload.(*event.GenericPayload); ok && p != nil {
-			return p.UserID
-		}
-	}
-	return ""
-}
-
-// asDailyLogin 载荷断言。
-func asDailyLogin(payload interface{}) (event.UserDailyLoginPayload, bool) {
-	if p, ok := payload.(event.UserDailyLoginPayload); ok {
-		return p, true
-	}
-	if p, ok := payload.(*event.UserDailyLoginPayload); ok && p != nil {
-		return *p, true
-	}
-	return event.UserDailyLoginPayload{}, false
-}
-
-// asOrderPaid 载荷断言（交易域 OrderPaidPayload）。
-func asOrderPaid(payload interface{}) (event.OrderPaidPayload, bool) {
-	if p, ok := payload.(event.OrderPaidPayload); ok {
-		return p, true
-	}
-	if p, ok := payload.(*event.OrderPaidPayload); ok && p != nil {
-		return *p, true
-	}
-	return event.OrderPaidPayload{}, false
-}
-
-// asLevelUp 载荷断言。
-func asLevelUp(payload interface{}) (event.UserLevelUpPayload, bool) {
-	if p, ok := payload.(event.UserLevelUpPayload); ok {
-		return p, true
-	}
-	if p, ok := payload.(*event.UserLevelUpPayload); ok && p != nil {
-		return *p, true
-	}
-	return event.UserLevelUpPayload{}, false
 }
 
 // applyAchievementInput 非 nil 字段写入（PATCH 语义）。

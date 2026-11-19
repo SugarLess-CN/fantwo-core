@@ -174,6 +174,15 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
+	// 更新前快照：用于判定「资料是否本次补齐」（只在 不完整 → 完整 跃迁时发一次事件）。
+	before, err := s.d.Users.FindPlainByID(s.d.DB, userID)
+	if IsNotFound(err) {
+		return nil, errcode.ErrUserNotExist
+	}
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	wasComplete := isProfileComplete(before)
 	fields := map[string]interface{}{}
 	if in.Nickname != nil && *in.Nickname != "" {
 		fields["nickname"] = *in.Nickname
@@ -229,6 +238,10 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 	user, err := s.d.Users.FindByID(s.d.DB, userID)
 	if err != nil {
 		return nil, errcode.ErrInternal
+	}
+	// 资料由「不完整」变为「完整」→ 发布 user.profileCompleted（成就 PROFILE_COMPLETED）。
+	if !wasComplete && isProfileComplete(user) {
+		publishProfileCompleted(userID)
 	}
 	return buildUserView(user, true, isMembershipActive(user)), nil
 }

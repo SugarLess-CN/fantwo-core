@@ -207,6 +207,10 @@ func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArti
 	if needAudit {
 		s.enqueueAudit(a)
 	}
+	// 事务已提交：发布创建事件（成就域消费，草稿不计）。
+	if shouldPublishArticleCreated(a.Status) {
+		publishArticleCreated(a)
+	}
 	view := s.BuildViews(ctx, []model.Article{*a}, actor, true)[0]
 	return &view, nil
 }
@@ -386,6 +390,11 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 	}
 	if needAudit {
 		s.enqueueAudit(updated)
+	}
+	// 草稿/驳回稿「首次进入可发布链路」同样计入一次创作成就；
+	// 已发布文章反复编辑不重复发布（避免刷 ARTICLE_10/50/100）。
+	if !shouldPublishArticleCreated(a.Status) && shouldPublishArticleCreated(updated.Status) {
+		publishArticleCreated(updated)
 	}
 	view := s.BuildViews(ctx, []model.Article{*updated}, actor, true)[0]
 	return &view, nil

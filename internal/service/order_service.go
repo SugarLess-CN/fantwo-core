@@ -366,7 +366,12 @@ func (s *OrderService) GetWalletBalance(userID string) (float64, error) {
 	return user.Wallet, nil
 }
 
-// publishOrderPaid 发布 order.paid 事件（事务提交后调用）。
+// publishOrderPaid 事务提交后发布支付成功事件。
+//
+// 两件事：
+//  1. order.paid —— 通用事件（积分/成就/通知/邀请域消费）；
+//  2. membership.purchased —— 会员单专属事件（成就域 BECOME_MEMBER 依赖，
+//     与 ops 从 order.paid 里按 Type==MEMBERSHIP 的兜底触发并存且幂等）。
 func publishOrderPaid(order *model.Order, commission *event.CommissionInfo) {
 	event.Default().Publish(event.EventOrderPaid, event.OrderPaidPayload{
 		OrderID:    order.ID,
@@ -379,4 +384,13 @@ func publishOrderPaid(order *model.Order, commission *event.CommissionInfo) {
 		ArticleID:  order.ArticleID,
 		Commission: commission,
 	})
+
+	// 会员订单：额外发布 membership.purchased（载荷严格对齐
+	// event.MembershipPurchasedPayload：UserID + OrderID）。
+	if order.Type == model.OrderTypeMembership {
+		event.Default().Publish(event.EventMembershipPurchased, event.MembershipPurchasedPayload{
+			UserID:  order.UserID,
+			OrderID: order.ID,
+		})
+	}
 }

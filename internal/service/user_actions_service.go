@@ -44,6 +44,10 @@ func (s *UserService) Follow(ctx context.Context, currentID, targetID string) (m
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
+	// 事务提交后发布双向关注事件（关注者/被关注者各自的成就）。
+	if created {
+		publishFollowed(currentID, targetID)
+	}
 	return map[string]interface{}{"following": true, "changed": created}, nil
 }
 
@@ -195,15 +199,37 @@ func (s *UserService) Sign(ctx context.Context, userID string, auto bool) (map[s
 	if err := s.d.Users.CreateSignIn(s.d.DB, rec); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	// 签到奖励：经验 +5，连续 7 的倍数天额外积分 +7（对齐原 performSignIn 奖励语义）。
-	reward := map[string]interface{}{"experience": gorm.Expr("experience + ?", 5)}
+	// 连续 7 的倍数天额外积分（对齐原 performSignIn 奖励语义）。
 	if consecutive > 0 && consecutive%7 == 0 {
-		reward["points"] = gorm.Expr("points + ?", 7)
+		_ = s.d.Users.UpdateFields(s.d.DB, userID, map[string]interface{}{
+			"points": gorm.Expr("points + ?", 7),
+		})
 	}
-	_ = s.d.Users.UpdateFields(s.d.DB, userID, reward)
+
+	// ---- 事务已提交：发事件 + 发积分 + 加经验（T-32 事件契约补齐） ----
+	// 1) user.dailyLogin：积分活动 DAILY_LOGIN 与「连续登录 7/30 天」成就的触发源。
+	publishDailyLogin(userID, consecutive)
+	// 2) 按活动规则发放 DAILY_LOGIN 积分（活动未配置/已超限则静默跳过）。
+	var grant int
+	if pts := NewPointsService(s.d.DB); pts != nil {
+		if res, applied, err := pts.TryAddByRule(userID, "DAILY_LOGIN", "sign_in",
+			today.Format("2006-01-02")); err != nil {
+			s.d.Logger.Warn("签到积分发放失败 user=" + userID)
+		} else if applied && res != nil {
+			grant = res.Amount
+		}
+	}
+	// 3) 经验 +5，升级时内部会发 user.levelUp。
+	_, newLevel, leveledUp, e := s.AddExperience(ctx, AddExperienceInput{
+		UserID: userID, Amount: 5, Source: "SIGN_IN",
+	})
+	if e != nil {
+		s.d.Logger.Warn("签到加经验失败 user=" + userID)
+	}
 	return map[string]interface{}{
 		"signed": true, "already": false,
 		"consecutiveDays": consecutive, "signInDate": today.Format("2006-01-02"),
+		"pointsGranted": grant, "level": newLevel, "leveledUp": leveledUp,
 	}, nil
 }
 

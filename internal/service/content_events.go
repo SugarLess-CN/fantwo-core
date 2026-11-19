@@ -404,3 +404,60 @@ func firstNonEmptyStr(vals ...string) string {
 	}
 	return ""
 }
+
+// ---------- 内容域事件发布端 ----------
+//
+// 契约见 internal/event/ops_events.go（成就域订阅这些事件推进用户成就）。
+// 发布纪律：
+//   - 一律在**事务提交之后**发布，保证订阅方读得到已提交数据；
+//   - 同步内存调用，单个订阅者 panic 由 event.Bus.Publish 内部 recover 吸收，
+//     不会回滚或中断创建流程（与 order.paid 的发布写法一致）。
+
+// shouldPublishArticleCreated 文章创建后是否发布 article.created。
+//
+// 只有进入「可发布链路」的创作才计入成就：PUBLISHED（直接发布）或
+// PENDING（已提交审核，等待结果）。DRAFT 草稿不发，避免反复存草稿刷成就。
+func shouldPublishArticleCreated(status string) bool {
+	return status == model.ArticleStatusPublished || status == model.ArticleStatusPending
+}
+
+// publishArticleCreated 发布 article.created（UserID = 作者本人）。
+func publishArticleCreated(a *model.Article) {
+	if a == nil || a.AuthorID == nil || *a.AuthorID == "" {
+		return
+	}
+	event.Default().Publish(event.EventArticleCreated, event.ArticleCreatedPayload{
+		UserID:    *a.AuthorID,
+		ArticleID: a.ID,
+	})
+}
+
+// publishArticleReceivedLike 发布 article.receivedLike。
+//
+// 关键语义：推进的是**被点赞文章的作者**（AuthorID），LikerID 才是点赞人；
+// 自赞不发（否则作者能靠给自己点赞刷 FIRST_LIKE / LIKE_100）。
+func publishArticleReceivedLike(a *model.Article, likerID string) {
+	if a == nil || a.AuthorID == nil || *a.AuthorID == "" || likerID == "" {
+		return
+	}
+	if *a.AuthorID == likerID {
+		return
+	}
+	event.Default().Publish(event.EventArticleReceivedLike, event.ArticleReceivedLikePayload{
+		AuthorID:  *a.AuthorID,
+		ArticleID: a.ID,
+		LikerID:   likerID,
+	})
+}
+
+// publishCommentCreated 发布 comment.created（UserID = 评论人）。
+func publishCommentCreated(c *model.Comment) {
+	if c == nil || c.AuthorID == "" {
+		return
+	}
+	event.Default().Publish(event.EventCommentCreated, event.CommentCreatedPayload{
+		UserID:    c.AuthorID,
+		ArticleID: c.ArticleID,
+		CommentID: c.ID,
+	})
+}
