@@ -23,9 +23,9 @@ type ArticleHandler struct {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			body	body		object	true	"CreateArticleRequest"
-//	@Success		200		{object}	response.Body
-//	@Failure		400		{object}	response.Body
-//	@Failure		403		{object}	response.Body
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Failure		403		{object}	ResponseBody
 //	@Router			/article [post]
 func (h *ArticleHandler) Create(c *gin.Context) {
 	var req service.CreateArticleRequest
@@ -54,7 +54,7 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Param			tagId		query		string	false	"标签 ID"
 //	@Param			type		query		string	false	"image/mixed/video，默认 all"
 //	@Param			status		query		string	false	"状态筛选，逗号分隔"
-//	@Success		200			{object}	response.Body
+//	@Success		200			{object}	ResponseBody
 //	@Router			/article [get]
 func (h *ArticleHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -159,8 +159,8 @@ func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 //	@Tags			文章
 //	@Produce		json
 //	@Param			id	path		string	true	"文章 ID"
-//	@Success		200	{object}	response.Body
-//	@Failure		404	{object}	response.Body
+//	@Success		200	{object}	ResponseBody
+//	@Failure		404	{object}	ResponseBody
 //	@Router			/article/{id} [get]
 func (h *ArticleHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -180,8 +180,8 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id		path		string	true	"文章 ID"
 //	@Param		body	body		object	true	"UpdateArticleRequest"
-//	@Success	200		{object}	response.Body
-//	@Failure	403		{object}	response.Body
+//	@Success	200		{object}	ResponseBody
+//	@Failure	403		{object}	ResponseBody
 //	@Router		/article/{id} [patch]
 func (h *ArticleHandler) Update(c *gin.Context) {
 	var req service.UpdateArticleRequest
@@ -204,8 +204,8 @@ func (h *ArticleHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"文章 ID"
-//	@Success	200	{object}	response.Body
-//	@Failure	403	{object}	response.Body
+//	@Success	200	{object}	ResponseBody
+//	@Failure	403	{object}	ResponseBody
 //	@Router		/article/{id} [delete]
 func (h *ArticleHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))

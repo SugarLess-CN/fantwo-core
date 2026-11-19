@@ -6,6 +6,7 @@
 package queue
 
 import (
+	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -70,7 +71,13 @@ func collect(rdb *redis.Client) Stats {
 	for _, name := range QueueNames {
 		info, err := insp.GetQueueInfo(name)
 		if err != nil {
-			// 单个队列读失败不影响其它队列：记错误继续
+			// asynq 语义：队列在首次有任务入队前并不存在，GetQueueInfo 返回 NOT_FOUND。
+			// 这不是故障，按「空队列」处理（计入结果、不写 Error），避免 /health 出现假告警。
+			if strings.Contains(err.Error(), "does not exist") {
+				out.Queues = append(out.Queues, QueueStat{Name: name})
+				continue
+			}
+			// 其它错误：单个队列读失败不影响其它队列，记错误继续
 			out.Error = err.Error()
 			continue
 		}

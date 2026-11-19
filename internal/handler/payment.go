@@ -23,6 +23,17 @@ type PaymentHandler struct {
 }
 
 // Create POST /payment/create（发起支付：alipay|wechat|epay|balance）。
+//
+//	@Summary		发起支付
+//	@Description	按渠道（alipay/wechat/epay/balance）生成支付参数；渠道开关与密钥来自系统配置表
+//	@Tags			支付
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"CreatePaymentInput{orderId,method,...}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Router			/payment/create [post]
 func (h *PaymentHandler) Create(c *gin.Context) {
 	var in service.CreatePaymentInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -38,6 +49,14 @@ func (h *PaymentHandler) Create(c *gin.Context) {
 }
 
 // NotifyAlipay POST /payment/notify/alipay（NoAuth；支付宝要求返回纯文本 success）。
+//
+//	@Summary		支付宝异步回调
+//	@Description	验签通过并完成订单状态机后返回文本 "success"，否则返回 "failure: 原因"
+//	@Tags			支付
+//	@Accept			application/x-www-form-urlencoded
+//	@Produce		plain
+//	@Success		200	{string}	string	"success"
+//	@Router			/payment/notify/alipay [post]
 func (h *PaymentHandler) NotifyAlipay(c *gin.Context) {
 	ok, msg := h.Svc.HandleAlipayNotify(c.Request)
 	if ok {
@@ -48,6 +67,14 @@ func (h *PaymentHandler) NotifyAlipay(c *gin.Context) {
 }
 
 // NotifyWechat POST /payment/notify/wechat（NoAuth；微信要求 200 + {"code":"SUCCESS"}）。
+//
+//	@Summary		微信支付异步回调
+//	@Description	验签 + 解密后按微信 v3 规范返回 {"code":"SUCCESS"}；失败返 500 + {"code":"FAIL"}
+//	@Tags			支付
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	map[string]string
+//	@Router			/payment/notify/wechat [post]
 func (h *PaymentHandler) NotifyWechat(c *gin.Context) {
 	ok, msg := h.Svc.HandleWechatNotify(c.Request)
 	if ok {
@@ -58,6 +85,13 @@ func (h *PaymentHandler) NotifyWechat(c *gin.Context) {
 }
 
 // NotifyEpay GET /payment/notify/epay（NoAuth；易支付要求返回纯文本 success）。
+//
+//	@Summary		易支付异步回调
+//	@Description	MD5 排序验签（排除 sign/sign_type）后返回文本 "success"，否则 "fail: 原因"
+//	@Tags			支付
+//	@Produce		plain
+//	@Success		200	{string}	string	"success"
+//	@Router			/payment/notify/epay [get]
 func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 	query := map[string]string{}
 	for k := range c.Request.URL.Query() {

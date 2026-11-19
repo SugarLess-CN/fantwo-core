@@ -1,4 +1,22 @@
 basePath: /api/v1
+definitions:
+  internal_handler.ResponseBody:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data: {}
+      message:
+        example: 操作成功
+        type: string
+    type: object
+  internal_handler.loginRequest:
+    properties:
+      account:
+        type: string
+      password:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact:
@@ -8,7 +26,408 @@ info:
   termsOfService: https://github.com/SugarLess-CN/fantwo-core
   title: PicArt API
   version: "1.0"
-paths: {}
+paths:
+  /article:
+    get:
+      description: 分页浏览文章，支持标题/分类/标签/类型/状态筛选；携带 token 时返回当前用户互动状态
+      parameters:
+      - description: 页码，默认 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 10
+        in: query
+        name: limit
+        type: integer
+      - description: 标题关键字
+        in: query
+        name: title
+        type: string
+      - description: 分类 ID
+        in: query
+        name: categoryId
+        type: string
+      - description: 标签 ID
+        in: query
+        name: tagId
+        type: string
+      - description: image/mixed/video，默认 all
+        in: query
+        name: type
+        type: string
+      - description: 状态筛选，逗号分隔
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 文章列表
+      tags:
+      - 文章
+    post:
+      consumes:
+      - application/json
+      description: 提交文章（图片/混合/视频），入内容审核流程
+      parameters:
+      - description: CreateArticleRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 创建文章
+      tags:
+      - 文章
+  /article/{id}:
+    delete:
+      parameters:
+      - description: 文章 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除文章
+      tags:
+      - 文章
+    get:
+      parameters:
+      - description: 文章 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 文章详情
+      tags:
+      - 文章
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文章 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: UpdateArticleRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新文章
+      tags:
+      - 文章
+  /user:
+    get:
+      description: 分页查询用户，支持 keyword（或 username）模糊搜索
+      parameters:
+      - description: 页码，默认 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数，默认 10
+        in: query
+        name: limit
+        type: integer
+      - description: 用户名关键字
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 用户列表
+      tags:
+      - 用户管理
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: CreateUserInput
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 管理员创建用户
+      tags:
+      - 用户管理
+  /user/{id}:
+    delete:
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 删除用户
+      tags:
+      - 用户管理
+    get:
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 用户详情
+      tags:
+      - 用户管理
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 账号（用户名或邮箱）+ 密码登录；Device-Id 头用于多端会话管理
+      parameters:
+      - description: 设备标识，缺省 default
+        in: header
+        name: Device-Id
+        type: string
+      - description: 登录参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 用户登录
+      tags:
+      - 用户认证
+  /user/logout:
+    post:
+      description: 删除当前设备会话并把当前 token 加入黑名单
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 退出登录
+      tags:
+      - 用户认证
+  /user/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 当前用户资料
+      tags:
+      - 用户管理
+    patch:
+      consumes:
+      - application/json
+      description: 昵称/头像/背景/简介等字段，请求体见 service.UpdateProfileInput
+      parameters:
+      - description: 待更新字段（部分更新）
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 更新当前用户资料
+      tags:
+      - 用户管理
+  /user/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: 用 refreshToken 换取新的 access token；需 Device-Id 头（服务端据此校验设备会话）
+      parameters:
+      - description: 设备标识
+        in: header
+        name: Device-Id
+        required: true
+        type: string
+      - description: refreshRequest{refreshToken}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 刷新 access token
+      tags:
+      - 用户认证
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: 用户名 + 密码注册，可选昵称/邮箱/手机号；返回用户信息
+      parameters:
+      - description: registerRequest{username,nickname,password,email,phone}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 用户注册
+      tags:
+      - 用户认证
 schemes:
 - http
 - https

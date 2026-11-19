@@ -36,8 +36,8 @@ type loginRequest struct {
 //	@Produce		json
 //	@Param			Device-Id	header		string			false	"设备标识，缺省 default"
 //	@Param			body		body		loginRequest	true	"登录参数"
-//	@Success		200			{object}	response.Body
-//	@Failure		401			{object}	response.Body
+//	@Success		200			{object}	ResponseBody
+//	@Failure		401			{object}	ResponseBody
 //	@Router			/user/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
@@ -65,8 +65,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		object	true	"registerRequest{username,nickname,password,email,phone}"
-//	@Success		200		{object}	response.Body
-//	@Failure		409		{object}	response.Body
+//	@Success		200		{object}	ResponseBody
+//	@Failure		409		{object}	ResponseBody
 //	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req struct {
@@ -99,8 +99,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Produce		json
 //	@Param			Device-Id	header		string	true	"设备标识"
 //	@Param			body		body		object	true	"refreshRequest{refreshToken}"
-//	@Success		200			{object}	response.Body
-//	@Failure		401			{object}	response.Body
+//	@Success		200			{object}	ResponseBody
+//	@Failure		401			{object}	ResponseBody
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
@@ -131,8 +131,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 //	@Tags			用户认证
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	response.Body
-//	@Failure		401	{object}	response.Body
+//	@Success		200	{object}	ResponseBody
+//	@Failure		401	{object}	ResponseBody
 //	@Router			/user/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)

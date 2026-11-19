@@ -26,8 +26,8 @@ func NewUserHandler(svc *service.UserService) *UserHandler { return &UserHandler
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	response.Body
-//	@Failure	401	{object}	response.Body
+//	@Success	200	{object}	ResponseBody
+//	@Failure	401	{object}	ResponseBody
 //	@Router		/user/profile [get]
 func (h *UserHandler) Profile(c *gin.Context) {
 	out, e := h.svc.Profile(c.Request.Context(), middleware.CurrentUserID(c))
@@ -47,8 +47,8 @@ func (h *UserHandler) Profile(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			body	body		object	true	"待更新字段（部分更新）"
-//	@Success		200		{object}	response.Body
-//	@Failure		400		{object}	response.Body
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
 //	@Router			/user/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var in service.UpdateProfileInput
@@ -169,7 +169,7 @@ func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 //	@Param			page	query		int		false	"页码，默认 1"
 //	@Param			limit	query		int		false	"每页条数，默认 10"
 //	@Param			keyword	query		string	false	"用户名关键字"
-//	@Success		200		{object}	response.Body
+//	@Success		200		{object}	ResponseBody
 //	@Router			/user [get]
 func (h *UserHandler) FindAll(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -195,8 +195,8 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body	body		object	true	"CreateUserInput"
-//	@Success	200		{object}	response.Body
-//	@Failure	403		{object}	response.Body
+//	@Success	200		{object}	ResponseBody
+//	@Failure	403		{object}	ResponseBody
 //	@Router		/user [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var in service.CreateUserInput
@@ -218,8 +218,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"用户 ID"
-//	@Success	200	{object}	response.Body
-//	@Failure	404	{object}	response.Body
+//	@Success	200	{object}	ResponseBody
+//	@Failure	404	{object}	ResponseBody
 //	@Router		/user/{id} [get]
 func (h *UserHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"))
@@ -251,8 +251,8 @@ func (h *UserHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"用户 ID"
-//	@Success	200	{object}	response.Body
-//	@Failure	403	{object}	response.Body
+//	@Success	200	{object}	ResponseBody
+//	@Failure	403	{object}	ResponseBody
 //	@Router		/user/{id} [delete]
 func (h *UserHandler) Remove(c *gin.Context) {
 	if e := h.svc.RemoveUser(c.Request.Context(), c.Param("id")); e != nil {

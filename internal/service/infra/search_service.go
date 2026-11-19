@@ -518,9 +518,11 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 	for _, r := range rows {
 		byID[asString(r["id"])] = r
 	}
+	// 输出给前端：按 camelCase 组装（DB 原生查询得到的是 snake_case 列名，
+	// 直接透出会违反「对外 JSON 一律 camelCase」的全局口径）。
 	for _, id := range ids {
 		if r, ok := byID[id]; ok {
-			out.List = append(out.List, r)
+			out.List = append(out.List, articleRowToAPI(r))
 		}
 	}
 	s.recordSearch(req, int(out.Total))
@@ -546,6 +548,29 @@ func (s *Searcher) recordSearch(req ArticleSearchRequest, resultCount int) {
 		defer cancel()
 		_ = s.logs.Record(ctx, in)
 	}()
+}
+
+// articleRowToAPI 把 DB 原生查询行（snake_case 列）转成对外 camelCase 视图。
+//
+// 与 buildArticleDoc 的区别：不返回正文 content（列表页无需全文，避免响应膨胀），
+// 只给列表展示需要的字段。
+func articleRowToAPI(r map[string]interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"id":            asString(r["id"]),
+		"title":         asString(r["title"]),
+		"summary":       asString(r["summary"]),
+		"cover":         asString(r["cover"]),
+		"type":          asString(r["type"]),
+		"status":        asString(r["status"]),
+		"authorId":      asString(r["author_id"]),
+		"categoryId":    asString(r["category_id"]),
+		"views":         asInt(r["views"]),
+		"likes":         asInt(r["likes"]),
+		"favoriteCount": asInt(r["favorite_count"]),
+		"commentCount":  asInt(r["comment_count"]),
+		"createdAt":     asTime(r["created_at"]),
+		"updatedAt":     asTime(r["updated_at"]),
+	}
 }
 
 // buildQuery 构造 ES 查询 DSL（multi_match + 分类过滤 + 排序）。

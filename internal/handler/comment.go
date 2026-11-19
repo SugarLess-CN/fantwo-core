@@ -27,6 +27,17 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 }
 
 // Create 创建评论 POST /comment（权限 comment:create）。
+//
+//	@Summary		创建评论
+//	@Description	对文章发表评论，入 text-audit 队列异步审核
+//	@Tags			评论
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"CreateCommentRequest{articleId,content,parentId}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Router			/comment [post]
 func (h *CommentHandler) Create(c *gin.Context) {
 	var req service.CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -53,6 +64,15 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 }
 
 // FindByArticle 文章评论列表 GET /comment/article/:id（可选登录）。
+//
+//	@Summary		文章评论列表
+//	@Tags			评论
+//	@Produce		json
+//	@Param			id		path		string	true	"文章 ID"
+//	@Param			page	query		int		false	"页码"
+//	@Param			limit	query		int		false	"每页条数"
+//	@Success		200		{object}	ResponsePageBody
+//	@Router			/comment/article/{id} [get]
 func (h *CommentHandler) FindByArticle(c *gin.Context) {
 	q := commentListQuery(c)
 	list, total, e := h.svc.FindByArticle(c.Request.Context(), c.Param("id"), q, actorOf(c))
@@ -104,6 +124,15 @@ func (h *CommentHandler) SetPin(c *gin.Context) {
 }
 
 // Remove 删除评论 DELETE /comment/:id（权限 comment:delete）。
+//
+//	@Summary	删除评论
+//	@Tags		评论
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id	path		string	true	"评论 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Failure	403	{object}	ResponseBody
+//	@Router		/comment/{id} [delete]
 func (h *CommentHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {

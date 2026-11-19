@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"math/big"
+	"net/url"
 	"strings"
 	"time"
 
@@ -522,4 +523,154 @@ func (s *AuthService) SmsLogin(ctx context.Context, phone, code, deviceID string
 		return nil, "", "", e
 	}
 	return user, token, refresh, nil
+}
+
+// GithubAuthURL 生成 GitHub 授权链接（state 随机生成并存入 Redis）。
+func (s *AuthService) GithubAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+	oauth := NewGithubOAuth(s.d)
+	if !oauth.Configured() {
+		return nil, errcode.ErrGithubOAuthNotConfigured
+	}
+	state, err := randomState()
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	u, err := oauth.AuthorizeURL(ctx, state)
+	if err != nil {
+		s.d.Logger.Error("github authorize url", zapErr(err))
+		return nil, errcode.ErrGithubOAuthNotConfigured
+	}
+	return map[string]interface{}{"url": u, "state": state}, nil
+}
+
+// GithubCallback GitHub 登录（SPA 模式：用 code 换 token 并签发本站双 token）。
+// 按 github_id 找用户；找不到时按邮箱合并绑定；仍无则自动建号（随机密码，不可密码登录）。
+func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, "", "", e
+	}
+	oauth := NewGithubOAuth(s.d)
+	if !oauth.Configured() {
+		return nil, "", "", errcode.ErrGithubOAuthNotConfigured
+	}
+	if !oauth.VerifyState(ctx, state) {
+		return nil, "", "", errcode.ErrInvalidParam.With("state 校验失败或已过期")
+	}
+	profile, err := oauth.Exchange(ctx, code)
+	if err != nil {
+		s.d.Logger.Error("github exchange", zapErr(err))
+		return nil, "", "", errcode.ErrInvalidParam.With("GitHub 授权失败：" + err.Error())
+	}
+	user, e := s.findOrCreateGithubUser(ctx, profile)
+	if e != nil {
+		return nil, "", "", e
+	}
+	if user.Status == model.UserStatusBanned {
+		return nil, "", "", errcode.ErrAccountBanned
+	}
+	if deviceID == "" {
+		deviceID = "github-" + profile.ID
+	}
+	token, refresh, e := s.issueTokens(ctx, user, deviceID)
+	if e != nil {
+		return nil, "", "", e
+	}
+	return user, token, refresh, nil
+}
+
+// GithubRedirectURL 重定向模式：返回应 302 的前端地址（成功带 token，失败带 error）。
+func (s *AuthService) GithubRedirectURL(ctx context.Context, code, state, oauthError, deviceID string) string {
+	oauth := NewGithubOAuth(s.d)
+	base := "/"
+	if oauth.Configured() {
+		base = oauth.SuccessRedirectURL()
+	}
+	if oauthError != "" {
+		return base + "?error=" + url.QueryEscape(oauthError)
+	}
+	_, token, _, e := s.GithubCallback(ctx, code, state, deviceID)
+	if e != nil {
+		return base + "?error=" + url.QueryEscape(e.Msg)
+	}
+	return base + "?token=" + url.QueryEscape(token)
+}
+
+// findOrCreateGithubUser 按 github_id / 邮箱匹配，必要时建号。
+func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfile) (*model.User, *errcode.Err) {
+	if p.ID == "" {
+		return nil, errcode.ErrInvalidParam.With("GitHub 未返回用户 ID")
+	}
+	if user, err := s.d.Users.FindByGithubID(s.d.DB, p.ID); err == nil {
+		// 已有绑定：刷新资料
+		fields := map[string]interface{}{"github_username": p.Login}
+		if p.AvatarURL != "" {
+			fields["avatar"] = p.AvatarURL
+		}
+		_ = s.d.Users.UpdateFields(s.d.DB, user.ID, fields)
+		return s.d.Users.FindByID(s.d.DB, user.ID)
+	} else if !IsNotFound(err) {
+		return nil, errcode.ErrInternal
+	}
+	// 邮箱合并：老账号补绑 github_id
+	if p.Email != "" {
+		if existing, err := s.d.Users.FindByEmail(s.d.DB, p.Email); err == nil {
+			_ = s.d.Users.UpdateFields(s.d.DB, existing.ID, map[string]interface{}{
+				"github_id": p.ID, "github_username": p.Login,
+			})
+			return s.d.Users.FindByID(s.d.DB, existing.ID)
+		} else if !IsNotFound(err) {
+			return nil, errcode.ErrInternal
+		}
+	}
+	// 建号：用户名唯一化（github 登录名 → 冲突则追加 -ghN）
+	username := p.Login
+	if username == "" {
+		username = "gh" + p.ID
+	}
+	for i := 0; i < 5; i++ {
+		dup, err := s.d.Users.ExistsUsername(s.d.DB, username, "")
+		if err != nil {
+			return nil, errcode.ErrInternal
+		}
+		if !dup {
+			break
+		}
+		username = fmt.Sprintf("%s-gh%s", p.Login, genCode()[:3])
+	}
+	pwd, err := hashPassword(genCode() + genCode())
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	var nickname *string
+	if p.Name != "" {
+		nickname = &p.Name
+	}
+	user := &model.User{
+		Username: username, Nickname: nickname, Password: pwd,
+		Status: model.UserStatusActive, GithubID: &p.ID, GithubUsername: &p.Login,
+	}
+	if p.Email != "" {
+		user.Email = &p.Email
+	}
+	if p.AvatarURL != "" {
+		user.Avatar = &p.AvatarURL
+	}
+	if role, rerr := s.d.Roles.FindByName(s.d.DB, model.RoleNameUser); rerr == nil {
+		user.Roles = []model.Role{*role}
+	}
+	if err := s.d.Users.Create(s.d.DB, user); err != nil {
+		s.d.Logger.Error("github register", zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	_ = s.d.Users.CreateProfile(s.d.DB, &model.UserProfile{UserID: user.ID})
+	return s.d.Users.FindByID(s.d.DB, user.ID)
+}
+
+// randomState 生成 OAuth state（16 字节 hex）。
+func randomState() (string, error) {
+	buf := make([]byte, 16)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf), nil
 }

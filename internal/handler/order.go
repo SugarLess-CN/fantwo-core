@@ -75,6 +75,15 @@ func (h *OrderHandler) ListPending(c *gin.Context) {
 }
 
 // Get GET /order/:id（订单详情）。
+//
+//	@Summary	订单详情
+//	@Tags		订单
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id	path		string	true	"订单 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Failure	404	{object}	ResponseBody
+//	@Router		/order/{id} [get]
 func (h *OrderHandler) Get(c *gin.Context) {
 	order, err := h.Svc.GetOrder(c.Param("id"), middleware.CurrentUserID(c), hasManage(c))
 	if err != nil {
@@ -105,6 +114,18 @@ func (h *OrderHandler) Cancel(c *gin.Context) {
 }
 
 // Refund POST /order/:id/refund（申请退款）。
+//
+//	@Summary		申请退款
+//	@Description	余额支付原路退余额；第三方支付提交原路退款申请（均落 payment 记录）
+//	@Tags			订单
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		string	true	"订单 ID"
+//	@Param			body	body		object	false	"refundRequest{reason}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Router			/order/{id}/refund [post]
 func (h *OrderHandler) Refund(c *gin.Context) {
 	var body struct {
 		Reason string `json:"reason"`
@@ -119,6 +140,16 @@ func (h *OrderHandler) Refund(c *gin.Context) {
 }
 
 // CreateArticle POST /order/article（创建文章订单）。
+//
+//	@Summary		创建文章购买订单
+//	@Tags			订单
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"articleOrderRequest{articleId,remark}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Router			/order/article [post]
 func (h *OrderHandler) CreateArticle(c *gin.Context) {
 	var body struct {
 		ArticleID string `json:"articleId" binding:"required"`
@@ -137,6 +168,16 @@ func (h *OrderHandler) CreateArticle(c *gin.Context) {
 }
 
 // CreateMembership POST /order/membership（创建会员充值订单）。
+//
+//	@Summary		创建会员订单
+//	@Tags			订单
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"membershipOrderRequest{plan,duration,remark}"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		400		{object}	ResponseBody
+//	@Router			/order/membership [post]
 func (h *OrderHandler) CreateMembership(c *gin.Context) {
 	var body struct {
 		Plan     string `json:"plan"`

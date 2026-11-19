@@ -83,6 +83,17 @@ func currentUID(c *gin.Context) (string, bool) {
 // ---------- 站内消息 ----------
 
 // Create POST /message：创建消息（全员 / 部分 / 个人）。
+//
+//	@Summary		创建站内消息
+//	@Description	创建全员/部分/个人通知；管理员（message:manage）可指定接收范围
+//	@Tags			消息
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"CreateMessageInput"
+//	@Success		200		{object}	ResponseBody
+//	@Failure		403		{object}	ResponseBody
+//	@Router			/message [post]
 func (h *MessageHandler) Create(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -102,6 +113,15 @@ func (h *MessageHandler) Create(c *gin.Context) {
 }
 
 // List GET /message：我的消息（含全员通知）。
+//
+//	@Summary		我的消息列表
+//	@Tags			消息
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			page	query		int		false	"页码"
+//	@Param			limit	query		int		false	"每页条数"
+//	@Success		200		{object}	ResponsePageBody
+//	@Router			/message [get]
 func (h *MessageHandler) List(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {

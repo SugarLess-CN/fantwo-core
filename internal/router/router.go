@@ -43,6 +43,9 @@ func New(opt Option) *gin.Engine {
 	r.GET("/health", health)
 	r.GET("/ping", ping)
 
+	// Swagger UI（根路径 /swagger/*any；由 swagger.enabled 开关控制，生产勿开）
+	RegisterSwaggerRoutes(r, opt.Cfg)
+
 	// 业务 API：/api/v1
 	v1 := r.Group("/api/v1")
 	{
