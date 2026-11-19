@@ -67,8 +67,8 @@ func TestSMSChannelParsingAndSend(t *testing.T) {
 	channels := []SMSChannel{{
 		Name: "test-gw", Enabled: true, URL: srv.URL,
 		Method: "POST", ContentType: "application/json",
-		Headers:      map[string]string{"X-App-Key": "APPKEY"},
-		BodyTemplate: `{"phone":"{{phone}}","code":"{{code}}"}`,
+		Headers:         map[string]string{"X-App-Key": "APPKEY"},
+		BodyTemplate:    `{"phone":"{{phone}}","code":"{{code}}"}`,
 		SuccessContains: []string{`"ok":true`},
 		TimeoutMs:       3000,
 	}}

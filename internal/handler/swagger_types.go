@@ -24,7 +24,7 @@ type ResponsePageBody struct {
 
 // ResponsePageInner 分页载荷（对齐 response.PageData）。
 type ResponsePageInner struct {
-	List interface{}   `json:"list"`
+	List interface{}      `json:"list"`
 	Meta ResponsePageMeta `json:"meta"`
 }
 

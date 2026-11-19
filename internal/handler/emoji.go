@@ -21,6 +21,15 @@ var emojiAllowedMime = map[string]bool{
 const emojiMaxSize = 5 * 1024 * 1024
 
 // EmojiCreate POST /emoji。
+//
+//	@Summary	创建表情
+//	@Tags		表情包
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "emojiRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji [post]
 func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -42,6 +51,15 @@ func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 // EmojiUpload POST /emoji/upload（multipart）。
 // 落盘归上传域：本端点做类型/大小校验后，把持久化交给上传域（尚未接入），
 // 接入前明确报错而不是静默失败；已上传到 /upload 的图片可直接走 POST /emoji 传 URL。
+//
+//	@Summary	上传表情（走图片审核队列）
+//	@Tags		表情包
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "multipart 或 base64 载荷"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji/upload [post]
 func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 	if requireUser(c) == "" {
 		return
@@ -65,6 +83,12 @@ func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 }
 
 // EmojiList GET /emoji（公开；登录后可见自己的私有表情与收藏过滤）。
+//
+//	@Summary	表情列表
+//	@Tags		表情包
+//	@Produce	json
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/emoji [get]
 func (h *OpsHandler) EmojiList(c *gin.Context) {
 	q := model.EmojiQuery{
 		Page:          atoiDefault(c.Query("page"), 1),
@@ -93,6 +117,13 @@ func (h *OpsHandler) EmojiList(c *gin.Context) {
 }
 
 // EmojiGet GET /emoji/:id（公开）。
+//
+//	@Summary	表情详情
+//	@Tags		表情包
+//	@Produce	json
+//	@Param		id path string true "表情 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji/{id} [get]
 func (h *OpsHandler) EmojiGet(c *gin.Context) {
 	e, err := h.Emoji.Get(c.Param("id"), currentUserID(c))
 	if err != nil {
@@ -183,6 +214,14 @@ func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 }
 
 // EmojiFavoriteAdd POST /emoji/:id/favorite。
+//
+//	@Summary	收藏表情
+//	@Tags		表情包
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "表情 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji/{id}/favorite [post]
 func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -220,6 +259,15 @@ func (h *OpsHandler) EmojiUse(c *gin.Context) {
 // ---- 表情包 ----
 
 // EmojiPackCreate POST /emoji/packs。
+//
+//	@Summary	创建表情包
+//	@Tags		表情包
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "emojiPackRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji/packs [post]
 func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -239,6 +287,12 @@ func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 }
 
 // EmojiPackList GET /emoji/packs（公开：公开包 ∪ 自己的）。
+//
+//	@Summary	表情包列表
+//	@Tags		表情包
+//	@Produce	json
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/emoji/packs [get]
 func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 	q := model.EmojiPackQuery{
 		Page:    atoiDefault(c.Query("page"), 1),
@@ -256,6 +310,13 @@ func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 }
 
 // EmojiPackGet GET /emoji/packs/:id（公开 + 内容列表）。
+//
+//	@Summary	表情包详情
+//	@Tags		表情包
+//	@Produce	json
+//	@Param		id path string true "表情包 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/emoji/packs/{id} [get]
 func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 	detail, err := h.Emoji.PackDetail(c.Param("id"), currentUserID(c))
 	if err != nil {

@@ -9,6 +9,15 @@ import (
 )
 
 // AchievementCreate POST /achievement（管理端）。
+//
+//	@Summary	创建成就定义
+//	@Tags		成就
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "achievementRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement [post]
 func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 	var in model.AchievementInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -24,6 +33,12 @@ func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 }
 
 // AchievementList GET /achievement（可选登录：登录后带进度）。
+//
+//	@Summary	成就列表
+//	@Tags		成就
+//	@Produce	json
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/achievement [get]
 func (h *OpsHandler) AchievementList(c *gin.Context) {
 	list, err := h.Achievement.List(
 		currentUserID(c),
@@ -39,6 +54,13 @@ func (h *OpsHandler) AchievementList(c *gin.Context) {
 }
 
 // AchievementStats GET /achievement/stats。
+//
+//	@Summary	我的成就进度统计
+//	@Tags		成就
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/stats [get]
 func (h *OpsHandler) AchievementStats(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -53,6 +75,13 @@ func (h *OpsHandler) AchievementStats(c *gin.Context) {
 }
 
 // AchievementGet GET /achievement/:id（可选登录）。
+//
+//	@Summary	成就详情
+//	@Tags		成就
+//	@Produce	json
+//	@Param		id path string true "成就 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/{id} [get]
 func (h *OpsHandler) AchievementGet(c *gin.Context) {
 	view, err := h.Achievement.Get(c.Param("id"), currentUserID(c))
 	if err != nil {
@@ -87,6 +116,14 @@ func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 }
 
 // AchievementClaim POST /achievement/:id/claim。
+//
+//	@Summary	领取成就奖励
+//	@Tags		成就
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "成就 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/{id}/claim [post]
 func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -101,6 +138,13 @@ func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 }
 
 // AchievementClaimAll POST /achievement/claim-all。
+//
+//	@Summary	一键领取全部可领成就
+//	@Tags		成就
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/achievement/claim-all [post]
 func (h *OpsHandler) AchievementClaimAll(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {

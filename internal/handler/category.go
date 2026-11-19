@@ -35,6 +35,15 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 }
 
 // Create 创建分类 POST /category（权限 category:create）。
+//
+//	@Summary	创建分类
+//	@Tags		分类
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "categoryRequest{name,parentId}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/category [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req service.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -50,6 +59,12 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 }
 
 // List 分类列表 GET /category（可选登录；tree=true 返回两级树）。
+//
+//	@Summary	分类列表
+//	@Tags		分类
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/category [get]
 func (h *CategoryHandler) List(c *gin.Context) {
 	q := parseCategoryQuery(c)
 	list, total, e := h.svc.List(c.Request.Context(), q, boolQuery(c, "tree"))
@@ -61,6 +76,13 @@ func (h *CategoryHandler) List(c *gin.Context) {
 }
 
 // FindOne 分类详情 GET /category/:id。
+//
+//	@Summary	分类详情
+//	@Tags		分类
+//	@Produce	json
+//	@Param		id path string true "分类 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/category/{id} [get]
 func (h *CategoryHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -71,6 +93,16 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 }
 
 // Update 更新分类 PATCH /category/:id（权限 category:update）。
+//
+//	@Summary	更新分类
+//	@Tags		分类
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "分类 ID"
+//	@Param		body body object true "categoryRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/category/{id} [patch]
 func (h *CategoryHandler) Update(c *gin.Context) {
 	var req service.UpdateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -86,6 +118,14 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 }
 
 // Remove 删除分类 DELETE /category/:id（权限 category:delete）。
+//
+//	@Summary	删除分类
+//	@Tags		分类
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "分类 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/category/{id} [delete]
 func (h *CategoryHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))
 	if e != nil {

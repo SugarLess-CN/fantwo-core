@@ -15,6 +15,15 @@ type CollectionHandler struct {
 }
 
 // Create 创建合集 POST /collection。
+//
+//	@Summary	创建合集
+//	@Tags		合集
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "collectionRequest{name,description,isPublic}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection [post]
 func (h *CollectionHandler) Create(c *gin.Context) {
 	var req service.CreateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,6 +39,13 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 }
 
 // List 合集列表 GET /collection。
+//
+//	@Summary	合集列表
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/collection [get]
 func (h *CollectionHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := repository.CollectionListQuery{
@@ -49,6 +65,14 @@ func (h *CollectionHandler) List(c *gin.Context) {
 }
 
 // FindOne 合集详情 GET /collection/:id。
+//
+//	@Summary	合集详情
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id} [get]
 func (h *CollectionHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -59,6 +83,16 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 }
 
 // Update 更新合集 PATCH /collection/:id。
+//
+//	@Summary	更新合集
+//	@Tags		合集
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Param		body body object true "collectionRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id} [patch]
 func (h *CollectionHandler) Update(c *gin.Context) {
 	var req service.UpdateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -74,6 +108,14 @@ func (h *CollectionHandler) Update(c *gin.Context) {
 }
 
 // Remove 删除合集 DELETE /collection/:id。
+//
+//	@Summary	删除合集
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id} [delete]
 func (h *CollectionHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -84,6 +126,15 @@ func (h *CollectionHandler) Remove(c *gin.Context) {
 }
 
 // AddArticle 添加文章到合集 POST /collection/:id/article/:articleId。
+//
+//	@Summary	添加文章到合集
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Param		articleId path string true "文章 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id}/article/{articleId} [post]
 func (h *CollectionHandler) AddArticle(c *gin.Context) {
 	out, e := h.svc.AddArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c), nil)
 	if e != nil {
@@ -94,6 +145,15 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 }
 
 // RemoveArticle 从合集移除文章 DELETE /collection/:id/article/:articleId。
+//
+//	@Summary	从合集移除文章
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Param		articleId path string true "文章 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/collection/{id}/article/{articleId} [delete]
 func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 	out, e := h.svc.RemoveArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c))
 	if e != nil {
@@ -104,6 +164,16 @@ func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 }
 
 // ListItems 合集内文章列表 GET /collection/:id/items。
+//
+//	@Summary	合集内文章列表
+//	@Tags		合集
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "合集 ID"
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/collection/{id}/items [get]
 func (h *CollectionHandler) ListItems(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.ListItems(c.Request.Context(), c.Param("id"), actorOf(c), page, limit)

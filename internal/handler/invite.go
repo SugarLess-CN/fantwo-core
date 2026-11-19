@@ -9,6 +9,13 @@ import (
 )
 
 // InviteCreate POST /invite。
+//
+//	@Summary	生成邀请码
+//	@Tags		邀请
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite [post]
 func (h *OpsHandler) InviteCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -28,6 +35,15 @@ func (h *OpsHandler) InviteCreate(c *gin.Context) {
 }
 
 // InviteUse POST /invite/use。
+//
+//	@Summary	绑定邀请人
+//	@Tags		邀请
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "useInviteRequest{code}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite/use [post]
 func (h *OpsHandler) InviteUse(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -47,6 +63,13 @@ func (h *OpsHandler) InviteUse(c *gin.Context) {
 }
 
 // InviteMyList GET /invite/my。
+//
+//	@Summary	我的邀请码列表
+//	@Tags		邀请
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite/my [get]
 func (h *OpsHandler) InviteMyList(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -62,6 +85,13 @@ func (h *OpsHandler) InviteMyList(c *gin.Context) {
 }
 
 // InviteStats GET /invite/stats。
+//
+//	@Summary	我的邀请统计
+//	@Tags		邀请
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite/stats [get]
 func (h *OpsHandler) InviteStats(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -76,6 +106,13 @@ func (h *OpsHandler) InviteStats(c *gin.Context) {
 }
 
 // InviteEarnings GET /invite/earnings。
+//
+//	@Summary	我的邀请收益
+//	@Tags		邀请
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite/earnings [get]
 func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -90,6 +127,14 @@ func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 }
 
 // InviteGet GET /invite/:id。
+//
+//	@Summary	邀请码详情
+//	@Tags		邀请
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "邀请码 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/invite/{id} [get]
 func (h *OpsHandler) InviteGet(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {

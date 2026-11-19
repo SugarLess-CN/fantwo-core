@@ -14,6 +14,15 @@ type TagHandler struct {
 }
 
 // Create 创建标签 POST /tag（权限 tag:create）。
+//
+//	@Summary	创建标签
+//	@Tags		标签
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "tagRequest{name,description}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
 	var req service.CreateTagRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -29,6 +38,12 @@ func (h *TagHandler) Create(c *gin.Context) {
 }
 
 // List 标签列表 GET /tag（可选登录）。
+//
+//	@Summary	标签列表
+//	@Tags		标签
+//	@Produce	json
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/tag [get]
 func (h *TagHandler) List(c *gin.Context) {
 	q := parseTagQuery(c)
 	list, total, e := h.svc.List(c.Request.Context(), actorOf(c), q)
@@ -40,6 +55,12 @@ func (h *TagHandler) List(c *gin.Context) {
 }
 
 // Recommended 推荐标签 GET /tag/recommended（可选登录）。
+//
+//	@Summary	推荐标签
+//	@Tags		标签
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/recommended [get]
 func (h *TagHandler) Recommended(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.Recommended(c.Request.Context(), actorOf(c), page, limit)
@@ -51,6 +72,12 @@ func (h *TagHandler) Recommended(c *gin.Context) {
 }
 
 // Hot 热门标签统计 GET /tag/hot（可选登录）。
+//
+//	@Summary	热门标签
+//	@Tags		标签
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/hot [get]
 func (h *TagHandler) Hot(c *gin.Context) {
 	list, e := h.svc.Hot(c.Request.Context(), actorOf(c), intQuery(c, "limit", 10))
 	if e != nil {
@@ -61,6 +88,13 @@ func (h *TagHandler) Hot(c *gin.Context) {
 }
 
 // FollowedList 用户关注标签 GET /tag/followed/list（可选登录）。
+//
+//	@Summary	我关注的标签
+//	@Tags		标签
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/tag/followed/list [get]
 func (h *TagHandler) FollowedList(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.FollowedList(c.Request.Context(), actorOf(c), c.Query("userId"), c.Query("name"), page, limit)
@@ -72,6 +106,13 @@ func (h *TagHandler) FollowedList(c *gin.Context) {
 }
 
 // FindOne 标签详情 GET /tag/:id（可选登录）。
+//
+//	@Summary	标签详情
+//	@Tags		标签
+//	@Produce	json
+//	@Param		id path string true "标签 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/{id} [get]
 func (h *TagHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -82,6 +123,16 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 }
 
 // Update 更新标签 PATCH /tag/:id（权限 tag:update）。
+//
+//	@Summary	更新标签
+//	@Tags		标签
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "标签 ID"
+//	@Param		body body object true "tagRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/{id} [patch]
 func (h *TagHandler) Update(c *gin.Context) {
 	var req service.UpdateTagRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -97,6 +148,14 @@ func (h *TagHandler) Update(c *gin.Context) {
 }
 
 // Remove 删除标签 DELETE /tag/:id（权限 tag:delete）。
+//
+//	@Summary	删除标签
+//	@Tags		标签
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "标签 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/{id} [delete]
 func (h *TagHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -107,6 +166,14 @@ func (h *TagHandler) Remove(c *gin.Context) {
 }
 
 // Follow 关注标签 POST /tag/:id/follow。
+//
+//	@Summary	关注标签
+//	@Tags		标签
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "标签 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/tag/{id}/follow [post]
 func (h *TagHandler) Follow(c *gin.Context) {
 	out, e := h.svc.Follow(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {

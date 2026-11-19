@@ -32,16 +32,16 @@ import (
 // 返回缩略图信息并写回 upload 记录的 thumbnails jsonb。
 //
 // 输出文件：与原图同目录，文件名 `<hash>-<spec>.jpg`。
-func makeThumbnails(srcPath string, specs []config.ThumbSpec, localDir string, up *model.Upload) ([]model.UploadThumbnail, error) {
+func (f *Infra) makeThumbnails(srcPath string, specs []config.ThumbSpec) ([]model.UploadThumbnail, error) {
 	if len(specs) == 0 {
 		return nil, nil
 	}
-	f, err := os.Open(srcPath)
+	file, err := os.Open(srcPath)
 	if err != nil {
 		return nil, fmt.Errorf("打开原图失败: %w", err)
 	}
-	defer f.Close()
-	src, err := imaging.Decode(f)
+	defer file.Close()
+	src, err := imaging.Decode(file)
 	if err != nil {
 		// 解码失败（含 heic/avif 等不支持格式）：静默放弃缩略图，不影响主流程
 		return nil, nil
@@ -63,7 +63,7 @@ func makeThumbnails(srcPath string, specs []config.ThumbSpec, localDir string, u
 		}
 		thumbs = append(thumbs, model.UploadThumbnail{
 			Name:   spec.Name,
-			URL:    urlFor(localDir, outPath, up),
+			URL:    f.localURL(outPath),
 			Path:   outPath,
 			Size:   fileSizeOf(outPath),
 			Width:  dst.Bounds().Dx(),
@@ -75,15 +75,6 @@ func makeThumbnails(srcPath string, specs []config.ThumbSpec, localDir string, u
 }
 
 // urlFor 缩略图访问 URL：cdn.base_url 优先，否则请求相对路径。
-func urlFor(localDir, path string, up *model.Upload) string {
-	rel, err := filepath.Rel(localDir, path)
-	if err != nil {
-		rel = filepath.Base(path)
-	}
-	rel = filepath.ToSlash(rel)
-	return rel
-}
-
 // fileSizeOf 文件字节数（不存在返回 0）。
 func fileSizeOf(path string) int64 {
 	st, err := os.Stat(path)

@@ -37,6 +37,15 @@ type UploadHandler struct {
 func NewUploadHandler(svc *infra.Infra) *UploadHandler { return &UploadHandler{svc: svc} }
 
 // List GET /upload（对齐 findAll：page/limit/sortBy/sortOrder）。
+//
+//	@Summary	上传记录列表
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/upload [get]
 func (h *UploadHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
@@ -60,6 +69,14 @@ func (h *UploadHandler) List(c *gin.Context) {
 }
 
 // Info GET /upload/info/:id（NoAuth；不存在返回 data:null，对齐原实现 findOne 返回 null）。
+//
+//	@Summary	上传记录详情
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "上传记录 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/info/{id} [get]
 func (h *UploadHandler) Info(c *gin.Context) {
 	up, err := h.svc.GetFileInfo(c.Param("id"))
 	if err != nil {
@@ -74,11 +91,27 @@ func (h *UploadHandler) Info(c *gin.Context) {
 }
 
 // Config GET /upload/config（NoAuth）。
+//
+//	@Summary	上传限制配置
+//	@Tags		上传
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/config [get]
 func (h *UploadHandler) Config(c *gin.Context) {
 	response.Success(c, h.svc.GetUploadConfig(c))
 }
 
 // UploadFile POST /upload/file（multipart，任意字段名，scene 默认 image）。
+//
+//	@Summary	上传文件
+//	@Tags		上传
+//	@Accept		multipart/form-data
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		file formData file true "文件本体"
+//	@Param		scene formData string false "场景：article/avatar/comment"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/file [post]
 func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 
 // UploadAvatar POST /upload/avatar（固定 scene=avatar，不加水印）。
@@ -134,6 +167,15 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 }
 
 // Presign POST /upload/presign（S3 直传预签名）。
+//
+//	@Summary	S3 预签名直传
+//	@Tags		上传
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "presignRequest{filename,contentType,size}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/presign [post]
 func (h *UploadHandler) Presign(c *gin.Context) {
 	var req struct {
 		Filename    string `json:"filename" binding:"required"`
@@ -153,6 +195,15 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 }
 
 // Confirm POST /upload/confirm（确认 S3 直传完成并建记录）。
+//
+//	@Summary	确认直传完成入库
+//	@Tags		上传
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "confirmRequest{objectKey,...}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/confirm [post]
 func (h *UploadHandler) Confirm(c *gin.Context) {
 	var req infra.S3Confirm
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -163,7 +214,7 @@ func (h *UploadHandler) Confirm(c *gin.Context) {
 		response.FailWith(c, errcode.ErrBadRequest, "scene 必须是 avatar、image 或 other")
 		return
 	}
-	up, err := h.svc.ConfirmS3Upload(req)
+	up, err := h.svc.ConfirmS3Upload(req, infraCurrentUserID(c))
 	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
@@ -219,6 +270,14 @@ func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 }
 
 // Remove DELETE /upload/:id（引用计数 -1，归零删盘删记录）。
+//
+//	@Summary	删除上传记录
+//	@Tags		上传
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "上传记录 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/upload/{id} [delete]
 func (h *UploadHandler) Remove(c *gin.Context) {
 	if err := h.svc.RemoveUpload(c.Param("id")); err != nil {
 		response.Fail(c, infraErrOrNil(err))
@@ -246,6 +305,8 @@ func infraFormatUpload(up model.Upload) gin.H {
 		"watermarked":            up.Watermarked,
 		"videoCompressionStatus": up.VideoCompressionStatus,
 		"auditStatus":            up.AuditStatus,
+		"scene":                  up.Scene,
+		"userId":                 up.UserID,
 		"createdAt":              up.CreatedAt,
 		"updatedAt":              up.UpdatedAt,
 	}

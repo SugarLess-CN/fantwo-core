@@ -200,8 +200,11 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 	// 5) 存储文件
 	storage := f.cfg.Storage.Driver
 	now := time.Now()
-	rel := fmt.Sprintf("uploads/%s/%s/%s", now.Format("2006/01/02"), ident[:2], ident[2:4])
-	filename := rel + filepath.Ext(fh.Filename)
+	// 相对键：<年>/<月>/<日>/<hash前2>/<hash次2><ext>，与上传场景无关
+	rel := fmt.Sprintf("%s/%s/%s/%s", now.Format("2006/01/02"), ident[:2], ident[2:4], ident)
+	rel += filepath.Ext(fh.Filename)
+	// 本地：直接落在 storage.local_dir 下；S3：对象键加 uploads/ 前缀（桶内目录惯例）
+	filename := rel
 
 	var (
 		storedPath string
@@ -209,7 +212,7 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 	)
 	switch storage {
 	case model.UploadStorageS3:
-		key := filename
+		key := "uploads/" + filename
 		if err := f.putS3(fh, key); err != nil {
 			return nil, err
 		}
@@ -240,6 +243,8 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 		Size:                   fh.Size,
 		MimeType:               filecheck.NormalizeMime(fh.Header.Get("Content-Type")),
 		ReferenceCount:         1,
+		Scene:                  orDefaultStr(scene, SceneImage),
+		UserID:                 nullableID(userID),
 		Processed:              false,
 		Watermarked:            false,
 		AuditStatus:            model.UploadAuditPending,
@@ -339,6 +344,12 @@ func (f *Infra) processImageThumbnails(up *model.Upload) {
 				origURL = f.localURL(backup)
 				origSize = fileSizeOf(backup)
 			}
+			// 水印后主文件尺寸变化：size 同步为处理后实际字节数
+			//（original.size 保留原图大小，两者口径分开，前端按需取）
+			if newSize := fileSizeOf(up.Path); newSize > 0 {
+				updates["size"] = newSize
+				up.Size = newSize
+			}
 		}
 	}
 
@@ -370,9 +381,8 @@ func (f *Infra) ensureThumbnails(up *model.Upload) ([]model.UploadThumbnail, err
 	if len(specs) == 0 {
 		specs = []config.ThumbSpec{{Name: "thumb", Size: 200}}
 	}
-	// 见 image.go：makeThumbnails(up.Path, specs)（imaging 实现）。
-	// 这里仅占位调用约定，具体像素处理在 image.go 中。
-	return makeThumbnails(up.Path, specs, f.cfg.Storage.LocalDir, up)
+	// 像素处理在 image.go 中（imaging 实现，无 libvips 依赖）。
+	return f.makeThumbnails(up.Path, specs)
 }
 
 // ---------- 校验 ----------
@@ -516,7 +526,19 @@ func (f *Infra) localURL(path string) string {
 	if f.cfg.CDN.BaseURL != "" {
 		return strings.TrimRight(f.cfg.CDN.BaseURL, "/") + "/" + rel
 	}
-	return "/" + rel
+	// 无 CDN：走本服务内置静态文件路由（见 router/upload_routes.go 的 /uploads 静态挂载）
+	return "/api/v1/uploads/" + rel
+}
+
+// LocalDir 本地存储根目录（静态文件路由用；非本地驱动返回空串）。
+func (f *Infra) LocalDir() string {
+	if f.cfg.Storage.Driver != model.UploadStorageLocal {
+		return ""
+	}
+	if f.cfg.Storage.LocalDir == "" {
+		return "./uploads"
+	}
+	return f.cfg.Storage.LocalDir
 }
 
 // absolutizeURL 本地相对 URL 补全请求域名（handler 传入 baseURL；CDN/S3 绝对 URL 原样返回）。
@@ -572,7 +594,7 @@ func (f *Infra) GeneratePresign(filename, contentType string, size int64) (*S3Pr
 }
 
 // ConfirmS3Upload S3 直传确认：校验真实类型（Range 下载头部）→ 去重 → 建记录。
-func (f *Infra) ConfirmS3Upload(req S3Confirm) (*model.Upload, error) {
+func (f *Infra) ConfirmS3Upload(req S3Confirm, userID string) (*model.Upload, error) {
 	if f.client == nil {
 		return nil, svcUnavailable("S3 存储未配置")
 	}
@@ -606,6 +628,8 @@ func (f *Infra) ConfirmS3Upload(req S3Confirm) (*model.Upload, error) {
 		Size:                   req.Size,
 		MimeType:               filecheck.NormalizeMime(req.MimeType),
 		ReferenceCount:         1,
+		Scene:                  orDefaultStr(req.Scene, SceneImage),
+		UserID:                 nullableID(userID),
 		AuditStatus:            model.UploadAuditPending,
 		VideoCompressionStatus: model.VideoCompressionPending,
 	}

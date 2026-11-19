@@ -166,6 +166,15 @@ func (h *UserActionHandler) WalletWithdraw(c *gin.Context) {
 }
 
 // CertApply POST /user/certification/apply。
+//
+//	@Summary	提交认证申请
+//	@Tags		用户认证
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "certApplyRequest{type,realName,idCard,attachments}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/certification/apply [post]
 func (h *UserActionHandler) CertApply(c *gin.Context) {
 	var in service.ApplyCertInput
 	if !bindJSON(c, &in) {
@@ -180,6 +189,13 @@ func (h *UserActionHandler) CertApply(c *gin.Context) {
 }
 
 // CertStatus GET /user/certification/status。
+//
+//	@Summary	我的认证状态
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/certification/status [get]
 func (h *UserActionHandler) CertStatus(c *gin.Context) {
 	out, e := h.svc.LatestCertification(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -190,6 +206,13 @@ func (h *UserActionHandler) CertStatus(c *gin.Context) {
 }
 
 // CertIdentity GET /user/certification/identity。
+//
+//	@Summary	我的身份标识
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/certification/identity [get]
 func (h *UserActionHandler) CertIdentity(c *gin.Context) {
 	out, e := h.svc.Identity(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -210,6 +233,16 @@ func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
 }
 
 // CertApplications GET /user/certification/admin/applications。
+//
+//	@Summary	认证申请列表（管理端）
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Param		status query string false "申请状态"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/certification/admin/applications [get]
 func (h *UserActionHandler) CertApplications(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.AdminListCerts(c.Request.Context(), page, limit,
@@ -222,6 +255,16 @@ func (h *UserActionHandler) CertApplications(c *gin.Context) {
 }
 
 // CertAudit PATCH /user/certification/admin/applications/{id}/audit。
+//
+//	@Summary	认证审核
+//	@Tags		用户认证
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "申请 ID"
+//	@Param		body body object true "auditRequest{pass,reason}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/certification/admin/applications/{id}/audit [patch]
 func (h *UserActionHandler) CertAudit(c *gin.Context) {
 	var in service.AuditCertInput
 	if !bindJSON(c, &in) {
@@ -237,6 +280,14 @@ func (h *UserActionHandler) CertAudit(c *gin.Context) {
 }
 
 // CertRevoke POST /user/certification/admin/applications/{id}/revoke。
+//
+//	@Summary	撤销认证
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "申请 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/certification/admin/applications/{id}/revoke [post]
 func (h *UserActionHandler) CertRevoke(c *gin.Context) {
 	var body struct {
 		Reason string `json:"reason"`

@@ -10,6 +10,15 @@ import (
 )
 
 // PointsAdd POST /points/add（管理端：给当前登录用户加积分）。
+//
+//	@Summary	加积分
+//	@Tags		积分
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "addPointsRequest{userId,amount,reason}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/add [post]
 func (h *OpsHandler) PointsAdd(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -29,6 +38,15 @@ func (h *OpsHandler) PointsAdd(c *gin.Context) {
 }
 
 // PointsSpend POST /points/spend。
+//
+//	@Summary	花积分
+//	@Tags		积分
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "spendPointsRequest{amount,reason}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/spend [post]
 func (h *OpsHandler) PointsSpend(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -48,6 +66,13 @@ func (h *OpsHandler) PointsSpend(c *gin.Context) {
 }
 
 // PointsBalance GET /points/balance。
+//
+//	@Summary	我的积分余额
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/balance [get]
 func (h *OpsHandler) PointsBalance(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -62,6 +87,15 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 }
 
 // PointsTransactions GET /points/transactions（我的流水）。
+//
+//	@Summary	我的积分流水
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/points/transactions [get]
 func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -184,6 +218,12 @@ func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 }
 
 // PointsActivityList GET /points/activities（公开）。
+//
+//	@Summary	积分活动列表
+//	@Tags		积分
+//	@Produce	json
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/points/activities [get]
 func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 	list, err := h.Points.Activities(c.Query("type"), c.Query("keyword"))
 	if err != nil {
@@ -194,6 +234,13 @@ func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 }
 
 // PointsActivityGet GET /points/activities/:id（公开）。
+//
+//	@Summary	积分活动详情
+//	@Tags		积分
+//	@Produce	json
+//	@Param		id path string true "活动 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/activities/{id} [get]
 func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 	a, err := h.Points.Activity(c.Param("id"))
 	if err != nil {
@@ -228,6 +275,14 @@ func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 }
 
 // PointsActivityClaim POST /points/activities/:id/claim。
+//
+//	@Summary	领取积分活动奖励
+//	@Tags		积分
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "活动 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/points/activities/{id}/claim [post]
 func (h *OpsHandler) PointsActivityClaim(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {

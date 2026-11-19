@@ -41,6 +41,15 @@ func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
 }
 
 // List GET /config。
+//
+//	@Summary	配置列表（管理端）
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/config [get]
 func (h *ConfigHandler) List(c *gin.Context) {
 	list, err := h.svc.List()
 	if err != nil {
@@ -51,6 +60,15 @@ func (h *ConfigHandler) List(c *gin.Context) {
 }
 
 // Create POST /config。
+//
+//	@Summary	创建配置项
+//	@Tags		系统配置
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "configRequest{key,value,group,remark}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config [post]
 func (h *ConfigHandler) Create(c *gin.Context) {
 	var in infra.ConfigInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -80,6 +98,14 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 }
 
 // ByGroup GET /config/group/:group。
+//
+//	@Summary	按分组读配置
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		group path string true "分组名"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/group/{group} [get]
 func (h *ConfigHandler) ByGroup(c *gin.Context) {
 	list, err := h.svc.ByGroup(c.Param("group"))
 	if err != nil {
@@ -90,6 +116,16 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 }
 
 // UpdateGroup PATCH /config/group/:group。
+//
+//	@Summary	按分组更新配置
+//	@Tags		系统配置
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		group path string true "分组名"
+//	@Param		body body object true "kv 映射"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/group/{group} [patch]
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 	var items []infra.ConfigInput
 	if err := c.ShouldBindJSON(&items); err != nil {
@@ -104,6 +140,12 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 }
 
 // Public GET /config/public（NoAuth）。
+//
+//	@Summary	公开配置
+//	@Tags		系统配置
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/public [get]
 func (h *ConfigHandler) Public(c *gin.Context) {
 	res, err := h.svc.PublicConfigs()
 	if err != nil {
@@ -114,6 +156,12 @@ func (h *ConfigHandler) Public(c *gin.Context) {
 }
 
 // Advertisement GET /config/advertisement（NoAuth）。
+//
+//	@Summary	广告位配置
+//	@Tags		系统配置
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/advertisement [get]
 func (h *ConfigHandler) Advertisement(c *gin.Context) {
 	res, err := h.svc.AdvertisementConfig()
 	if err != nil {
@@ -124,6 +172,14 @@ func (h *ConfigHandler) Advertisement(c *gin.Context) {
 }
 
 // ByKey GET /config/key/:key。
+//
+//	@Summary	按键读配置
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		key path string true "配置键"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/key/{key} [get]
 func (h *ConfigHandler) ByKey(c *gin.Context) {
 	cfg, err := h.svc.ByKey(c.Param("key"))
 	if err != nil {
@@ -134,6 +190,14 @@ func (h *ConfigHandler) ByKey(c *gin.Context) {
 }
 
 // ByID GET /config/:id。
+//
+//	@Summary	配置项详情
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "配置 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/{id} [get]
 func (h *ConfigHandler) ByID(c *gin.Context) {
 	cfg, err := h.svc.ByID(c.Param("id"))
 	if err != nil {
@@ -159,6 +223,14 @@ func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 }
 
 // Remove DELETE /config/:id。
+//
+//	@Summary	删除配置项
+//	@Tags		系统配置
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "配置 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/config/{id} [delete]
 func (h *ConfigHandler) Remove(c *gin.Context) {
 	if err := h.svc.Remove(c.Param("id")); err != nil {
 		response.Fail(c, infraErrOrNil(err))

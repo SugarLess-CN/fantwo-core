@@ -9,6 +9,15 @@ import (
 )
 
 // DecorationCreate POST /decoration（管理端）。
+//
+//	@Summary	创建装饰品
+//	@Tags		装饰品
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "decorationRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration [post]
 func (h *OpsHandler) DecorationCreate(c *gin.Context) {
 	var in model.DecorationInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -24,6 +33,13 @@ func (h *OpsHandler) DecorationCreate(c *gin.Context) {
 }
 
 // DecorationList GET /decoration。
+//
+//	@Summary	装饰品商城列表
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/decoration [get]
 func (h *OpsHandler) DecorationList(c *gin.Context) {
 	q := model.DecorationQuery{
 		Page:      atoiDefault(c.Query("page"), 1),
@@ -43,6 +59,14 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 }
 
 // DecorationGet GET /decoration/:id。
+//
+//	@Summary	装饰品详情
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "装饰品 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/{id} [get]
 func (h *OpsHandler) DecorationGet(c *gin.Context) {
 	d, err := h.Decoration.Get(c.Param("id"))
 	if err != nil {
@@ -68,6 +92,14 @@ func (h *OpsHandler) DecorationUpdate(c *gin.Context) {
 }
 
 // DecorationDelete DELETE /decoration/:id（管理端）。
+//
+//	@Summary	删除装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "装饰品 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/{id} [delete]
 func (h *OpsHandler) DecorationDelete(c *gin.Context) {
 	if err := h.Decoration.Delete(c.Param("id")); err != nil {
 		fail(c, err)
@@ -77,6 +109,13 @@ func (h *OpsHandler) DecorationDelete(c *gin.Context) {
 }
 
 // DecorationMyList GET /decoration/user/my。
+//
+//	@Summary	我的装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/user/my [get]
 func (h *OpsHandler) DecorationMyList(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -132,6 +171,14 @@ func (h *OpsHandler) DecorationMyCurrent(c *gin.Context) {
 }
 
 // DecorationUse POST /decoration/use/:decorationId。
+//
+//	@Summary	佩戴装饰品
+//	@Tags		装饰品
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		decorationId path string true "装饰品 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/use/{decorationId} [post]
 func (h *OpsHandler) DecorationUse(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -160,6 +207,15 @@ func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 }
 
 // DecorationPurchase POST /decoration/purchase。
+//
+//	@Summary	购买装饰品
+//	@Tags		装饰品
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "purchaseRequest{decorationId}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/decoration/purchase [post]
 func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {

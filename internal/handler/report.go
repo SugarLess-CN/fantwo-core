@@ -9,6 +9,15 @@ import (
 )
 
 // ReportCreate POST /report。
+//
+//	@Summary	提交举报
+//	@Tags		举报
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "reportRequest{targetType,targetId,reason}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -28,6 +37,13 @@ func (h *OpsHandler) ReportCreate(c *gin.Context) {
 }
 
 // ReportList GET /report（管理端）。
+//
+//	@Summary	举报列表（管理端）
+//	@Tags		举报
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/report [get]
 func (h *OpsHandler) ReportList(c *gin.Context) {
 	q := model.ReportQuery{
 		Page:       atoiDefault(c.Query("page"), 1),
@@ -49,6 +65,13 @@ func (h *OpsHandler) ReportList(c *gin.Context) {
 }
 
 // ReportStatistics GET /report/statistics（管理端）。
+//
+//	@Summary	举报统计
+//	@Tags		举报
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/report/statistics [get]
 func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 	st, err := h.Report.Statistics()
 	if err != nil {
@@ -59,6 +82,14 @@ func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 }
 
 // ReportGet GET /report/:id（管理端）。
+//
+//	@Summary	举报详情
+//	@Tags		举报
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "举报 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/report/{id} [get]
 func (h *OpsHandler) ReportGet(c *gin.Context) {
 	r, err := h.Report.Get(c.Param("id"))
 	if err != nil {
@@ -69,6 +100,16 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 }
 
 // ReportUpdate PATCH /report/:id（管理端：处理/驳回）。
+//
+//	@Summary	处理举报
+//	@Tags		举报
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "举报 ID"
+//	@Param		body body object true "handleRequest{status,remark}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/report/{id} [patch]
 func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -88,6 +129,14 @@ func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 }
 
 // ReportDelete DELETE /report/:id（管理端）。
+//
+//	@Summary	删除举报
+//	@Tags		举报
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "举报 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/report/{id} [delete]
 func (h *OpsHandler) ReportDelete(c *gin.Context) {
 	if err := h.Report.Delete(c.Param("id")); err != nil {
 		fail(c, err)

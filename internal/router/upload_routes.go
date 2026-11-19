@@ -7,6 +7,8 @@
 package router
 
 import (
+	"os"
+
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
@@ -46,7 +48,16 @@ func infraChain(opt Option, perms ...string) []gin.HandlerFunc {
 
 // RegisterUploadRoutes 注册上传管理路由（挂载在 /api/v1 下）。
 func RegisterUploadRoutes(v1 *gin.RouterGroup, opt Option) {
-	h := handler.NewUploadHandler(infraUploadSvc(opt))
+	svc := infraUploadSvc(opt)
+	h := handler.NewUploadHandler(svc)
+
+	// 本地存储：暴露静态文件路由 /api/v1/uploads/*（CDN 模式由 cdn.base_url 直出，不走这里）
+	if dir := svc.LocalDir(); dir != "" {
+		if err := os.MkdirAll(dir, 0o755); err == nil {
+			v1.Static("/uploads", dir)
+		}
+	}
+
 	g := v1.Group("/upload")
 
 	// 公开端点（对齐原 @NoAuth）

@@ -9,6 +9,15 @@ import (
 )
 
 // BannerCreate POST /banners（管理端）。
+//
+//	@Summary	创建轮播位
+//	@Tags		轮播
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body body object true "bannerRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -24,6 +33,13 @@ func (h *OpsHandler) BannerCreate(c *gin.Context) {
 }
 
 // BannerList GET /banners（管理端列表；非管理员强制只看 active）。
+//
+//	@Summary	轮播位列表（管理端）
+//	@Tags		轮播
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/banners [get]
 func (h *OpsHandler) BannerList(c *gin.Context) {
 	q := model.BannerQuery{
 		Page:      atoiDefault(c.Query("page"), 1),
@@ -45,6 +61,12 @@ func (h *OpsHandler) BannerList(c *gin.Context) {
 }
 
 // BannerActive GET /banners/active（公开）。
+//
+//	@Summary	当前生效轮播
+//	@Tags		轮播
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/banners/active [get]
 func (h *OpsHandler) BannerActive(c *gin.Context) {
 	list, err := h.Banner.Active()
 	if err != nil {
@@ -55,6 +77,13 @@ func (h *OpsHandler) BannerActive(c *gin.Context) {
 }
 
 // BannerGet GET /banners/:id（公开）。
+//
+//	@Summary	轮播位详情
+//	@Tags		轮播
+//	@Produce	json
+//	@Param		id path string true "轮播 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/banners/{id} [get]
 func (h *OpsHandler) BannerGet(c *gin.Context) {
 	b, err := h.Banner.Get(c.Param("id"))
 	if err != nil {
@@ -65,6 +94,16 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 }
 
 // BannerUpdate PATCH /banners/:id（管理端）。
+//
+//	@Summary	更新轮播位
+//	@Tags		轮播
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "轮播 ID"
+//	@Param		body body object true "bannerRequest"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/banners/{id} [patch]
 func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 	var in model.BannerInput
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -80,6 +119,14 @@ func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 }
 
 // BannerDelete DELETE /banners/:id（管理端）。
+//
+//	@Summary	删除轮播位
+//	@Tags		轮播
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id path string true "轮播 ID"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/banners/{id} [delete]
 func (h *OpsHandler) BannerDelete(c *gin.Context) {
 	if err := h.Banner.Delete(c.Param("id")); err != nil {
 		fail(c, err)

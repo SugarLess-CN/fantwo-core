@@ -45,6 +45,13 @@ func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogSer
 // SyncArticles POST /search/sync/articles（对齐 syncArticles）。
 //
 // body 可选：{"batchSize":100,"status":"PUBLISHED"}；ES 未启用返回 5030。
+//
+//	@Summary	全量同步文章到 ES
+//	@Tags		搜索
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/search/sync/articles [post]
 func (h *SearchHandler) SyncArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
 		response.Fail(c, ErrServiceNotConfigured)
@@ -71,12 +78,26 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 }
 
 // Status GET /search/status（对齐 getStatus：未启用时 success=true 且 enabled=false）。
+//
+//	@Summary	搜索索引状态
+//	@Tags		搜索
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/search/status [get]
 func (h *SearchHandler) Status(c *gin.Context) {
 	res := h.svc.Status(c.Request.Context())
 	response.Success(c, res)
 }
 
 // ClearArticles POST /search/clear/articles（对齐 clearArticles）。
+//
+//	@Summary	清空文章索引
+//	@Tags		搜索
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/search/clear/articles [post]
 func (h *SearchHandler) ClearArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
 		response.Fail(c, ErrServiceNotConfigured)
@@ -92,6 +113,15 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 // SearchArticles GET /search（文章检索：keyword / categoryId / sortBy / page / limit）。
 //
 // ES 未配置时按任务书要求返回 5030（区别于管理端 status 的宽容语义）。
+//
+//	@Summary	搜索文章
+//	@Tags		搜索
+//	@Produce	json
+//	@Param		keyword query string false "关键字"
+//	@Param		page query int false "页码"
+//	@Param		limit query int false "每页条数"
+//	@Success	200	{object}	ResponsePageBody
+//	@Router		/search [get]
 func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
 		response.Fail(c, ErrServiceNotConfigured)
@@ -176,6 +206,12 @@ func infraAtoi(s string, def int) int {
 //
 // 热门搜索词聚合（近 N 天 top N），公开端点：前端热搜展示与 content 域
 // /article/hot-search 均可直接使用（原实现为热门标签+分类合成，此处为真实检索数据）。
+//
+//	@Summary	热搜词
+//	@Tags		搜索
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/search/hot [get]
 func (h *SearchHandler) HotKeywords(c *gin.Context) {
 	days := infraAtoi(c.Query("days"), 7)
 	limit := infraAtoi(c.Query("limit"), 10)

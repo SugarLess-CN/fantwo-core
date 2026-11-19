@@ -25,3 +25,6 @@ bin/
 # 治理文档不入仓库（本地维护）
 AGENTS.md
 todo.md
+
+# 运行时上传产物（本地存储模式）
+uploads/
