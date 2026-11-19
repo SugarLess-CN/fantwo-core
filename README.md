@@ -22,6 +22,41 @@ curl http://127.0.0.1:3000/ping
 
 端口默认 3000；环境变量覆盖规则：层级键点号转下划线（`postgres.host` → `POSTGRES_HOST`）。
 
+## 一键起栈（Docker）
+
+```bash
+cp .env.example .env          # 必须设置 JWT_SECRET（compose 会强制校验）
+docker compose up -d --build  # PostgreSQL + Redis + ES + app
+curl http://localhost:3000/health
+```
+
+- **只用应用镜像**：`docker build -t fantwo-core . && docker run --env-file .env -p 3000:3000 fantwo-core`
+- 镜像基于 `debian:bookworm-slim`（含 ffmpeg 供视频压缩队列）+ 纯静态二进制，非 root 运行
+- 健康检查走 `curl /health`；容器内 `docker ps` 可见 `(healthy)`
+- 依赖连接用环境变量覆盖，例：`-e POSTGRES_HOST=host.docker.internal -e REDIS_ADDR=host.docker.internal:6379`
+- Elasticsearch 默认不启用（`SEARCH_ENABLED=false`，`/search` 返回 5030 安全降级）；启用后走真实索引
+
+## 常用命令（Makefile）
+
+```bash
+make help          # 列出全部命令
+make build         # 静态编译到 bin/fantwo-core
+make test vet fmt  # 单测 / 静态检查 / 格式化
+make swag          # 重新生成 Swagger 文档
+make docker-up     # 起本地全栈
+```
+
+## 运行所需配置
+
+全部配置可走环境变量（模板见 `.env.example`）。生产必须设置的只有一项：
+
+| 变量 | 说明 |
+|---|---|
+| `JWT_SECRET` | 令牌签名密钥，留空则无法签发令牌 |
+
+其余均有默认值；支付/审核/OAuth/SMTP/短信等**凭据存数据库 `config` 表**（不是环境变量），
+key 清单见 `docs/05-配置项清单.md`，管理端 `/api/v1/config` 写入后即时生效。
+
 ## API 文档（Swagger）
 
 Swagger UI 由 swaggo 生成，**默认关闭**；开发环境显式开启后再访问：
