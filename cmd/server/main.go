@@ -62,7 +62,13 @@ func main() {
 	go hub.Run()
 
 	// 7. 路由
-	engine := router.New(router.Option{Signer: signer, Logger: logger})
+	engine := router.New(router.Option{
+		Signer: signer,
+		Logger: logger,
+		DB:     db,
+		Cfg:    cfg,
+		Redis:  rdb,
+	})
 	engine.GET("/api/v1/ws-message", hub.Handler)
 
 	srv := &http.Server{

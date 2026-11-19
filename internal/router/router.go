@@ -8,19 +8,26 @@ package router
 import (
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 )
 
 // Option 路由依赖注入。
+// DB 可为 nil（无数据库降级启动），各域路由需自行判空。
 type Option struct {
 	Signer *jwtx.Signer
 	Logger *zap.Logger
+	DB     *gorm.DB
+	Cfg    *config.Config
+	Redis  *redis.Client
 }
 
 // New 构建 gin 引擎并注册全部路由。
@@ -41,10 +48,8 @@ func New(opt Option) *gin.Engine {
 	// 业务 API：/api/v1
 	v1 := r.Group("/api/v1")
 	{
-		// 示例：受保护端点写法（业务批次落地后按此扩展）
-		// auth := v1.Group("", middleware.JWTAuth(opt.Signer))
-		// auth.GET("/user/profile", userHandler.Profile)
-		_ = v1
+		// 各业务域在此统一注册（见 registry.go；每域一行，勿交叉改动）
+		RegisterAll(v1, opt)
 	}
 
 	return r
