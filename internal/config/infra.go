@@ -25,6 +25,8 @@
 package config
 
 import (
+	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -132,6 +134,16 @@ func LoadInfra() *InfraConfig {
 	cfg := &InfraConfig{}
 	_ = v.Unmarshal(cfg)
 
+	// 切片类配置的显式 env 覆盖：viper 的 AutomaticEnv 只对「读取单键」生效，
+	// Unmarshal 到 []string 时不会解析环境变量（已知限制）。这里手工兜一层，
+	// 支持 SEARCH_ADDRESSES 的两种写法：JSON 数组或逗号分隔。
+	if raw := strings.TrimSpace(os.Getenv("SEARCH_ADDRESSES")); raw != "" {
+		cfg.Search.Addresses = parseListEnv(raw)
+	}
+	if v := strings.TrimSpace(os.Getenv("SEARCH_ENABLED")); v != "" {
+		cfg.Search.Enabled = v == "1" || strings.EqualFold(v, "true")
+	}
+
 	// 存储驱动归一化：空值/未知值回退 local，避免拼写错误导致上传静默失败。
 	cfg.Storage.Driver = strings.ToLower(strings.TrimSpace(cfg.Storage.Driver))
 	if cfg.Storage.Driver != "s3" {
@@ -150,4 +162,23 @@ func LoadInfra() *InfraConfig {
 		}
 	}
 	return cfg
+}
+
+// parseListEnv 解析列表型环境变量：优先按 JSON 数组，失败则按逗号分隔。
+func parseListEnv(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if strings.HasPrefix(raw, "[") {
+		var list []string
+		if err := json.Unmarshal([]byte(raw), &list); err == nil {
+			return list
+		}
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if item := strings.TrimSpace(p); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }

@@ -15,6 +15,18 @@ type ArticleHandler struct {
 }
 
 // Create 创建文章 POST /article（权限 article:create）。
+//
+//	@Summary		创建文章
+//	@Description	提交文章（图片/混合/视频），入内容审核流程
+//	@Tags			文章
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"CreateArticleRequest"
+//	@Success		200		{object}	response.Body
+//	@Failure		400		{object}	response.Body
+//	@Failure		403		{object}	response.Body
+//	@Router			/article [post]
 func (h *ArticleHandler) Create(c *gin.Context) {
 	var req service.CreateArticleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -30,6 +42,20 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 }
 
 // List 文章列表 GET /article（可选登录）。
+//
+//	@Summary		文章列表
+//	@Description	分页浏览文章，支持标题/分类/标签/类型/状态筛选；携带 token 时返回当前用户互动状态
+//	@Tags			文章
+//	@Produce		json
+//	@Param			page		query		int		false	"页码，默认 1"
+//	@Param			limit		query		int		false	"每页条数，默认 10"
+//	@Param			title		query		string	false	"标题关键字"
+//	@Param			categoryId	query		string	false	"分类 ID"
+//	@Param			tagId		query		string	false	"标签 ID"
+//	@Param			type		query		string	false	"image/mixed/video，默认 all"
+//	@Param			status		query		string	false	"状态筛选，逗号分隔"
+//	@Success		200			{object}	response.Body
+//	@Router			/article [get]
 func (h *ArticleHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
@@ -128,6 +154,14 @@ func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 }
 
 // FindOne 文章详情 GET /article/:id（可选登录）。
+//
+//	@Summary		文章详情
+//	@Tags			文章
+//	@Produce		json
+//	@Param			id	path		string	true	"文章 ID"
+//	@Success		200	{object}	response.Body
+//	@Failure		404	{object}	response.Body
+//	@Router			/article/{id} [get]
 func (h *ArticleHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -138,6 +172,17 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 }
 
 // Update 更新文章 PATCH /article/:id（权限 article:update）。
+//
+//	@Summary	更新文章
+//	@Tags		文章
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id		path		string	true	"文章 ID"
+//	@Param		body	body		object	true	"UpdateArticleRequest"
+//	@Success	200		{object}	response.Body
+//	@Failure	403		{object}	response.Body
+//	@Router		/article/{id} [patch]
 func (h *ArticleHandler) Update(c *gin.Context) {
 	var req service.UpdateArticleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -153,6 +198,15 @@ func (h *ArticleHandler) Update(c *gin.Context) {
 }
 
 // Remove 删除文章 DELETE /article/:id（权限 article:delete）。
+//
+//	@Summary	删除文章
+//	@Tags		文章
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id	path		string	true	"文章 ID"
+//	@Success	200	{object}	response.Body
+//	@Failure	403	{object}	response.Body
+//	@Router		/article/{id} [delete]
 func (h *ArticleHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {

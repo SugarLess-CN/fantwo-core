@@ -36,24 +36,27 @@ type VerifyCodeStore struct {
 // NewVerifyCodeStore 构造（rdb 为 nil 时降级：发送/校验直接失败返回错误）。
 func NewVerifyCodeStore(rdb *redis.Client) *VerifyCodeStore { return &VerifyCodeStore{rdb: rdb} }
 
-// Send 生成并存 6 位验证码；1 分钟内重复发送返回 errTooFrequent。
-// 发送动作由调用方 mailer/sms provider 完成（本方法只负责存取）。
-func (s *VerifyCodeStore) Send(ctx context.Context, target, scene string) error {
+// Send 生成并存 6 位验证码，返回该验证码；1 分钟内重复发送返回 errTooFrequent。
+// 实际投递（邮件/短信）由调用方经 provider 完成（本方法只负责存取）。
+func (s *VerifyCodeStore) Send(ctx context.Context, target, scene string) (string, error) {
 	if s.rdb == nil {
-		return fmt.Errorf("redis unavailable")
+		return "", fmt.Errorf("redis unavailable")
 	}
 	exists, err := s.rdb.Exists(ctx, sentKey(scene, target)).Result()
 	if err != nil {
-		return err
+		return "", err
 	}
 	if exists > 0 {
-		return errTooFrequent
+		return "", errTooFrequent
 	}
 	code := genCode()
 	if err := s.rdb.Set(ctx, codeKey(scene, target), code, codeTTL).Err(); err != nil {
-		return err
+		return "", err
 	}
-	return s.rdb.Set(ctx, sentKey(scene, target), 1, codeSendGap).Err()
+	if err := s.rdb.Set(ctx, sentKey(scene, target), 1, codeSendGap).Err(); err != nil {
+		return "", err
+	}
+	return code, nil
 }
 
 // Verify 校验验证码；成功即焚。code 为空或不存在返回 false。

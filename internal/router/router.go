@@ -6,8 +6,6 @@
 package router
 
 import (
-	"time"
-
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -63,15 +61,4 @@ func appHello(c *gin.Context) {
 	response.Success(c, gin.H{"hello": "PicArt API"})
 }
 
-// health 存活探针：{code:0, message:"ok", data:{...}}。
-func health(c *gin.Context) {
-	response.Health(c, gin.H{
-		"status":    "up",
-		"timestamp": time.Now().UnixMilli(),
-	})
-}
-
-// ping 同 health，供简单探活。
-func ping(c *gin.Context) {
-	response.Health(c, gin.H{"pong": time.Now().UnixMilli()})
-}
+// health / ping 的定义见 health.go（含依赖摘要、WS 连接数、队列统计）。

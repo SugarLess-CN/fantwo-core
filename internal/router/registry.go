@@ -40,4 +40,7 @@ func RegisterAll(v1 *gin.RouterGroup, opt Option) {
 	RegisterOrderRoutes(v1, opt)
 	RegisterPaymentRoutes(v1, opt)
 	RegisterAuditRoutes(v1, opt)
+
+	// API 文档（骨架层；swagger.enabled=true 才注册，见 swagger_routes.go）
+	RegisterSwaggerRoutes(v1, opt.Cfg)
 }

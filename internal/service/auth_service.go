@@ -11,13 +11,14 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
-	"crypto/rand"
 	"fmt"
 	"go.uber.org/zap"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
@@ -248,6 +249,10 @@ type SendCodeInput struct {
 }
 
 // SendCode 发送验证码（1 分钟防重发，10 分钟有效）。
+//
+// 投递策略（T-15：可配置即生效、未配置即降级）：
+//   - target 含 @ → 邮件（SMTP 未配置则只写 Redis + 打 log）；
+//   - 否则视为手机号 → 短信（无启用渠道则只写 Redis + 打 log，即开发模式）。
 func (s *AuthService) SendCode(ctx context.Context, in SendCodeInput) *errcode.Err {
 	if e := s.d.ready(); e != nil {
 		return e
@@ -255,7 +260,8 @@ func (s *AuthService) SendCode(ctx context.Context, in SendCodeInput) *errcode.E
 	if in.Target == "" || in.Scene == "" {
 		return errcode.ErrInvalidParam
 	}
-	if err := s.Codes.Send(ctx, in.Target, in.Scene); err != nil {
+	code, err := s.Codes.Send(ctx, in.Target, in.Scene)
+	if err != nil {
 		switch err {
 		case errTooFrequent:
 			return errcode.ErrVerifyCodeTooOften
@@ -264,7 +270,54 @@ func (s *AuthService) SendCode(ctx context.Context, in SendCodeInput) *errcode.E
 			return errcode.ErrInternal
 		}
 	}
+
+	if isEmailTarget(in.Target) {
+		mailer := NewMailer(s.d)
+		if !mailer.Configured() {
+			s.d.Logger.Warn(fmt.Sprintf("[开发模式] 邮件未配置，验证码 target=%s scene=%s code=%s", in.Target, in.Scene, code))
+			return nil
+		}
+		subject, body := verifyCodeMail(in.Scene, code)
+		if err := mailer.Send(in.Target, subject, body); err != nil {
+			s.d.Logger.Error("邮件发送失败 target=" + in.Target + " err=" + err.Error())
+			return errcode.ErrInternal.With("验证码发送失败，请稍后重试")
+		}
+		return nil
+	}
+
+	sms := NewSMSSender(s.d)
+	if !sms.Configured() {
+		s.d.Logger.Warn(fmt.Sprintf("[开发模式] 短信渠道未配置，验证码 phone=%s scene=%s code=%s", maskPhone(in.Target), in.Scene, code))
+		return nil
+	}
+	if err := sms.Send(ctx, in.Target, code, in.Scene); err != nil {
+		s.d.Logger.Error("短信发送失败 phone=" + maskPhone(in.Target) + " err=" + err.Error())
+		return errcode.ErrInternal.With("验证码发送失败，请稍后重试")
+	}
 	return nil
+}
+
+// isEmailTarget 目标是否邮箱（含 @）。
+func isEmailTarget(target string) bool { return strings.Contains(target, "@") }
+
+// verifyCodeMail 验证码邮件标题与正文。
+func verifyCodeMail(scene, code string) (string, string) {
+	title := "验证码"
+	switch scene {
+	case "reset_password":
+		title = "重置密码验证码"
+	case "bind_phone":
+		title = "绑定手机验证码"
+	case "login":
+		title = "登录验证码"
+	}
+	body := fmt.Sprintf(`<div style="font-family:sans-serif;padding:24px">
+<h2>%s</h2>
+<p>您的验证码是：</p>
+<p style="font-size:28px;font-weight:bold;letter-spacing:6px">%s</p>
+<p>验证码 10 分钟内有效，请勿泄露给他人。</p>
+</div>`, title, code)
+	return "[PicArt] " + title, body
 }
 
 // VerifyCode 校验验证码（一次性，验后即焚）。

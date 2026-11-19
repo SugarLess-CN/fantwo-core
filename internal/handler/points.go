@@ -58,7 +58,7 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"user_id": uid, "points": balance})
+	ok(c, gin.H{"userId": uid, "points": balance})
 }
 
 // PointsTransactions GET /points/transactions（我的流水）。
@@ -127,7 +127,7 @@ func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"user_id": uid, "points": balance})
+	ok(c, gin.H{"userId": uid, "points": balance})
 }
 
 // PointsStatistics GET /points/statistics（管理端）。

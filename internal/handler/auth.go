@@ -28,6 +28,17 @@ type loginRequest struct {
 
 // Login POST /user/login（另挂 POST /auth/login 别名）。
 // device-id 头必填（原 refreshToken/logout 语义依赖；缺省时用 "default" 兼容脚本）。
+//
+//	@Summary		用户登录
+//	@Description	账号（用户名或邮箱）+ 密码登录；Device-Id 头用于多端会话管理
+//	@Tags			用户认证
+//	@Accept			json
+//	@Produce		json
+//	@Param			Device-Id	header		string			false	"设备标识，缺省 default"
+//	@Param			body		body		loginRequest	true	"登录参数"
+//	@Success		200			{object}	response.Body
+//	@Failure		401			{object}	response.Body
+//	@Router			/user/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if !bindJSON(c, &req) {
@@ -47,6 +58,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // Register POST /user/register（另挂 POST /auth/register）。
+//
+//	@Summary		用户注册
+//	@Description	用户名 + 密码注册，可选昵称/邮箱/手机号；返回用户信息
+//	@Tags			用户认证
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		object	true	"registerRequest{username,nickname,password,email,phone}"
+//	@Success		200		{object}	response.Body
+//	@Failure		409		{object}	response.Body
+//	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req struct {
 		Username string `json:"username"`
@@ -70,6 +91,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 // RefreshToken POST /user/refresh-token（另挂 POST /auth/refresh）。滑动过期：access 重签。
+//
+//	@Summary		刷新 access token
+//	@Description	用 refreshToken 换取新的 access token；需 Device-Id 头（服务端据此校验设备会话）
+//	@Tags			用户认证
+//	@Accept			json
+//	@Produce		json
+//	@Param			Device-Id	header		string	true	"设备标识"
+//	@Param			body		body		object	true	"refreshRequest{refreshToken}"
+//	@Success		200			{object}	response.Body
+//	@Failure		401			{object}	response.Body
+//	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
 		RefreshToken string `json:"refreshToken"`
@@ -93,6 +125,15 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 }
 
 // Logout POST /user/logout（单设备）：设备删除 + token 进黑名单。
+//
+//	@Summary		退出登录
+//	@Description	删除当前设备会话并把当前 token 加入黑名单
+//	@Tags			用户认证
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{object}	response.Body
+//	@Failure		401	{object}	response.Body
+//	@Router			/user/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
 	token := middleware.CurrentToken(c)

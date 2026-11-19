@@ -25,17 +25,17 @@ const (
 // Order 订单。
 type Order struct {
 	BaseModel
-	UserID         string                 `gorm:"type:char(36);index;comment:用户ID（买家）" json:"user_id"`
-	AuthorID       string                 `gorm:"type:char(36);comment:作者ID（卖家）" json:"author_id"`
-	ArticleID      string                 `gorm:"type:char(36);comment:文章ID（ARTICLE 类型订单）" json:"article_id"`
-	OrderNo        string                 `gorm:"type:varchar(64);uniqueIndex;comment:订单号" json:"order_no"`
+	UserID         string                 `gorm:"type:char(36);index;comment:用户ID（买家）" json:"userId"`
+	AuthorID       string                 `gorm:"type:char(36);comment:作者ID（卖家）" json:"authorId"`
+	ArticleID      string                 `gorm:"type:char(36);comment:文章ID（ARTICLE 类型订单）" json:"articleId"`
+	OrderNo        string                 `gorm:"type:varchar(64);uniqueIndex;comment:订单号" json:"orderNo"`
 	Type           string                 `gorm:"type:varchar(20);comment:订单类型" json:"type"`
 	Title          string                 `gorm:"type:varchar(255);comment:订单标题" json:"title"`
 	Amount         float64                `gorm:"type:decimal(10,2);comment:订单金额（元）" json:"amount"`
-	PaymentMethod  string                 `gorm:"type:varchar(20);comment:支付方式" json:"payment_method"`
-	PaymentOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"payment_order_no"`
+	PaymentMethod  string                 `gorm:"type:varchar(20);comment:支付方式" json:"paymentMethod"`
+	PaymentOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"paymentOrderNo"`
 	Status         string                 `gorm:"type:varchar(20);index;default:PENDING;comment:订单状态" json:"status"`
-	PaidAt         *time.Time             `gorm:"comment:支付时间" json:"paid_at"`
+	PaidAt         *time.Time             `gorm:"comment:支付时间" json:"paidAt"`
 	Details        map[string]interface{} `gorm:"type:jsonb;serializer:json;comment:订单详情" json:"details"`
 	Remark         string                 `gorm:"type:text;comment:备注" json:"remark"`
 }
@@ -47,10 +47,10 @@ func (Order) TableName() string { return "orders" }
 // 权威 article 模型归 content 域，本结构不参与 AutoMigrate）。
 type ArticleOrderView struct {
 	ID             string  `gorm:"type:char(36);primaryKey;column:id" json:"id"`
-	AuthorID       string  `gorm:"type:char(36);column:author_id" json:"author_id"`
+	AuthorID       string  `gorm:"type:char(36);column:author_id" json:"authorId"`
 	Title          string  `gorm:"type:varchar(255);column:title" json:"title"`
-	RequirePayment bool    `gorm:"column:require_payment" json:"require_payment"`
-	ViewPrice      float64 `gorm:"type:decimal(10,2);column:view_price" json:"view_price"`
+	RequirePayment bool    `gorm:"column:require_payment" json:"requirePayment"`
+	ViewPrice      float64 `gorm:"type:decimal(10,2);column:view_price" json:"viewPrice"`
 }
 
 // TableName 表名。

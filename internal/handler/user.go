@@ -21,6 +21,14 @@ type UserHandler struct {
 func NewUserHandler(svc *service.UserService) *UserHandler { return &UserHandler{svc: svc} }
 
 // Profile GET /user/profile（另挂 GET /api/v1/profile）。
+//
+//	@Summary	当前用户资料
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	response.Body
+//	@Failure	401	{object}	response.Body
+//	@Router		/user/profile [get]
 func (h *UserHandler) Profile(c *gin.Context) {
 	out, e := h.svc.Profile(c.Request.Context(), middleware.CurrentUserID(c))
 	if e != nil {
@@ -31,6 +39,17 @@ func (h *UserHandler) Profile(c *gin.Context) {
 }
 
 // UpdateProfile PATCH /user/profile（另挂 PATCH /profile）。
+//
+//	@Summary		更新当前用户资料
+//	@Description	昵称/头像/背景/简介等字段，请求体见 service.UpdateProfileInput
+//	@Tags			用户管理
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			body	body		object	true	"待更新字段（部分更新）"
+//	@Success		200		{object}	response.Body
+//	@Failure		400		{object}	response.Body
+//	@Router			/user/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var in service.UpdateProfileInput
 	if !bindJSON(c, &in) {
@@ -141,6 +160,17 @@ func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 }
 
 // FindAll GET /user：用户列表。
+//
+//	@Summary		用户列表
+//	@Description	分页查询用户，支持 keyword（或 username）模糊搜索
+//	@Tags			用户管理
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			page	query		int		false	"页码，默认 1"
+//	@Param			limit	query		int		false	"每页条数，默认 10"
+//	@Param			keyword	query		string	false	"用户名关键字"
+//	@Success		200		{object}	response.Body
+//	@Router			/user [get]
 func (h *UserHandler) FindAll(c *gin.Context) {
 	page, limit := queryPage(c)
 	keyword := c.Query("keyword")
@@ -158,6 +188,16 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 }
 
 // Create POST /user：管理员创建用户。
+//
+//	@Summary	管理员创建用户
+//	@Tags		用户管理
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		body	body		object	true	"CreateUserInput"
+//	@Success	200		{object}	response.Body
+//	@Failure	403		{object}	response.Body
+//	@Router		/user [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var in service.CreateUserInput
 	if !bindJSON(c, &in) {
@@ -172,6 +212,15 @@ func (h *UserHandler) Create(c *gin.Context) {
 }
 
 // FindOne GET /user/{id}：用户详情。
+//
+//	@Summary	用户详情
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id	path		string	true	"用户 ID"
+//	@Success	200	{object}	response.Body
+//	@Failure	404	{object}	response.Body
+//	@Router		/user/{id} [get]
 func (h *UserHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"))
 	if e != nil {
@@ -196,6 +245,15 @@ func (h *UserHandler) Update(c *gin.Context) {
 }
 
 // Remove DELETE /user/{id}：删除用户。
+//
+//	@Summary	删除用户
+//	@Tags		用户管理
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		id	path		string	true	"用户 ID"
+//	@Success	200	{object}	response.Body
+//	@Failure	403	{object}	response.Body
+//	@Router		/user/{id} [delete]
 func (h *UserHandler) Remove(c *gin.Context) {
 	if e := h.svc.RemoveUser(c.Request.Context(), c.Param("id")); e != nil {
 		response.Fail(c, e)

@@ -2,6 +2,26 @@
 //
 // 启动流程：加载配置 → 初始化 zap → 懒连接 PostgreSQL/Redis（缺失只 warning）
 // → AutoMigrate（DB 可用时）→ 注册路由 → HTTP 服务 → 优雅退出。
+
+// Swagger 全局元信息。swag init 以 -g cmd/server/main.go 指向本文件；
+// 注解口径对齐原仓库 swagger.json 的 info.title / info.description 与全局前缀 api/v1。
+//
+//	@title			PicArt API
+//	@version		1.0
+//	@description	PicArt 图片社区 API 文档（Go + Gin 重构版，与原 NestJS swagger.json 语义对齐）
+//	@termsOfService	https://github.com/SugarLess-CN/fantwo-core
+//
+//	@contact.name	fantwo-core
+//	@contact.url	https://github.com/SugarLess-CN/fantwo-core
+//
+//	@host		localhost:3000
+//	@BasePath	/api/v1
+//	@schemes	http https
+//
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				先调 POST /user/login 取 token，再填 "Bearer {token}"
 package main
 
 import (
@@ -81,6 +101,9 @@ func main() {
 	// 7. 路由
 	// 注意：WebSocket 端点 /api/v1/ws-message 由消息域（message_routes.go）注册，
 	// 此处不得重复注册，否则 gin 启动即 panic（handlers are already registered）。
+	// /health 的依赖摘要（PG/Redis 状态、队列统计）需先注入。
+	router.SetHealthDeps(db, rdb)
+
 	engine := router.New(router.Option{
 		Signer: signer,
 		Logger: logger,

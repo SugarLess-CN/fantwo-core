@@ -29,3 +29,8 @@ jwt:
 log:
   level: info            # debug / info / warn / error
   format: console        # console / json
+
+swagger:
+  # Swagger UI 开关，默认关闭（生产勿开）；
+  # 开发置 true 后访问 http://127.0.0.1:3000/api/v1/swagger/index.html
+  enabled: false

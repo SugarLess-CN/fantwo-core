@@ -18,6 +18,16 @@ type Config struct {
 	Redis    RedisConfig    `mapstructure:"redis"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
+	Swagger  SwaggerConfig  `mapstructure:"swagger"`
+}
+
+// SwaggerConfig Swagger UI 暴露配置。
+//
+// 默认关闭（Enabled=false）：生产环境不应默认对外暴露 API 文档。
+// 开发环境把 swagger.enabled 设 true（或 SWAGGER_ENABLED=true）后
+// UI 挂在 /api/v1/swagger/index.html（见 internal/router/swagger_routes.go）。
+type SwaggerConfig struct {
+	Enabled bool `mapstructure:"enabled"`
 }
 
 // ServerConfig HTTP 服务配置。
@@ -90,6 +100,7 @@ func Load() (*Config, error) {
 	v.SetDefault("jwt.issuer", "fantwo-core")
 	v.SetDefault("log.level", "info")
 	v.SetDefault("log.format", "console")
+	v.SetDefault("swagger.enabled", false)
 
 	// config.yaml（可缺失；config.example.yaml 为入库模板）
 	v.SetConfigName("config")

@@ -8,11 +8,28 @@ package ws
 
 import (
 	"net/http"
+	"sync/atomic"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
+
+// 进程级连接/房间计数（供 /health 可观测读取，无锁）。
+//
+// 为什么用包级原子量而不是 Hub 字段查询：clients/rooms 两个 map 只能在 Run 循环内
+// 安全访问（外部读会与 register/unregister 竞争），而 health 端点属于旁路，
+// 不能因为抢锁拖慢主循环。原子计数在 Run 循环内维护，读侧永远无锁。
+var (
+	activeConnections atomic.Int64
+	activeRooms       atomic.Int64
+)
+
+// ActiveConnections 当前进程内活跃 WS 连接总数。
+func ActiveConnections() int64 { return activeConnections.Load() }
+
+// ActiveRooms 当前进程内活跃房间总数。
+func ActiveRooms() int64 { return activeRooms.Load() }
 
 // EventName 事件名占位（对齐 message.gateway.ts 的事件面；payload 待业务批次定稿）。
 const (
@@ -106,9 +123,11 @@ func (h *Hub) Run() {
 		select {
 		case c := <-h.register:
 			h.clients[c] = struct{}{}
+			activeConnections.Add(1)
 		case c := <-h.unregister:
 			if _, ok := h.clients[c]; ok {
 				delete(h.clients, c)
+				activeConnections.Add(-1)
 				for name := range c.Rooms {
 					h.leaveRoom(c, name)
 				}
@@ -151,6 +170,7 @@ func (h *Hub) JoinRoom(c *Client, name string) {
 	if !ok {
 		room = &Room{Name: name, Clients: make(map[*Client]struct{})}
 		h.rooms[name] = room
+		activeRooms.Add(1)
 	}
 	room.Clients[c] = struct{}{}
 	c.Rooms[name] = struct{}{}
@@ -162,6 +182,7 @@ func (h *Hub) leaveRoom(c *Client, name string) {
 		delete(room.Clients, c)
 		if len(room.Clients) == 0 {
 			delete(h.rooms, name)
+			activeRooms.Add(-1)
 		}
 	}
 	delete(c.Rooms, name)

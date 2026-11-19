@@ -218,9 +218,9 @@ func (s *PaymentService) getCommissionConfig() CommissionConfig {
 
 // CreatePaymentInput POST /payment/create 入参。
 type CreatePaymentInput struct {
-	OrderID       string `json:"order_id" binding:"required"`
-	PaymentMethod string `json:"payment_method" binding:"required,oneof=ALIPAY WECHAT EPAY BALANCE"`
-	ReturnURL     string `json:"return_url"`
+	OrderID       string `json:"orderId" binding:"required"`
+	PaymentMethod string `json:"paymentMethod" binding:"required,oneof=ALIPAY WECHAT EPAY BALANCE"`
+	ReturnURL     string `json:"returnUrl"`
 	Type          string `json:"type"` // epay 子类型：alipay/wxpay/usdt
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
+	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -28,6 +29,9 @@ type Deps struct {
 	Users  *repository.UserRepo
 	Roles  *repository.RoleRepo
 	Perms  *repository.PermissionRepo
+	// Cfg 系统配置读取（复用基础设施域 ConfigService：进程内缓存 → Redis → DB）。
+	// DB/Redis 为 nil 时 GetString 返回默认值，正好构成「未配置即降级」语义。
+	Cfg *infra.ConfigService
 	// DBUnavailable 降级提示：DB 为 nil 时业务端点返回 503。
 }
 
@@ -45,6 +49,7 @@ func NewDeps(db *gorm.DB, rdb *redis.Client, signer *jwtx.Signer, queue *asynq.C
 		Users:  repository.NewUserRepo(),
 		Roles:  repository.NewRoleRepo(),
 		Perms:  repository.NewPermissionRepo(),
+		Cfg:    infra.NewConfigService(db, rdb),
 	}
 }
 

@@ -1,0 +1,21 @@
+basePath: /api/v1
+host: localhost:3000
+info:
+  contact:
+    name: fantwo-core
+    url: https://github.com/SugarLess-CN/fantwo-core
+  description: PicArt 图片社区 API 文档（Go + Gin 重构版，与原 NestJS swagger.json 语义对齐）
+  termsOfService: https://github.com/SugarLess-CN/fantwo-core
+  title: PicArt API
+  version: "1.0"
+paths: {}
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 先调 POST /user/login 取 token，再填 "Bearer {token}"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -46,7 +46,7 @@ func (Achievement) TableName() string { return "achievements" }
 // 原仓库只约定 {type, target}，额外键保留在 Extra 中以实现前向兼容。
 type AchievementCondition struct {
 	Type   string                 `json:"type"`
-	Target int                    `json:"target,omitempty"`
+	Target int                    `json:"target"`
 	Extra  map[string]interface{} `json:"extra,omitempty"`
 }
 

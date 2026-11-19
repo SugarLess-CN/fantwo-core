@@ -1,0 +1,28 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "PicArt 图片社区 API 文档（Go + Gin 重构版，与原 NestJS swagger.json 语义对齐）",
+        "title": "PicArt API",
+        "termsOfService": "https://github.com/SugarLess-CN/fantwo-core",
+        "contact": {
+            "name": "fantwo-core",
+            "url": "https://github.com/SugarLess-CN/fantwo-core"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api/v1",
+    "paths": {},
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "先调 POST /user/login 取 token，再填 \"Bearer {token}\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
