@@ -9,7 +9,7 @@
 # 避免构建时额外拉取 dockerfile 前端镜像（离线/受限网络下会失败）。
 
 # ---------- 构建阶段 ----------
-FROM golang:1.26-bookworm AS builder
+FROM golang:1.26.11-bookworm AS builder
 
 WORKDIR /build
 
