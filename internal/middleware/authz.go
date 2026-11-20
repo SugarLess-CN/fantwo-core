@@ -13,7 +13,6 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 )
 
 // CtxTokenKey gin context 中原始 token 的键（登出时取剩余有效期用）。
@@ -21,9 +20,9 @@ const CtxTokenKey = "auth_token"
 
 // JWTAuthV2 强制鉴权：验签 → 黑名单 → 全端登出时间 → perm_ver 比对。
 // rdb 为 nil 时退化为纯 JWT 校验（骨架降级语义）。
-func JWTAuthV2(signer *jwtx.Signer, rdb *redis.Client) gin.HandlerFunc {
+func JWTAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, token, ok := parseBearerV2(c, signer, rdb)
+		claims, token, ok := parseBearerV2(c, signer, st)
 		if !ok {
 			response.Fail(c, errcode.ErrNeedAuth)
 			return
@@ -35,9 +34,9 @@ func JWTAuthV2(signer *jwtx.Signer, rdb *redis.Client) gin.HandlerFunc {
 }
 
 // OptionalAuthV2 可选登录：失败放行（claims=nil），对齐原 @NoAuth 可选语义。
-func OptionalAuthV2(signer *jwtx.Signer, rdb *redis.Client) gin.HandlerFunc {
+func OptionalAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, token, ok := parseBearerV2(c, signer, rdb)
+		claims, token, ok := parseBearerV2(c, signer, st)
 		if ok {
 			c.Set(CtxUserKey, claims)
 			c.Set(CtxTokenKey, token)
@@ -98,7 +97,7 @@ func CurrentToken(c *gin.Context) string {
 }
 
 // parseBearerV2 解析并完成全部认证态校验。
-func parseBearerV2(c *gin.Context, signer *jwtx.Signer, rdb *redis.Client) (*jwtx.Claims, string, bool) {
+func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jwtx.Claims, string, bool) {
 	h := c.GetHeader("Authorization")
 	if h == "" {
 		return nil, "", false
@@ -113,17 +112,17 @@ func parseBearerV2(c *gin.Context, signer *jwtx.Signer, rdb *redis.Client) (*jwt
 	}
 	ctx := c.Request.Context()
 	// 1) 单端登出黑名单
-	if authtoken.Blacklisted(ctx, rdb, token) {
+	if authtoken.Blacklisted(ctx, st, token) {
 		return nil, "", false
 	}
 	// 2) 全端登出：签发时间早于登出时刻的 token 全部失效
-	if at := authtoken.LogoutAllAt(ctx, rdb, claims.UserID); !at.IsZero() {
+	if at := authtoken.LogoutAllAt(ctx, st, claims.UserID); !at.IsZero() {
 		if claims.IssuedAt != nil && claims.IssuedAt.Time.Before(at.Add(time.Second)) {
 			return nil, "", false
 		}
 	}
 	// 3) 权限版本比对
-	if cur := authtoken.PermVer(ctx, rdb, claims.UserID); cur != claims.PermVer {
+	if cur := authtoken.PermVer(ctx, st, claims.UserID); cur != claims.PermVer {
 		return nil, "", false
 	}
 	return claims, token, true

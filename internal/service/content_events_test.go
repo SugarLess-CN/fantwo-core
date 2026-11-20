@@ -261,3 +261,156 @@ func TestContractCommentCreatedUserID(t *testing.T) {
 		t.Error("comment.created 应关联成就代码")
 	}
 }
+
+// ---------- payload 三形态兼容（值 / 指针 / map） ----------
+//
+// 防的 bug：其它域 publish 时用 map 或裸指针，订阅端类型断言失败 → 事件静默丢弃
+// （正是"成就系统不工作"那类现场：日志里只有 payload 无法解析的 WARN）。
+
+// TestParseReportHandledPayload 三形态 + 键名 snake/camel 兼容。
+func TestParseReportHandledPayload(t *testing.T) {
+	want := reportHandledFields{
+		Type: "ARTICLE", Action: "DELETE_CONTENT",
+		ReportID: "r-1", ArticleID: "art-1", CommentID: "cmt-1",
+	}
+
+	// 形态 1：值
+	if got, ok := parseReportHandledPayload(event.ReportHandledPayload{
+		ReportID: "r-1", Type: "ARTICLE", Action: "DELETE_CONTENT",
+		ReportedArticleID: "art-1", ReportedCommentID: "cmt-1",
+	}); !ok || got != want {
+		t.Errorf("值形态解析错误：ok=%v got=%+v", ok, got)
+	}
+
+	// 形态 2：指针
+	if got, ok := parseReportHandledPayload(&event.ReportHandledPayload{
+		ReportID: "r-1", Type: "ARTICLE", Action: "DELETE_CONTENT",
+		ReportedArticleID: "art-1", ReportedCommentID: "cmt-1",
+	}); !ok || got != want {
+		t.Errorf("指针形态解析错误：ok=%v got=%+v", ok, got)
+	}
+
+	// 形态 3：map（snake_case）
+	if got, ok := parseReportHandledPayload(map[string]interface{}{
+		"report_id": "r-1", "type": "ARTICLE", "action": "DELETE_CONTENT",
+		"reported_article_id": "art-1", "reported_comment_id": "cmt-1",
+	}); !ok || got != want {
+		t.Errorf("map snake_case 解析错误：ok=%v got=%+v", ok, got)
+	}
+
+	// 形态 3b：map（camelCase）
+	if got, ok := parseReportHandledPayload(map[string]interface{}{
+		"reportId": "r-1", "type": "ARTICLE", "action": "DELETE_CONTENT",
+		"reportedArticleId": "art-1", "reportedCommentId": "cmt-1",
+	}); !ok || got != want {
+		t.Errorf("map camelCase 解析错误：ok=%v got=%+v", ok, got)
+	}
+}
+
+// TestParseReportHandledPayloadInvalid 无法识别的载荷必须明确返回 false（调用方据此跳过）。
+func TestParseReportHandledPayloadInvalid(t *testing.T) {
+	if _, ok := parseReportHandledPayload(nil); ok {
+		t.Error("nil 应返回 false")
+	}
+	if _, ok := parseReportHandledPayload((*event.ReportHandledPayload)(nil)); ok {
+		t.Error("nil 指针应返回 false（不能 panic 也不能当空载荷处理）")
+	}
+	if _, ok := parseReportHandledPayload("a string"); ok {
+		t.Error("字符串载荷应返回 false")
+	}
+	if _, ok := parseReportHandledPayload(map[string]string{"type": "ARTICLE"}); ok {
+		t.Error("map[string]string 不在兼容范围，应返回 false")
+	}
+}
+
+// TestParseArticleStatusPayload 三形态解析（审核回写的核心入口）。
+func TestParseArticleStatusPayload(t *testing.T) {
+	want := articleStatusFields{
+		ArticleID: "art-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}
+	if got, ok := parseArticleStatusPayload(event.ArticleStatusChangedPayload{
+		ArticleID: "art-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}); !ok || got != want {
+		t.Errorf("值形态：ok=%v got=%+v", ok, got)
+	}
+	if got, ok := parseArticleStatusPayload(&event.ArticleStatusChangedPayload{
+		ArticleID: "art-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}); !ok || got != want {
+		t.Errorf("指针形态：ok=%v got=%+v", ok, got)
+	}
+	if got, ok := parseArticleStatusPayload(map[string]interface{}{
+		"articleId": "art-1", "from": "PENDING", "to": "PUBLISHED", "reason": "ok", "source": "auto",
+	}); !ok || got != want {
+		t.Errorf("map camelCase：ok=%v got=%+v", ok, got)
+	}
+	if _, ok := parseArticleStatusPayload((*event.ArticleStatusChangedPayload)(nil)); ok {
+		t.Error("nil 指针应返回 false")
+	}
+}
+
+// TestParseCommentStatusPayload 三形态解析。
+func TestParseCommentStatusPayload(t *testing.T) {
+	want := commentStatusFields{
+		CommentID: "cmt-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}
+	if got, ok := parseCommentStatusPayload(event.CommentStatusChangedPayload{
+		CommentID: "cmt-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}); !ok || got != want {
+		t.Errorf("值形态：ok=%v got=%+v", ok, got)
+	}
+	if got, ok := parseCommentStatusPayload(&event.CommentStatusChangedPayload{
+		CommentID: "cmt-1", From: "PENDING", To: "PUBLISHED", Reason: "ok", Source: "auto",
+	}); !ok || got != want {
+		t.Errorf("指针形态：ok=%v got=%+v", ok, got)
+	}
+	if got, ok := parseCommentStatusPayload(map[string]interface{}{
+		"comment_id": "cmt-1", "from": "PENDING", "to": "PUBLISHED", "reason": "ok", "source": "auto",
+	}); !ok || got != want {
+		t.Errorf("map snake_case：ok=%v got=%+v", ok, got)
+	}
+	if _, ok := parseCommentStatusPayload(123); ok {
+		t.Error("整数载荷应返回 false")
+	}
+}
+
+// TestNormalizeContentStatusMatrix 状态归一化完整矩阵。
+//
+// 防的 bug：审核域发 REVIEW/FAILED/OFFLINE 这类词，content 域不认 → 状态永远停在 PENDING，
+// 文章一直不可见（用户以为发布失败）。未知值必须返回空串由调用方跳过，绝不能兜底成 PUBLISHED
+// （那等于审核绕过）。
+func TestNormalizeContentStatusMatrix(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"PUBLISHED", "PUBLISHED", model.ArticleStatusPublished},
+		{"published 小写", "published", model.ArticleStatusPublished},
+		{"  PUBLISHED 带空白", "  PUBLISHED  ", model.ArticleStatusPublished},
+		{"PASS → 发布", "PASS", model.ArticleStatusPublished},
+		{"APPROVED → 发布", "APPROVED", model.ArticleStatusPublished},
+		{"DRAFT", "DRAFT", model.ArticleStatusDraft},
+		{"PENDING", "PENDING", model.ArticleStatusPending},
+		{"REVIEW → 待审", "REVIEW", model.ArticleStatusPending},
+		{"AUDITING → 待审", "AUDITING", model.ArticleStatusPending},
+		{"REJECTED", "REJECTED", model.ArticleStatusRejected},
+		{"REJECT → 驳回", "REJECT", model.ArticleStatusRejected},
+		{"FAILED → 驳回", "FAILED", model.ArticleStatusRejected},
+		{"BLOCKED → 驳回", "BLOCKED", model.ArticleStatusRejected},
+		{"ARCHIVED", "ARCHIVED", model.ArticleStatusArchived},
+		{"OFFLINE → 下架", "OFFLINE", model.ArticleStatusArchived},
+		{"BANNED", "BANNED", model.ArticleStatusBanned},
+		{"DELETED", "DELETED", model.ArticleStatusDeleted},
+		// 未知必须跳过，不得兜底
+		{"未知状态", "WHATEVER", ""},
+		{"空串", "", ""},
+		{"中文", "已发布", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := normalizeContentStatus(c.in); got != c.want {
+				t.Errorf("normalizeContentStatus(%q) = %q, want %q", c.in, got, c.want)
+			}
+		})
+	}
+}

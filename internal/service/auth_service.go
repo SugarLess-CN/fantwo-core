@@ -25,7 +25,6 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
-	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -188,10 +187,10 @@ func (s *AuthService) RefreshToken(ctx context.Context, in RefreshInput) (string
 	if err != nil {
 		return "", errcode.ErrRefreshTokenInvalid
 	}
-	if authtoken.Blacklisted(ctx, s.d.Redis, in.RefreshToken) {
+	if authtoken.Blacklisted(ctx, s.d.AuthTok, in.RefreshToken) {
 		return "", errcode.ErrRefreshTokenInvalid
 	}
-	if at := authtoken.LogoutAllAt(ctx, s.d.Redis, claims.UserID); !at.IsZero() &&
+	if at := authtoken.LogoutAllAt(ctx, s.d.AuthTok, claims.UserID); !at.IsZero() &&
 		claims.IssuedAt != nil && claims.IssuedAt.Time.Before(at.Add(time.Second)) {
 		return "", errcode.ErrRefreshTokenInvalid
 	}
@@ -218,7 +217,7 @@ func (s *AuthService) Logout(ctx context.Context, userID, token, deviceID string
 		return e
 	}
 	if claims, err := s.d.Signer.Parse(token); err == nil {
-		_ = authtoken.BlacklistAdd(ctx, s.d.Redis, token, s.d.Signer.Remaining(claims))
+		_ = authtoken.BlacklistAdd(ctx, s.d.AuthTok, token, s.d.Signer.Remaining(claims))
 	}
 	if deviceID != "" {
 		if err := s.d.Users.DeleteDevice(s.d.DB, userID, deviceID); err != nil {
@@ -233,7 +232,7 @@ func (s *AuthService) LogoutAll(ctx context.Context, userID string) *errcode.Err
 	if e := s.d.ready(); e != nil {
 		return e
 	}
-	if err := authtoken.SetLogoutAll(ctx, s.d.Redis, userID, time.Now()); err != nil {
+	if err := authtoken.SetLogoutAll(ctx, s.d.AuthTok, userID, time.Now()); err != nil {
 		s.d.Logger.Error("logout-all set", zapErr(err))
 		return errcode.ErrInternal
 	}
@@ -354,7 +353,7 @@ func (s *AuthService) ChangePassword(ctx context.Context, userID, oldPwd, newPwd
 		return errcode.ErrInternal
 	}
 	// 改密后全端登出（安全语义）。
-	_ = authtoken.SetLogoutAll(ctx, s.d.Redis, userID, time.Now())
+	_ = authtoken.SetLogoutAll(ctx, s.d.AuthTok, userID, time.Now())
 	return nil
 }
 
@@ -385,7 +384,7 @@ func (s *AuthService) ResetPassword(ctx context.Context, email, code, newPwd str
 	if err := s.d.Users.UpdateFields(s.d.DB, user.ID, map[string]interface{}{"password": hash}); err != nil {
 		return errcode.ErrInternal
 	}
-	_ = authtoken.SetLogoutAll(ctx, s.d.Redis, user.ID, time.Now())
+	_ = authtoken.SetLogoutAll(ctx, s.d.AuthTok, user.ID, time.Now())
 	return nil
 }
 
@@ -395,7 +394,7 @@ func (s *AuthService) issueTokens(ctx context.Context, user *model.User, deviceI
 	if e != nil {
 		return "", "", e
 	}
-	refresh, err := s.d.Signer.GenerateWithPermVer(user.ID, roleNames(user), permNames(user), deviceID, "refresh", currentPermVer(ctx, s.d.Redis, user.ID))
+	refresh, err := s.d.Signer.GenerateWithPermVer(user.ID, roleNames(user), permNames(user), deviceID, "refresh", currentPermVer(ctx, s.d.AuthTok, user.ID))
 	if err != nil {
 		s.d.Logger.Error("issue refresh", zapErr(err))
 		return "", "", errcode.ErrInternal
@@ -417,7 +416,7 @@ func (s *AuthService) issueTokens(ctx context.Context, user *model.User, deviceI
 
 // accessToken 签发 access token。
 func (s *AuthService) accessToken(ctx context.Context, user *model.User, deviceID string) (string, *errcode.Err) {
-	token, err := s.d.Signer.GenerateWithPermVer(user.ID, roleNames(user), permNames(user), deviceID, "access", currentPermVer(ctx, s.d.Redis, user.ID))
+	token, err := s.d.Signer.GenerateWithPermVer(user.ID, roleNames(user), permNames(user), deviceID, "access", currentPermVer(ctx, s.d.AuthTok, user.ID))
 	if err != nil {
 		s.d.Logger.Error("issue access", zapErr(err))
 		return "", errcode.ErrInternal
@@ -449,8 +448,8 @@ func permNames(u *model.User) []string {
 }
 
 // currentPermVer 当前权限版本号（签发时快照，登出/改密后 bump 使旧 token 失效）。
-func currentPermVer(ctx context.Context, rdb *redis.Client, userID string) int64 {
-	return authtoken.PermVer(ctx, rdb, userID)
+func currentPermVer(ctx context.Context, st authtoken.Store, userID string) int64 {
+	return authtoken.PermVer(ctx, st, userID)
 }
 
 // genCode 6 位数字验证码。
@@ -623,19 +622,11 @@ func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfi
 		}
 	}
 	// 建号：用户名唯一化（github 登录名 → 冲突则追加 -ghN）
-	username := p.Login
-	if username == "" {
-		username = "gh" + p.ID
-	}
-	for i := 0; i < 5; i++ {
-		dup, err := s.d.Users.ExistsUsername(s.d.DB, username, "")
-		if err != nil {
-			return nil, errcode.ErrInternal
-		}
-		if !dup {
-			break
-		}
-		username = fmt.Sprintf("%s-gh%s", p.Login, genCode()[:3])
+	username, uerr := uniqueUsername(p.Login, "gh"+p.ID,
+		func(cand string) (bool, error) { return s.d.Users.ExistsUsername(s.d.DB, cand, "") },
+		func() string { return genCode()[:3] }, 5)
+	if uerr != nil {
+		return nil, errcode.ErrInternal
 	}
 	pwd, err := hashPassword(genCode() + genCode())
 	if err != nil {
@@ -685,4 +676,34 @@ func (s *AuthService) findUserOrErr(id string) (*model.User, *errcode.Err) {
 		return nil, errcode.ErrInternal
 	}
 	return user, nil
+}
+
+// uniqueUsername 生成唯一用户名：
+//   - base 为空时用 fallback；
+//   - 候选冲突则追加 "-gh" + suffix()，最多尝试 tries 次（避免无限循环）；
+//   - tries 次仍冲突时返回最后一个候选（交由 DB 唯一索引兜底，宁可插入失败也不死循环）。
+func uniqueUsername(base, fallback string, exists func(string) (bool, error),
+	suffix func() string, tries int) (string, error) {
+	cand := base
+	if cand == "" {
+		cand = fallback
+	}
+	if tries <= 0 {
+		tries = 1
+	}
+	for i := 0; i < tries; i++ {
+		dup, err := exists(cand)
+		if err != nil {
+			return "", err
+		}
+		if !dup {
+			return cand, nil
+		}
+		cand = base
+		if cand == "" {
+			cand = fallback
+		}
+		cand = cand + "-gh" + suffix()
+	}
+	return cand, nil
 }

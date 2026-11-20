@@ -18,6 +18,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -38,8 +39,8 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	roleH := handler.NewRoleHandler(roleSvc)
 	permH := handler.NewPermissionHandler(roleSvc)
 
-	auth := middleware.JWTAuthV2(opt.Signer, opt.Redis)
-	optAuth := middleware.OptionalAuthV2(opt.Signer, opt.Redis)
+	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
+	optAuth := middleware.OptionalAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	canUserRead := middleware.RequireAnyPermission("user:read", "user:manage")
 	canUserWrite := middleware.RequireAnyPermission("user:update", "user:manage")
 	canUserCreate := middleware.RequireAnyPermission("user:create")

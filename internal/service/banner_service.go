@@ -81,6 +81,17 @@ func (s *BannerService) Active() ([]model.Banner, error) {
 	return s.banners.ListActive(s.DB)
 }
 
+// effectiveBannerStatus 计算列表查询实际生效的状态过滤（对齐原 BannerController）。
+//
+// 防的 bug：非管理员传 ?status=inactive 就能看到已下线的运营位
+// （原实现只判 banner:manage 权限，这里把判定抽成纯函数以可测）。
+func EffectiveBannerStatus(requested string, isAdmin bool) string {
+	if isAdmin {
+		return requested
+	}
+	return model.BannerStatusActive
+}
+
 // applyBannerInput 非 nil 字段写入。
 func applyBannerInput(b *model.Banner, in model.BannerInput) {
 	if in.Title != nil {

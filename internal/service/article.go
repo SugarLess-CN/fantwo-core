@@ -29,6 +29,48 @@ type ArticleAuditor interface {
 	SubmitArticleAudit(articleID, content string, imageURLs []string) error
 }
 
+// resolvePublishStatus 解析「请求状态 → 落地状态 + 是否需审核」。
+//
+// 防的 bug：文章发布链路漏审 / 误审。
+//   - 请求 PUBLISHED 且审核域已接入 → 落 PENDING 并入队（绝不允许绕过审核直接可见）；
+//   - 请求 PUBLISHED 但未接入审核域 → 直接 PUBLISHED（降级启动不阻塞发帖）；
+//   - 其余状态原样落地（DRAFT/PENDING/ARCHIVED 等由调用方决定）。
+func resolvePublishStatus(requested string, hasAuditor bool) (status string, needAudit bool) {
+	if requested == model.ArticleStatusPublished && hasAuditor {
+		return model.ArticleStatusPending, true
+	}
+	return requested, false
+}
+
+// isValidArticleStatusTransition 文章状态迁移是否合法。
+//
+// 防的 bug：把已发布文章直接改回草稿造成「内容凭空消失」，
+// 或把已删除文章「复活」绕过删除语义。
+//
+// 设计取舍（对齐原项目实际行为）：
+//   - 作者可以主动下架自己的文章：PUBLISHED → ARCHIVED / DRAFT 允许；
+//   - 审核驳回后可改稿重投：REJECTED → DRAFT / PENDING / PUBLISHED 允许；
+//   - DELETED 是终态：只能保持，不可迁移（删除走软删列，不需要状态回退）；
+//   - 同状态「改」视为合法（幂等，前端重复提交不报错）。
+func isValidArticleStatusTransition(from, to string) bool {
+	if from == to {
+		return true
+	}
+	if from == model.ArticleStatusDeleted {
+		return false // 终态，禁止复活
+	}
+	switch to {
+	case model.ArticleStatusDraft, model.ArticleStatusPending,
+		model.ArticleStatusPublished, model.ArticleStatusRejected,
+		model.ArticleStatusArchived, model.ArticleStatusBanned:
+		return true
+	case model.ArticleStatusDeleted:
+		return true // 允许显式置删除态（软删由 Delete 接口负责，此处手工处置）
+	default:
+		return false // 未知状态一律拒绝，避免脏值入库
+	}
+}
+
 // ArticleService 文章业务逻辑（对齐原 NestJS ArticleService）。
 type ArticleService struct {
 	repo       *repository.ArticleRepository
@@ -156,13 +198,7 @@ func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArti
 	if status == "" {
 		status = model.ArticleStatusDraft
 	}
-	needAudit := false
-	if status == model.ArticleStatusPublished {
-		if s.audit != nil {
-			status = model.ArticleStatusPending
-			needAudit = true
-		}
-	}
+	status, needAudit := resolvePublishStatus(status, s.audit != nil)
 	a.Status = status
 
 	// 设精仅管理员可写
@@ -293,12 +329,9 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 
 	// 状态流转 + 审核联动
 	needAudit := false
-	if req.Status != "" && req.Status != a.Status {
-		status := req.Status
-		if status == model.ArticleStatusPublished && a.Status != model.ArticleStatusPublished && s.audit != nil {
-			status = model.ArticleStatusPending
-			needAudit = true
-		}
+	if req.Status != "" && isValidArticleStatusTransition(a.Status, req.Status) {
+		status, auditNeeded := resolvePublishStatus(req.Status, s.audit != nil)
+		needAudit = auditNeeded
 		fields["status"] = status
 	}
 

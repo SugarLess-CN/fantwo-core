@@ -9,6 +9,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
@@ -36,6 +37,8 @@ type Deps struct {
 	Users  *repository.UserRepo
 	Roles  *repository.RoleRepo
 	Perms  *repository.PermissionRepo
+	// AuthTok 认证态存储（Redis 实现；nil 表示降级，认证退化为纯 JWT 语义）。
+	AuthTok authtoken.Store
 	// Cfg 系统配置读取（复用基础设施域 ConfigService：进程内缓存 → Redis → DB）。
 	// DB/Redis 为 nil 时 GetString 返回默认值，正好构成「未配置即降级」语义。
 	Cfg ConfigReader
@@ -48,15 +51,16 @@ func NewDeps(db *gorm.DB, rdb *redis.Client, signer *jwtx.Signer, queue *asynq.C
 		logger = zap.NewNop()
 	}
 	return &Deps{
-		DB:     db,
-		Redis:  rdb,
-		Signer: signer,
-		Queue:  queue,
-		Logger: logger,
-		Users:  repository.NewUserRepo(),
-		Roles:  repository.NewRoleRepo(),
-		Perms:  repository.NewPermissionRepo(),
-		Cfg:    infra.NewConfigService(db, rdb),
+		DB:      db,
+		Redis:   rdb,
+		Signer:  signer,
+		Queue:   queue,
+		Logger:  logger,
+		Users:   repository.NewUserRepo(),
+		Roles:   repository.NewRoleRepo(),
+		Perms:   repository.NewPermissionRepo(),
+		AuthTok: authtoken.NewRedisStore(rdb),
+		Cfg:     infra.NewConfigService(db, rdb),
 	}
 }
 

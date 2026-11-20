@@ -75,7 +75,7 @@ func handleReportHandled(d *Deps, payload interface{}) {
 	// 封禁后立即失效全部 token。
 	ctx, cancel := bgCtx()
 	defer cancel()
-	_ = authtoken.SetLogoutAll(ctx, d.Redis, userID, now)
+	_ = authtoken.SetLogoutAll(ctx, d.AuthTok, userID, now)
 	d.Logger.Info("report.handled 已封禁用户 " + userID)
 }
 
@@ -146,6 +146,6 @@ func (s *UserService) BanUser(ctx context.Context, userID, reason string) *errco
 	}); err != nil {
 		return errcode.ErrInternal
 	}
-	_ = authtoken.SetLogoutAll(ctx, s.d.Redis, userID, now)
+	_ = authtoken.SetLogoutAll(ctx, s.d.AuthTok, userID, now)
 	return nil
 }

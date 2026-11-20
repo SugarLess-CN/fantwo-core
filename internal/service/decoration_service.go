@@ -224,18 +224,12 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDe
 	if err != nil {
 		return nil, err
 	}
-	if !d.IsPurchasable {
-		return nil, errcode.ErrBadRequest.With("该装饰品不可购买")
-	}
-	if d.Status != model.DecorationStatusActive {
-		return nil, errcode.ErrBadRequest.With("该装饰品已下架")
-	}
 	existing, err := s.userDeco.FindByUserAndDecoration(s.DB, userID, decorationID)
 	if err != nil {
 		return nil, err
 	}
-	if existing != nil && (existing.IsPermanent || (existing.ExpiresAt != nil && existing.ExpiresAt.After(time.Now()))) {
-		return nil, errcode.ErrBadRequest.With("您已拥有该装饰品")
+	if reject := decorationPurchaseRejection(d, existing, time.Now()); reject != nil {
+		return nil, reject
 	}
 	if s.wallet == nil {
 		return nil, errcode.ErrInternal.With("钱包服务未接入，暂不可购买")
@@ -244,6 +238,41 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDe
 		return nil, err
 	}
 	return s.grant(userID, d, model.DecorationObtainPurchase, "", "")
+}
+
+// decorationPurchaseRejection 购买前置校验：返回 nil 表示可买。
+//
+// 防的 bug：
+//   - 不可购买 / 已下架的装饰品仍被下单（前端缓存过期时会踩到）；
+//   - 已持有且未过期（永久或未到期）重复购买导致重复扣款。
+//     「过期记录」要允许复购，所以判定必须是「永久 OR 到期时间在未来」，
+//     而不是「存在记录即拒绝」。
+func decorationPurchaseRejection(d *model.Decoration, existing *model.UserDecoration, now time.Time) *errcode.Err {
+	if d == nil {
+		return errcode.ErrNotFound.With("装饰品不存在")
+	}
+	if !d.IsPurchasable {
+		return errcode.ErrBadRequest.With("该装饰品不可购买")
+	}
+	if d.Status != model.DecorationStatusActive {
+		return errcode.ErrBadRequest.With("该装饰品已下架")
+	}
+	if ownsUnexpired(existing, now) {
+		return errcode.ErrBadRequest.With("您已拥有该装饰品")
+	}
+	return nil
+}
+
+// ownsUnexpired 是否「有效持有」：永久，或到期时间仍在未来。
+// 过期记录视为未持有（允许重新获取/购买/领取）。
+func ownsUnexpired(ud *model.UserDecoration, now time.Time) bool {
+	if ud == nil {
+		return false
+	}
+	if ud.IsPermanent {
+		return true
+	}
+	return ud.ExpiresAt != nil && ud.ExpiresAt.After(now)
 }
 
 // Gift 赠送装饰品。
@@ -262,14 +291,14 @@ func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message str
 	if from == nil {
 		return nil, errcode.ErrBadRequest.With("您没有该装饰品")
 	}
-	if !from.IsPermanent && from.ExpiresAt != nil && from.ExpiresAt.Before(time.Now()) {
+	if !ownsUnexpired(from, time.Now()) {
 		return nil, errcode.ErrBadRequest.With("该装饰品已过期")
 	}
 	to, err := s.userDeco.FindByUserAndDecoration(s.DB, toUserID, decorationID)
 	if err != nil {
 		return nil, err
 	}
-	if to != nil && (to.IsPermanent || (to.ExpiresAt != nil && to.ExpiresAt.After(time.Now()))) {
+	if ownsUnexpired(to, time.Now()) {
 		return nil, errcode.ErrBadRequest.With("对方已拥有该装饰品")
 	}
 	return s.grant(toUserID, d, model.DecorationObtainGift, fromUserID, message)
@@ -450,6 +479,9 @@ func (s *DecorationService) MyActivityProgress(userID string) ([]model.UserActiv
 }
 
 // claimableProgress 判断进度是否满足活动要求。
+//
+// 防的 bug：条件值 0 表示「该项不需要」，若写成 `current < required` 无条件比较，
+// 0 要求会被误判为不达标，活动永远领不了奖。
 func claimableProgress(a model.DecorationActivity, p model.UserActivityProgress) bool {
 	if a.RequiredLikes > 0 && p.CurrentLikes < a.RequiredLikes {
 		return false

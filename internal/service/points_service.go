@@ -133,7 +133,7 @@ func (s *PointsService) Spend(userID string, in SpendPointsInput) (*PointsChange
 		if err != nil {
 			return err
 		}
-		if acc.Balance < in.Amount {
+		if !balanceSufficient(acc.Balance, in.Amount) {
 			return errcode.ErrBadRequest.With("积分不足")
 		}
 		acc.Balance -= in.Amount
@@ -174,24 +174,12 @@ func (s *PointsService) AddByRule(userID, activityCode, relatedType, relatedID s
 		return nil, errcode.ErrNotFound.With("积分活动不存在")
 	}
 
-	if activity.DailyLimit > 0 {
-		dayStart := time.Now().Truncate(24 * time.Hour)
-		n, err := s.txs.CountTodayBySource(s.DB, userID, activityCode, dayStart)
-		if err != nil {
-			return nil, err
-		}
-		if n >= int64(activity.DailyLimit) {
-			return nil, errcode.ErrBadRequest.With("已达该活动每日次数上限")
-		}
+	reason, err := s.ruleBlockReason(userID, activity)
+	if err != nil {
+		return nil, err
 	}
-	if activity.TotalLimit > 0 {
-		n, err := s.txs.CountBySource(s.DB, userID, activityCode)
-		if err != nil {
-			return nil, err
-		}
-		if n >= int64(activity.TotalLimit) {
-			return nil, errcode.ErrBadRequest.With("已达该活动总次数上限")
-		}
+	if reason != "" {
+		return nil, errcode.ErrBadRequest.With(reason)
 	}
 
 	return s.Add(userID, AddPointsInput{
@@ -217,24 +205,12 @@ func (s *PointsService) TryAddByRule(userID, activityCode, relatedType, relatedI
 	if activity == nil || !activity.IsActive {
 		return nil, false, nil
 	}
-	if activity.DailyLimit > 0 {
-		dayStart := time.Now().Truncate(24 * time.Hour)
-		n, err := s.txs.CountTodayBySource(s.DB, userID, activityCode, dayStart)
-		if err != nil {
-			return nil, false, err
-		}
-		if n >= int64(activity.DailyLimit) {
-			return nil, false, nil
-		}
+	reason, err := s.ruleBlockReason(userID, activity)
+	if err != nil {
+		return nil, false, err
 	}
-	if activity.TotalLimit > 0 {
-		n, err := s.txs.CountBySource(s.DB, userID, activityCode)
-		if err != nil {
-			return nil, false, err
-		}
-		if n >= int64(activity.TotalLimit) {
-			return nil, false, nil
-		}
+	if reason != "" {
+		return nil, false, nil // 已达限额：静默跳过
 	}
 	res, err := s.Add(userID, AddPointsInput{
 		Amount:      activity.RewardPoints,
@@ -566,6 +542,61 @@ func (s *PointsService) Statistics() (*PointsStatistics, error) {
 	st.BySource = bySource
 
 	return &st, nil
+}
+
+// ruleBlockReason 判定「按活动发放」是否被限额拦下，返回拦截原因（空串=可发放）。
+// 把判定从 AddByRule / TryAddByRule 里抽出来，保证两条路径共用同一套限额语义，
+// 并且可以被单测直接覆盖（不需要数据库）。
+func (s *PointsService) ruleBlockReason(userID string, activity *model.PointsActivity) (string, error) {
+	if activity == nil {
+		return "积分活动不存在", nil
+	}
+	var dailyCount, totalCount int64
+	if activity.DailyLimit > 0 {
+		dayStart := time.Now().Truncate(24 * time.Hour)
+		n, err := s.txs.CountTodayBySource(s.DB, userID, activity.Code, dayStart)
+		if err != nil {
+			return "", err
+		}
+		dailyCount = n
+	}
+	if activity.TotalLimit > 0 {
+		n, err := s.txs.CountBySource(s.DB, userID, activity.Code)
+		if err != nil {
+			return "", err
+		}
+		totalCount = n
+	}
+	return pointsLimitBlock(activity, dailyCount, totalCount), nil
+}
+
+// pointsLimitBlock 纯判定：给定活动配置与当前计数，判断是否已触限。
+// 返回 "已达该活动每日次数上限" / "已达该活动总次数上限" / ""（可发放）。
+//
+// 防的 bug：DailyLimit/TotalLimit 语义是「0 表示不限制」，
+// 若误写成 `count >= limit` 无条件比较，0 限额的活动会被永久拦住；
+// 两条发放路径（AddByRule 报错 / TryAddByRule 静默）必须共用此判定，避免口径分叉。
+func pointsLimitBlock(activity *model.PointsActivity, dailyCount, totalCount int64) string {
+	if activity == nil {
+		return "积分活动不存在"
+	}
+	if activity.DailyLimit > 0 && dailyCount >= int64(activity.DailyLimit) {
+		return "已达该活动每日次数上限"
+	}
+	if activity.TotalLimit > 0 && totalCount >= int64(activity.TotalLimit) {
+		return "已达该活动总次数上限"
+	}
+	return ""
+}
+
+// balanceSufficient 余额是否足够扣减。
+//
+// 防的 bug：扣减前必须挡在 balance >= amount，否则余额会被扣成负数
+// （并发下靠 accounts 表的 SELECT ... FOR UPDATE 行锁 + 事务串行化保证，
+//
+//	本函数只负责把「不足」这条拒绝路径写成可测的纯判定）。
+func balanceSufficient(balance, amount int) bool {
+	return amount > 0 && balance >= amount
 }
 
 // applyPointsActivityInput 把非 nil 字段写入活动（PATCH 语义）。

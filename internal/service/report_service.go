@@ -141,7 +141,7 @@ func (s *ReportService) Update(id, handlerID string, in model.ReportUpdateInput)
 	}
 
 	// 动作下发（content / 用户域监听执行；本域不直接写他们的表）
-	if r.Action != "" && r.Action != model.ReportActionNone {
+	if shouldDispatchReportAction(r.Action) {
 		if s.bus != nil {
 			s.bus.Publish(event.EventReportHandled, event.ReportHandledPayload{
 				ReportID:          r.ID,
@@ -163,6 +163,19 @@ func (s *ReportService) Delete(id string) error {
 		return err
 	}
 	return s.reports.Delete(s.DB, id)
+}
+
+// shouldDispatchReportAction 判断处理动作是否需要下发事件。
+//
+// 防的 bug：DELETE_CONTENT / BAN_USER 涉及别域的表（articles/comments/users），
+// 运营域只发 report.handled 让 content/auth-user 执行；而 NONE（无需处理）与空动作
+// 绝不能被当成「要删内容」发出去 —— 否则一次误点就会删掉别人的文章。
+func shouldDispatchReportAction(action string) bool {
+	switch action {
+	case model.ReportActionDeleteContent, model.ReportActionBanUser, model.ReportActionWarning:
+		return true
+	}
+	return false
 }
 
 // ReportStatistics 举报统计（对齐原 getStatistics）。

@@ -232,6 +232,10 @@ func (s *AchievementService) UpdateProgressBatch(userID string, codes []string, 
 	if userID == "" || len(codes) == 0 {
 		return nil
 	}
+	if s.DB == nil {
+		// 降级启动 / 单测环境：不 panic，返回明确错误（调用方只记日志）
+		return errcode.ErrInternal.With("数据库不可用，成就进度未推进")
+	}
 	if increment <= 0 {
 		increment = 1
 	}
@@ -558,8 +562,11 @@ func resolveAchievementProgress(topic string, payload interface{}) (string, []st
 		return uid, codes, uid != ""
 
 	case event.EventInviteUsed:
+		// 邀请成功：种子成就表里没有「邀请类」成就（INVITE_5_USERS_ACHIEVEMENT 是
+		// 积分活动的 code，不是成就），所以这里不推进成就，只有 side effect 发积分。
+		// 若日后补了邀请成就，在这里返回其 code 即可。
 		uid := payloadFieldString(payload, "inviterId")
-		return uid, []string{"INVITE_5_USERS_ACHIEVEMENT"}, uid != ""
+		return uid, nil, uid != ""
 
 	case event.EventOrderPaid:
 		uid := payloadFieldString(payload, "userId")

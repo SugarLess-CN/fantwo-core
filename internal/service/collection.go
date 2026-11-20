@@ -68,6 +68,14 @@ type CollectionItemView struct {
 	CreatedAt time.Time    `json:"createdAt"`
 }
 
+// reorderSortValue 合集重排后的排序值：传入顺序即展示顺序，越靠前越大。
+//
+// 防的 bug：合集「拖拽排序」后顺序反了 / 首个元素被挤到末尾。
+// 例：3 个元素，idx=0 → 3（最前），idx=2 → 1（最后）。
+func reorderSortValue(total, idx int) int {
+	return total - idx
+}
+
 // CollectionService 合集业务逻辑（对齐原 NestJS CollectionService）。
 type CollectionService struct {
 	repo *repository.CollectionRepository
@@ -354,7 +362,7 @@ func (s *CollectionService) ReorderItems(ctx context.Context, id string, actor A
 				return err
 			}
 			// 传入顺序即展示顺序：越靠前 sort 越大
-			if err := repo.UpdateItemFields(ctx, it.ID, map[string]interface{}{"sort": total - idx}); err != nil {
+			if err := repo.UpdateItemFields(ctx, it.ID, map[string]interface{}{"sort": reorderSortValue(total, idx)}); err != nil {
 				return err
 			}
 		}

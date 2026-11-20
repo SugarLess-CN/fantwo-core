@@ -105,21 +105,15 @@ func (s *InviteService) Use(inviteeID, code string) (*model.Invite, error) {
 	if err != nil {
 		return nil, err
 	}
-	if inv == nil {
-		return nil, errcode.ErrNotFound.With("邀请码不存在")
-	}
-	if inv.Status != model.InviteStatusPending {
-		return nil, errcode.ErrBadRequest.With("邀请码无效或已被使用")
-	}
-	if inv.ExpiredAt != nil && inv.ExpiredAt.Before(time.Now()) {
-		inv.Status = model.InviteStatusExpired
-		if err := s.invites.Save(s.DB, inv); err != nil {
-			return nil, err
+	if reject := inviteUseRejection(inv, inviteeID, time.Now()); reject != nil {
+		// 过期要落状态（幂等：置 EXPIRED 后再次使用走「无效」分支）
+		if inv != nil && reject.Msg == inviteRejectExpiredMsg && inv.Status == model.InviteStatusPending {
+			inv.Status = model.InviteStatusExpired
+			if err := s.invites.Save(s.DB, inv); err != nil {
+				return nil, err
+			}
 		}
-		return nil, errcode.ErrBadRequest.With("邀请码已过期")
-	}
-	if inv.InviterID == inviteeID {
-		return nil, errcode.ErrBadRequest.With("不能使用自己的邀请码")
+		return nil, reject
 	}
 
 	now := time.Now()
@@ -139,6 +133,31 @@ func (s *InviteService) Use(inviteeID, code string) (*model.Invite, error) {
 		})
 	}
 	return inv, nil
+}
+
+// inviteRejectExpiredMsg 过期拒绝的固定文案（Use 依据它决定是否落 EXPIRED 状态）。
+const inviteRejectExpiredMsg = "邀请码已过期"
+
+// inviteUseRejection 邀请码使用状态机判定：返回 nil 表示可用，否则返回拒绝原因。
+//
+// 状态机：PENDING --use--> USED；PENDING + 已过期 --> EXPIRED（拒绝）；
+// USED/EXPIRED 一律拒绝（不可重复使用）；自邀拒绝。
+// 抽成纯函数的目的：让「未用→已用」这条状态机可以被单测穷举，
+// 而不是只能靠真机点一遍。
+func inviteUseRejection(inv *model.Invite, inviteeID string, now time.Time) *errcode.Err {
+	if inv == nil {
+		return errcode.ErrNotFound.With("邀请码不存在")
+	}
+	if inv.Status != model.InviteStatusPending {
+		return errcode.ErrBadRequest.With("邀请码无效或已被使用")
+	}
+	if inv.ExpiredAt != nil && inv.ExpiredAt.Before(now) {
+		return errcode.ErrBadRequest.With(inviteRejectExpiredMsg)
+	}
+	if inviteeID != "" && inv.InviterID == inviteeID {
+		return errcode.ErrBadRequest.With("不能使用自己的邀请码")
+	}
+	return nil
 }
 
 // Get 邀请详情（仅邀请人可看）。

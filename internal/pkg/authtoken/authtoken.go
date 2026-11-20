@@ -1,4 +1,4 @@
-// Package authtoken 认证态存储（Redis）：JWT 黑名单、全端登出时间戳、权限版本号。
+// Package authtoken 认证态存储：JWT 黑名单、全端登出时间戳、权限版本号。
 //
 // 设计（T-05b 方案）：
 //   - 单端登出：把 access/refresh token 的摘要写入黑名单，TTL = token 剩余生命，
@@ -8,7 +8,8 @@
 //   - 权限版本：user:{id}:permver 单调递增，签发时写入 JWT 的 pv；
 //     权限/角色变更时 bump，中间件比对不一致即 401 要求重新登录。
 //
-// Redis 不可用（降级模式）时所有方法返回零值且不报错——认证按纯 JWT 语义放行，
+// 存储通过 Store 接口抽象（生产 = Redis，测试 = 内存替身）；
+// nil Store 表示降级：所有方法返回零值且不报错，认证按纯 JWT 语义放行，
 // 与骨架「懒连接降级」约定一致。
 package authtoken
 
@@ -22,8 +23,43 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Store 认证态存储能力（Redis 语义的最小子集）。
+type Store interface {
+	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
+	Exists(ctx context.Context, key string) (int64, error)
+	Incr(ctx context.Context, key string) (int64, error)
+}
+
+// redisStore go-redis 实现。
+type redisStore struct{ c *redis.Client }
+
+// NewRedisStore 用 go-redis 客户端构造 Store；rdb 为 nil 时返回 nil（降级语义）。
+func NewRedisStore(rdb *redis.Client) Store {
+	if rdb == nil {
+		return nil
+	}
+	return &redisStore{c: rdb}
+}
+
+func (s *redisStore) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	return s.c.Set(ctx, key, value, ttl).Err()
+}
+
+func (s *redisStore) Get(ctx context.Context, key string) (string, error) {
+	return s.c.Get(ctx, key).Result()
+}
+
+func (s *redisStore) Exists(ctx context.Context, key string) (int64, error) {
+	return s.c.Exists(ctx, key).Result()
+}
+
+func (s *redisStore) Incr(ctx context.Context, key string) (int64, error) {
+	return s.c.Incr(ctx, key).Result()
+}
+
 // Key 构造函数。
-func BlacklistKey(token string) string  { return "jwt:blacklist:" + digest(token) }
+func BlacklistKey(token string) string { return "jwt:blacklist:" + digest(token) }
 func logoutAllKey(userID string) string { return "user:" + userID + ":logout_all" }
 func permVerKey(userID string) string   { return "user:" + userID + ":permver" }
 
@@ -33,40 +69,37 @@ func digest(token string) string {
 	return hex.EncodeToString(sum[:16])
 }
 
-// BlacklistAdd 将 token 加入黑名单；ttl<=0 时按 1 秒处理（已过期 token 无需记录）。
-func BlacklistAdd(ctx context.Context, rdb *redis.Client, token string, ttl time.Duration) error {
-	if rdb == nil || token == "" {
+// BlacklistAdd 将 token 加入黑名单；ttl<=0 或 Store 不可用时跳过（已过期 token 无需记录）。
+func BlacklistAdd(ctx context.Context, st Store, token string, ttl time.Duration) error {
+	if st == nil || token == "" || ttl <= 0 {
 		return nil
 	}
-	if ttl <= 0 {
-		return nil
-	}
-	return rdb.Set(ctx, BlacklistKey(token), 1, ttl).Err()
+	return st.Set(ctx, BlacklistKey(token), 1, ttl)
 }
 
-// Blacklisted token 是否已被拉黑。Redis 异常时返回 false（放行，保持可用性）。
-func Blacklisted(ctx context.Context, rdb *redis.Client, token string) bool {
-	if rdb == nil || token == "" {
+// Blacklisted token 是否已被拉黑。Store 异常时返回 false（放行，保持可用性）。
+func Blacklisted(ctx context.Context, st Store, token string) bool {
+	if st == nil || token == "" {
 		return false
 	}
-	n, err := rdb.Exists(ctx, BlacklistKey(token)).Result()
+	n, err := st.Exists(ctx, BlacklistKey(token))
 	return err == nil && n > 0
 }
 
 // SetLogoutAll 记录全端登出时间（秒级，够 token iat 比对）。
-func SetLogoutAll(ctx context.Context, rdb *redis.Client, userID string, at time.Time) error {
-	if rdb == nil {
+func SetLogoutAll(ctx context.Context, st Store, userID string, at time.Time) error {
+	if st == nil {
 		return nil
 	}
-	return rdb.Set(ctx, logoutAllKey(userID), at.Unix(), 0).Err()
+	return st.Set(ctx, logoutAllKey(userID), at.Unix(), 0)
 }
 
 // LogoutAllAt 读取全端登出时间；无记录返回零值。
-func LogoutAllAt(ctx context.Context, rdb *redis.Client, userID string) time.Time {
-	if rdb == nil {
+func LogoutAllAt(ctx context.Context, st Store, userID string) time.Time {
+	if st == nil {
 		return time.Time{}
 	}
-	s, err := rdb.Get(ctx, logoutAllKey(userID)).Result()
+	s, err := st.Get(ctx, logoutAllKey(userID))
 	if err != nil {
 		return time.Time{}
 	}
@@ -78,11 +111,11 @@ func LogoutAllAt(ctx context.Context, rdb *redis.Client, userID string) time.Tim
 }
 
 // PermVer 读权限版本号；无记录视为 0（未发生过权限变更）。
-func PermVer(ctx context.Context, rdb *redis.Client, userID string) int64 {
-	if rdb == nil {
+func PermVer(ctx context.Context, st Store, userID string) int64 {
+	if st == nil {
 		return 0
 	}
-	s, err := rdb.Get(ctx, permVerKey(userID)).Result()
+	s, err := st.Get(ctx, permVerKey(userID))
 	if err != nil {
 		return 0
 	}
@@ -93,12 +126,12 @@ func PermVer(ctx context.Context, rdb *redis.Client, userID string) int64 {
 	return v
 }
 
-// BumpPermVer 递增权限版本号，返回新值。
-func BumpPermVer(ctx context.Context, rdb *redis.Client, userID string) int64 {
-	if rdb == nil {
+// BumpPermVer 递增权限版本号，返回新值（Store 不可用返回 0）。
+func BumpPermVer(ctx context.Context, st Store, userID string) int64 {
+	if st == nil {
 		return 0
 	}
-	v, err := rdb.Incr(ctx, permVerKey(userID)).Result()
+	v, err := st.Incr(ctx, permVerKey(userID))
 	if err != nil {
 		return 0
 	}
@@ -106,13 +139,12 @@ func BumpPermVer(ctx context.Context, rdb *redis.Client, userID string) int64 {
 }
 
 // BumpPermVerMany 批量递增（角色权限变更时波及该角色下全部用户）。
-func BumpPermVerMany(ctx context.Context, rdb *redis.Client, userIDs []string) {
-	if rdb == nil || len(userIDs) == 0 {
+// 逐个 Incr：受影响用户通常在几十量级，无需 pipeline 复杂度。
+func BumpPermVerMany(ctx context.Context, st Store, userIDs []string) {
+	if st == nil || len(userIDs) == 0 {
 		return
 	}
-	pipe := rdb.Pipeline()
 	for _, id := range userIDs {
-		pipe.Incr(ctx, permVerKey(id))
+		_, _ = st.Incr(ctx, permVerKey(id))
 	}
-	_, _ = pipe.Exec(ctx)
 }

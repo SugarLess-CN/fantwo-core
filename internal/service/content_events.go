@@ -62,32 +62,12 @@ func RegisterContentEventSubscribers(d ContentEventDeps) {
 // 只处理「删除类」处置（DELETE_CONTENT / DELETE_ARTICLE / REMOVE / OFFLINE 等）；
 // BAN_USER / WARNING / NONE 不属于内容删除，交给用户域或忽略。
 func handleReportHandledContent(d ContentEventDeps, payload interface{}) {
-	var (
-		reportType string
-		action     string
-		articleID  string
-		commentID  string
-		reportID   string
-	)
-	switch p := payload.(type) {
-	case event.ReportHandledPayload:
-		reportType, action, reportID = p.Type, p.Action, p.ReportID
-		articleID, commentID = p.ReportedArticleID, p.ReportedCommentID
-	case *event.ReportHandledPayload:
-		if p == nil {
-			return
-		}
-		reportType, action, reportID = p.Type, p.Action, p.ReportID
-		articleID, commentID = p.ReportedArticleID, p.ReportedCommentID
-	case map[string]interface{}:
-		reportType = strOf(p["type"])
-		action = strOf(p["action"])
-		reportID = firstNonEmptyStr(strOf(p["report_id"]), strOf(p["reportId"]))
-		articleID = firstNonEmptyStr(strOf(p["reported_article_id"]), strOf(p["reportedArticleId"]))
-		commentID = firstNonEmptyStr(strOf(p["reported_comment_id"]), strOf(p["reportedCommentId"]))
-	default:
+	fields, ok := parseReportHandledPayload(payload)
+	if !ok {
 		return
 	}
+	reportType, action, reportID := fields.Type, fields.Action, fields.ReportID
+	articleID, commentID := fields.ArticleID, fields.CommentID
 
 	if !isDeleteContentAction(action) {
 		return
@@ -210,27 +190,11 @@ func deleteCommentByReport(ctx context.Context, d ContentEventDeps, commentID st
 // 计数口径：只有 PUBLISHED 计入 article_count。状态在「发布 <-> 非发布」之间迁移时，
 // 同步调整作者 users.article_count、分类 categories.article_count、标签 tags.article_count。
 func handleArticleStatusChanged(d ContentEventDeps, payload interface{}) {
-	var articleID, from, to, reason, source string
-	switch p := payload.(type) {
-	case event.ArticleStatusChangedPayload:
-		articleID, from, to, reason, source = p.ArticleID, p.From, p.To, p.Reason, p.Source
-	case *event.ArticleStatusChangedPayload:
-		if p == nil {
-			return
-		}
-		articleID, from, to, reason, source = p.ArticleID, p.From, p.To, p.Reason, p.Source
-	case map[string]interface{}:
-		articleID = firstNonEmptyStr(strOf(p["article_id"]), strOf(p["articleId"]))
-		from = strOf(p["from"])
-		to = strOf(p["to"])
-		reason = strOf(p["reason"])
-		source = strOf(p["source"])
-	default:
+	fields, ok := parseArticleStatusPayload(payload)
+	if !ok || fields.ArticleID == "" {
 		return
 	}
-	if articleID == "" {
-		return
-	}
+	articleID, from, to, reason, source := fields.ArticleID, fields.From, fields.To, fields.Reason, fields.Source
 	newStatus := normalizeContentStatus(to)
 	if newStatus == "" {
 		d.Logger.Warn("article.status.changed 未知目标状态，已忽略 to=" + to)
@@ -298,27 +262,11 @@ func handleArticleStatusChanged(d ContentEventDeps, payload interface{}) {
 
 // handleCommentStatusChanged 审核结果 → 更新 comments.status 与文章评论数。
 func handleCommentStatusChanged(d ContentEventDeps, payload interface{}) {
-	var commentID, from, to, reason, source string
-	switch p := payload.(type) {
-	case event.CommentStatusChangedPayload:
-		commentID, from, to, reason, source = p.CommentID, p.From, p.To, p.Reason, p.Source
-	case *event.CommentStatusChangedPayload:
-		if p == nil {
-			return
-		}
-		commentID, from, to, reason, source = p.CommentID, p.From, p.To, p.Reason, p.Source
-	case map[string]interface{}:
-		commentID = firstNonEmptyStr(strOf(p["comment_id"]), strOf(p["commentId"]))
-		from = strOf(p["from"])
-		to = strOf(p["to"])
-		reason = strOf(p["reason"])
-		source = strOf(p["source"])
-	default:
+	fields, ok := parseCommentStatusPayload(payload)
+	if !ok || fields.CommentID == "" {
 		return
 	}
-	if commentID == "" {
-		return
-	}
+	commentID, from, to, reason, source := fields.CommentID, fields.From, fields.To, fields.Reason, fields.Source
 	newStatus := normalizeContentStatus(to)
 	if newStatus == "" {
 		d.Logger.Warn("comment.status.changed 未知目标状态，已忽略 to=" + to)
@@ -369,6 +317,122 @@ func handleCommentStatusChanged(d ContentEventDeps, payload interface{}) {
 	}
 	d.Logger.Info("comment.status.changed 已回写 commentID=" + commentID +
 		" " + from + "->" + newStatus + " source=" + source + " reason=" + reason)
+}
+
+// ---------- 跨域载荷解析（发布方形态不统一，统一在这里兼容） ----------
+//
+// 背景：其它域 publish 时可能用 event 包结构体、自己的结构体指针、或裸 map，
+// 键名还可能 snake_case / camelCase 混用。三个解析函数是唯一收口点，
+// 单测覆盖「值 / 指针 / map 三形态」以及键名兼容。
+
+// reportHandledFields report.handled 解析结果。
+type reportHandledFields struct {
+	Type      string
+	Action    string
+	ReportID  string
+	ArticleID string
+	CommentID string
+}
+
+// parseReportHandledPayload 解析 report.handled 载荷；无法识别返回 ok=false。
+func parseReportHandledPayload(payload interface{}) (reportHandledFields, bool) {
+	switch p := payload.(type) {
+	case event.ReportHandledPayload:
+		return reportHandledFields{
+			Type: p.Type, Action: p.Action, ReportID: p.ReportID,
+			ArticleID: p.ReportedArticleID, CommentID: p.ReportedCommentID,
+		}, true
+	case *event.ReportHandledPayload:
+		if p == nil {
+			return reportHandledFields{}, false
+		}
+		return reportHandledFields{
+			Type: p.Type, Action: p.Action, ReportID: p.ReportID,
+			ArticleID: p.ReportedArticleID, CommentID: p.ReportedCommentID,
+		}, true
+	case map[string]interface{}:
+		return reportHandledFields{
+			Type:      strOf(p["type"]),
+			Action:    strOf(p["action"]),
+			ReportID:  firstNonEmptyStr(strOf(p["report_id"]), strOf(p["reportId"])),
+			ArticleID: firstNonEmptyStr(strOf(p["reported_article_id"]), strOf(p["reportedArticleId"])),
+			CommentID: firstNonEmptyStr(strOf(p["reported_comment_id"]), strOf(p["reportedCommentId"])),
+		}, true
+	default:
+		return reportHandledFields{}, false
+	}
+}
+
+// articleStatusFields article.status.changed 解析结果。
+type articleStatusFields struct {
+	ArticleID string
+	From      string
+	To        string
+	Reason    string
+	Source    string
+}
+
+// parseArticleStatusPayload 解析 article.status.changed 载荷。
+func parseArticleStatusPayload(payload interface{}) (articleStatusFields, bool) {
+	switch p := payload.(type) {
+	case event.ArticleStatusChangedPayload:
+		return articleStatusFields{
+			ArticleID: p.ArticleID, From: p.From, To: p.To, Reason: p.Reason, Source: p.Source,
+		}, true
+	case *event.ArticleStatusChangedPayload:
+		if p == nil {
+			return articleStatusFields{}, false
+		}
+		return articleStatusFields{
+			ArticleID: p.ArticleID, From: p.From, To: p.To, Reason: p.Reason, Source: p.Source,
+		}, true
+	case map[string]interface{}:
+		return articleStatusFields{
+			ArticleID: firstNonEmptyStr(strOf(p["article_id"]), strOf(p["articleId"])),
+			From:      strOf(p["from"]),
+			To:        strOf(p["to"]),
+			Reason:    strOf(p["reason"]),
+			Source:    strOf(p["source"]),
+		}, true
+	default:
+		return articleStatusFields{}, false
+	}
+}
+
+// commentStatusFields comment.status.changed 解析结果。
+type commentStatusFields struct {
+	CommentID string
+	From      string
+	To        string
+	Reason    string
+	Source    string
+}
+
+// parseCommentStatusPayload 解析 comment.status.changed 载荷。
+func parseCommentStatusPayload(payload interface{}) (commentStatusFields, bool) {
+	switch p := payload.(type) {
+	case event.CommentStatusChangedPayload:
+		return commentStatusFields{
+			CommentID: p.CommentID, From: p.From, To: p.To, Reason: p.Reason, Source: p.Source,
+		}, true
+	case *event.CommentStatusChangedPayload:
+		if p == nil {
+			return commentStatusFields{}, false
+		}
+		return commentStatusFields{
+			CommentID: p.CommentID, From: p.From, To: p.To, Reason: p.Reason, Source: p.Source,
+		}, true
+	case map[string]interface{}:
+		return commentStatusFields{
+			CommentID: firstNonEmptyStr(strOf(p["comment_id"]), strOf(p["commentId"])),
+			From:      strOf(p["from"]),
+			To:        strOf(p["to"]),
+			Reason:    strOf(p["reason"]),
+			Source:    strOf(p["source"]),
+		}, true
+	default:
+		return commentStatusFields{}, false
+	}
 }
 
 // normalizeContentStatus 事件状态值 → 本域枚举（无法识别返回空串，调用方跳过）。

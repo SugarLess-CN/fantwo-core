@@ -19,6 +19,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"sort"
@@ -489,6 +490,63 @@ func (s *PaymentService) settleInTx(tx *gorm.DB, record *model.Payment, order *m
 	return paid, nil, nil
 }
 
+// CommissionSplit 一次分成计算的纯结果（金额已四舍五入到分）。
+//
+// 抽取为纯函数的目的：分成是最容易算错、也最需要单测的一块，
+// 但它原先埋在「读 config 表 + 写 DB」的事务里，无法脱离数据库测试。
+type CommissionSplit struct {
+	AuthorAmount   float64
+	PlatformAmount float64
+	InviterAmount  float64
+	AuthorRate     float64
+	PlatformRate   float64
+	InviterRate    float64
+}
+
+// round2 金额四舍五入到分（2 位小数）。
+//
+// 防什么 bug：19.9*0.85 = 16.914999999999999，直接落 decimal(10,2) 会被 PG
+// 截断为 16.91，而 Go 里回读/累加用的是原始 float，两边对不上账；
+// 统一先 round2 再写库，保证「余额累加值」与「流水落库值」完全一致。
+func round2(v float64) float64 {
+	if v > 0 {
+		return math.Round(v*100) / 100
+	}
+	return -math.Round(-v*100) / 100 // 负数对称舍入
+}
+
+// splitCommission 计算三方分成（作者/平台/邀请人），全部 round2。
+//
+// 边界语义：
+//   - amount = 0 → 三方金额均为 0（不产生负零）；
+//   - 费率 0 → 该方金额 0；
+//   - 费率 1 → 该方拿全额（作者 100% 时平台/邀请人为 0，取决于配置本身是否自洽）；
+//   - inviterAmount 只在 hasInviter 时算出，否则为 0（避免「无邀请人也写 5% 分成」）。
+func splitCommission(amount float64, cc CommissionConfig, hasInviter bool) CommissionSplit {
+	out := CommissionSplit{
+		AuthorRate:   cc.AuthorRate,
+		PlatformRate: cc.PlatformRate,
+		InviterRate:  cc.InviterRate,
+	}
+	if amount < 0 {
+		amount = 0 // 防御：负金额不应进入分成（订单金额在创建时已校验 > 0）
+	}
+	out.AuthorAmount = round2(amount * cc.AuthorRate)
+	out.PlatformAmount = round2(amount * cc.PlatformRate)
+	if hasInviter {
+		out.InviterAmount = round2(amount * cc.InviterRate)
+	}
+	return out
+}
+
+// isNotifyAlreadySettled 回调幂等判定：支付记录已 SUCCESS 即视为已落账。
+//
+// 防什么 bug：支付网关在未收到 success 应答时会重复回调（微信最多重试 15 次），
+// 若每次都重新扣佣金/改订单，就会出现重复分成。此判定是幂等的第一道闸门。
+func isNotifyAlreadySettled(record *model.Payment) bool {
+	return record != nil && record.Status == model.PaymentStatusSuccess
+}
+
 // writeCommissionInTx 事务内写佣金流水 + 更新邀请人钱包/收益。
 func (s *PaymentService) writeCommissionInTx(tx *gorm.DB, order *model.Order) (*event.CommissionInfo, error) {
 	// 幂等：该订单已有流水则直接返回
@@ -503,11 +561,17 @@ func (s *PaymentService) writeCommissionInTx(tx *gorm.DB, order *model.Order) (*
 	}
 
 	cc := s.getCommissionConfig()
+
+	// 买家是否有邀请人（决定是否产生邀请分成）
+	var buyer model.UserPaymentView
+	hasInviter := tx.First(&buyer, "id = ?", order.UserID).Error == nil && buyer.InviterID != ""
+	split := splitCommission(order.Amount, cc, hasInviter)
+
 	info := &event.CommissionInfo{
-		AuthorRate:     cc.AuthorRate,
-		AuthorAmount:   order.Amount * cc.AuthorRate,
-		PlatformRate:   cc.PlatformRate,
-		PlatformAmount: order.Amount * cc.PlatformRate,
+		AuthorRate:     split.AuthorRate,
+		AuthorAmount:   split.AuthorAmount,
+		PlatformRate:   split.PlatformRate,
+		PlatformAmount: split.PlatformAmount,
 	}
 
 	// 作者入账（平台单 authorId=1 也入账）
@@ -524,20 +588,19 @@ func (s *PaymentService) writeCommissionInTx(tx *gorm.DB, order *model.Order) (*
 		OrderID: order.ID, OrderNo: order.OrderNo,
 		UserID: order.UserID, AuthorID: order.AuthorID,
 		OrderType: order.Type, OrderAmount: order.Amount,
-		InviterRate: cc.InviterRate, AuthorRate: cc.AuthorRate, PlatformRate: cc.PlatformRate,
-		AuthorAmount: info.AuthorAmount, PlatformAmount: info.PlatformAmount,
+		InviterRate: split.InviterRate, AuthorRate: split.AuthorRate, PlatformRate: split.PlatformRate,
+		AuthorAmount: split.AuthorAmount, PlatformAmount: split.PlatformAmount,
 		Status: "PAID", PaidAt: &now,
 	}
-	var buyer model.UserPaymentView
-	if err := tx.First(&buyer, "id = ?", order.UserID).Error; err == nil && buyer.InviterID != "" {
+	if hasInviter {
 		rec.InviterID = buyer.InviterID
-		rec.InviterAmount = order.Amount * cc.InviterRate
+		rec.InviterAmount = split.InviterAmount
 		info.InviterID = buyer.InviterID
-		info.InviterRate = cc.InviterRate
-		info.InviterAmount = rec.InviterAmount
+		info.InviterRate = split.InviterRate
+		info.InviterAmount = split.InviterAmount
 		if err := tx.Model(&model.UserPaymentView{}).Where("id = ?", buyer.InviterID).Updates(map[string]interface{}{
-			"wallet":          gorm.Expr("wallet + ?", rec.InviterAmount),
-			"invite_earnings": gorm.Expr("invite_earnings + ?", rec.InviterAmount),
+			"wallet":          gorm.Expr("wallet + ?", split.InviterAmount),
+			"invite_earnings": gorm.Expr("invite_earnings + ?", split.InviterAmount),
 		}).Error; err != nil {
 			return nil, err
 		}

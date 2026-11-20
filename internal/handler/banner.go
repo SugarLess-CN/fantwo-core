@@ -5,6 +5,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
+	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,9 +50,7 @@ func (h *OpsHandler) BannerList(c *gin.Context) {
 		SortOrder: c.Query("sortOrder"),
 	}
 	// 对齐原实现：无 banner:manage 权限的用户只能看到 active
-	if !isAdmin(c) {
-		q.Status = model.BannerStatusActive
-	}
+	q.Status = service.EffectiveBannerStatus(q.Status, isAdmin(c))
 	lr, err := h.Banner.List(q)
 	if err != nil {
 		fail(c, err)

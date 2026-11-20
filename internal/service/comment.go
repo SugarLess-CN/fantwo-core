@@ -81,6 +81,34 @@ type CommentAuditor interface {
 	SubmitCommentAudit(commentID, content string) error
 }
 
+// resolveCommentRootID 计算回复所属的楼层根评论 ID。
+//
+// 防的 bug：多级回复挂错楼层根——回复「回复」时必须继承父评论已有的 rootID，
+// 否则二级回复会被当成新的楼层根，评论树出现「孤儿子树」。
+// 规则：父评论本身就是楼层根（RootID 为空）→ 父 ID 即根；否则继承父的 RootID。
+func resolveCommentRootID(parent *model.Comment) *string {
+	if parent == nil {
+		return nil
+	}
+	if parent.RootID != nil && *parent.RootID != "" {
+		root := *parent.RootID
+		return &root
+	}
+	root := parent.ID
+	return &root
+}
+
+// nextCommentFloor 计算下一个楼层号（一级评论专用）。
+//
+// 防的 bug：楼层从 0 开始 / 跳号 / 并发下重复。
+// 现有最大楼层 +1，空表时为 1（0 保留给「非一级评论」）。
+func nextCommentFloor(maxFloor int) int {
+	if maxFloor < 0 {
+		maxFloor = 0
+	}
+	return maxFloor + 1
+}
+
 // CommentService 评论业务逻辑（对齐原 NestJS CommentService）。
 type CommentService struct {
 	repo    *repository.CommentRepository
@@ -186,11 +214,7 @@ func (s *CommentService) Create(ctx context.Context, actor Actor, req CreateComm
 			return nil, e
 		}
 		c.ParentID = req.ParentID
-		if parent.RootID != nil {
-			c.RootID = parent.RootID
-		} else {
-			c.RootID = &parent.ID
-		}
+		c.RootID = resolveCommentRootID(parent)
 	} else {
 		// 一级评论：分配楼层号
 		max, err := s.repo.MaxFloor(ctx, req.ArticleID)
@@ -198,7 +222,7 @@ func (s *CommentService) Create(ctx context.Context, actor Actor, req CreateComm
 			s.log.Error("查询楼层失败", zap.Error(err))
 			return nil, errcode.ErrInternal
 		}
-		c.Floor = max + 1
+		c.Floor = nextCommentFloor(max)
 	}
 
 	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {

@@ -104,13 +104,29 @@ func (s *EmojiService) Delete(userID, id string, isAdmin bool) error {
 
 // checkOwner 归属校验：系统表情需管理端；用户表情需本人。
 func (s *EmojiService) checkOwner(e *model.Emoji, userID string, isAdmin bool) error {
-	if e.Type == model.EmojiTypeSystem {
-		if !isAdmin {
-			return errcode.ErrForbidden.With("系统表情只能由管理员维护")
-		}
+	if reject := emojiEditRejection(e, userID, isAdmin); reject != nil {
+		return reject
+	}
+	return nil
+}
+
+// emojiEditRejection 表情编辑/删除的权限判定，返回 nil 表示允许。
+//
+// 防的 bug：
+//   - 普通用户改删系统表情（系统表情是全站资源，只能管理端动）；
+//   - 用户改删别人的表情（水平越权：A 传 B 的 emoji id 就能删）。
+//     无归属（UserID 为空）的第三方/系统遗留数据仅管理端可动。
+func emojiEditRejection(e *model.Emoji, userID string, isAdmin bool) *errcode.Err {
+	if e == nil {
+		return errcode.ErrNotFound.With("表情不存在")
+	}
+	if isAdmin {
 		return nil
 	}
-	if e.UserID != "" && e.UserID != userID && !isAdmin {
+	if e.Type == model.EmojiTypeSystem {
+		return errcode.ErrForbidden.With("系统表情只能由管理员维护")
+	}
+	if e.UserID == "" || e.UserID != userID {
 		return errcode.ErrForbidden.With("只能操作自己的表情")
 	}
 	return nil

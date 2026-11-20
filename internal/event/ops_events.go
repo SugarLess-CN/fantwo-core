@@ -94,6 +94,11 @@ type UserLevelUpPayload struct {
 	Level  int    `json:"level"`
 }
 
+// ProfileCompletedPayload user.profileCompleted 载荷。
+type ProfileCompletedPayload struct {
+	UserID string `json:"userId"`
+}
+
 // MembershipPurchasedPayload membership.purchased 载荷。
 type MembershipPurchasedPayload struct {
 	UserID  string `json:"user_id"`

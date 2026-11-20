@@ -167,8 +167,15 @@ func LoadInfra() *InfraConfig {
 		seen[a] = struct{}{}
 		addresses = append(addresses, a)
 	}
-	for _, a := range cfg.Search.Addresses {
-		addAddr(a)
+	// 1) config.yaml 的 search.addresses（已由 Unmarshal 读入 cfg）。
+	//    但 SEARCH_ADDRESSES 存在时**必须跳过**：viper 的 Unmarshal 会把 JSON 数组型
+	//    环境变量按逗号切成畸形元素（如 `["http://a:9200"` 与 `"http://b:9200"]`），
+	//    此时 cfg.Search.Addresses 已被污染，只能以 parseListEnv 的解析结果为准。
+	//    （回归测试：infra_test.go TestLoadInfra_SearchAddressesEnv/仅_JSON_数组）
+	if strings.TrimSpace(os.Getenv("SEARCH_ADDRESSES")) == "" {
+		for _, a := range cfg.Search.Addresses {
+			addAddr(a)
+		}
 	}
 	if raw := strings.TrimSpace(os.Getenv("SEARCH_ADDRESSES")); raw != "" {
 		for _, a := range parseListEnv(raw) {

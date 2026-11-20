@@ -756,7 +756,7 @@ func (s *UserService) ExecuteDueDeletions(ctx context.Context) (int, *errcode.Er
 			s.d.Logger.Warn("execute deletion failed")
 			continue
 		}
-		_ = authtoken.SetLogoutAll(ctx, s.d.Redis, rec.UserID, now)
+		_ = authtoken.SetLogoutAll(ctx, s.d.AuthTok, rec.UserID, now)
 		count++
 	}
 	return count, nil
@@ -767,5 +767,5 @@ func authtokenBumpOne(ctx context.Context, d *Deps, userID string) {
 	if d.Redis == nil || userID == "" {
 		return
 	}
-	authtoken.BumpPermVer(ctx, d.Redis, userID)
+	authtoken.BumpPermVer(ctx, d.AuthTok, userID)
 }

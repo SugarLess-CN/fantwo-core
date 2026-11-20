@@ -562,7 +562,7 @@ func (s *RoleService) bumpRoleUsers(ctx context.Context, roleID string) int {
 	if len(ids) == 0 {
 		return 0
 	}
-	authtoken.BumpPermVerMany(ctx, s.d.Redis, ids)
+	authtoken.BumpPermVerMany(ctx, s.d.AuthTok, ids)
 	return len(ids)
 }
 

@@ -254,7 +254,7 @@ func (s *OrderService) CancelOrder(id, userID string, hasManage bool) (*model.Or
 	if err != nil {
 		return nil, err
 	}
-	if order.Status != model.OrderStatusPending {
+	if !CanTransition(order.Status, model.OrderStatusCancelled) {
 		return nil, ErrOrderNotPending
 	}
 	if err := s.DB.Model(order).Update("status", model.OrderStatusCancelled).Error; err != nil {
@@ -323,17 +323,52 @@ func (s *OrderService) RequestRefund(id, userID, reason string, hasManage bool) 
 	return &order, nil
 }
 
+// ---------- 订单状态机（可测性抽取；表驱动单测覆盖） ----------
+
+// orderTransitions 订单状态机合法迁移白名单。
+//
+// 状态机（对齐 docs/01：PENDING→PAID/CANCELLED/REFUNDED）：
+//
+//	PENDING   → PAID / CANCELLED / REFUNDED
+//	PAID      → REFUNDED
+//	CANCELLED → （终态）
+//	REFUNDED  → （终态）
+//
+// 防什么 bug：回调乱序/重复投递时，若不做状态守卫就会出现
+// 「已退款订单被回调改回 PAID」「已取消订单被回调改成 PAID」这类脏写。
+var orderTransitions = map[string][]string{
+	model.OrderStatusPending:   {model.OrderStatusPaid, model.OrderStatusCancelled, model.OrderStatusRefunded},
+	model.OrderStatusPaid:      {model.OrderStatusRefunded},
+	model.OrderStatusCancelled: {},
+	model.OrderStatusRefunded:  {},
+}
+
+// CanTransition 判断订单状态迁移是否合法（未知状态一律拒绝）。
+func CanTransition(from, to string) bool {
+	next, ok := orderTransitions[from]
+	if !ok {
+		return false
+	}
+	for _, s := range next {
+		if s == to {
+			return true
+		}
+	}
+	return false
+}
+
 // MarkPaidInTx 事务内标记订单已支付（供 payment 回调复用；状态机守卫：
-// 非 PENDING 时返回 errAlreadyPaid 语义，由调用方决定幂等返回）。
+// 非 PENDING 时返回 ErrOrderNotPending，由调用方决定幂等返回）。
 func MarkPaidInTx(tx *gorm.DB, orderID, method, thirdNo string) (*model.Order, error) {
 	var order model.Order
 	if err := tx.Clauses(dbLocking()).First(&order, "id = ?", orderID).Error; err != nil {
 		return nil, err
 	}
 	if order.Status == model.OrderStatusPaid {
-		return &order, nil // 已支付：幂等
+		return &order, nil // 已支付：幂等返回（回调重投不报错、不重复写）
 	}
-	if order.Status != model.OrderStatusPending {
+	// 状态机守卫：只有 PENDING 能迁到 PAID
+	if !CanTransition(order.Status, model.OrderStatusPaid) {
 		return nil, ErrOrderNotPending
 	}
 	now := time.Now()

@@ -77,8 +77,16 @@ func handleAuditTask(t *asynq.Task, deps AuditWorkerDeps) error {
 	if deps.ProcessRecord == nil {
 		return nil
 	}
-	// asynq msg id 即幂等键；低版本无 MsgID 时回退 record_id
-	msgID := t.ResultWriter().TaskID()
+	// asynq msg id 即幂等键；TaskID 取不到时回退审核记录 ID。
+	//
+	// 2026-11-19 事故：msg_id 用 string 零值导致多条记录都为空串，撞
+	// queue_messages 的 uniqueIndex（SQLSTATE 23505），只有第一条审核记录能建。
+	// 另外 ResultWriter 在某些调用路径（非 server 执行的直接 ProcessTask、
+	// 单测替身）下为 nil，直接解引用会 panic —— 所以先判空再回退。
+	msgID := ""
+	if rw := t.ResultWriter(); rw != nil {
+		msgID = rw.TaskID()
+	}
 	if msgID == "" {
 		msgID = p.RecordID
 	}

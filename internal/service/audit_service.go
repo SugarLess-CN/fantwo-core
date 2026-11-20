@@ -82,7 +82,33 @@ func (s *AuditService) SetSensitiveChecker(fn func(text string) (string, bool)) 
 	return s
 }
 
+// sensitiveResult 命中敏感词时的结果构造（纯函数，便于表驱动单测）。
+//
+// 语义（对齐原 content-audit：autoBlock 决定是硬拦截还是转人工）：
+//   - autoBlock = true  → action=block，passed=false（直接拦下）
+//   - autoBlock = false → action=review，passed=true（放行但进人工复审队列）
+//
+// 防什么 bug：autoBlock 判断反了会导致「配置为拦截却只进复审」（违规内容直接上线），
+// 或「配置为复审却直接拦截」（误封正常内容）。
+func sensitiveResult(word string, autoBlock bool) AuditResult {
+	action := model.AuditActionReview
+	if autoBlock {
+		action = model.AuditActionBlock
+	}
+	return AuditResult{
+		// review 是放行 + 转人工，只有 block 才拦截；
+		// （单测曾抓到写成 action == pass 的 bug：review 被误判为拦截，正常内容被拦下）
+		Passed: action != model.AuditActionBlock,
+		Action: action,
+		Label:  "sensitive_word",
+		Reason: "命中本地敏感词：" + word,
+	}
+}
+
 // checkSensitive 本地敏感词检查：命中即按 autoBlock 决定 block / review。
+//
+// DB 不可用（降级启动 / 单测替身）时按 autoBlock=true 处理：宁可拦下也不放行，
+// 避免「配置读取失败 → 敏感词失效」的静默放过。
 func (s *AuditService) checkSensitive(content string) (AuditResult, bool) {
 	if s.sensitive == nil || content == "" {
 		return AuditResult{}, false
@@ -91,17 +117,11 @@ func (s *AuditService) checkSensitive(content string) (AuditResult, bool) {
 	if !hit {
 		return AuditResult{}, false
 	}
-	cfg := s.LoadAuditConfig()
-	action := model.AuditActionReview
-	if cfg.AutoBlock {
-		action = model.AuditActionBlock
+	autoBlock := true
+	if s.DB != nil {
+		autoBlock = s.LoadAuditConfig().AutoBlock
 	}
-	return AuditResult{
-		Passed: action == model.AuditActionPass,
-		Action: action,
-		Label:  "sensitive_word",
-		Reason: "命中本地敏感词：" + word,
-	}, true
+	return sensitiveResult(word, autoBlock), true
 }
 
 // LoadAuditConfig 从 config 表读审核配置（key 对齐原仓库 content_audit_*）。
@@ -411,9 +431,23 @@ func (s *AuditService) SubmitImageTask(scene, bizType, bizID, imageURL, operator
 
 // ---------- worker 回调（queue/audit.go 处理器调用） ----------
 
+// resolveMsgID 计算队列幂等键：msg_id 为空时回退审核记录 ID。
+//
+// 2026-11-19 事故：msg_id 用 string 零值导致多条记录都为空串，
+// 撞 uniqueIndex（SQLSTATE 23505），只有第一条审核记录能建。
+// 这里做第二道兜底（第一道在 queue.handleAuditTask 的 TaskID 回退），
+// 保证进入去重表的 msg_id 永不为空串。
+func resolveMsgID(msgID, recordID string) string {
+	if msgID != "" {
+		return msgID
+	}
+	return recordID
+}
+
 // ProcessAuditRecord 消费端入口：msg_id 去重 → 调 provider → 写结果 → 跨域事件。
 func (s *AuditService) ProcessAuditRecord(recordID, msgID string) error {
-	// 幂等 1：msg_id 去重表
+	// 幂等 1：msg_id 去重表（空 msg_id 一律回退 recordID，见 resolveMsgID）
+	msgID = resolveMsgID(msgID, recordID)
 	var cnt int64
 	if err := s.DB.Model(&model.QueueMessage{}).Where("msg_id = ?", msgID).Count(&cnt).Error; err != nil {
 		return err
