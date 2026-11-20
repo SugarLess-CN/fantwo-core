@@ -40,6 +40,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/router"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
+	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/SugarLess-CN/fantwo-core/migrations"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cast"
@@ -83,6 +84,18 @@ func main() {
 	var asynqSrv *asynq.Server
 	if rdb != nil {
 		auditSvc := service.NewAuditService(db, queue.FromRedisClient(rdb))
+		// 关键：worker 侧的审核实例同样要注入本地敏感词检查。
+		// 否则 provider=none（自检模式）时 worker 的 sensitive==nil，
+		// 敏感词被完全跳过 → 含违禁词的内容照常 PASSED 放行
+		// （2026-11-21 实测发现：该实例与路由层是两个对象，只给路由层注入不够）。
+		if cfgSvc := infra.NewConfigService(db, rdb); cfgSvc != nil {
+			_ = cfgSvc.EnsureSeeds()
+			_ = cfgSvc.ReloadSensitiveWords()
+			auditSvc.SetSensitiveChecker(cfgSvc.CheckText)
+			logger.Info("审核 worker 已注入本地敏感词检查", zap.Int("trieSize", cfgSvc.TrieSize()))
+		} else {
+			logger.Warn("审核 worker 未能注入敏感词检查（cfgSvc 为 nil）")
+		}
 		mux := asynq.NewServeMux()
 		auditSvc.RegisterQueueHandlers(mux) // 图片/文本审核 worker（并发 5/10，重试 5 次指数退避）
 		asynqSrv = queue.NewServer(cfg.Redis.Addr, cfg.Redis.Password)
