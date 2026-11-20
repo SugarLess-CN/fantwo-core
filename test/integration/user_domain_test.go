@@ -258,12 +258,22 @@ func TestUser_FollowRelationAndCounters(t *testing.T) {
 	if _, e := svc.Unfollow(ctx, a.ID, b.ID); e != nil {
 		t.Fatalf("重复取关不应报错: %+v", e)
 	}
-	var u model.User
-	if err := db.First(&u, "id = ?", b.ID).Error; err != nil {
+	// 冗余计数列必须同步归零（不能只靠关系表实时统计——列表页读的是这两个列）
+	var ub, ua model.User
+	if err := db.First(&ub, "id = ?", b.ID).Error; err != nil {
 		t.Fatalf("回查 B 失败: %v", err)
 	}
-	if u.FollowerCount < 0 {
-		t.Errorf("粉丝计数不应为负，实际 %d", u.FollowerCount)
+	if err := db.First(&ua, "id = ?", a.ID).Error; err != nil {
+		t.Fatalf("回查 A 失败: %v", err)
+	}
+	if ub.FollowerCount != 0 {
+		t.Errorf("取关后 follower_count 应归零，实际 %d（冗余列未同步会让列表页数字错）", ub.FollowerCount)
+	}
+	if ua.FollowingCount != 0 {
+		t.Errorf("取关后 following_count 应归零，实际 %d", ua.FollowingCount)
+	}
+	if ub.FollowerCount < 0 || ua.FollowingCount < 0 {
+		t.Errorf("计数不应为负: follower=%d following=%d", ub.FollowerCount, ua.FollowingCount)
 	}
 }
 
