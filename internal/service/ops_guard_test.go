@@ -19,7 +19,10 @@ import (
 // 这两条都在入库前拦下，DB=nil 也不会 panic。
 func TestPointsAddRejectsNonPositiveAmount(t *testing.T) {
 	svc := NewPointsService(nil)
-	cases := []struct{ name string; amount int }{
+	cases := []struct {
+		name   string
+		amount int
+	}{
 		{"零金额", 0},
 		{"负金额", -50},
 	}
@@ -69,9 +72,9 @@ func TestPointsSpendRejectsNonPositiveAmount(t *testing.T) {
 func TestTryAddByRuleSilentSkipsEmptyArgs(t *testing.T) {
 	svc := NewPointsService(nil)
 	cases := []struct {
-		name   string
-		user   string
-		code   string
+		name string
+		user string
+		code string
 	}{
 		{"空用户", "", "DAILY_LOGIN"},
 		{"空活动码", "u-1", ""},
@@ -241,7 +244,7 @@ func TestPointsRuleBlockReasonNilActivity(t *testing.T) {
 // page<1 产生负 offset → SQL 报错或返回错乱结果。
 func TestNormPageBounds(t *testing.T) {
 	cases := []struct {
-		inPage, inLimit   int
+		inPage, inLimit     int
 		wantPage, wantLimit int
 	}{
 		{0, 0, 1, DefaultPageSize},

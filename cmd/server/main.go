@@ -88,8 +88,9 @@ func main() {
 		// 否则 provider=none（自检模式）时 worker 的 sensitive==nil，
 		// 敏感词被完全跳过 → 含违禁词的内容照常 PASSED 放行
 		// （2026-11-21 实测发现：该实例与路由层是两个对象，只给路由层注入不够）。
-		if cfgSvc := infra.NewConfigService(db, rdb); cfgSvc != nil {
-			_ = cfgSvc.EnsureSeeds()
+		// 与 router 层共用同一实例（infra.Default 是进程级单例），
+		// 避免出现两份敏感词树导致「改词后审核用旧表」。
+		if cfgSvc := infra.Default(db, rdb); cfgSvc != nil {
 			_ = cfgSvc.ReloadSensitiveWords()
 			auditSvc.SetSensitiveChecker(cfgSvc.CheckText)
 			logger.Info("审核 worker 已注入本地敏感词检查", zap.Int("trieSize", cfgSvc.TrieSize()))

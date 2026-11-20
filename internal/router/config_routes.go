@@ -13,17 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// infraConfigSingleton 配置服务单例（内部含一级缓存与敏感词前缀树）。
-var infraConfigSingleton *infra.ConfigService
-
-// infraConfigSvc 取配置服务单例；首次构造时初始化默认配置种子与敏感词树。
+// infraConfigSvc 取进程级配置服务单例（含一级缓存与敏感词前缀树）。
+//
+// 走 infra.Default 而非 NewConfigService：router 与 asynq worker 必须共用同一个实例，
+// 否则敏感词树会有两份，改词后两边生效时间不一致（详见 infra/singleton.go）。
 func infraConfigSvc(opt Option) *infra.ConfigService {
-	if infraConfigSingleton == nil {
-		infraConfigSingleton = infra.NewConfigService(opt.DB, opt.Redis)
-		// 幂等：已存在的 key 不覆盖；DB 不可用时返回 nil 错误，服务降级可用
-		_ = infraConfigSingleton.EnsureSeeds()
-	}
-	return infraConfigSingleton
+	return infra.Default(opt.DB, opt.Redis)
 }
 
 // RegisterConfigRoutes 注册系统配置路由（挂载在 /api/v1 下）。

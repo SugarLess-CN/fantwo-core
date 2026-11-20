@@ -232,10 +232,6 @@ func (s *AchievementService) UpdateProgressBatch(userID string, codes []string, 
 	if userID == "" || len(codes) == 0 {
 		return nil
 	}
-	if s.DB == nil {
-		// 降级启动 / 单测环境：不 panic，返回明确错误（调用方只记日志）
-		return errcode.ErrInternal.With("数据库不可用，成就进度未推进")
-	}
 	if increment <= 0 {
 		increment = 1
 	}
@@ -253,7 +249,12 @@ func (s *AchievementService) UpdateProgressBatch(userID string, codes []string, 
 		unique = append(unique, c)
 	}
 	if len(unique) == 0 {
+		// 全是空串：等价于没有要推进的成就，直接短路（不查库）
 		return nil
+	}
+	if s.DB == nil {
+		// 降级启动 / 单测环境：不 panic，返回明确错误（调用方只记日志）
+		return errcode.ErrInternal.With("数据库不可用，成就进度未推进")
 	}
 
 	defs, err := s.achievements.FindByCodes(s.DB, unique)
