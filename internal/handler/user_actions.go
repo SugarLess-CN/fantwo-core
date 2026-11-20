@@ -305,6 +305,23 @@ func (h *UserActionHandler) CertStatus(c *gin.Context) {
 	response.Success(c, out)
 }
 
+// CertMe GET /user/certification/me（我的全部认证记录）。
+//
+//	@Summary	我的认证记录
+//	@Tags		用户认证
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/certification/me [get]
+func (h *UserActionHandler) CertMe(c *gin.Context) {
+	out, e := h.svc.MyCertifications(c.Request.Context(), middleware.CurrentUserID(c))
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, out)
+}
+
 // CertIdentity GET /user/certification/identity。
 //
 //	@Summary	我的身份标识

@@ -621,6 +621,25 @@ func (s *UserService) LatestCertification(ctx context.Context, userID string) (i
 	return certView(cert), nil
 }
 
+// MyCertifications 我的全部认证记录（GET /user/certification/me）。
+//
+// 与 LatestCertification（/status）的区别：这里返回列表，供前端展示历史申请。
+func (s *UserService) MyCertifications(ctx context.Context, userID string) ([]map[string]interface{}, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, e
+	}
+	rows, err := s.d.Users.ListCertsByUser(s.d.DB, userID)
+	if err != nil {
+		s.d.Logger.Error("list certifications", zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	out := make([]map[string]interface{}, 0, len(rows))
+	for i := range rows {
+		out = append(out, certView(&rows[i]))
+	}
+	return out, nil
+}
+
 // Identity 当前用户认证身份（official / creator / user）。
 func (s *UserService) Identity(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
 	if e := s.d.ready(); e != nil {

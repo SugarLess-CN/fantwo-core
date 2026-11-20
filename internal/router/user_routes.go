@@ -133,6 +133,7 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 
 		// 认证（本人）
 		me.POST("/user/certification/apply", actionH.CertApply)
+		me.GET("/user/certification/me", actionH.CertMe) // 我的认证记录（列表）
 		me.GET("/user/certification/status", actionH.CertStatus)
 		me.GET("/user/certification/identity", actionH.CertIdentity)
 

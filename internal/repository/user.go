@@ -457,6 +457,17 @@ func (r *UserRepo) FindLatestCert(db *gorm.DB, userID string) (*model.UserCertif
 }
 
 // FindApprovedCert 用户已通过的认证。
+// ListCertsByUser 某用户的全部认证记录（新→旧）。
+//
+// 与 FindLatestCert 的区别：Latest 只取最近一条给 /status，
+// List 给 /user/certification/me（"我的认证记录"是列表语义，MCP 文档如此定义）。
+func (r *UserRepo) ListCertsByUser(db *gorm.DB, userID string) ([]model.UserCertification, error) {
+	var out []model.UserCertification
+	err := db.Where("user_id = ?", userID).
+		Order("created_at DESC").Find(&out).Error
+	return out, err
+}
+
 func (r *UserRepo) FindApprovedCert(db *gorm.DB, userID string) (*model.UserCertification, error) {
 	var c model.UserCertification
 	err := db.Where("user_id = ? AND status = ?", userID, model.CertStatusApproved).

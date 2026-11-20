@@ -58,3 +58,30 @@
 ```bash
 go run ./tmp/routeaudit   # 打印全部注册路由 + 总数（tmp 不入 git）
 ```
+
+## 覆盖口径修正（2026-11-21）
+
+**重要**：上文 100% 是对**仓库自带 swagger.json（275 操作）**的覆盖。
+但 `swagger.json` **不是完整清单** —— Apifox MCP（project「PicArt 图片社区 API 文档」）
+里的端点更多，例如：
+
+| MCP 独有端点 | 仓库 swagger.json | 说明 |
+|---|---|---|
+| `/user/certification/{me,status,identity,apply,admin/*}` | ❌ 无 | 实名/创作者认证整套 |
+| `/user/wallet/{balance,transactions,statistics,withdraw}` | ❌ 无 | 钱包与提现 |
+| `/user/commission/{config,calculate}` | ❌ 无 | 抽成配置 |
+| `/user/{id}/{followers,followings}` + count | ❌ 无 | 关注关系查询 |
+| `/user/sign-in/{,records,stats}` | ❌ 无 | 签到 |
+| `/article/browse/{history,stats,recent,batch-delete}` | ❌ 无 | 浏览历史 |
+| `/article/hot-search`、`/article/{id}/profile-pin` | ❌ 无 | 热搜、主页置顶 |
+| `/user/config`、`/user/config/{notifications,commission}` | ❌ 无 | 用户级配置 |
+| `/comment/{id}/pin` | ❌ 无 | 评论置顶 |
+
+**逐条核对结果**：MCP 独有的端点中，除 `GET /user/certification/me` 外全部已实现；
+该端点已于本轮补齐（`UserService.MyCertifications` + `UserCertRepo.ListCertsByUser`），
+实测「申请认证 → /me 返回记录」链路通过。
+
+**结论**：以 **仓库 swagger.json ∪ MCP 文档** 为准，实际覆盖已完整（路由总数 343 条）。
+
+**教训**：验收"覆盖率 100%"时必须先确认基准清单本身完整。
+只比对单一数据源会漏掉数据源之间不重叠的部分。
