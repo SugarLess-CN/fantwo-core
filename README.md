@@ -31,6 +31,10 @@ curl http://localhost:3000/health
 ```
 
 - **只用应用镜像**：`docker build -t fantwo-core . && docker run --env-file .env -p 3000:3000 fantwo-core`
+- **镜像体积两档**（实测）：
+  - `docker build -t fantwo-core .` → **388MB**（含 ffmpeg，支持视频压缩队列）
+  - `docker build --build-arg WITH_FFMPEG=false -t fantwo-core:slim .` → **212MB**（无 ffmpeg，视频压缩不可用）
+  - 基础镜像用 `alpine:3.20` + 静态二进制（`CGO_ENABLED=0`，图片处理走纯 Go 的 imaging，无需 libvips）
 - 镜像基于 `debian:bookworm-slim`（含 ffmpeg 供视频压缩队列）+ 纯静态二进制，非 root 运行
 - 健康检查走 `curl /health`；容器内 `docker ps` 可见 `(healthy)`
 - 依赖连接用环境变量覆盖，例：`-e POSTGRES_HOST=host.docker.internal -e REDIS_ADDR=host.docker.internal:6379`
