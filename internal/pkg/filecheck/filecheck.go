@@ -33,6 +33,14 @@ var ErrUnsupportedMime = errors.New("不支持的文件类型")
 // ErrMimeMismatch 魔数与声明类型不匹配。
 var ErrMimeMismatch = errors.New("文件真实类型与声明不匹配")
 
+// ErrMediaWithoutMagic 声明为图片/音视频，但头部嗅不出任何已知魔数。
+//
+// 为什么单独一条错误：图片/视频/音频格式**必定**有明确魔数（PNG/JPEG/GIF/WebP/MP4/...），
+// 嗅探不出说明内容根本不是该媒体类型（典型：脚本或纯文本伪装成 image/png）。
+// 此前这类请求被「宽松放行」，虽因落盘扩展名由声明的白名单 MIME 推导而无法执行，
+// 但会污染后续图片处理流程（解码失败、缩略图跳过）。
+var ErrMediaWithoutMagic = errors.New("媒体文件缺少可识别的文件头")
+
 // mimeExtensions MIME → 允许的扩展名（不区分大小写）。
 // 对齐 media.constants 的 UPLOAD_* 清单，并补上同族的二进制压缩包别名。
 var mimeExtensions = map[string][]string{
@@ -265,7 +273,12 @@ func Verify(declaredMime string, head []byte) (ext string, err error) {
 
 	detectedExt, _ := Detect(head)
 	if detectedExt == "" {
-		return "", nil // 嗅探不出：放行（对齐原实现）
+		// 图片/音视频必有魔数：嗅探不出即视为伪造，拒绝。
+		// 其它类型（文档/压缩包等）格式多样，嗅探不一定覆盖，保持宽松放行（对齐原实现）。
+		if k := Kind(declared); k == KindImage || k == KindVideo || k == KindAudio {
+			return "", ErrMediaWithoutMagic
+		}
+		return "", nil // 非媒体类：嗅探不出放行
 	}
 	for _, e := range allowed {
 		if strings.EqualFold(e, detectedExt) {

@@ -207,3 +207,135 @@ func (s stubConfig) GetInt(key string, def int) int {
 
 // ensure model 引用保留（wallet/用户视图测试共用）。
 var _ = model.User{}
+
+// TestGithubStateOneTimeUse state 一次性消费（防 CSRF 重放）。
+//
+// 防的 bug：state 校验后不删除 → 同一个 state 可被反复用于换 token（重放授权码）。
+func TestGithubStateOneTimeUse(t *testing.T) {
+	kv := newMemKV()
+	d := NewDeps(nil, nil, nil, nil, nil)
+	d.AuthTok = kv
+	d.Cfg = stubConfig{
+		cfgGithubClientID:     "cid",
+		cfgGithubClientSecret: "secret",
+	}
+	g := NewGithubOAuth(d)
+	if _, err := g.AuthorizeURL(context.Background(), "state-1"); err != nil {
+		t.Fatalf("生成授权链接失败: %v", err)
+	}
+	if !g.VerifyState(context.Background(), "state-1") {
+		t.Fatal("首次校验应通过")
+	}
+	if g.VerifyState(context.Background(), "state-1") {
+		t.Error("同一 state 第二次校验应失败（一次性）")
+	}
+	if g.VerifyState(context.Background(), "") {
+		t.Error("空 state 应校验失败")
+	}
+	if g.VerifyState(context.Background(), "never-issued") {
+		t.Error("未签发的 state 应校验失败")
+	}
+}
+
+// TestEncodeHeaderNonASCII 中文标题/发件人名用 RFC 2047 编码，纯 ASCII 原样。
+//
+// 防的 bug：中文主题未编码 → 收件箱显示乱码或被 SMTP 服务器拒收。
+func TestEncodeHeaderNonASCII(t *testing.T) {
+	if got := encodeHeader("Plain Subject"); got != "Plain Subject" {
+		t.Errorf("ASCII 应原样返回，实际 %q", got)
+	}
+	got := encodeHeader("重置密码验证码")
+	if !strings.HasPrefix(got, "=?UTF-8?B?") || !strings.HasSuffix(got, "?=") {
+		t.Errorf("中文应做 RFC 2047 编码，实际 %q", got)
+	}
+}
+
+// TestBase64LinesWrapping MIME base64 每行不超过 76 字符且以 CRLF 结尾。
+//
+// 防的 bug：不折行 → 部分 SMTP 网关截断/拒收长行（邮件乱码或丢失）。
+func TestBase64LinesWrapping(t *testing.T) {
+	out := base64Lines([]byte(strings.Repeat("PicArt-验证码-", 40)))
+	if !strings.HasSuffix(out, "\r\n") {
+		t.Error("MIME 正文应以 CRLF 结尾")
+	}
+	for _, line := range strings.Split(strings.TrimSuffix(out, "\r\n"), "\r\n") {
+		if len(line) > 76 {
+			t.Errorf("base64 行超出 76 字符: %d", len(line))
+		}
+	}
+}
+
+// TestSMSSenderChannelFailover 多渠道：首个渠道失败自动切下一个（可用性要求）。
+//
+// 防的 bug：只尝试第一个渠道，主渠道挂了短信全发不出（用户无法登录）。
+func TestSMSSenderChannelFailover(t *testing.T) {
+	badCalls, goodCalls := 0, 0
+	bad := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		badCalls++
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer bad.Close()
+	good := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		goodCalls++
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer good.Close()
+
+	channels := []SMSChannel{
+		{Name: "primary", Enabled: true, URL: bad.URL, BodyTemplate: "{{code}}"},
+		{Name: "backup", Enabled: true, URL: good.URL, BodyTemplate: "{{code}}",
+			SuccessContains: []string{`"ok":true`}},
+	}
+	raw, _ := json.Marshal(channels)
+	d := NewDeps(nil, nil, nil, nil, nil)
+	d.Cfg = stubConfig{"sms_channels": string(raw)}
+
+	if err := NewSMSSender(d).Send(context.Background(), "13800138000", "111111", "login"); err != nil {
+		t.Fatalf("备用渠道可用时应成功: %v", err)
+	}
+	if badCalls != 1 || goodCalls != 1 {
+		t.Errorf("应各调用一次，实际 bad=%d good=%d", badCalls, goodCalls)
+	}
+}
+
+// TestSMSSenderGETMethod GET 方式发送（部分网关只支持 query 传参）。
+func TestSMSSenderGETMethod(t *testing.T) {
+	var gotQuery string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotQuery = r.URL.RawQuery
+		_, _ = w.Write([]byte("success"))
+	}))
+	defer srv.Close()
+
+	raw, _ := json.Marshal([]SMSChannel{{
+		Name: "get-gw", Enabled: true, URL: srv.URL, Method: "GET",
+		BodyTemplate: `{"code":"{{code}}"}`, SuccessContains: []string{"success"},
+	}})
+	d := NewDeps(nil, nil, nil, nil, nil)
+	d.Cfg = stubConfig{"sms_channels": string(raw)}
+	if err := NewSMSSender(d).Send(context.Background(), "13800138000", "246810", "login"); err != nil {
+		t.Fatalf("GET 渠道发送失败: %v", err)
+	}
+	if !strings.Contains(gotQuery, "payload=") {
+		t.Errorf("GET 请求应把模板放进 query，实际 %q", gotQuery)
+	}
+}
+
+// TestSMSChannelsDisabledIgnored 关闭的渠道/非法 JSON 视为未配置（降级为开发模式）。
+//
+// 防的 bug：enabled=false 的渠道仍被调用，或非法 JSON 直接 panic 让发送接口 500。
+func TestSMSChannelsDisabledIgnored(t *testing.T) {
+	d := NewDeps(nil, nil, nil, nil, nil)
+
+	d.Cfg = stubConfig{"sms_channels": `[{"name":"off","enabled":false,"url":"http://127.0.0.1:1/x"}]`}
+	if NewSMSSender(d).Configured() {
+		t.Error("全部渠道关闭时应 Configured=false")
+	}
+	d.Cfg = stubConfig{"sms_channels": `not-a-json`}
+	if NewSMSSender(d).Configured() {
+		t.Error("非法 JSON 应降级为未配置")
+	}
+	if err := NewSMSSender(d).Send(context.Background(), "13800138000", "1", "login"); err != ErrProviderNotConfigured {
+		t.Errorf("非法配置时应返回 ErrProviderNotConfigured，实际 %v", err)
+	}
+}

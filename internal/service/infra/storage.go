@@ -465,6 +465,9 @@ func (f *Infra) checkMagic(fh *multipart.FileHeader) error {
 		if errors.Is(verr, filecheck.ErrMimeMismatch) {
 			return errcode.ErrBadRequest.Withf("文件真实类型与声明不匹配: 声明为 %s", declared)
 		}
+		if errors.Is(verr, filecheck.ErrMediaWithoutMagic) {
+			return errcode.ErrBadRequest.Withf("文件内容不是有效的 %s 文件（文件头无法识别）", declared)
+		}
 		return errcode.ErrBadRequest.Withf("文件校验失败: %v", verr)
 	}
 	// 嗅探不出格式：放行（对齐原 FileTypeUtil 宽松策略）
