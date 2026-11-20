@@ -13,6 +13,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/migrations"
 )
 
 // TestAchievementSubscribedTopicsCoverage 订阅表必须覆盖所有「会产生成就进度」的事件。
@@ -399,17 +400,12 @@ func TestAchievementTriggersMappingIntegrity(t *testing.T) {
 // 防的 bug：代码里写 "FIRST_ARTILCE" 这类拼写错误时，UpdateProgressBatch 查不到
 // 成就定义就静默 return nil —— 用户永远解锁不了，日志也没有。
 func TestAchievementTriggerCodesExistInSeed(t *testing.T) {
-	// 种子 code 清单（与 migrations/seed.go 的 achievementSeeds 保持同步；
-	// 跨包引用会引入环依赖，故在此显式列出，并在 seed 变更时同步本表）。
-	seeded := map[string]bool{
-		"FIRST_ARTICLE": true, "ARTICLE_10": true, "ARTICLE_50": true, "ARTICLE_100": true,
-		"FIRST_LIKE": true, "LIKE_100": true, "LIKE_1000": true,
-		"FIRST_COMMENT": true, "COMMENT_100": true,
-		"FIRST_FOLLOW": true, "FOLLOW_10": true,
-		"FIRST_FOLLOWER": true, "FOLLOWER_100": true, "FOLLOWER_1000": true,
-		"LEVEL_10": true, "LEVEL_30": true, "LEVEL_50": true,
-		"LOGIN_7_DAYS": true, "LOGIN_30_DAYS": true,
-		"BECOME_MEMBER": true, "PROFILE_COMPLETED": true,
+	// 种子 code 清单直接读 migrations 的导出函数，不再手抄一份。
+	// 依赖方向 service(test) → migrations → model，无环；
+	// 种子新增/改名会立刻反映到此断言，不会出现「测试清单与种子漂移」。
+	seeded := map[string]bool{}
+	for _, c := range migrations.AchievementCodes() {
+		seeded[c] = true
 	}
 	for topic, codes := range event.AchievementTriggers {
 		for _, c := range codes {
@@ -457,4 +453,43 @@ func TestAchievementSubscribeRegistersAllTopics(t *testing.T) {
 	if called != len(achievementSubscribedTopics) {
 		t.Errorf("发布 %d 次，期望 %d 次", called, len(achievementSubscribedTopics))
 	}
+}
+
+// TestPayloadFieldStringExoticKinds 反射取值对非字符串类型的处理。
+//
+// 防的 bug：
+//  1. payload 里 userId 是 []byte（json.RawMessage）时取不到 → 事件被丢弃；
+//  2. 字段类型不符（int）时若强转会 panic，应安全返回空串；
+//  3. 实现了 fmt.Stringer 的自定义 ID 类型应能取出。
+func TestPayloadFieldStringExoticKinds(t *testing.T) {
+	t.Run("[]byte 字段", func(t *testing.T) {
+		payload := map[string]interface{}{"userId": []byte("u-bytes")}
+		if got := payloadFieldString(payload, "userId"); got != "u-bytes" {
+			t.Errorf("[]byte 取值 = %q, want u-bytes", got)
+		}
+	})
+	t.Run("int 字段不 panic 且返回空", func(t *testing.T) {
+		payload := map[string]interface{}{"userId": 123}
+		if got := payloadFieldString(payload, "userId"); got != "" {
+			t.Errorf("int 字段应返回空串，实际 %q", got)
+		}
+	})
+	t.Run("非字符串 Key 的 map", func(t *testing.T) {
+		payload := map[int]string{1: "u-1"}
+		if got := payloadFieldString(payload, "userId"); got != "" {
+			t.Errorf("非字符串 Key 的 map 应返回空串，实际 %q", got)
+		}
+	})
+	t.Run("数组载荷", func(t *testing.T) {
+		if got := payloadFieldString([]string{"u-1"}, "userId"); got != "" {
+			t.Errorf("数组载荷应返回空串，实际 %q", got)
+		}
+	})
+	t.Run("嵌套指针链", func(t *testing.T) {
+		p := &event.ArticleCreatedPayload{UserID: "u-nested"}
+		pp := &p
+		if got := payloadFieldString(pp, "userId"); got != "u-nested" {
+			t.Errorf("多重指针取值 = %q, want u-nested", got)
+		}
+	})
 }

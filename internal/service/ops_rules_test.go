@@ -413,3 +413,63 @@ func TestOrderPaidSideEffectRouting(t *testing.T) {
 		t.Fatal("副作用事件集合应恰为 order.paid + invite.used")
 	}
 }
+
+// TestTaskClaimRejection 任务奖励领取幂等（三态缺一不可）。
+//
+// 防的 bug：只判「是否完成」不判「是否已领取」→ 用户连点领取按钮可无限刷积分；
+// 或反过来漏判「未完成」→ 未达成任务也能领。
+func TestTaskClaimRejection(t *testing.T) {
+	now := time.Now()
+	cases := []struct {
+		name   string
+		record *model.PointsTaskRecord
+		want   string
+	}{
+		{"无任务记录 → 拒绝", nil, "任务记录不存在"},
+		{"未完成 → 拒绝", &model.PointsTaskRecord{IsCompleted: false}, "任务尚未完成"},
+		{"已完成未领取 → 放行", &model.PointsTaskRecord{IsCompleted: true}, ""},
+		{"已完成已领取 → 拒绝（幂等）", &model.PointsTaskRecord{IsCompleted: true, IsRewarded: true, RewardedAt: &now}, "奖励已领取"},
+		{"未完成但标记已领取（脏数据）→ 仍按未完成拒绝", &model.PointsTaskRecord{IsCompleted: false, IsRewarded: true}, "任务尚未完成"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reject := taskClaimRejection(tc.record)
+			got := ""
+			if reject != nil {
+				got = reject.Msg
+			}
+			if got != tc.want {
+				t.Errorf("rejection = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// TestAchievementClaimRejection 成就奖励领取幂等（三态）。
+//
+// 防的 bug：同一成就重复领取 → 重复发积分/经验/装饰品（装饰品会重复入库）。
+func TestAchievementClaimRejection(t *testing.T) {
+	now := time.Now()
+	cases := []struct {
+		name string
+		ua   *model.UserAchievement
+		want string
+	}{
+		{"无进度记录 → 拒绝", nil, "成就不存在或尚未开始"},
+		{"未完成 → 拒绝", &model.UserAchievement{Completed: false}, "成就尚未完成"},
+		{"已完成未领取 → 放行", &model.UserAchievement{Completed: true, CompletedAt: &now}, ""},
+		{"已领取 → 拒绝（幂等）", &model.UserAchievement{Completed: true, Claimed: true, ClaimedAt: &now}, "奖励已领取"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reject := achievementClaimRejection(tc.ua)
+			got := ""
+			if reject != nil {
+				got = reject.Msg
+			}
+			if got != tc.want {
+				t.Errorf("rejection = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}

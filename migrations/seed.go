@@ -112,6 +112,28 @@ type achievementSeed struct {
 	Sort          int
 }
 
+// AchievementCodes 返回全部种子成就的 code 清单。
+//
+// 导出给测试用：internal/service 的成就映射表校验直接读这里，
+// 避免测试手抄一份 code 清单、种子变更后不同步（人工同步迟早漂移）。
+// 依赖方向：service(test) → migrations → model，无环。
+func AchievementCodes() []string {
+	out := make([]string, 0, len(achievementSeeds))
+	for _, s := range achievementSeeds {
+		out = append(out, s.Code)
+	}
+	return out
+}
+
+// PointsActivityCodes 返回全部种子积分活动的 code 清单（同上，给测试用）。
+func PointsActivityCodes() []string {
+	out := make([]string, 0, len(pointsActivitySeeds))
+	for _, s := range pointsActivitySeeds {
+		out = append(out, s.Code)
+	}
+	return out
+}
+
 // achievementSeeds 21 条成就（顺序与原 seed 文件一致）。
 var achievementSeeds = []achievementSeed{
 	{"FIRST_ARTICLE", "初出茅庐", "发布第一篇文章", model.AchievementTypeArticle, model.AchievementRarityCommon, "count", 1, "article.created", 10, 50, 1},

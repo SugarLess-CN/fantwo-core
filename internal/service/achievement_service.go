@@ -333,14 +333,8 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 	if err != nil {
 		return nil, err
 	}
-	if ua == nil {
-		return nil, errcode.ErrNotFound.With("成就不存在或尚未开始")
-	}
-	if !ua.Completed {
-		return nil, errcode.ErrBadRequest.With("成就尚未完成")
-	}
-	if ua.Claimed {
-		return nil, errcode.ErrBadRequest.With("奖励已领取")
+	if reject := achievementClaimRejection(ua); reject != nil {
+		return nil, reject
 	}
 	def, err := s.achievements.FindByID(s.DB, achievementID)
 	if err != nil {
@@ -390,6 +384,23 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 		Exp:          def.RewardExp,
 		DecorationID: def.RewardDecorationID,
 	}, nil
+}
+
+// achievementClaimRejection 成就奖励领取的前置判定，返回 nil 表示可领。
+//
+// 幂等三态（与任务奖励一致）：无进度记录 → 不存在；未完成 → 拒绝；
+// 已领取 → 拒绝（重复领取不会重复发积分/经验/装饰品）。
+func achievementClaimRejection(ua *model.UserAchievement) *errcode.Err {
+	if ua == nil {
+		return errcode.ErrNotFound.With("成就不存在或尚未开始")
+	}
+	if !ua.Completed {
+		return errcode.ErrBadRequest.With("成就尚未完成")
+	}
+	if ua.Claimed {
+		return errcode.ErrBadRequest.With("奖励已领取")
+	}
+	return nil
 }
 
 // ClaimResult 领取结果。

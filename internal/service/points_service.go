@@ -15,7 +15,6 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // PointsService 积分业务。
@@ -26,10 +25,18 @@ type PointsService struct {
 	activities repository.PointsActivityRepo
 	tasks      repository.PointsTaskRecordRepo
 	txs        repository.PointsTxRepo
+
+	// ledger 余额变动入口（生产为 GormLedger，测试可注入内存替身）。
+	ledger PointsLedger
 }
 
 // NewPointsService 构造。
-func NewPointsService(db *gorm.DB) *PointsService { return &PointsService{DB: db} }
+func NewPointsService(db *gorm.DB) *PointsService {
+	return &PointsService{DB: db, ledger: GormLedger{DB: db}}
+}
+
+// SetLedger 替换账本实现（单测注入内存替身用；生产不调用）。
+func (s *PointsService) SetLedger(l PointsLedger) { s.ledger = l }
 
 // AddPointsInput 增加积分入参（对齐原 AddPointsDto）。
 type AddPointsInput struct {
@@ -57,26 +64,7 @@ type PointsChangeResult struct {
 	Transaction   *model.PointsTransaction `json:"transaction"`
 }
 
-// ensureAccount 取（必要时创建）用户积分账户并在事务内加行锁。
-// OnConflict DoNothing + user_id 唯一索引保证并发下只建一行。
-func (s *PointsService) ensureAccount(tx *gorm.DB, userID string) (*model.PointsAccount, error) {
-	if err := tx.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "user_id"}},
-		DoNothing: true,
-	}).Create(&model.PointsAccount{UserID: userID}).Error; err != nil {
-		return nil, err
-	}
-	acc, err := s.accounts.FindByUserForUpdate(tx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if acc == nil {
-		return nil, errcode.ErrInternal.With("积分账户创建失败")
-	}
-	return acc, nil
-}
-
-// Add 发放积分（事务 + 行锁 + 流水）。
+// Add 发放积分（余额变动 + 流水走 PointsLedger）。
 func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResult, error) {
 	if in.Amount <= 0 {
 		return nil, errcode.ErrBadRequest.With("积分数量必须大于 0")
@@ -86,40 +74,17 @@ func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResu
 		t := time.Now().AddDate(0, 0, in.ValidDays)
 		expiredAt = &t
 	}
-
-	var result *PointsChangeResult
-	err := s.DB.Transaction(func(tx *gorm.DB) error {
-		acc, err := s.ensureAccount(tx, userID)
-		if err != nil {
-			return err
-		}
-		acc.Balance += in.Amount
-		acc.TotalEarned += int64(in.Amount)
-		if err := tx.Save(acc).Error; err != nil {
-			return err
-		}
-
-		txRow := &model.PointsTransaction{
-			UserID:      userID,
-			Amount:      in.Amount,
-			Balance:     acc.Balance,
-			Type:        model.PointsTxEarn,
-			Source:      in.Source,
-			RelatedType: in.RelatedType,
-			RelatedID:   in.RelatedID,
-			Description: in.Description,
-			ExpiredAt:   expiredAt,
-		}
-		if err := s.txs.Create(tx, txRow); err != nil {
-			return err
-		}
-		result = &PointsChangeResult{Amount: in.Amount, CurrentPoints: acc.Balance, Transaction: txRow}
-		return nil
+	balance, record, err := s.ledger.Change(userID, in.Amount, LedgerMeta{
+		Source:      in.Source,
+		Description: in.Description,
+		RelatedType: in.RelatedType,
+		RelatedID:   in.RelatedID,
+		ExpiredAt:   expiredAt,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &PointsChangeResult{Amount: in.Amount, CurrentPoints: balance, Transaction: record}, nil
 }
 
 // Spend 消费积分（余额不足直接失败，不会扣成负数）。
@@ -127,41 +92,16 @@ func (s *PointsService) Spend(userID string, in SpendPointsInput) (*PointsChange
 	if in.Amount <= 0 {
 		return nil, errcode.ErrBadRequest.With("积分数量必须大于 0")
 	}
-	var result *PointsChangeResult
-	err := s.DB.Transaction(func(tx *gorm.DB) error {
-		acc, err := s.ensureAccount(tx, userID)
-		if err != nil {
-			return err
-		}
-		if !balanceSufficient(acc.Balance, in.Amount) {
-			return errcode.ErrBadRequest.With("积分不足")
-		}
-		acc.Balance -= in.Amount
-		acc.TotalSpent += int64(in.Amount)
-		if err := tx.Save(acc).Error; err != nil {
-			return err
-		}
-
-		txRow := &model.PointsTransaction{
-			UserID:      userID,
-			Amount:      -in.Amount,
-			Balance:     acc.Balance,
-			Type:        model.PointsTxSpend,
-			Source:      in.Source,
-			RelatedType: in.RelatedType,
-			RelatedID:   in.RelatedID,
-			Description: in.Description,
-		}
-		if err := s.txs.Create(tx, txRow); err != nil {
-			return err
-		}
-		result = &PointsChangeResult{Amount: in.Amount, CurrentPoints: acc.Balance, Transaction: txRow}
-		return nil
+	balance, record, err := s.ledger.Change(userID, -in.Amount, LedgerMeta{
+		Source:      in.Source,
+		Description: in.Description,
+		RelatedType: in.RelatedType,
+		RelatedID:   in.RelatedID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &PointsChangeResult{Amount: in.Amount, CurrentPoints: balance, Transaction: record}, nil
 }
 
 // AddByRule 按活动代码发放积分（校验每日/总限额，对齐原 addPointsByRule）。
@@ -353,14 +293,8 @@ func (s *PointsService) ClaimTaskReward(userID, activityID string) (*PointsChang
 	if err != nil {
 		return nil, err
 	}
-	if record == nil {
-		return nil, errcode.ErrNotFound.With("任务记录不存在")
-	}
-	if !record.IsCompleted {
-		return nil, errcode.ErrBadRequest.With("任务尚未完成")
-	}
-	if record.IsRewarded {
-		return nil, errcode.ErrBadRequest.With("奖励已领取")
+	if reject := taskClaimRejection(record); reject != nil {
+		return nil, reject
 	}
 
 	result, err := s.Add(userID, AddPointsInput{
@@ -380,6 +314,25 @@ func (s *PointsService) ClaimTaskReward(userID, activityID string) (*PointsChang
 		return nil, err
 	}
 	return result, nil
+}
+
+// taskClaimRejection 任务奖励领取的前置判定，返回 nil 表示可领。
+//
+// 幂等三态（缺一不可，否则可重复领奖刷积分）：
+//  1. 无任务记录 → 不存在（未参与任务不能领）；
+//  2. 未完成 → 拒绝；
+//  3. 已领取 → 拒绝（这是幂等的核心：重复点「领取」不会重复发分）。
+func taskClaimRejection(record *model.PointsTaskRecord) *errcode.Err {
+	if record == nil {
+		return errcode.ErrNotFound.With("任务记录不存在")
+	}
+	if !record.IsCompleted {
+		return errcode.ErrBadRequest.With("任务尚未完成")
+	}
+	if record.IsRewarded {
+		return errcode.ErrBadRequest.With("奖励已领取")
+	}
+	return nil
 }
 
 // MyTasks 我的任务记录。
