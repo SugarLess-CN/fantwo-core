@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/migrations"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -91,6 +92,11 @@ func migrateTestSchema(t *testing.T, db *gorm.DB) {
 	); err != nil {
 		t.Fatalf("迁移内容域表失败: %v", err)
 	}
+	// 运营域：复用生产同一份迁移清单（migrations.OpsModels），
+	// 避免测试手抄表清单与生产漂移。
+	if err := db.AutoMigrate(migrations.OpsModels()...); err != nil {
+		t.Fatalf("迁移运营域表失败: %v", err)
+	}
 }
 
 // cleanTables 清空指定表（集成测试每个用例前调用，保证互不影响）。
@@ -106,7 +112,21 @@ func cleanTables(t *testing.T, db *gorm.DB, tables ...string) {
 			t.Fatalf("非法表名: %q", tables[i])
 		}
 	}
-	stmt := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", strings.Join(tables, ", "))
+	// 表名必须加双引号：user / order / group 等都是 PostgreSQL 保留字，
+	// 裸写会 SQLSTATE 42601 syntax error（实测 user 表直接报错）。
+	existing := make([]string, 0, len(tables))
+	for _, tb := range tables {
+		var ok bool
+		db.Raw(`SELECT EXISTS (SELECT 1 FROM information_schema.tables
+			WHERE table_schema='public' AND table_name = ?)`, tb).Scan(&ok)
+		if ok {
+			existing = append(existing, `"`+tb+`"`)
+		}
+	}
+	if len(existing) == 0 {
+		return
+	}
+	stmt := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", strings.Join(existing, ", "))
 	if err := db.Exec(stmt).Error; err != nil {
 		t.Fatalf("清表失败（%s）: %v", stmt, err)
 	}

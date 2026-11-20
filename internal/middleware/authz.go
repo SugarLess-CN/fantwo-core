@@ -22,9 +22,9 @@ const CtxTokenKey = "auth_token"
 // rdb 为 nil 时退化为纯 JWT 校验（骨架降级语义）。
 func JWTAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, token, ok := parseBearerV2(c, signer, st)
-		if !ok {
-			response.Fail(c, errcode.ErrNeedAuth)
+		claims, token, authErr := parseBearerV2(c, signer, st)
+		if authErr != nil {
+			response.Fail(c, authErr)
 			return
 		}
 		c.Set(CtxUserKey, claims)
@@ -36,8 +36,8 @@ func JWTAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 // OptionalAuthV2 可选登录：失败放行（claims=nil），对齐原 @NoAuth 可选语义。
 func OptionalAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, token, ok := parseBearerV2(c, signer, st)
-		if ok {
+		claims, token, authErr := parseBearerV2(c, signer, st)
+		if authErr == nil {
 			c.Set(CtxUserKey, claims)
 			c.Set(CtxTokenKey, token)
 		} else {
@@ -97,33 +97,37 @@ func CurrentToken(c *gin.Context) string {
 }
 
 // parseBearerV2 解析并完成全部认证态校验。
-func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jwtx.Claims, string, bool) {
+//
+// 错误码区分（客户端据此决定动作）：
+//   - 2001 ErrNeedAuth：缺 token / 验签失败 / 已登出 / 全端登出后失效 → 去登录；
+//   - 2002 ErrPermVersionStale：token 有效但权限版本落后 → 刷新 token 或重新登录。
+func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jwtx.Claims, string, *errcode.Err) {
 	h := c.GetHeader("Authorization")
 	if h == "" {
-		return nil, "", false
+		return nil, "", errcode.ErrNeedAuth
 	}
 	token := strings.TrimPrefix(h, "Bearer ")
 	if token == h {
-		return nil, "", false
+		return nil, "", errcode.ErrNeedAuth
 	}
 	claims, err := signer.Parse(token)
 	if err != nil {
-		return nil, "", false
+		return nil, "", errcode.ErrNeedAuth
 	}
 	ctx := c.Request.Context()
 	// 1) 单端登出黑名单
 	if authtoken.Blacklisted(ctx, st, token) {
-		return nil, "", false
+		return nil, "", errcode.ErrNeedAuth
 	}
 	// 2) 全端登出：签发时间早于登出时刻的 token 全部失效
 	if at := authtoken.LogoutAllAt(ctx, st, claims.UserID); !at.IsZero() {
 		if claims.IssuedAt != nil && claims.IssuedAt.Time.Before(at.Add(time.Second)) {
-			return nil, "", false
+			return nil, "", errcode.ErrNeedAuth
 		}
 	}
-	// 3) 权限版本比对
+	// 3) 权限版本比对：不一致要求刷新（权限已变更）
 	if cur := authtoken.PermVer(ctx, st, claims.UserID); cur != claims.PermVer {
-		return nil, "", false
+		return nil, "", errcode.ErrPermVersionStale
 	}
-	return claims, token, true
+	return claims, token, nil
 }
