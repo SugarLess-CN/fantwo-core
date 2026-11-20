@@ -44,8 +44,8 @@ func (Permission) TableName() string { return "permission" }
 // RolePermission 角色-权限关联表（GORM many2many 的显式模型，
 // 与 Role.Permissions 的 join 表同名同列；提供精确的 AutoMigrate 列定义）。
 type RolePermission struct {
-	RoleID       string    `gorm:"column:role_id;type:char(36);primaryKey" json:"roleId"`
-	PermissionID string    `gorm:"column:permission_id;type:char(36);primaryKey" json:"permissionId"`
+	RoleID       string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"roleId"`
+	PermissionID string    `gorm:"column:permission_id;type:varchar(36);primaryKey" json:"permissionId"`
 	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 }
 
@@ -54,7 +54,7 @@ func (RolePermission) TableName() string { return "role_permissions" }
 
 // RoleMenu 角色-菜单关联表（PUT /admin/roles/{id}/menus 的落点）。
 type RoleMenu struct {
-	RoleID    string    `gorm:"column:role_id;type:char(36);primaryKey" json:"roleId"`
+	RoleID    string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"roleId"`
 	MenuKey   string    `gorm:"column:menu_key;type:varchar(128);primaryKey" json:"menuKey"`
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 }

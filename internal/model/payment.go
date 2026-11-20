@@ -25,8 +25,8 @@ const (
 // Payment 支付记录。
 type Payment struct {
 	BaseModel
-	OrderID           string                 `gorm:"type:char(36);index;comment:订单ID" json:"orderId"`
-	UserID            string                 `gorm:"type:char(36);index;comment:用户ID" json:"userId"`
+	OrderID           string                 `gorm:"type:varchar(36);index;comment:订单ID" json:"orderId"`
+	UserID            string                 `gorm:"type:varchar(36);index;comment:用户ID" json:"userId"`
 	PaymentMethod     string                 `gorm:"type:varchar(20);comment:支付方式" json:"paymentMethod"`
 	Amount            float64                `gorm:"type:decimal(10,2);comment:支付金额（元）" json:"amount"`
 	ThirdPartyOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"thirdPartyOrderNo"`
@@ -42,11 +42,11 @@ func (Payment) TableName() string { return "payments" }
 // CommissionRecord 佣金流水（支付成功事务内写入；邀请分成 5% 默认费率从 config 表读）。
 type CommissionRecord struct {
 	BaseModel
-	OrderID        string     `gorm:"type:char(36);uniqueIndex;comment:订单ID（一笔订单一笔流水，天然幂等）" json:"orderId"`
+	OrderID        string     `gorm:"type:varchar(36);uniqueIndex;comment:订单ID（一笔订单一笔流水，天然幂等）" json:"orderId"`
 	OrderNo        string     `gorm:"type:varchar(64);index" json:"orderNo"`
-	UserID         string     `gorm:"type:char(36);index;comment:买家ID" json:"userId"`
-	AuthorID       string     `gorm:"type:char(36);comment:作者ID" json:"authorId"`
-	InviterID      string     `gorm:"type:char(36);index;comment:邀请人ID（无邀请关系为空）" json:"inviterId"`
+	UserID         string     `gorm:"type:varchar(36);index;comment:买家ID" json:"userId"`
+	AuthorID       string     `gorm:"type:varchar(36);comment:作者ID" json:"authorId"`
+	InviterID      string     `gorm:"type:varchar(36);index;comment:邀请人ID（无邀请关系为空）" json:"inviterId"`
 	OrderType      string     `gorm:"type:varchar(20)" json:"orderType"`
 	OrderAmount    float64    `gorm:"type:decimal(10,2)" json:"orderAmount"`
 	InviterRate    float64    `gorm:"type:decimal(6,4);comment:邀请人分成比例" json:"inviterRate"`
@@ -77,9 +77,9 @@ func (ConfigKV) TableName() string { return "config" }
 // UserPaymentView 用户表交易域局部视图（仅声明订单/支付域读写所需列；
 // 权威 user 模型归 auth-user 域，本结构不参与 AutoMigrate）。
 type UserPaymentView struct {
-	ID                  string     `gorm:"type:char(36);primaryKey;column:id" json:"id"`
+	ID                  string     `gorm:"type:varchar(36);primaryKey;column:id" json:"id"`
 	Wallet              float64    `gorm:"type:decimal(10,2);column:wallet" json:"wallet"`
-	InviterID           string     `gorm:"type:char(36);column:inviter_id" json:"inviterId"`
+	InviterID           string     `gorm:"type:varchar(36);column:inviter_id" json:"inviterId"`
 	InviteEarnings      float64    `gorm:"type:decimal(10,2);column:invite_earnings" json:"inviteEarnings"`
 	MembershipStatus    string     `gorm:"type:varchar(20);column:membership_status" json:"membershipStatus"`
 	MembershipLevel     int        `gorm:"column:membership_level" json:"membershipLevel"`

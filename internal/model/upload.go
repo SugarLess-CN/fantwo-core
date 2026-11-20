@@ -1,7 +1,7 @@
 // Package model 基础设施域实体：上传文件表（upload）。
 //
 // 对齐原 TypEORM 实体 tmp/picart/src/modules/upload/entities/upload.entity.ts：
-// 字段、枚举、默认值逐一平移；主键按骨架约定用 UUID char(36)（docs/04 §5.4）。
+// 字段、枚举、默认值逐一平移；主键按骨架约定用 UUID varchar(36)（docs/04 §5.4）。
 // original / thumbnails / videoCompressionJob / auditResult 在原实体中是 json 列，
 // Go 侧统一以 jsonb 文本列承载（UploadJSON），由 service 层序列化/反序列化，
 // 对外响应再由 service 组装成结构化对象——避免给每个嵌套结构写 Valuer/Scanner。
@@ -88,7 +88,7 @@ type Upload struct {
 	// Scene 上传场景（avatar / image / other）：avatar 不加水印（对齐原 skipScenes）
 	Scene string `gorm:"column:scene;type:varchar(16);not null;default:image;index:idx_upload_scene" json:"scene"`
 	// UserID 上传者（游客上传为 NULL）；水印取昵称、管理端按人筛选都用它
-	UserID *string `gorm:"column:user_id;type:char(36);index:idx_upload_user" json:"userId"`
+	UserID *string `gorm:"column:user_id;type:varchar(36);index:idx_upload_user" json:"userId"`
 
 	AuditStatus   string `gorm:"column:audit_status;type:varchar(16);not null;default:pending" json:"auditStatus"`
 	AuditResultJS string `gorm:"column:audit_result;type:jsonb" json:"-"`

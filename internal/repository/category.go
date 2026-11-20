@@ -69,8 +69,10 @@ func (r *CategoryRepository) List(ctx context.Context, q CategoryListQuery) ([]m
 	}
 
 	var rows []model.Category
+	// 分页兜底：q.Limit==0 时 GORM 会生成 LIMIT 0 返回空列表（见 pagination.go）
+	offset, size := pageClause(q.Page, q.Limit)
 	err := base.Order(column + " " + ord + ", created_at DESC").
-		Offset((q.Page - 1) * q.Limit).Limit(q.Limit).Find(&rows).Error
+		Offset(offset).Limit(size).Find(&rows).Error
 	return rows, total, err
 }
 

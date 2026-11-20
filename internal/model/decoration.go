@@ -69,8 +69,8 @@ type Decoration struct {
 	Sort          int     `gorm:"not null;default:0;comment:排序（越大越靠前）" json:"sort"`
 	Status        string  `gorm:"type:varchar(20);default:ACTIVE;index;comment:状态" json:"status"`
 	// ActivityID / AchievementID 归属来源，用于反查唯一来源（成就勋章按 achievement_id 唯一）。
-	ActivityID    string `gorm:"type:char(36);index;comment:来源活动ID" json:"activityId"`
-	AchievementID string `gorm:"type:char(36);index;comment:来源成就ID" json:"achievementId"`
+	ActivityID    string `gorm:"type:varchar(36);index;comment:来源活动ID" json:"activityId"`
+	AchievementID string `gorm:"type:varchar(36);index;comment:来源成就ID" json:"achievementId"`
 }
 
 // TableName 表名。
@@ -79,15 +79,15 @@ func (Decoration) TableName() string { return "decorations" }
 // UserDecoration 用户持有的装饰品。
 type UserDecoration struct {
 	BaseModel
-	UserID         string     `gorm:"type:char(36);index:idx_user_decoration,priority:1;comment:用户ID" json:"userId"`
-	DecorationID   string     `gorm:"type:char(36);index:idx_user_decoration,priority:2;comment:装饰品ID" json:"decorationId"`
+	UserID         string     `gorm:"type:varchar(36);index:idx_user_decoration,priority:1;comment:用户ID" json:"userId"`
+	DecorationID   string     `gorm:"type:varchar(36);index:idx_user_decoration,priority:2;comment:装饰品ID" json:"decorationId"`
 	ObtainMethod   string     `gorm:"type:varchar(20);comment:获取方式" json:"obtainMethod"`
 	IsPermanent    bool       `gorm:"not null;default:false;comment:是否永久" json:"isPermanent"`
 	ExpiresAt      *time.Time `json:"expiresAt"`
 	IsUsing        bool       `gorm:"not null;default:false;index;comment:是否正在使用" json:"isUsing"`
-	GiftFromUserID string     `gorm:"type:char(36);comment:赠送人ID" json:"giftFromUserId"`
-	OrderID        string     `gorm:"type:char(36);comment:来源订单ID" json:"orderId"`
-	ActivityID     string     `gorm:"type:char(36);comment:来源活动ID" json:"activityId"`
+	GiftFromUserID string     `gorm:"type:varchar(36);comment:赠送人ID" json:"giftFromUserId"`
+	OrderID        string     `gorm:"type:varchar(36);comment:来源订单ID" json:"orderId"`
+	ActivityID     string     `gorm:"type:varchar(36);comment:来源活动ID" json:"activityId"`
 	Remark         string     `gorm:"type:text;comment:备注" json:"remark"`
 }
 
@@ -100,8 +100,8 @@ type DecorationActivity struct {
 	Name               string    `gorm:"type:varchar(100);not null;comment:活动名称" json:"name"`
 	Description        string    `gorm:"type:text;comment:活动描述" json:"description"`
 	Type               string    `gorm:"type:varchar(20);comment:活动类型" json:"type"`
-	DecorationID       string    `gorm:"type:char(36);index;comment:奖励装饰品ID" json:"decorationId"`
-	ArticleID          string    `gorm:"type:char(36);comment:关联文章ID（活动说明）" json:"articleId"`
+	DecorationID       string    `gorm:"type:varchar(36);index;comment:奖励装饰品ID" json:"decorationId"`
+	ArticleID          string    `gorm:"type:varchar(36);comment:关联文章ID（活动说明）" json:"articleId"`
 	RequiredLikes      int       `gorm:"not null;default:0;comment:所需点赞数" json:"requiredLikes"`
 	RequiredComments   int       `gorm:"not null;default:0;comment:所需评论数" json:"requiredComments"`
 	RequiredShares     int       `gorm:"not null;default:0;comment:所需分享数" json:"requiredShares"`
@@ -122,8 +122,8 @@ func (DecorationActivity) TableName() string { return "decoration_activities" }
 // UserActivityProgress 用户装饰品活动进度。
 type UserActivityProgress struct {
 	BaseModel
-	UserID            string     `gorm:"type:char(36);index:idx_user_activity_progress,priority:1;comment:用户ID" json:"userId"`
-	ActivityID        string     `gorm:"type:char(36);index:idx_user_activity_progress,priority:2;comment:活动ID" json:"activityId"`
+	UserID            string     `gorm:"type:varchar(36);index:idx_user_activity_progress,priority:1;comment:用户ID" json:"userId"`
+	ActivityID        string     `gorm:"type:varchar(36);index:idx_user_activity_progress,priority:2;comment:活动ID" json:"activityId"`
 	CurrentLikes      int        `gorm:"not null;default:0;comment:当前点赞数" json:"currentLikes"`
 	CurrentComments   int        `gorm:"not null;default:0;comment:当前评论数" json:"currentComments"`
 	CurrentShares     int        `gorm:"not null;default:0;comment:当前分享数" json:"currentShares"`

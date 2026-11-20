@@ -49,11 +49,11 @@ type Report struct {
 	Status            string     `gorm:"type:varchar(20);default:PENDING;index;comment:处理状态" json:"status"`
 	Result            string     `gorm:"type:text;comment:处理结果" json:"result"`
 	Action            string     `gorm:"type:varchar(20);comment:处理动作" json:"action"`
-	ReporterID        string     `gorm:"type:char(36);index;comment:举报人ID" json:"reporterId"`
-	ReportedUserID    string     `gorm:"type:char(36);index;comment:被举报用户ID" json:"reportedUserId"`
-	ReportedArticleID string     `gorm:"type:char(36);index;comment:被举报文章ID" json:"reportedArticleId"`
-	ReportedCommentID string     `gorm:"type:char(36);index;comment:被举报评论ID" json:"reportedCommentId"`
-	HandlerID         string     `gorm:"type:char(36);index;comment:处理人ID" json:"handlerId"`
+	ReporterID        string     `gorm:"type:varchar(36);index;comment:举报人ID" json:"reporterId"`
+	ReportedUserID    string     `gorm:"type:varchar(36);index;comment:被举报用户ID" json:"reportedUserId"`
+	ReportedArticleID string     `gorm:"type:varchar(36);index;comment:被举报文章ID" json:"reportedArticleId"`
+	ReportedCommentID string     `gorm:"type:varchar(36);index;comment:被举报评论ID" json:"reportedCommentId"`
+	HandlerID         string     `gorm:"type:varchar(36);index;comment:处理人ID" json:"handlerId"`
 	HandledAt         *time.Time `json:"handledAt"`
 }
 
@@ -63,7 +63,7 @@ func (Report) TableName() string { return "reports" }
 // 跨域存在性校验用的轻量视图：只声明主键列，表由对应域 AutoMigrate 创建，
 // 本结构不参与 AutoMigrate（与 order 域的 ArticleOrderView 同一做法）。
 type ReportTargetUserView struct {
-	ID string `gorm:"type:char(36);primaryKey;column:id"`
+	ID string `gorm:"type:varchar(36);primaryKey;column:id"`
 }
 
 // TableName 用户表（用户主体表名是 user，单数；写成 users 会 relation does not exist）。
@@ -71,7 +71,7 @@ func (ReportTargetUserView) TableName() string { return "user" }
 
 // ReportTargetArticleView 文章表局部视图。
 type ReportTargetArticleView struct {
-	ID string `gorm:"type:char(36);primaryKey;column:id"`
+	ID string `gorm:"type:varchar(36);primaryKey;column:id"`
 }
 
 // TableName 文章表。
@@ -79,7 +79,7 @@ func (ReportTargetArticleView) TableName() string { return "articles" }
 
 // ReportTargetCommentView 评论表局部视图。
 type ReportTargetCommentView struct {
-	ID string `gorm:"type:char(36);primaryKey;column:id"`
+	ID string `gorm:"type:varchar(36);primaryKey;column:id"`
 }
 
 // TableName 评论表。

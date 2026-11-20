@@ -21,7 +21,7 @@ type Emoji struct {
 	URL      string `gorm:"type:varchar(500);not null;comment:表情图片地址" json:"url"`
 	Code     string `gorm:"type:varchar(50);index;comment:表情代码，如 :smile:" json:"code"`
 	Type     string `gorm:"type:varchar(10);default:user;index;comment:system/user" json:"type"`
-	UserID   string `gorm:"type:char(36);index;comment:所属用户（系统表情为空）" json:"userId"`
+	UserID   string `gorm:"type:varchar(36);index;comment:所属用户（系统表情为空）" json:"userId"`
 	Category string `gorm:"type:varchar(50);index;comment:分类" json:"category"`
 	Tags     string `gorm:"type:text;comment:标签，逗号分隔" json:"tags"`
 	UseCount int64  `gorm:"not null;default:0;index;comment:使用次数" json:"useCount"`
@@ -39,8 +39,8 @@ func (Emoji) TableName() string { return "emojis" }
 // EmojiFavorite 表情收藏（user_id + emoji_id 逻辑唯一，应用层保证）。
 type EmojiFavorite struct {
 	BaseModel
-	UserID  string `gorm:"type:char(36);index:idx_emoji_favorite,priority:1;comment:用户ID" json:"userId"`
-	EmojiID string `gorm:"type:char(36);index:idx_emoji_favorite,priority:2;comment:表情ID" json:"emojiId"`
+	UserID  string `gorm:"type:varchar(36);index:idx_emoji_favorite,priority:1;comment:用户ID" json:"userId"`
+	EmojiID string `gorm:"type:varchar(36);index:idx_emoji_favorite,priority:2;comment:表情ID" json:"emojiId"`
 }
 
 // TableName 表名。
@@ -52,7 +52,7 @@ type EmojiPack struct {
 	Name        string `gorm:"type:varchar(100);not null;comment:表情包名称" json:"name"`
 	Description string `gorm:"type:text;comment:描述" json:"description"`
 	CoverURL    string `gorm:"type:varchar(500);comment:封面地址" json:"coverUrl"`
-	UserID      string `gorm:"type:char(36);index;comment:创建者" json:"userId"`
+	UserID      string `gorm:"type:varchar(36);index;comment:创建者" json:"userId"`
 	IsPublic    bool   `gorm:"not null;default:false;comment:是否公开" json:"isPublic"`
 	Status      string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status"`
 }
@@ -63,8 +63,8 @@ func (EmojiPack) TableName() string { return "emoji_packs" }
 // EmojiPackItem 表情包内条目（pack_id + emoji_id 逻辑唯一，应用层保证）。
 type EmojiPackItem struct {
 	BaseModel
-	PackID  string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:1;comment:表情包ID" json:"packId"`
-	EmojiID string `gorm:"type:char(36);index:idx_emoji_pack_item,priority:2;comment:表情ID" json:"emojiId"`
+	PackID  string `gorm:"type:varchar(36);index:idx_emoji_pack_item,priority:1;comment:表情包ID" json:"packId"`
+	EmojiID string `gorm:"type:varchar(36);index:idx_emoji_pack_item,priority:2;comment:表情ID" json:"emojiId"`
 	Sort    int    `gorm:"not null;default:0;comment:排序" json:"sort"`
 }
 

@@ -78,7 +78,7 @@ type User struct {
 	MembershipEndDate   *time.Time `gorm:"column:membership_end_date;index:idx_user_membership,priority:2" json:"membershipEndDate"`
 	LastLoginAt         *time.Time `gorm:"column:last_login_at" json:"lastLoginAt"`
 	LastActiveAt        *time.Time `gorm:"column:last_active_at;index" json:"lastActiveAt"`
-	InviterID           *string    `gorm:"column:inviter_id;type:char(36)" json:"inviterId"`
+	InviterID           *string    `gorm:"column:inviter_id;type:varchar(36)" json:"inviterId"`
 	MyInviteCode        *string    `gorm:"column:my_invite_code;type:varchar(50);uniqueIndex" json:"myInviteCode"`
 	InviteCode          *string    `gorm:"column:invite_code;type:varchar(255)" json:"inviteCode"`
 	InviteEarnings      float64    `gorm:"column:invite_earnings;type:numeric(12,2);default:0" json:"inviteEarnings"`
@@ -96,8 +96,8 @@ func (User) TableName() string { return "user" }
 // UserFollowing 用户关注关系表（多对多，对齐原 user.entity.ts 的
 // @JoinTable name="user_followings"：follower → following）。
 type UserFollowing struct {
-	FollowerID  string    `gorm:"column:follower_id;type:char(36);primaryKey" json:"followerId"`
-	FollowingID string    `gorm:"column:following_id;type:char(36);primaryKey;index" json:"followingId"`
+	FollowerID  string    `gorm:"column:follower_id;type:varchar(36);primaryKey" json:"followerId"`
+	FollowingID string    `gorm:"column:following_id;type:varchar(36);primaryKey;index" json:"followingId"`
 	CreatedAt   time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 }
 
@@ -107,7 +107,7 @@ func (UserFollowing) TableName() string { return "user_followings" }
 // UserProfile 用户配置表（原 user-config.entity.ts；含抽成配置与通知/隐私开关）。
 type UserProfile struct {
 	BaseModel
-	UserID                    string  `gorm:"column:user_id;type:char(36);uniqueIndex;not null" json:"userId"`
+	UserID                    string  `gorm:"column:user_id;type:varchar(36);uniqueIndex;not null" json:"userId"`
 	ArticleCommissionRate     float64 `gorm:"column:article_commission_rate;type:numeric(5,2);default:0" json:"articleCommissionRate"`
 	MembershipCommissionRate  float64 `gorm:"column:membership_commission_rate;type:numeric(5,2);default:0" json:"membershipCommissionRate"`
 	ProductCommissionRate     float64 `gorm:"column:product_commission_rate;type:numeric(5,2);default:0" json:"productCommissionRate"`
@@ -140,7 +140,7 @@ func (UserProfile) TableName() string { return "user_config" }
 // UserDevice 用户设备表（多端在线，登录/刷新/登出靠它，原 user-device.entity.ts）。
 type UserDevice struct {
 	BaseModel
-	UserID     string  `gorm:"column:user_id;type:char(36);index:idx_user_device,priority:1;not null" json:"userId"`
+	UserID     string  `gorm:"column:user_id;type:varchar(36);index:idx_user_device,priority:1;not null" json:"userId"`
 	DeviceID   string  `gorm:"column:device_id;type:varchar(128);index:idx_user_device,priority:2;not null" json:"deviceId"`
 	DeviceType *string `gorm:"column:device_type;type:varchar(64)" json:"deviceType"`
 	DeviceName *string `gorm:"column:device_name;type:text" json:"deviceName"`
@@ -159,7 +159,7 @@ func (UserDevice) TableName() string { return "user_device" }
 // UserSignIn 用户签到记录表（原 user-sign-in.entity.ts）。
 type UserSignIn struct {
 	BaseModel
-	UserID          string    `gorm:"column:user_id;type:char(36);index:idx_sign_in_user_date,priority:1;not null" json:"userId"`
+	UserID          string    `gorm:"column:user_id;type:varchar(36);index:idx_sign_in_user_date,priority:1;not null" json:"userId"`
 	SignInDate      time.Time `gorm:"column:sign_in_date;type:date;index:idx_sign_in_user_date,priority:2;not null" json:"signInDate"`
 	ConsecutiveDays int       `gorm:"column:consecutive_days;default:1" json:"consecutiveDays"`
 	IsAuto          bool      `gorm:"column:is_auto;default:false" json:"isAuto"`
@@ -171,8 +171,8 @@ func (UserSignIn) TableName() string { return "user_sign_in" }
 // UserBlock 用户拉黑表（原 user-block.entity.ts）。
 type UserBlock struct {
 	BaseModel
-	UserID        string  `gorm:"column:user_id;type:char(36);uniqueIndex:uk_user_block,priority:1;not null" json:"userId"`
-	BlockedUserID string  `gorm:"column:blocked_user_id;type:char(36);uniqueIndex:uk_user_block,priority:2;not null" json:"blockedUserId"`
+	UserID        string  `gorm:"column:user_id;type:varchar(36);uniqueIndex:uk_user_block,priority:1;not null" json:"userId"`
+	BlockedUserID string  `gorm:"column:blocked_user_id;type:varchar(36);uniqueIndex:uk_user_block,priority:2;not null" json:"blockedUserId"`
 	Reason        *string `gorm:"column:reason;type:varchar(255)" json:"reason"`
 }
 
@@ -182,7 +182,7 @@ func (UserBlock) TableName() string { return "user_block" }
 // UserCertification 用户认证表（官方/创作者，原 user-certification.entity.ts）。
 type UserCertification struct {
 	BaseModel
-	UserID           string     `gorm:"column:user_id;type:char(36);index:idx_cert_user_status,priority:1;not null" json:"userId"`
+	UserID           string     `gorm:"column:user_id;type:varchar(36);index:idx_cert_user_status,priority:1;not null" json:"userId"`
 	Type             string     `gorm:"column:type;type:varchar(16);index:idx_cert_type_status,priority:1;not null" json:"type"`
 	Status           string     `gorm:"column:status;type:varchar(16);default:PENDING;index:idx_cert_user_status,priority:2;index:idx_cert_type_status,priority:2" json:"status"`
 	RealName         *string    `gorm:"column:real_name;type:varchar(128)" json:"realName"`
@@ -190,7 +190,7 @@ type UserCertification struct {
 	Description      *string    `gorm:"column:description;type:text" json:"description"`
 	Slogan           *string    `gorm:"column:slogan;type:varchar(80)" json:"slogan"`
 	Materials        string     `gorm:"column:materials;type:jsonb;default:'[]'" json:"materials"`
-	ReviewerID       *string    `gorm:"column:reviewer_id;type:char(36)" json:"reviewerId"`
+	ReviewerID       *string    `gorm:"column:reviewer_id;type:varchar(36)" json:"reviewerId"`
 	ReviewReason     *string    `gorm:"column:review_reason;type:text" json:"reviewReason"`
 	ReviewedAt       *time.Time `gorm:"column:reviewed_at" json:"reviewedAt"`
 }
@@ -201,7 +201,7 @@ func (UserCertification) TableName() string { return "user_certification" }
 // AccountDeletion 账号注销表（三态 + 7 天冷静期，对齐任务书 §2 账号注销三态）。
 type AccountDeletion struct {
 	BaseModel
-	UserID      string     `gorm:"column:user_id;type:char(36);uniqueIndex;not null" json:"userId"`
+	UserID      string     `gorm:"column:user_id;type:varchar(36);uniqueIndex;not null" json:"userId"`
 	Status      int        `gorm:"column:status;default:1" json:"status"` // 0 正常 / 1 冷静期 / 2 已注销
 	Reason      *string    `gorm:"column:reason;type:varchar(255)" json:"reason"`
 	ScheduledAt time.Time  `gorm:"column:scheduled_at" json:"scheduledAt"` // 冷静期到期执行时间

@@ -24,12 +24,12 @@ const (
 
 // SearchLog 一次检索行为的落库记录。
 type SearchLog struct {
-	ID string `gorm:"column:id;type:char(36);primaryKey" json:"id"`
+	ID string `gorm:"column:id;type:varchar(36);primaryKey" json:"id"`
 
 	// Keyword 检索词（去空白、截断 128，避免超长垃圾词撑爆索引）
 	Keyword string `gorm:"column:keyword;type:varchar(128);not null;index:idx_search_logs_keyword_created,priority:1" json:"keyword"`
 	// UserID 检索用户（游客为空；不建外键，跨域解耦）
-	UserID *string `gorm:"column:user_id;type:char(36);index:idx_search_logs_user" json:"userId"`
+	UserID *string `gorm:"column:user_id;type:varchar(36);index:idx_search_logs_user" json:"userId"`
 	// Scene 检索场景（article / global）
 	Scene string `gorm:"column:scene;type:varchar(16);not null;default:article;index:idx_search_logs_scene" json:"scene"`
 	// ResultCount 本次命中的结果条数（用于剔除「零结果垃圾词」）

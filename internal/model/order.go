@@ -25,9 +25,9 @@ const (
 // Order 订单。
 type Order struct {
 	BaseModel
-	UserID         string                 `gorm:"type:char(36);index;comment:用户ID（买家）" json:"userId"`
-	AuthorID       string                 `gorm:"type:char(36);comment:作者ID（卖家）" json:"authorId"`
-	ArticleID      string                 `gorm:"type:char(36);comment:文章ID（ARTICLE 类型订单）" json:"articleId"`
+	UserID         string                 `gorm:"type:varchar(36);index;comment:用户ID（买家）" json:"userId"`
+	AuthorID       string                 `gorm:"type:varchar(36);comment:作者ID（卖家）" json:"authorId"`
+	ArticleID      string                 `gorm:"type:varchar(36);comment:文章ID（ARTICLE 类型订单）" json:"articleId"`
 	OrderNo        string                 `gorm:"type:varchar(64);uniqueIndex;comment:订单号" json:"orderNo"`
 	Type           string                 `gorm:"type:varchar(20);comment:订单类型" json:"type"`
 	Title          string                 `gorm:"type:varchar(255);comment:订单标题" json:"title"`
@@ -46,8 +46,8 @@ func (Order) TableName() string { return "orders" }
 // ArticleOrderView 文章表订单域局部视图（仅声明创建文章订单所需列；
 // 权威 article 模型归 content 域，本结构不参与 AutoMigrate）。
 type ArticleOrderView struct {
-	ID             string  `gorm:"type:char(36);primaryKey;column:id" json:"id"`
-	AuthorID       string  `gorm:"type:char(36);column:author_id" json:"authorId"`
+	ID             string  `gorm:"type:varchar(36);primaryKey;column:id" json:"id"`
+	AuthorID       string  `gorm:"type:varchar(36);column:author_id" json:"authorId"`
 	Title          string  `gorm:"type:varchar(255);column:title" json:"title"`
 	RequirePayment bool    `gorm:"column:require_payment" json:"requirePayment"`
 	ViewPrice      float64 `gorm:"type:decimal(10,2);column:view_price" json:"viewPrice"`

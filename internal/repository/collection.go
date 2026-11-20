@@ -64,7 +64,7 @@ func (r *CollectionRepository) List(ctx context.Context, q CollectionListQuery) 
 
 	var rows []model.Collection
 	err := base.Order(column + " " + ord + ", created_at DESC").
-		Offset((q.Page - 1) * q.Limit).Limit(q.Limit).Find(&rows).Error
+		Offset(offsetOf(q.Page, q.Limit)).Limit(limitOf(q.Limit)).Find(&rows).Error
 	return rows, total, err
 }
 

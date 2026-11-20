@@ -33,7 +33,7 @@ type Achievement struct {
 	Condition          AchievementCondition `gorm:"type:jsonb;serializer:json;comment:完成条件" json:"condition"`
 	RewardPoints       int                  `gorm:"not null;default:0;comment:奖励积分" json:"rewardPoints"`
 	RewardExp          int                  `gorm:"not null;default:0;comment:奖励经验" json:"rewardExp"`
-	RewardDecorationID string               `gorm:"type:char(36);comment:奖励装饰品ID" json:"rewardDecorationId"`
+	RewardDecorationID string               `gorm:"type:varchar(36);comment:奖励装饰品ID" json:"rewardDecorationId"`
 	Hidden             bool                 `gorm:"not null;default:false;comment:未解锁前隐藏" json:"hidden"`
 	Sort               int                  `gorm:"not null;default:0;comment:排序" json:"sort"`
 	Enabled            bool                 `gorm:"not null;default:true;comment:是否启用" json:"enabled"`
@@ -61,8 +61,8 @@ func (c AchievementCondition) TargetValue() int {
 // UserAchievement 用户成就进度。
 type UserAchievement struct {
 	BaseModel
-	UserID        string     `gorm:"type:char(36);index:idx_user_achievement,priority:1;comment:用户ID" json:"userId"`
-	AchievementID string     `gorm:"type:char(36);index:idx_user_achievement,priority:2;comment:成就ID" json:"achievementId"`
+	UserID        string     `gorm:"type:varchar(36);index:idx_user_achievement,priority:1;comment:用户ID" json:"userId"`
+	AchievementID string     `gorm:"type:varchar(36);index:idx_user_achievement,priority:2;comment:成就ID" json:"achievementId"`
 	Progress      int        `gorm:"not null;default:0;comment:当前进度" json:"progress"`
 	Completed     bool       `gorm:"not null;default:false;comment:是否完成" json:"completed"`
 	CompletedAt   *time.Time `json:"completedAt"`

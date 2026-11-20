@@ -12,7 +12,7 @@ type Category struct {
 
 	Name        string  `gorm:"type:varchar(50);not null;uniqueIndex:uk_categories_name" json:"name"`
 	Description *string `gorm:"type:varchar(200)" json:"description"`
-	ParentID    *string `gorm:"type:char(36);index:idx_categories_parent" json:"parentId"`
+	ParentID    *string `gorm:"type:varchar(36);index:idx_categories_parent" json:"parentId"`
 	Link        *string `gorm:"type:varchar(200)" json:"link"`
 	Avatar      *string `gorm:"type:text" json:"avatar"`
 	Background  *string `gorm:"type:text" json:"background"`

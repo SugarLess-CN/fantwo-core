@@ -26,8 +26,8 @@ const (
 // Invite 邀请码。
 type Invite struct {
 	BaseModel
-	InviterID      string     `gorm:"type:char(36);index;comment:邀请人ID" json:"inviterId"`
-	InviteeID      string     `gorm:"type:char(36);index;comment:被邀请人ID" json:"inviteeId"`
+	InviterID      string     `gorm:"type:varchar(36);index;comment:邀请人ID" json:"inviterId"`
+	InviteeID      string     `gorm:"type:varchar(36);index;comment:被邀请人ID" json:"inviteeId"`
 	InviteCode     string     `gorm:"type:varchar(64);index;comment:邀请码" json:"inviteCode"`
 	Status         string     `gorm:"type:varchar(20);default:PENDING;index;comment:状态" json:"status"`
 	Type           string     `gorm:"type:varchar(20);default:GENERAL;comment:邀请类型" json:"type"`
@@ -44,10 +44,10 @@ func (Invite) TableName() string { return "invites" }
 // InviteCommission 邀请分成记录。
 type InviteCommission struct {
 	BaseModel
-	InviteID         string     `gorm:"type:char(36);index;comment:邀请ID" json:"inviteId"`
-	InviterID        string     `gorm:"type:char(36);index;comment:邀请人ID" json:"inviterId"`
-	InviteeID        string     `gorm:"type:char(36);index;comment:被邀请人ID" json:"inviteeId"`
-	OrderID          string     `gorm:"type:char(36);index;comment:订单ID" json:"orderId"`
+	InviteID         string     `gorm:"type:varchar(36);index;comment:邀请ID" json:"inviteId"`
+	InviterID        string     `gorm:"type:varchar(36);index;comment:邀请人ID" json:"inviterId"`
+	InviteeID        string     `gorm:"type:varchar(36);index;comment:被邀请人ID" json:"inviteeId"`
+	OrderID          string     `gorm:"type:varchar(36);index;comment:订单ID" json:"orderId"`
 	OrderType        string     `gorm:"type:varchar(20);comment:订单类型" json:"orderType"`
 	OrderAmount      float64    `gorm:"type:decimal(10,2);comment:订单金额" json:"orderAmount"`
 	CommissionRate   float64    `gorm:"type:decimal(3,2);comment:分成比例" json:"commissionRate"`

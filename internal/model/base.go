@@ -22,7 +22,7 @@ import (
 // 命名口径（全局决策，见 AGENTS.md）：数据库列名 snake_case（gorm 自动按字段名蛇形），
 // 对外 JSON 一律 camelCase（对齐原 NestJS DTO / 前端契约）。
 type BaseModel struct {
-	ID        string                `gorm:"type:char(36);primaryKey" json:"id"`
+	ID        string                `gorm:"type:varchar(36);primaryKey" json:"id"`
 	CreatedAt time.Time             `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updatedAt"`
 	DeletedAt soft_delete.DeletedAt `gorm:"index" json:"-"`

@@ -22,8 +22,8 @@ func (Tag) TableName() string { return "tags" }
 // TagFollow 标签关注（表 tag_follows）；同一用户对同一标签唯一。
 type TagFollow struct {
 	BaseModel
-	UserID string `gorm:"type:char(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:1" json:"userId"`
-	TagID  string `gorm:"type:char(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:2" json:"tagId"`
+	UserID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:1" json:"userId"`
+	TagID  string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:2" json:"tagId"`
 }
 
 // TableName 表名。

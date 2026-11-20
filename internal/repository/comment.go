@@ -81,7 +81,7 @@ func (r *CommentRepository) List(ctx context.Context, q CommentListQuery) ([]mod
 	}
 	var rows []model.Comment
 	err := base.Order(commentOrder(q.OrderBy)).
-		Offset((q.Page - 1) * q.Limit).Limit(q.Limit).Find(&rows).Error
+		Offset(offsetOf(q.Page, q.Limit)).Limit(limitOf(q.Limit)).Find(&rows).Error
 	return rows, total, err
 }
 

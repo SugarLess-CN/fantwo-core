@@ -31,7 +31,7 @@ const (
 // 并发安全：所有变动都在事务内先对该行加行锁，或走带条件的原子 UPDATE。
 type PointsAccount struct {
 	BaseModel
-	UserID  string `gorm:"type:char(36);uniqueIndex;comment:用户ID（一人一账户）" json:"userId"`
+	UserID  string `gorm:"type:varchar(36);uniqueIndex;comment:用户ID（一人一账户）" json:"userId"`
 	Balance int    `gorm:"not null;default:0;comment:当前积分余额" json:"balance"`
 	// TotalEarned / TotalSpent 累计口径，统计接口直接读，免去全表 SUM。
 	TotalEarned int64 `gorm:"not null;default:0;comment:累计获取" json:"totalEarned"`
@@ -65,8 +65,8 @@ func (PointsActivity) TableName() string { return "points_activities" }
 // PointsTaskRecord 任务完成记录（周期性任务用；INSTANT 类型不落此表）。
 type PointsTaskRecord struct {
 	BaseModel
-	UserID       string     `gorm:"type:char(36);index:idx_points_task_user_activity,priority:1;comment:用户ID" json:"userId"`
-	ActivityID   string     `gorm:"type:char(36);index:idx_points_task_user_activity,priority:2;comment:活动ID" json:"activityId"`
+	UserID       string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:1;comment:用户ID" json:"userId"`
+	ActivityID   string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:2;comment:活动ID" json:"activityId"`
 	CurrentCount int        `gorm:"not null;default:0;comment:当前完成数量" json:"currentCount"`
 	TargetCount  int        `gorm:"not null;default:1;comment:目标数量" json:"targetCount"`
 	IsCompleted  bool       `gorm:"not null;default:false;comment:是否完成" json:"isCompleted"`
@@ -82,13 +82,13 @@ func (PointsTaskRecord) TableName() string { return "points_task_records" }
 // PointsTransaction 积分流水（不可变账本，只追加）。
 type PointsTransaction struct {
 	BaseModel
-	UserID      string     `gorm:"type:char(36);index:idx_points_tx_user,priority:1;comment:用户ID" json:"userId"`
+	UserID      string     `gorm:"type:varchar(36);index:idx_points_tx_user,priority:1;comment:用户ID" json:"userId"`
 	Amount      int        `gorm:"not null;comment:变动数量（正增负减）" json:"amount"`
 	Balance     int        `gorm:"not null;comment:变动后余额" json:"balance"`
 	Type        string     `gorm:"type:varchar(20);index:idx_points_tx_user,priority:2;comment:交易类型" json:"type"`
 	Source      string     `gorm:"type:varchar(64);index;comment:来源/用途" json:"source"`
 	RelatedType string     `gorm:"type:varchar(32);comment:关联业务类型" json:"relatedType"`
-	RelatedID   string     `gorm:"type:char(36);comment:关联业务ID" json:"relatedId"`
+	RelatedID   string     `gorm:"type:varchar(36);comment:关联业务ID" json:"relatedId"`
 	Description string     `gorm:"type:text;comment:描述" json:"description"`
 	ExpiredAt   *time.Time `json:"expiredAt"`
 	// Expired 过期积分是否已被回收（EXPIRE 清扫用）。

@@ -73,9 +73,9 @@ type Article struct {
 
 	Status string `gorm:"type:varchar(16);not null;default:DRAFT;index:idx_articles_status_created,priority:1" json:"status"`
 
-	AuthorID   *string `gorm:"type:char(36);index:idx_articles_author_status,priority:1" json:"authorId"`
-	CategoryID *string `gorm:"type:char(36);index:idx_articles_category" json:"categoryId"`
-	ActivityID *string `gorm:"type:char(36)" json:"activityId"`
+	AuthorID   *string `gorm:"type:varchar(36);index:idx_articles_author_status,priority:1" json:"authorId"`
+	CategoryID *string `gorm:"type:varchar(36);index:idx_articles_category" json:"categoryId"`
+	ActivityID *string `gorm:"type:varchar(36)" json:"activityId"`
 
 	AllowReprint bool `gorm:"not null;default:false" json:"allowReprint"`
 }
@@ -85,8 +85,8 @@ func (Article) TableName() string { return "articles" }
 
 // ArticleTag 文章-标签多对多关联（表 article_tags）；复合主键，不继承 BaseModel。
 type ArticleTag struct {
-	ArticleID string    `gorm:"type:char(36);primaryKey" json:"articleId"`
-	TagID     string    `gorm:"type:char(36);primaryKey;index:idx_article_tags_tag" json:"tagId"`
+	ArticleID string    `gorm:"type:varchar(36);primaryKey" json:"articleId"`
+	TagID     string    `gorm:"type:varchar(36);primaryKey;index:idx_article_tags_tag" json:"tagId"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -107,8 +107,8 @@ const (
 // ArticleLike 文章点赞/表情回复（表 article_likes）；同一用户对同一文章唯一。
 type ArticleLike struct {
 	BaseModel
-	ArticleID    string `gorm:"type:char(36);not null;uniqueIndex:uk_article_likes_user_article,priority:1" json:"articleId"`
-	UserID       string `gorm:"type:char(36);not null;uniqueIndex:uk_article_likes_user_article,priority:2" json:"userId"`
+	ArticleID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:1" json:"articleId"`
+	UserID       string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:2" json:"userId"`
 	ReactionType string `gorm:"type:varchar(16);not null;default:like" json:"reactionType"`
 }
 
@@ -119,8 +119,8 @@ func (ArticleLike) TableName() string { return "article_likes" }
 // 语义与「合集（collection）」互补：这里是轻量收藏，profile 域的「我的收藏」即读本表。
 type ArticleFavorite struct {
 	BaseModel
-	UserID    string `gorm:"type:char(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:1" json:"userId"`
-	ArticleID string `gorm:"type:char(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:2" json:"articleId"`
+	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:1" json:"userId"`
+	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:2" json:"articleId"`
 }
 
 // TableName 表名。
@@ -130,10 +130,10 @@ func (ArticleFavorite) TableName() string { return "article_favorites" }
 // 除文章/用户外额外快照 作者/分类/标签，供推荐流按维度过滤（对齐原实现）。
 type ArticleDislike struct {
 	BaseModel
-	UserID     string  `gorm:"type:char(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:1" json:"userId"`
-	ArticleID  string  `gorm:"type:char(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:2" json:"articleId"`
-	AuthorID   *string `gorm:"type:char(36)" json:"authorId"`
-	CategoryID *string `gorm:"type:char(36)" json:"categoryId"`
+	UserID     string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:1" json:"userId"`
+	ArticleID  string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:2" json:"articleId"`
+	AuthorID   *string `gorm:"type:varchar(36)" json:"authorId"`
+	CategoryID *string `gorm:"type:varchar(36)" json:"categoryId"`
 	// TagIDs 标签 ID 快照，落库存 JSON 数组文本
 	TagIDs *string `gorm:"type:text" json:"tagIds"`
 	Reason *string `gorm:"type:varchar(255)" json:"reason"`
@@ -145,8 +145,8 @@ func (ArticleDislike) TableName() string { return "article_dislikes" }
 // BrowseHistory 浏览历史（表 browse_histories）；同一用户对同一文章唯一，重复浏览累加 viewCount。
 type BrowseHistory struct {
 	BaseModel
-	UserID    string `gorm:"type:char(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:1;index:idx_browse_histories_user_updated,priority:1" json:"userId"`
-	ArticleID string `gorm:"type:char(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:2" json:"articleId"`
+	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:1;index:idx_browse_histories_user_updated,priority:1" json:"userId"`
+	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:2" json:"articleId"`
 	ViewCount int    `gorm:"not null;default:1" json:"viewCount"`
 	Progress  int    `gorm:"not null;default:0" json:"progress"` // 浏览进度百分比 0-100
 	Duration  int    `gorm:"not null;default:0" json:"duration"` // 停留时长（秒）
