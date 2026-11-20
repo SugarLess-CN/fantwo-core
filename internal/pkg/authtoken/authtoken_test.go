@@ -90,6 +90,18 @@ func (m *memStore) Incr(_ context.Context, key string) (int64, error) {
 	return n, nil
 }
 
+// Del 删除键（Store 接口要求；权限版本清理、登出解封等场景用）。
+func (m *memStore) Del(_ context.Context, key string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.ops++
+	if m.fail {
+		return fmt.Errorf("redis down")
+	}
+	delete(m.data, key)
+	return nil
+}
+
 // TestBlacklistAddAndCheck 登出黑名单：写入后命中，TTL 到期后自动失效。
 //
 // 防的 bug：黑名单只写不查（登出后 token 仍可用）、或 TTL 未设置导致键永不过期

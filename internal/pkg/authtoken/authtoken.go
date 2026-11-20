@@ -29,6 +29,7 @@ type Store interface {
 	Get(ctx context.Context, key string) (string, error)
 	Exists(ctx context.Context, key string) (int64, error)
 	Incr(ctx context.Context, key string) (int64, error)
+	Del(ctx context.Context, key string) error
 }
 
 // redisStore go-redis 实现。
@@ -58,8 +59,12 @@ func (s *redisStore) Incr(ctx context.Context, key string) (int64, error) {
 	return s.c.Incr(ctx, key).Result()
 }
 
+func (s *redisStore) Del(ctx context.Context, key string) error {
+	return s.c.Del(ctx, key).Err()
+}
+
 // Key 构造函数。
-func BlacklistKey(token string) string { return "jwt:blacklist:" + digest(token) }
+func BlacklistKey(token string) string  { return "jwt:blacklist:" + digest(token) }
 func logoutAllKey(userID string) string { return "user:" + userID + ":logout_all" }
 func permVerKey(userID string) string   { return "user:" + userID + ":permver" }
 

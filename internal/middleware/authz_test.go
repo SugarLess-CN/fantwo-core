@@ -77,6 +77,17 @@ func (m *memStore) Incr(_ context.Context, key string) (int64, error) {
 	return n, nil
 }
 
+// Del 删除键（authtoken.Store 接口要求）。
+func (m *memStore) Del(_ context.Context, key string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.fail {
+		return fmt.Errorf("redis down")
+	}
+	delete(m.data, key)
+	return nil
+}
+
 const authzSecret = "authz-test-secret"
 
 // authzFixture 构建测试路由器：/protected 走强制鉴权，/perm 走权限点，/optional 走可选鉴权。

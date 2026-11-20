@@ -88,8 +88,8 @@ func (g *GithubOAuth) AuthorizeURL(ctx context.Context, state string) (string, e
 	if state == "" {
 		return "", fmt.Errorf("state 不能为空")
 	}
-	if g.d.Redis != nil {
-		if err := g.d.Redis.Set(ctx, githubStatePrefix+state, 1, githubStateTTL).Err(); err != nil {
+	if st := g.d.AuthTok; st != nil {
+		if err := st.Set(ctx, githubStatePrefix+state, 1, githubStateTTL); err != nil {
 			g.d.Logger.Warn("github state 写入失败（本次仍允许授权，回调将跳过 state 校验）")
 		}
 	}
@@ -105,18 +105,18 @@ func (g *GithubOAuth) AuthorizeURL(ctx context.Context, state string) (string, e
 
 // VerifyState 校验并消费 state（Redis 不可用时放行，返回 true）。
 func (g *GithubOAuth) VerifyState(ctx context.Context, state string) bool {
-	if g == nil || g.d == nil || g.d.Redis == nil {
+	if g == nil || g.d == nil || g.d.AuthTok == nil {
 		return true
 	}
 	if state == "" {
 		return false
 	}
 	key := githubStatePrefix + state
-	n, err := g.d.Redis.Exists(ctx, key).Result()
+	n, err := g.d.AuthTok.Exists(ctx, key)
 	if err != nil || n == 0 {
 		return false
 	}
-	_ = g.d.Redis.Del(ctx, key).Err()
+	_ = g.d.AuthTok.Del(ctx, key)
 	return true
 }
 
