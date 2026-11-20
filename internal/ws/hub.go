@@ -9,6 +9,7 @@ package ws
 import (
 	"net/http"
 	"sync/atomic"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -108,10 +109,13 @@ type AddressedFrame struct {
 // NewHub 创建 hub（go hub.Run() 启动）。
 func NewHub() *Hub {
 	return &Hub{
-		clients:     make(map[*Client]struct{}),
-		rooms:       make(map[string]*Room),
-		register:    make(chan *Client),
-		unregister:  make(chan *Client),
+		clients: make(map[*Client]struct{}),
+		rooms:   make(map[string]*Room),
+		// register/unregister 带缓冲：无缓冲时，读写泵与 hub 主循环是同步握手，
+		// 高并发连接/断开会被互相拖慢；且 hub 退出后 readPump 的 defer 发送会永久阻塞
+		// （goroutine 泄漏 + 连接不释放）。缓冲 + 超时兜底（见 unregisterClient）。
+		register:    make(chan *Client, 64),
+		unregister:  make(chan *Client, 64),
 		broadcast:   make(chan Frame, 256),
 		broadcastTo: make(chan AddressedFrame, 256),
 	}
@@ -229,10 +233,27 @@ func (h *Hub) Handler(c *gin.Context) {
 	go readPump(client)
 }
 
+// unregisterClient 安全地注销连接。
+//
+// 为什么不能直接 `h.unregister <- c`：该发送与 hub 主循环是同步的，
+// 一旦 hub.Run 已退出（服务关闭）或长期阻塞，readPump 的 defer 会**永久阻塞**，
+// 导致 goroutine 泄漏、连接句柄不释放。这里加超时兜底，
+// 超时后仅放弃「交给 hub 统一清理」，连接本身仍由 defer 的 conn.Close() 关掉。
+func unregisterClient(c *Client) {
+	if c == nil || c.hub == nil {
+		return
+	}
+	select {
+	case c.hub.unregister <- c:
+	case <-time.After(2 * time.Second):
+		// hub 不可用：放弃注销，但连接会由调用方 Close
+	}
+}
+
 // readPump 读循环骨架。
 func readPump(c *Client) {
 	defer func() {
-		c.hub.unregister <- c
+		unregisterClient(c)
 		_ = c.conn.Close()
 	}()
 	for {
