@@ -29,6 +29,17 @@ const (
 // 敏感词配置键：敏感词以 JSON 数组字符串存在该 key 下（对齐原 getSensitiveWords）。
 const ConfigKeySensitiveWords = "sensitive_words"
 
+// 上传限制类配置 key（后台可运行期调整，见 config_service 的 DB 优先读取）。
+const (
+	ConfigKeyUploadMaxImageSize = "upload_max_image_size"
+	ConfigKeyUploadMaxVideoSize = "upload_max_video_size"
+	ConfigKeyUploadMaxAudioSize = "upload_max_audio_size"
+	ConfigKeyUploadMaxOtherSize = "upload_max_other_size"
+	ConfigKeyUploadMaxFileCount = "upload_max_file_count"
+	ConfigKeyUploadCompression  = "upload_compression_enabled"
+	ConfigKeySearchEnabled      = "search_enabled"
+)
+
 // 图片审核开关（原 upload.service 读取的 content_audit_image_enabled）。
 const ConfigKeyAuditImageEnabled = "content_audit_image_enabled"
 

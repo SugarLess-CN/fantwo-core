@@ -441,6 +441,19 @@ func (f *Infra) checkSize(size int64, mimeType string) error {
 			maxMB = DefaultMaxOtherMB
 		}
 	}
+	// DB 优先：后台改 upload_max_*_size 后无需重启即生效（watermark 同款模式）。
+	if f.cfgSvc != nil {
+		key := model.ConfigKeyUploadMaxOtherSize
+		switch kind {
+		case filecheck.KindImage:
+			key = model.ConfigKeyUploadMaxImageSize
+		case filecheck.KindVideo:
+			key = model.ConfigKeyUploadMaxVideoSize
+		case filecheck.KindAudio:
+			key = model.ConfigKeyUploadMaxAudioSize
+		}
+		maxMB = f.cfgSvc.GetInt(key, maxMB)
+	}
 	limit := int64(maxMB) * 1024 * 1024
 	if size > limit {
 		return errcode.ErrBadRequest.Withf("文件大小超过限制: %.1fMB > %dMB", float64(size)/1024/1024, maxMB)
