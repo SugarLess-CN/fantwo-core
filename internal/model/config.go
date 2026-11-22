@@ -75,8 +75,33 @@ const (
 	ConfigKeySearchArticlesIndex  = "search_articles_index"
 )
 
-// 图片审核开关（原 upload.service 读取的 content_audit_image_enabled）。
-const ConfigKeyAuditImageEnabled = "content_audit_image_enabled"
+// 审核类配置 key（名字对齐原仓库 content-audit.service.ts 的 getCachedConfig，
+// 读取点见 internal/service/audit_service.go 的 parseAuditConfig）。
+//
+// 注意：场景开关（*_enabled）默认 false，且 content_audit_provider 保持 none 时
+// AuditConfig.sceneEnabled 会整段短路 —— 只有把 provider 改成真实厂商后开关才有意义。
+const (
+	// 行为 / 场景开关
+	ConfigKeyAuditProvider       = "content_audit_provider"
+	ConfigKeyAuditAutoBlock      = "content_audit_auto_block"
+	ConfigKeyAuditReviewMode     = "content_audit_review_mode"
+	ConfigKeyAuditSensitivity    = "content_audit_sensitivity"
+	ConfigKeyAuditCommentEnabled = "content_audit_comment_enabled"
+	ConfigKeyAuditAvatarEnabled  = "content_audit_avatar_enabled"
+	ConfigKeyAuditImageEnabled   = "content_audit_image_enabled"
+	ConfigKeyAuditArticleEnabled = "content_audit_article_enabled"
+
+	// provider 凭据（敏感项：管理端返回打码。虽命名兜底也能命中 secret / access_key，
+	// 但仍显式列入 ConfigSensitiveKeys —— 白名单才是权威口径，兜底只是保险）
+	ConfigKeyTencentSecretID       = "tencent_secret_id"
+	ConfigKeyTencentSecretKey      = "tencent_secret_key"
+	ConfigKeyTencentRegion         = "tencent_region"
+	ConfigKeyTencentTextBizType    = "tencent_text_biz_type"
+	ConfigKeyTencentImageBizType   = "tencent_image_biz_type"
+	ConfigKeyAliyunAccessKeyID     = "aliyun_access_key_id"
+	ConfigKeyAliyunAccessKeySecret = "aliyun_access_key_secret"
+	ConfigKeyAliyunRegion          = "aliyun_region"
+)
 
 // ConfigStartupOnlyKeys 启动期配置 key：改了必须重启才可能生效（当前实际不生效）。
 //
@@ -115,9 +140,18 @@ func IsStartupOnlyConfigKey(key string) bool {
 // ConfigSensitiveKeys 需要在管理端打码返回的配置 key 白名单。
 // 加新密钥项时在这里补一条，不要在 service/handler 里各自硬编码字符串。
 var ConfigSensitiveKeys = []string{
+	// S3（启动期配置：历史数据 + 将来启用都要打码）
 	ConfigKeyS3AccessKey,
 	ConfigKeyS3SecretKey,
+	// Elasticsearch
 	ConfigKeySearchPassword,
+	// 审核 provider 凭据：四项全部打码。
+	// 注意 *ID / *KeyId 虽然语义上只是标识，但凭据类一律打码（不区分 id 与 secret，
+	// 避免将来有人把 secret 错填进 id 字段就泄露）。
+	ConfigKeyTencentSecretID,
+	ConfigKeyTencentSecretKey,
+	ConfigKeyAliyunAccessKeyID,
+	ConfigKeyAliyunAccessKeySecret,
 }
 
 // sensitiveConfigKeywords IsSensitiveConfigKey 的命名兜底关键词（小写，子串匹配）。
@@ -237,9 +271,25 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{"advertisement_article_sidebar_link", "", "文章页侧边栏广告跳转链接", ConfigTypeString, ConfigGroupAdvertisement, true},
 		{"advertisement_global_notice", "", "全站公告富文本", ConfigTypeString, ConfigGroupAdvertisement, true},
 
-		// 内容审核开关（非公开，供 upload/article 域读取）
+		// 内容审核（非公开，供 audit_service 读取；key 名对齐原 content-audit.service.ts）
 		{ConfigKeyAuditImageEnabled, "false", "图片内容审核开关", ConfigTypeBoolean, ConfigGroupAudit, false},
-		{"content_audit_text_enabled", "false", "文本内容审核开关", ConfigTypeBoolean, ConfigGroupAudit, false},
+		{ConfigKeyAuditProvider, "none", "审核 provider：none / tencent / aliyun", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAuditAutoBlock, "true", "命中违禁内容时自动拦截（false=仅标记待复审）", ConfigTypeBoolean, ConfigGroupAudit, false},
+		{ConfigKeyAuditReviewMode, "auto", "复审模式：auto / manual", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAuditSensitivity, "medium", "审核灵敏度：low / medium / high", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAuditCommentEnabled, "false", "评论内容审核开关", ConfigTypeBoolean, ConfigGroupAudit, false},
+		{ConfigKeyAuditAvatarEnabled, "false", "头像内容审核开关", ConfigTypeBoolean, ConfigGroupAudit, false},
+		{ConfigKeyAuditArticleEnabled, "false", "文章内容审核开关", ConfigTypeBoolean, ConfigGroupAudit, false},
+
+		// 审核 provider 凭据（非公开；敏感项由管理端 handler 打码返回）
+		{ConfigKeyTencentSecretID, "", "腾讯云 SecretId（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyTencentSecretKey, "", "腾讯云 SecretKey（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyTencentRegion, "ap-beijing", "腾讯云地域", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyTencentTextBizType, "", "腾讯云文本审核 BizType", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyTencentImageBizType, "", "腾讯云图片审核 BizType", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAliyunAccessKeyID, "", "阿里云 AccessKeyId（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAliyunAccessKeySecret, "", "阿里云 AccessKeySecret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupAudit, false},
+		{ConfigKeyAliyunRegion, "cn-beijing", "阿里云地域", ConfigTypeString, ConfigGroupAudit, false},
 
 		// 搜索
 		{"search_enabled", "true", "搜索功能开关", ConfigTypeBoolean, ConfigGroupSearch, true},

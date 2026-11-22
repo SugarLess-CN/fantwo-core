@@ -39,7 +39,8 @@ type AuditConfig struct {
 	ImageEnabled   bool   `json:"imageEnabled"`
 	ArticleEnabled bool   `json:"articleEnabled"`
 	AutoBlock      bool   `json:"autoBlock"`
-	ReviewMode     string `json:"reviewMode"` // auto / manual
+	ReviewMode     string `json:"reviewMode"`  // auto / manual
+	Sensitivity    string `json:"sensitivity"` // low / medium / high（对齐原仓库默认 medium）
 	// Tencent 腾讯云 CMS
 	TencentSecretID  string `json:"tencentSecretId"`
 	TencentSecretKey string `json:"-"`
@@ -133,6 +134,14 @@ func (s *AuditService) LoadAuditConfig() AuditConfig {
 		}
 		return c.Value
 	}
+	return parseAuditConfig(get)
+}
+
+// parseAuditConfig 把 key→value 的读取结果组装成 AuditConfig（纯函数，便于单测）。
+//
+// getter 由 LoadAuditConfig 注入：真实现查 config 表（key 查不到或值为空串时回落 def），
+// 单测注入 map 桩，因此本函数不依赖 DB，可做纯函数级表驱动测试。
+func parseAuditConfig(get func(key, def string) string) AuditConfig {
 	boolv := func(key string) bool { return get(key, "false") == "true" }
 	return AuditConfig{
 		Provider:              get("content_audit_provider", AuditProviderNone),
@@ -142,6 +151,7 @@ func (s *AuditService) LoadAuditConfig() AuditConfig {
 		ArticleEnabled:        boolv("content_audit_article_enabled"),
 		AutoBlock:             get("content_audit_auto_block", "true") == "true",
 		ReviewMode:            get("content_audit_review_mode", "auto"),
+		Sensitivity:           get(model.ConfigKeyAuditSensitivity, "medium"),
 		TencentSecretID:       get("tencent_secret_id", ""),
 		TencentSecretKey:      get("tencent_secret_key", ""),
 		TencentRegion:         get("tencent_region", "ap-beijing"),

@@ -44,12 +44,19 @@ func TestIsSensitiveConfigKey(t *testing.T) {
 }
 
 // TestConfigSensitiveKeysWhitelist 校验白名单自身的口径：
-// 每条白名单 key 必然被判为敏感，且白名单恰好就是那三个明文密钥项（防止有人只加常量忘加白名单）。
+// 每条白名单 key 必然被判为敏感，且白名单恰好就是这 7 项（防止有人只加常量忘加白名单）。
+//
+// 7 项构成：3 个运行期可改的密钥（s3_access_key / s3_secret_key / search_password，
+// 其中 S3 两项虽为启动期配置但仍要打码）+ 4 个审核 provider 凭据（T-34f）。
 func TestConfigSensitiveKeysWhitelist(t *testing.T) {
 	want := []string{
 		"search_password",
 		"s3_access_key",
 		"s3_secret_key",
+		"tencent_secret_id",
+		"tencent_secret_key",
+		"aliyun_access_key_id",
+		"aliyun_access_key_secret",
 	}
 	if len(ConfigSensitiveKeys) != len(want) {
 		t.Fatalf("ConfigSensitiveKeys 条数 = %d, want %d: %v", len(ConfigSensitiveKeys), len(want), ConfigSensitiveKeys)
@@ -99,7 +106,7 @@ func TestConfigSensitiveKeysCoverSeeds(t *testing.T) {
 //
 // 若将来 S3 真的纳入运行期可调并加回种子，请同步更新本测试的快照断言与 T-34b3 的决策记录。
 func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
-	seedKeys := make(map[string]struct{}, 42)
+	seedKeys := make(map[string]struct{}, 56)
 	for _, seed := range DefaultConfigSeeds() {
 		seedKeys[seed.Key] = struct{}{}
 	}
@@ -127,11 +134,22 @@ func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
 	}
 }
 
-// TestDefaultConfigSeedsCount 种子总数快照：35（原有）+ 14（T-34a）- 7（T-34b3 删 S3）= 42。
-// 任何增删都应是有意为之 —— 数字对不上时先看上面的取舍说明，别直接改这个常量。
+// TestDefaultConfigSeedsCount 种子总数快照。
+//
+// 算式（逐项核对，不是速算）：
+//
+//	35（T-34 之前的原始种子）
+//
+// + 14（T-34a：storage_local_dir / upload_thumbnail_specs / s3_* ×7 / cdn_base_url / search_* ×4）
+// -  7（T-34b3：S3 七项改启动期配置，不再写种子）
+// -  1（T-34f：删死配置 content_audit_text_enabled —— 全仓无读取点、原仓库也没有这个 key）
+// + 15（T-34f：审核行为/场景 7 条 + provider 凭据 8 条）
+// = 56
+//
+// 任何增删都应是有意为之 —— 数字对不上时先看 DefaultConfigSeeds 的取舍说明，别直接改这个常量。
 func TestDefaultConfigSeedsCount(t *testing.T) {
-	if got := len(DefaultConfigSeeds()); got != 42 {
-		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 42（增删种子请同步更新取舍说明与本断言）", got)
+	if got := len(DefaultConfigSeeds()); got != 56 {
+		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 56（增删种子请同步更新取舍说明与算式）", got)
 	}
 }
 
@@ -228,6 +246,114 @@ func TestStartupOnlyKeysIntersectSensitiveKeys(t *testing.T) {
 		if !IsStartupOnlyConfigKey(k) || !IsSensitiveConfigKey(k) {
 			t.Errorf("%q 的判定结果与清单不一致（startup=%v sensitive=%v）",
 				k, IsStartupOnlyConfigKey(k), IsSensitiveConfigKey(k))
+		}
+	}
+}
+
+// TestAuditKeysSensitiveExactlyFourCredentials 审核类 15 个新 key（T-34f）的敏感判定口径：
+// 被判敏感的**恰好是 4 个 provider 凭据**，其余 11 个行为配置项一律不打码。
+//
+// 为什么凭据四项全打码（含 *_id，不只是 *_secret）：
+// 凭据类一律打码、不区分 id 与 secret —— 这样即使将来有人把 secret 错填进 id 字段也不会泄露。
+// 因此这里不要「只打 secret 不打 id」去动 sensitiveConfigKeywords 兜底规则。
+func TestAuditKeysSensitiveExactlyFourCredentials(t *testing.T) {
+	items := []struct {
+		key       string
+		sensitive bool
+	}{
+		// 行为 / 场景开关：不敏感
+		{ConfigKeyAuditProvider, false},
+		{ConfigKeyAuditAutoBlock, false},
+		{ConfigKeyAuditReviewMode, false},
+		{ConfigKeyAuditSensitivity, false},
+		{ConfigKeyAuditCommentEnabled, false},
+		{ConfigKeyAuditAvatarEnabled, false},
+		{ConfigKeyAuditArticleEnabled, false},
+		// 腾讯云凭据：secret_id / secret_key 敏感，地域与 BizType 不敏感
+		{ConfigKeyTencentSecretID, true},
+		{ConfigKeyTencentSecretKey, true},
+		{ConfigKeyTencentRegion, false},
+		{ConfigKeyTencentTextBizType, false},
+		{ConfigKeyTencentImageBizType, false},
+		// 阿里云凭据：access_key_id / access_key_secret 敏感，地域不敏感
+		{ConfigKeyAliyunAccessKeyID, true},
+		{ConfigKeyAliyunAccessKeySecret, true},
+		{ConfigKeyAliyunRegion, false},
+	}
+
+	whitelist := make(map[string]struct{}, len(ConfigSensitiveKeys))
+	for _, k := range ConfigSensitiveKeys {
+		whitelist[k] = struct{}{}
+	}
+
+	sensitiveCount := 0
+	for _, it := range items {
+		got := IsSensitiveConfigKey(it.key)
+		if got != it.sensitive {
+			t.Errorf("IsSensitiveConfigKey(%q) = %v, want %v", it.key, got, it.sensitive)
+		}
+		if !got {
+			continue
+		}
+		sensitiveCount++
+		if _, ok := whitelist[it.key]; !ok {
+			t.Errorf("凭据 %q 被判敏感但未列入 ConfigSensitiveKeys 白名单（兜底命中不等于已纳入权威口径）", it.key)
+		}
+	}
+	if sensitiveCount != 4 {
+		t.Errorf("审核类 key 中被判敏感的 = %d 个, want 4（tencent_secret_id / tencent_secret_key / aliyun_access_key_id / aliyun_access_key_secret）", sensitiveCount)
+	}
+	if len(items) != 15 {
+		t.Errorf("本测试应覆盖 15 个新审核 key，实际 %d 个", len(items))
+	}
+}
+
+// TestAuditSeedsShape 审核类种子形态：16 条（image_enabled + 15 新）全部
+// ConfigGroupAudit 且 public=false —— 审核配置绝不能进 /config/public。
+func TestAuditSeedsShape(t *testing.T) {
+	wantKeys := map[string]struct{}{
+		"content_audit_image_enabled":   {},
+		"content_audit_provider":        {},
+		"content_audit_auto_block":      {},
+		"content_audit_review_mode":     {},
+		"content_audit_sensitivity":     {},
+		"content_audit_comment_enabled": {},
+		"content_audit_avatar_enabled":  {},
+		"content_audit_article_enabled": {},
+		"tencent_secret_id":             {},
+		"tencent_secret_key":            {},
+		"tencent_region":                {},
+		"tencent_text_biz_type":         {},
+		"tencent_image_biz_type":        {},
+		"aliyun_access_key_id":          {},
+		"aliyun_access_key_secret":      {},
+		"aliyun_region":                 {},
+	}
+
+	seen := make(map[string]struct{}, len(wantKeys))
+	for _, seed := range DefaultConfigSeeds() {
+		if _, ok := wantKeys[seed.Key]; !ok {
+			continue
+		}
+		seen[seed.Key] = struct{}{}
+		if seed.Group != ConfigGroupAudit {
+			t.Errorf("审核种子 %q 的 group = %q, want %q", seed.Key, seed.Group, ConfigGroupAudit)
+		}
+		if seed.Public {
+			t.Errorf("审核种子 %q 不允许 public=true（审核/凭据配置不得进 /config/public）", seed.Key)
+		}
+	}
+	if len(seen) != len(wantKeys) {
+		for k := range wantKeys {
+			if _, ok := seen[k]; !ok {
+				t.Errorf("审核种子缺少 %q", k)
+			}
+		}
+	}
+	// 死配置必须彻底消失：原仓库没有 content_audit_text_enabled，全仓也无读取点。
+	for _, seed := range DefaultConfigSeeds() {
+		if seed.Key == "content_audit_text_enabled" {
+			t.Errorf("content_audit_text_enabled 是复刻时自造的死配置（原仓库无此 key、代码无读取点），不应出现在种子里")
 		}
 	}
 }
