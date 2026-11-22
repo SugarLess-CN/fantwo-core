@@ -5,6 +5,8 @@
 // group 用于分组批量读写，public 标记是否可被匿名接口 /config/public 读取。
 package model
 
+import "strings"
+
 // 配置值类型（原 config.type，默认 string）。
 const (
 	ConfigTypeString  = "string"
@@ -24,24 +26,132 @@ const (
 	ConfigGroupSearch        = "search"
 	ConfigGroupInvite        = "invite"
 	ConfigGroupArticle       = "article"
+	ConfigGroupStorage       = "storage"
+	ConfigGroupCDN           = "cdn"
 )
 
 // 敏感词配置键：敏感词以 JSON 数组字符串存在该 key 下（对齐原 getSensitiveWords）。
 const ConfigKeySensitiveWords = "sensitive_words"
 
-// 上传限制类配置 key（后台可运行期调整，见 config_service 的 DB 优先读取）。
+// 上传限制 / 水印类配置 key（后台可运行期调整，见 config_service 的 DB 优先读取）。
 const (
-	ConfigKeyUploadMaxImageSize = "upload_max_image_size"
-	ConfigKeyUploadMaxVideoSize = "upload_max_video_size"
-	ConfigKeyUploadMaxAudioSize = "upload_max_audio_size"
-	ConfigKeyUploadMaxOtherSize = "upload_max_other_size"
-	ConfigKeyUploadMaxFileCount = "upload_max_file_count"
-	ConfigKeyUploadCompression  = "upload_compression_enabled"
-	ConfigKeySearchEnabled      = "search_enabled"
+	ConfigKeyUploadMaxImageSize            = "upload_max_image_size"
+	ConfigKeyUploadMaxVideoSize            = "upload_max_video_size"
+	ConfigKeyUploadMaxAudioSize            = "upload_max_audio_size"
+	ConfigKeyUploadMaxOtherSize            = "upload_max_other_size"
+	ConfigKeyUploadMaxFileCount            = "upload_max_file_count"
+	ConfigKeyUploadCompression             = "upload_compression_enabled"
+	ConfigKeyUploadWatermarkEnabled        = "upload_watermark_enabled"
+	ConfigKeyUploadWatermarkTextTemplate   = "upload_watermark_text_template"
+	ConfigKeyUploadWatermarkPosition       = "upload_watermark_position"
+	ConfigKeyUploadWatermarkOpacityPercent = "upload_watermark_opacity_percent"
+	ConfigKeyUploadWatermarkFontSize       = "upload_watermark_font_size"
+	ConfigKeySearchEnabled                 = "search_enabled"
+)
+
+// 存储 / S3 / CDN / 搜索连接类配置 key（后台可运行期调整，DB 优先、env 兜底）。
+//
+// 注意：storage_driver 不在此列，也**没有 key 常量** —— 它是启动期配置：minio client
+// 在启动期按它选择本地/对象存储实现，改动必须重启，故不纳入运行期可调范围（也不写种子）。
+//
+// 注意：s3_* 这 7 个 key 目前**不写种子** —— minio client 在启动期创建，改了必须重启，
+// 与 storage.driver 同类，不纳入「运行期可调」。库里留一条永远不生效的假配置比不迁更危险
+// （运维改了以为生效，实际对象仍写旧桶）。保留常量是为了将来做
+// 「配置签名变化 → 惰性重建 minio client」（对齐 Searcher 的做法）时直接启用。
+const (
+	ConfigKeyStorageLocalDir      = "storage_local_dir"
+	ConfigKeyUploadThumbnailSpecs = "upload_thumbnail_specs"
+	ConfigKeyS3Endpoint           = "s3_endpoint"
+	ConfigKeyS3AccessKey          = "s3_access_key"
+	ConfigKeyS3SecretKey          = "s3_secret_key"
+	ConfigKeyS3Bucket             = "s3_bucket"
+	ConfigKeyS3Region             = "s3_region"
+	ConfigKeyS3UseSSL             = "s3_use_ssl"
+	ConfigKeyS3ForcePathStyle     = "s3_force_path_style"
+	ConfigKeyCDNBaseURL           = "cdn_base_url"
+	ConfigKeySearchAddresses      = "search_addresses"
+	ConfigKeySearchUsername       = "search_username"
+	ConfigKeySearchPassword       = "search_password"
+	ConfigKeySearchArticlesIndex  = "search_articles_index"
 )
 
 // 图片审核开关（原 upload.service 读取的 content_audit_image_enabled）。
 const ConfigKeyAuditImageEnabled = "content_audit_image_enabled"
+
+// ConfigStartupOnlyKeys 启动期配置 key：改了必须重启才可能生效（当前实际不生效）。
+//
+// 这些 key 不进 DefaultConfigSeeds（避免库里出现永不生效的假配置），
+// 同时管理端的 Create / UpdateOne 应拒绝写入 —— 详见 service 层对 IsStartupOnlyConfigKey 的调用点。
+// 保留 key 常量是为了将来做「配置签名变化 → 惰性重建 client」时直接启用。
+//
+// storage_driver 这里用字符串字面量：它**没有 key 常量**（见上方常量块注释），
+// 作为启动期配置从不写种子、也从不进运行期可调范围。
+var ConfigStartupOnlyKeys = []string{
+	"storage_driver", // minio client 类型选择（local / s3），启动期决定
+	ConfigKeyS3Endpoint,
+	ConfigKeyS3Bucket,
+	ConfigKeyS3Region,
+	ConfigKeyS3AccessKey,
+	ConfigKeyS3SecretKey,
+	ConfigKeyS3UseSSL,
+	ConfigKeyS3ForcePathStyle,
+}
+
+// IsStartupOnlyConfigKey 判断 key 是否属于启动期配置（不允许经管理端创建 / 改写）。
+//
+// 与 IsSensitiveConfigKey 是两件不同的事，**不要混用、也不要在这里加子串兜底**：
+// 敏感判定管「返回时打不打码」（取向宁可多打码），启动期判定管「能不能写库」
+// （必须精确 —— 误判会让运维明明该改的配置被拒）。二者交集只有 S3 的
+// access_key / secret_key（既是启动期配置，又要在管理端打码）。
+func IsStartupOnlyConfigKey(key string) bool {
+	for _, k := range ConfigStartupOnlyKeys {
+		if key == k {
+			return true
+		}
+	}
+	return false
+}
+
+// ConfigSensitiveKeys 需要在管理端打码返回的配置 key 白名单。
+// 加新密钥项时在这里补一条，不要在 service/handler 里各自硬编码字符串。
+var ConfigSensitiveKeys = []string{
+	ConfigKeyS3AccessKey,
+	ConfigKeyS3SecretKey,
+	ConfigKeySearchPassword,
+}
+
+// sensitiveConfigKeywords IsSensitiveConfigKey 的命名兜底关键词（小写，子串匹配）。
+// 取向：宁可多打码（管理端把疑似密钥项一律打码，运维仍可改值），也不漏掉新增的密钥项。
+var sensitiveConfigKeywords = []string{
+	"password",
+	"secret",
+	"access_key",
+	"_token",
+	"private_key",
+}
+
+// IsSensitiveConfigKey 判断配置项是否需要在管理端打码返回。
+//
+// ① 白名单（ConfigSensitiveKeys）命中直接返回 true；
+// ② 命名兜底（大小写不敏感）：key 含 password / secret / access_key / _token / private_key
+// 任一子串即视为敏感，防止以后新增的密钥项漏打码。
+//
+// 兜底边界（实测）：refresh_token ✅ 命中（含 _token）；tokenizer ❌ 不命中（token 前无下划线）；
+// sensitive_words ❌ 不命中（sensitive 不在关键词表里）；search_username ❌ 不命中（用户名不是密钥）。
+func IsSensitiveConfigKey(key string) bool {
+	for _, k := range ConfigSensitiveKeys {
+		if key == k {
+			return true
+		}
+	}
+	lower := strings.ToLower(key)
+	for _, kw := range sensitiveConfigKeywords {
+		if strings.Contains(lower, kw) {
+			return true
+		}
+	}
+	return false
+}
 
 // Config 系统配置表（原 config 表）。
 type Config struct {
@@ -72,7 +182,15 @@ type ConfigSeed struct {
 //
 // 取舍说明：原文件 initializeDatabase 内联约 700 行业务配置（含支付密钥、邀请规则等近百项），
 // 支付/邀请/审核的细项由对应业务域按需读取，本表只落「基础设施域自有 + 公开站点信息 +
-// 广告位 + 上传限制 + 敏感词」这些需要由 /config 系列端点直接暴露的项。
+// 广告位 + 上传限制 + 本地目录 / 缩略图规格 / CDN 域名 / 搜索连接参数 + 敏感词」
+// 这些需要由 /config 系列端点直接暴露的项。
+//
+// 纳入运行期可调（改 DB 不重启即生效）：本地目录 / 缩略图规格 / CDN 域名 / 搜索连接参数
+// （其中敏感项由 handler 层打码）。
+// 不纳入（启动期配置，改了必须重启）：S3 七项（endpoint / bucket / access_key / secret_key /
+// region / use_ssl / force_path_style）与 storage_driver —— 均绑定启动期创建的 minio client，
+// 故**不写种子**：库里留一条永远不生效的假配置比不迁更危险（运维改了以为生效，实际写旧桶）。
+// 所有种子值必须与 internal/config/infra.go 的 SetDefault 默认值保持一致。
 func DefaultConfigSeeds() []ConfigSeed {
 	return []ConfigSeed{
 		// 站点信息（公开）
@@ -94,11 +212,18 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{"upload_max_other_size", "100", "其它文件大小上限（MB）", ConfigTypeNumber, ConfigGroupUpload, true},
 		{"upload_max_file_count", "10", "单次上传文件数上限", ConfigTypeNumber, ConfigGroupUpload, true},
 		{"upload_compression_enabled", "true", "图片压缩开关", ConfigTypeBoolean, ConfigGroupUpload, false},
-		{"upload_watermark_enabled", "true", "图片水印开关", ConfigTypeBoolean, ConfigGroupUpload, false},
-		{"upload_watermark_text_template", "{nickname}", "水印文字模板（占位符：{nickname} {username} {site}）", ConfigTypeString, ConfigGroupUpload, false},
-		{"upload_watermark_position", "bottom-right", "水印位置：bottom-right/bottom-left/top-right/top-left/center", ConfigTypeString, ConfigGroupUpload, false},
-		{"upload_watermark_opacity_percent", "55", "水印透明度（0-100）", ConfigTypeNumber, ConfigGroupUpload, false},
-		{"upload_watermark_font_size", "0", "水印字号（0=按图片短边自适应）", ConfigTypeNumber, ConfigGroupUpload, false},
+		{ConfigKeyUploadWatermarkEnabled, "true", "图片水印开关", ConfigTypeBoolean, ConfigGroupUpload, false},
+		{ConfigKeyUploadWatermarkTextTemplate, "{nickname}", "水印文字模板（占位符：{nickname} {username} {site}）", ConfigTypeString, ConfigGroupUpload, false},
+		{ConfigKeyUploadWatermarkPosition, "bottom-right", "水印位置：bottom-right/bottom-left/top-right/top-left/center", ConfigTypeString, ConfigGroupUpload, false},
+		{ConfigKeyUploadWatermarkOpacityPercent, "55", "水印透明度（0-100）", ConfigTypeNumber, ConfigGroupUpload, false},
+		{ConfigKeyUploadWatermarkFontSize, "0", "水印字号（0=按图片短边自适应）", ConfigTypeNumber, ConfigGroupUpload, false},
+		{"upload_thumbnail_specs", `[{"name":"thumb","size":200},{"name":"small","size":480},{"name":"medium","size":1024},{"name":"large","size":1920}]`, "缩略图规格（JSON 数组：name/size）", ConfigTypeJSON, ConfigGroupUpload, false},
+
+		// 存储（非公开）：仅本地存储根目录。S3 七项为启动期配置，不写种子（见上方 key 常量块注释）。
+		{"storage_local_dir", "./uploads", "本地存储根目录", ConfigTypeString, ConfigGroupStorage, false},
+
+		// CDN（公开：前端拼接资源地址需要）
+		{"cdn_base_url", "", "CDN 加速域名前缀（如 https://cdn.example.com）", ConfigTypeString, ConfigGroupCDN, true},
 
 		// 广告位（公开）
 		{"advertisement_enabled", "false", "广告总开关", ConfigTypeBoolean, ConfigGroupAdvertisement, true},
@@ -118,6 +243,10 @@ func DefaultConfigSeeds() []ConfigSeed {
 
 		// 搜索
 		{"search_enabled", "true", "搜索功能开关", ConfigTypeBoolean, ConfigGroupSearch, true},
+		{"search_addresses", "[]", "Elasticsearch 地址列表（JSON 数组）", ConfigTypeJSON, ConfigGroupSearch, false},
+		{"search_username", "", "Elasticsearch 用户名", ConfigTypeString, ConfigGroupSearch, false},
+		{"search_password", "", "Elasticsearch 密码（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupSearch, false},
+		{"search_articles_index", "picart_articles", "文章索引名", ConfigTypeString, ConfigGroupSearch, false},
 
 		// 敏感词（非公开）
 		{ConfigKeySensitiveWords, "[]", "敏感词列表（JSON 数组）", ConfigTypeJSON, ConfigGroupSystem, false},

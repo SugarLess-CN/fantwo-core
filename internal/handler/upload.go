@@ -353,10 +353,30 @@ func infraFormatUpload(up model.Upload) gin.H {
 		"updatedAt":              up.UpdatedAt,
 	}
 	out["original"] = infraJSONOrNil(up.OriginalJSON)
-	out["thumbnails"] = infraJSONOrNil(up.ThumbsJSON)
+	// thumbnails 是对外契约里的「集合」字段：没有缩略图必须是 []，不能是 null
+	//（压缩关闭时 jsonb 列是 'null'，见 model.Upload.BeforeCreate），否则前端遍历直接抛错。
+	out["thumbnails"] = infraThumbnailsOrEmpty(up.ThumbsJSON)
 	out["videoCompressionJob"] = infraJSONOrNil(up.VideoJobJSON)
 	out["auditResult"] = infraJSONOrNil(up.AuditResultJS)
 	return out
+}
+
+// infraThumbnailsOrEmpty 缩略图字段的对外契约：恒为数组，无缩略图 = 空数组 []。
+//
+// 为什么单独一个函数而不是改 infraJSONOrNil：后者是通用工具，original /
+// videoCompressionJob / auditResult 三个字段沿用 nullable 语义（无值就该是 null），
+// 只有 thumbnails 是集合类型，集合的空值语义是「空数组」而非「null」。
+// 输入为空串、'null'、非法 JSON、JSON 非数组时一律返回 []。
+func infraThumbnailsOrEmpty(raw string) []interface{} {
+	empty := []interface{}{}
+	if s := strings.TrimSpace(raw); s == "" || s == "null" {
+		return empty
+	}
+	var list []interface{}
+	if err := json.Unmarshal([]byte(raw), &list); err != nil || list == nil {
+		return empty
+	}
+	return list
 }
 
 // infraJSONOrNil 把 jsonb 文本解析成对象；空/非法返回 nil（对齐 nullable json 列序列化为 null）。

@@ -134,10 +134,8 @@ func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMet
 	if len(files) == 0 {
 		return nil, errcode.ErrBadRequest.With("上传文件不能为空")
 	}
-	maxCount := f.cfg.Upload.MaxCount
-	if maxCount <= 0 {
-		maxCount = DefaultMaxCount
-	}
+	// 单次文件数上限：env 兜底 + DB 优先（upload_max_file_count）
+	maxCount := f.uploadMaxFileCount()
 	if len(files) > maxCount {
 		return nil, errcode.ErrBadRequest.Withf("单次最多上传 %d 个文件", maxCount)
 	}
@@ -249,10 +247,9 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 		storedPath = key
 		fileURL = f.s3AccessURL(key)
 	default: // local
-		if f.cfg.Storage.LocalDir == "" {
-			f.cfg.Storage.LocalDir = "./uploads"
-		}
-		storedPath = filepath.Join(f.cfg.Storage.LocalDir, filename)
+		// 本地根目录：env 兜底 + DB 优先（storage_local_dir）；不再回写 f.cfg 避免并发写共享配置
+		localDir := f.localDirRoot()
+		storedPath = filepath.Join(localDir, filename)
 		if err := os.MkdirAll(filepath.Dir(storedPath), 0o755); err != nil {
 			return nil, errcode.ErrInternal.Withf("创建存储目录失败: %v", err)
 		}
@@ -349,23 +346,43 @@ func (f *Infra) enqueueVideoCompression(up *model.Upload) {
 		Update("video_compression_status", model.VideoCompressionPending).Error
 }
 
-// processImageThumbnails 生成本地缩略图并回写记录（imaging，无 libvips 环境自动降级）。
+// processImageThumbnails 本地图片后处理：水印 + 缩略图 + 原图元数据，回写记录。
 //
-// 写入两组字段：
-//   - thumbnails：四档缩略图（thumb/small/medium/large，见 config 的 thumbnail_specs）；
-//   - original：原图宽高与字节数（对齐原实现 getMetadata 后写 original）。
+// 语义对齐原仓库 upload.service.ts:332-373（srcUpload 的处理分支）：
 //
+//   - 压缩关 + 水印不要 → **跳过整个后处理**（不重新编码、不生成缩略图），只把
+//     processed 置 true 表明「已决最终态」，审核照常由 handler 侧发起；
+//   - 压缩关 + 水印要   → **只打水印**（水印必然重新编码主文件），不生成缩略图；
+//   - 压缩开            → 水印（如需）+ 按 thumbnail_specs 生成缩略图。
+//
+// 压缩开关系 upload_compression_enabled（env 兜底 + DB 优先，见 compressionEnabled）；
+// 水印是否需要沿用 watermarkOptions 的既有判定（开关 + 场景排除 + 模板替换后非空）。
+//
+// 写入字段：thumbnails / original / size / watermarked / processed。
 // 失败只记日志不冒泡：上传响应已经返回，异步处理失败不影响主流程。
 func (f *Infra) processImageThumbnails(up *model.Upload) {
 	if f.db == nil || up.Storage != model.UploadStorageLocal {
-		return // S3 图片走「下载-压缩-回传」流程，与本地分支不同（见遗留项）
+		return // S3 图片走「下载-压缩-回传」流程，见 s3_image.go
 	}
+	compression := f.compressionEnabled()
+	wmOpt, needWatermark := f.watermarkOptions(up)
+
+	// ① 压缩关 + 水印不要：整体跳过。
+	// processed 置 true 而非留 false —— processed 是「该图已决最终态」的补偿标记，
+	// migration.go 按 processed=false 拣选补处理，留 false 会被反复挑中重跑。
+	if !compression && !needWatermark {
+		_ = f.db.Model(&model.Upload{}).Where("id = ?", up.ID).
+			Update("processed", true).Error
+		return
+	}
+
 	updates := map[string]interface{}{"processed": true}
 
-	// 水印：avatar 场景跳过；先备份无水印原图再覆盖主文件（对齐原 watermark.service）
+	// ② 水印：独立于压缩判定；avatar 场景已由 watermarkOptions 排除。
+	// 先备份无水印原图再覆盖主文件（对齐原 watermark.service）。
 	origPath, origURL, origSize := up.Path, up.URL, up.Size
-	if opt, need := f.watermarkOptions(up); need {
-		if backup, werr := f.applyWatermarkToFile(up.Path, opt); werr == nil {
+	if needWatermark {
+		if backup, werr := f.applyWatermarkToFile(up.Path, wmOpt); werr == nil {
 			updates["watermarked"] = true
 			if backup != "" {
 				origPath = backup
@@ -381,7 +398,8 @@ func (f *Infra) processImageThumbnails(up *model.Upload) {
 		}
 	}
 
-	// 原图元数据（宽高），供前端预留占位与瀑布流布局
+	// 原图元数据（宽高），供前端预留占位与瀑布流布局。
+	// 放在缩略图之前：压缩关闭时不做缩略图，但前端仍需要原图宽高排版。
 	if w, h, err := imageSize(origPath); err == nil {
 		if payload, err := json.Marshal(model.UploadOriginal{
 			URL: origURL, Path: origPath, Size: origSize, Width: w, Height: h,
@@ -390,10 +408,13 @@ func (f *Infra) processImageThumbnails(up *model.Upload) {
 		}
 	}
 
-	thumbs, err := f.ensureThumbnails(up)
-	if err == nil && len(thumbs) > 0 {
-		if payload, merr := json.Marshal(thumbs); merr == nil {
-			updates["thumbnails"] = string(payload)
+	// ③ 缩略图：仅压缩开启时生成（对齐原实现的 if (compressionEnabled) 分支）。
+	if compression {
+		thumbs, err := f.ensureThumbnails(up)
+		if err == nil && len(thumbs) > 0 {
+			if payload, merr := json.Marshal(thumbs); merr == nil {
+				updates["thumbnails"] = string(payload)
+			}
 		}
 	}
 	_ = f.db.Model(&model.Upload{}).Where("id = ?", up.ID).Updates(updates).Error
@@ -405,10 +426,7 @@ func (f *Infra) ensureThumbnails(up *model.Upload) ([]model.UploadThumbnail, err
 	if up.Storage != model.UploadStorageLocal {
 		return nil, errors.New("仅本地存储支持缩略图生成")
 	}
-	specs := f.cfg.Upload.ThumbnailSpecs
-	if len(specs) == 0 {
-		specs = []config.ThumbSpec{{Name: "thumb", Size: 200}}
-	}
+	specs := f.thumbnailSpecs()
 	// 像素处理在 image.go 中（imaging 实现，无 libvips 依赖）。
 	return f.makeThumbnails(up.Path, specs)
 }
@@ -416,44 +434,22 @@ func (f *Infra) ensureThumbnails(up *model.Upload) ([]model.UploadThumbnail, err
 // ---------- 校验 ----------
 
 // checkSize 按类型校验大小（对齐 resolveUploadMaxSizeBytes）。
+//
+// 上限来源与 /upload/config 展示同源（uploadLimitMB：env 兜底 + DB 优先），
+// 保证「前端看到的限制」与「后端实际拒绝的阈值」永远一致。
 func (f *Infra) checkSize(size int64, mimeType string) error {
 	kind := filecheck.Kind(mimeType)
-	var maxMB int
+	key := model.ConfigKeyUploadMaxOtherSize
+	envMB, defMB := f.cfg.Upload.MaxOtherMB, DefaultMaxOtherMB
 	switch kind {
 	case filecheck.KindImage:
-		maxMB = f.cfg.Upload.MaxImageMB
+		key, envMB, defMB = model.ConfigKeyUploadMaxImageSize, f.cfg.Upload.MaxImageMB, DefaultMaxImageMB
 	case filecheck.KindVideo:
-		maxMB = f.cfg.Upload.MaxVideoMB
+		key, envMB, defMB = model.ConfigKeyUploadMaxVideoSize, f.cfg.Upload.MaxVideoMB, DefaultMaxVideoMB
 	case filecheck.KindAudio:
-		maxMB = f.cfg.Upload.MaxAudioMB
-	default:
-		maxMB = f.cfg.Upload.MaxOtherMB
+		key, envMB, defMB = model.ConfigKeyUploadMaxAudioSize, f.cfg.Upload.MaxAudioMB, DefaultMaxAudioMB
 	}
-	if maxMB <= 0 {
-		switch kind {
-		case filecheck.KindImage:
-			maxMB = DefaultMaxImageMB
-		case filecheck.KindVideo:
-			maxMB = DefaultMaxVideoMB
-		case filecheck.KindAudio:
-			maxMB = DefaultMaxAudioMB
-		default:
-			maxMB = DefaultMaxOtherMB
-		}
-	}
-	// DB 优先：后台改 upload_max_*_size 后无需重启即生效（watermark 同款模式）。
-	if f.cfgSvc != nil {
-		key := model.ConfigKeyUploadMaxOtherSize
-		switch kind {
-		case filecheck.KindImage:
-			key = model.ConfigKeyUploadMaxImageSize
-		case filecheck.KindVideo:
-			key = model.ConfigKeyUploadMaxVideoSize
-		case filecheck.KindAudio:
-			key = model.ConfigKeyUploadMaxAudioSize
-		}
-		maxMB = f.cfgSvc.GetInt(key, maxMB)
-	}
+	maxMB := f.uploadLimitMB(key, envMB, defMB)
 	limit := int64(maxMB) * 1024 * 1024
 	if size > limit {
 		return errcode.ErrBadRequest.Withf("文件大小超过限制: %.1fMB > %dMB", float64(size)/1024/1024, maxMB)
@@ -561,14 +557,15 @@ func (f *Infra) putS3(fh *multipart.FileHeader, key string) error {
 // （对齐原 getFileUrl 用请求 baseUrl 拼接的语义）。
 func (f *Infra) localURL(path string) string {
 	rel := path
-	if f.cfg.Storage.LocalDir != "" {
-		if r, err := filepath.Rel(f.cfg.Storage.LocalDir, path); err == nil {
+	// 本地根目录与写入同源（env 兜底 + DB 优先），否则改 DB 目录后 Rel 失败会拼出错误 URL。
+	if dir := f.localDirRoot(); dir != "" {
+		if r, err := filepath.Rel(dir, path); err == nil {
 			rel = r
 		}
 	}
 	rel = strings.TrimPrefix(filepath.ToSlash(rel), "/")
-	if f.cfg.CDN.BaseURL != "" {
-		return strings.TrimRight(f.cfg.CDN.BaseURL, "/") + "/" + rel
+	if cdn := f.cdnBaseURL(); cdn != "" {
+		return strings.TrimRight(cdn, "/") + "/" + rel
 	}
 	// 无 CDN：走本服务内置静态文件路由（见 router/upload_routes.go 的 /uploads 静态挂载）
 	return "/api/v1/uploads/" + rel
@@ -579,10 +576,7 @@ func (f *Infra) LocalDir() string {
 	if f.cfg.Storage.Driver != model.UploadStorageLocal {
 		return ""
 	}
-	if f.cfg.Storage.LocalDir == "" {
-		return "./uploads"
-	}
-	return f.cfg.Storage.LocalDir
+	return f.localDirRoot()
 }
 
 // absolutizeURL 本地相对 URL 补全请求域名（handler 传入 baseURL；CDN/S3 绝对 URL 原样返回）。
@@ -594,9 +588,13 @@ func absolutizeURL(u, baseURL string) string {
 }
 
 // s3AccessURL 生成 S3 访问 URL（对齐 buildAccessUrl：CDN 优先 → path-style → 虚拟主机式）。
+//
+// 说明：cdn_base_url 走 DB 优先（纯 URL 前缀，改后立即生效）；
+// endpoint/bucket/use_ssl/force_path_style 保持 env —— minio client 在启动期固定，
+// 若此处改用 DB 值，URL 指向的桶/端点会与实际读写目标错位（改桶后老文件删除失败）。
 func (f *Infra) s3AccessURL(key string) string {
-	if f.cfg.CDN.BaseURL != "" {
-		return strings.TrimRight(f.cfg.CDN.BaseURL, "/") + "/" + key
+	if cdn := f.cdnBaseURL(); cdn != "" {
+		return strings.TrimRight(cdn, "/") + "/" + key
 	}
 	scheme := "https"
 	if !f.cfg.S3.UseSSL {
@@ -823,22 +821,38 @@ func (f *Infra) removeStored(storage, path string) error {
 		_ = f.client.RemoveObject(ctx, f.cfg.S3.Bucket, path, minio.RemoveObjectOptions{})
 		return nil
 	}
-	if strings.HasPrefix(path, f.cfg.Storage.LocalDir) { // 防目录穿越
+	if strings.HasPrefix(path, f.localDirRoot()) { // 防目录穿越（与写入目录同源）
 		_ = os.Remove(path)
 	}
 	return nil
 }
 
 // GetUploadConfig 返回上传配置（对齐 /upload/config，NoAuth，供前端预压缩）。
+//
+// 所有运行期可调项均为「env 兜底 + DB 优先」（key 见 internal/model/config.go），
+// 与真实校验/处理路径共用同一批辅助函数，保证「前端拿到的限制」= 「后端实际执行」。
 func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
+	// mb 每个类型只算一次：mb 与 bytes 必须同源，避免两处独立读取在并发改配置时不一致。
+	imageMB := f.uploadLimitMB(model.ConfigKeyUploadMaxImageSize, f.cfg.Upload.MaxImageMB, DefaultMaxImageMB)
+	videoMB := f.uploadLimitMB(model.ConfigKeyUploadMaxVideoSize, f.cfg.Upload.MaxVideoMB, DefaultMaxVideoMB)
+	audioMB := f.uploadLimitMB(model.ConfigKeyUploadMaxAudioSize, f.cfg.Upload.MaxAudioMB, DefaultMaxAudioMB)
+	otherMB := f.uploadLimitMB(model.ConfigKeyUploadMaxOtherSize, f.cfg.Upload.MaxOtherMB, DefaultMaxOtherMB)
+	const mbBytes = int64(1024 * 1024)
 	limits := gin.H{
-		"image": gin.H{"mb": orDefault(f.cfg.Upload.MaxImageMB, DefaultMaxImageMB), "bytes": int64(orDefault(f.cfg.Upload.MaxImageMB, DefaultMaxImageMB)) * 1024 * 1024},
-		"video": gin.H{"mb": orDefault(f.cfg.Upload.MaxVideoMB, DefaultMaxVideoMB), "bytes": int64(orDefault(f.cfg.Upload.MaxVideoMB, DefaultMaxVideoMB)) * 1024 * 1024},
-		"audio": gin.H{"mb": orDefault(f.cfg.Upload.MaxAudioMB, DefaultMaxAudioMB), "bytes": int64(orDefault(f.cfg.Upload.MaxAudioMB, DefaultMaxAudioMB)) * 1024 * 1024},
-		"other": gin.H{"mb": orDefault(f.cfg.Upload.MaxOtherMB, DefaultMaxOtherMB), "bytes": int64(orDefault(f.cfg.Upload.MaxOtherMB, DefaultMaxOtherMB)) * 1024 * 1024},
+		"image": gin.H{"mb": imageMB, "bytes": int64(imageMB) * mbBytes},
+		"video": gin.H{"mb": videoMB, "bytes": int64(videoMB) * mbBytes},
+		"audio": gin.H{"mb": audioMB, "bytes": int64(audioMB) * mbBytes},
+		"other": gin.H{"mb": otherMB, "bytes": int64(otherMB) * mbBytes},
 	}
 	var s3Info interface{}
+	// storage.driver 保持 env：minio client 启动期初始化，改了必须重启，不属于运行期可调项。
 	if f.cfg.Storage.Driver == "s3" {
+		// S3 五项（endpoint/bucket/region/use_ssl/force_path_style）**故意不读 DB**：
+		// minio client 在启动期创建（见本文件 New，storage.go:97-100），对象读写全部走该
+		// client，改了 env 必须重启才生效。若展示 DB 值而实际用 env 值，会出现「前端看到
+		// 桶 B、实际写桶 A」，删老文件还会删错桶 —— 这类假配置比不迁移更危险，故连种子
+		// 一起不落库（lead 2026-11-22 裁定：移出运行期可调清单）。
+		// 只有 cdn_base_url 是真运行期生效的（只影响 URL 拼接，不碰 client），保留 DB 优先。
 		scheme := "https"
 		if !f.cfg.S3.UseSSL {
 			scheme = "http"
@@ -847,9 +861,23 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 			"region":         f.cfg.S3.Region,
 			"bucket":         f.cfg.S3.Bucket,
 			"endpoint":       f.cfg.S3.Endpoint,
-			"cdnDomain":      f.cfg.CDN.BaseURL,
+			"cdnDomain":      f.cdnBaseURL(), // DB 优先（cdn_base_url）
 			"forcePathStyle": f.cfg.S3.ForcePathStyle,
 			"scheme":         scheme,
+		}
+	}
+	// 水印段与 watermark.go 的 watermarkOptions 同源（同 key 常量、同默认值），
+	// 保证前端展示的开关/模板/位置/透明度与实际叠加行为一致。
+	wmEnabled := f.cfg.Upload.WatermarkEnabled
+	wmTemplate := wmDefaultTemplate
+	wmPosition := wmDefaultPosition
+	wmOpacity := wmDefaultOpacity
+	if f.cfgSvc != nil {
+		wmEnabled = f.cfgSvc.GetBool(model.ConfigKeyUploadWatermarkEnabled, wmEnabled)
+		wmTemplate = f.cfgSvc.GetString(model.ConfigKeyUploadWatermarkTextTemplate, wmTemplate)
+		wmPosition = f.cfgSvc.GetString(model.ConfigKeyUploadWatermarkPosition, wmPosition)
+		if v := f.cfgSvc.GetInt(model.ConfigKeyUploadWatermarkOpacityPercent, int(wmDefaultOpacity*100)); v > 0 {
+			wmOpacity = float64(v) / 100
 		}
 	}
 	return gin.H{
@@ -871,11 +899,11 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 		},
 		"limits": gin.H{
 			"maxSize":      limits,
-			"maxFileCount": orDefault(f.cfg.Upload.MaxCount, DefaultMaxCount),
+			"maxFileCount": f.uploadMaxFileCount(),
 		},
 		"allowedMimeTypes": filecheck.AllMimeGroups(),
 		"imageProcessing": gin.H{
-			"compressionEnabled": f.cfg.Upload.CompressionEnabled,
+			"compressionEnabled": f.compressionEnabled(),
 			"format":             "webp",
 			"quality":            85,
 			"maxWidth":           3840,
@@ -884,10 +912,10 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 			"animated":           gin.H{"staticThumb": true, "originalKeepsAnimation": true},
 		},
 		"watermark": gin.H{
-			"enabled":      f.cfg.Upload.WatermarkEnabled,
-			"textTemplate": "{nickname}",
-			"position":     "bottom-right",
-			"opacity":      0.55,
+			"enabled":      wmEnabled,
+			"textTemplate": wmTemplate,
+			"position":     wmPosition,
+			"opacity":      wmOpacity,
 			"skipScenes":   []string{SceneAvatar},
 		},
 		"videoProcessing": gin.H{
@@ -935,6 +963,98 @@ func orDefault(v, def int) int {
 		return def
 	}
 	return v
+}
+
+// ---------- 运行期可调项（env 兜底 + DB 优先） ----------
+//
+// 统一范式对齐 watermark.go:183-196：先取 env/InfraConfig 值作默认，
+// cfgSvc 非 nil 时用 DB config 表覆盖（后台改配置无需重启）。
+// 所有读取路径（校验、落盘、URL 生成、删除、/upload/config）都必须走这里的
+// 同一批辅助函数，否则 DB 改目录后「写入目录」与「删除前缀判断」会错位。
+
+// uploadLimitMB 单类型上传上限（MB）：env 兜底 → DB 优先。
+func (f *Infra) uploadLimitMB(key string, envMB, defMB int) int {
+	mb := orDefault(envMB, defMB)
+	if f.cfgSvc != nil {
+		mb = f.cfgSvc.GetInt(key, mb)
+	}
+	if mb <= 0 {
+		mb = defMB
+	}
+	return mb
+}
+
+// uploadMaxFileCount 单次上传文件数上限：env 兜底 → DB 优先。
+func (f *Infra) uploadMaxFileCount() int {
+	n := orDefault(f.cfg.Upload.MaxCount, DefaultMaxCount)
+	if f.cfgSvc != nil {
+		n = f.cfgSvc.GetInt(model.ConfigKeyUploadMaxFileCount, n)
+	}
+	if n <= 0 {
+		n = DefaultMaxCount
+	}
+	return n
+}
+
+// compressionEnabled 图片压缩总开关：env 兜底 → DB 优先。
+func (f *Infra) compressionEnabled() bool {
+	enabled := f.cfg.Upload.CompressionEnabled
+	if f.cfgSvc != nil {
+		enabled = f.cfgSvc.GetBool(model.ConfigKeyUploadCompression, enabled)
+	}
+	return enabled
+}
+
+// localDirRoot 本地存储根目录：env 兜底 → DB 优先 → 空值兜底 ./uploads。
+//
+// 写入（uploadOne）、URL 生成（localURL）、删除（removeStored 的目录穿越前缀判断）、
+// 静态路由（LocalDir）必须全部走本函数，保证同源。
+func (f *Infra) localDirRoot() string {
+	dir := f.cfg.Storage.LocalDir
+	if f.cfgSvc != nil {
+		dir = f.cfgSvc.GetString(model.ConfigKeyStorageLocalDir, dir)
+	}
+	if strings.TrimSpace(dir) == "" {
+		return "./uploads"
+	}
+	return dir
+}
+
+// cdnBaseURL CDN 前缀：env 兜底 → DB 优先。
+func (f *Infra) cdnBaseURL() string {
+	u := f.cfg.CDN.BaseURL
+	if f.cfgSvc != nil {
+		u = f.cfgSvc.GetString(model.ConfigKeyCDNBaseURL, u)
+	}
+	return strings.TrimSpace(u)
+}
+
+// thumbnailSpecs 缩略图规格：env 兜底 → DB 优先（JSON 数组）→ 单档兜底。
+//
+// DB 值解析失败、为空、或全部 Size<=0 时回退 env 值，不因配置脏数据中断缩略图生成。
+// 本地（ensureThumbnails）与 S3（s3_image.go）两条链路共用本函数，保证同源。
+func (f *Infra) thumbnailSpecs() []config.ThumbSpec {
+	specs := f.cfg.Upload.ThumbnailSpecs
+	if f.cfgSvc != nil {
+		if raw := f.cfgSvc.GetString(model.ConfigKeyUploadThumbnailSpecs, ""); strings.TrimSpace(raw) != "" {
+			var parsed []config.ThumbSpec
+			if err := json.Unmarshal([]byte(raw), &parsed); err == nil && len(parsed) > 0 {
+				valid := make([]config.ThumbSpec, 0, len(parsed))
+				for _, s := range parsed {
+					if s.Size > 0 {
+						valid = append(valid, s)
+					}
+				}
+				if len(valid) > 0 {
+					specs = valid
+				}
+			}
+		}
+	}
+	if len(specs) == 0 {
+		specs = []config.ThumbSpec{{Name: "thumb", Size: 200}}
+	}
+	return specs
 }
 
 // newUUID 生成 RFC4122 v4 字符串（复用骨架依赖 github.com/google/uuid）。

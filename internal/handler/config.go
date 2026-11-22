@@ -21,6 +21,15 @@
 //	POST   /config/sensitive-words/clear-cache setting:update    清除敏感词缓存
 //
 // 敏感词接口响应保留原实现的 {success, data|message} 形态，便于前端零改动对接。
+//
+// 敏感项打码（管理端读契约，见 infra.ConfigView）：
+//
+//	GET /config、/config/group/:group、/config/key/:key、/config/:id 均返回 ConfigView，
+//	其中 s3_access_key / s3_secret_key / search_password 等敏感项的 value 恒为 "***"
+//	（库中值为空时为 ""），并附 hasValue（后端是否已配置）。非敏感项 value 原样返回。
+//	PATCH 时 value 传空串或 "***" 表示「保持原值」，敏感项不会被清空；
+//	批量更新响应新增 skipped 字段（未命中 key + 被跳过的敏感项条数），
+//	updated 语义收敛为「真实写库条数」（原先等于请求条数）。
 package handler
 
 import (
@@ -98,11 +107,13 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
 		return
 	}
-	if err := h.svc.UpdateAll(items); err != nil {
+	updated, skipped, err := h.svc.UpdateAll(items)
+	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"updated": len(items)})
+	// updated 为真实写库条数；skipped 为「未命中的 key + 敏感项空值/*** 占位符」条数
+	response.Success(c, gin.H{"updated": updated, "skipped": skipped})
 }
 
 // ByGroup GET /config/group/:group。
@@ -140,11 +151,12 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
 		return
 	}
-	if err := h.svc.UpdateGroup(c.Param("group"), items); err != nil {
+	updated, skipped, err := h.svc.UpdateGroup(c.Param("group"), items)
+	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"updated": len(items)})
+	response.Success(c, gin.H{"updated": updated, "skipped": skipped})
 }
 
 // Public GET /config/public（NoAuth）。

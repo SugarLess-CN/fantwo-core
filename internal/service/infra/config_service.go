@@ -107,10 +107,126 @@ func (s *ConfigService) EnsureSeeds() error {
 	return s.ReloadSensitiveWords()
 }
 
+// ---------- 管理端视图与敏感项打码 ----------
+
+// maskedValue 敏感配置项在管理端的占位符。
+//
+// 语义是双向的：
+//   - 读（GET /config 系列）：真实值非空时用该占位符代替；
+//   - 写（PATCH /config 系列）：收到该占位符或空串表示「保持原值不变」，
+//     前端可以原样回传读到的对象，不必为了改别的字段而清空密钥。
+const maskedValue = "***"
+
+// isSensitiveKey 判断配置项是否需要在管理端打码。
+//
+// 单一事实来源：判定规则统一由 model.IsSensitiveConfigKey 提供
+// （白名单 model.ConfigSensitiveKeys + 命名兜底 password/secret/access_key/_token/private_key），
+// 本函数只是 service 层的一层薄包装，便于包内调用与单测；**不要在此另写一份规则**，
+// 否则 model 与 service 两份清单会漂移。
+func isSensitiveKey(key string) bool {
+	return model.IsSensitiveConfigKey(key)
+}
+
+// skipValueUpdate 判断某次写入的 value 是否应被忽略（敏感项的空值/占位符保护）。
+//
+// 规则：仅对敏感 key 生效——value 为空串（或纯空白）或等于打码占位符 "***" 时跳过。
+// 非敏感 key 一律返回 false，写入语义保持原样（含显式写空串）。
+func skipValueUpdate(key, value string) bool {
+	if !isSensitiveKey(key) {
+		return false
+	}
+	switch strings.TrimSpace(value) {
+	case "", maskedValue:
+		return true
+	}
+	return false
+}
+
+// ConfigView 管理端配置视图：敏感项 value 打码，附 hasValue 表明后端是否已配置。
+//
+// 字段集合必须与改前的 GORM 实体响应**保持一致**（AGENTS.md 全局决策：对齐前端契约、前端零改动）：
+// model.Config 内嵌 BaseModel，其对外 JSON 为 id/createdAt/updatedAt（deletedAt 是 json:"-"），
+// 因此这里必须显式带出 createdAt / updatedAt，不允许借着「改成视图」的机会删字段。
+// 打码只新增 hasValue / masked 两个字段，不删除、不改名任何既有字段。
+//
+// startupOnly=true 的行前端应置灰只读；即便前端漏判，四个写入口也会在 service 层拒绝
+// （rejectStartupOnlyKey：Create / Update / UpdateAll / UpdateOne）。
+//
+// startupOnly 与 masked 是两件独立的事，可以同时为 true（s3_access_key 就是）：
+// 写路径先判启动期直接拒绝，读路径仍按敏感打码 —— 历史数据可能已存在于老库，读出必须遮住。
+type ConfigView struct {
+	ID          string    `json:"id"`
+	Key         string    `json:"key"`
+	Value       string    `json:"value"`
+	Description string    `json:"description"`
+	Type        string    `json:"type"`
+	Group       string    `json:"group"`
+	Public      bool      `json:"public"`
+	HasValue    bool      `json:"hasValue"`
+	Masked      bool      `json:"masked"`
+	StartupOnly bool      `json:"startupOnly"` // 启动期配置：改了必须重启，管理端应置灰只读
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+// toView 把配置实体转成管理端视图（纯函数，便于单测）。
+//
+// 敏感项：DB 值非空 → Value 为 "***"；DB 值为空 → Value 为空串（表示尚未配置）；
+// 两种情况 HasValue 都等于「DB 值是否非空」，Masked 恒为 true。
+// 非敏感项：Value 原样返回，Masked=false，HasValue 仍如实反映是否非空。
+// CreatedAt / UpdatedAt 一律原样透传（前端按 updatedAt 展示「最后修改时间」需要它）。
+// StartupOnly 按 model.IsStartupOnlyConfigKey 判定，与 Masked 互不排斥。
+func toView(c model.Config) ConfigView {
+	masked := isSensitiveKey(c.Key)
+	hasValue := c.Value != ""
+	value := c.Value
+	if masked {
+		if hasValue {
+			value = maskedValue
+		} else {
+			value = ""
+		}
+	}
+	return ConfigView{
+		ID:          c.ID,
+		Key:         c.Key,
+		Value:       value,
+		Description: c.Description,
+		Type:        c.Type,
+		Group:       c.Group,
+		Public:      c.Public,
+		HasValue:    hasValue,
+		Masked:      masked,
+		StartupOnly: model.IsStartupOnlyConfigKey(c.Key),
+		CreatedAt:   c.CreatedAt,
+		UpdatedAt:   c.UpdatedAt,
+	}
+}
+
+// toViews 批量转换（nil 入参返回空切片，避免前端拿到 null）。
+func toViews(list []model.Config) []ConfigView {
+	out := make([]ConfigView, 0, len(list))
+	for _, c := range list {
+		out = append(out, toView(c))
+	}
+	return out
+}
+
 // ---------- 配置 CRUD ----------
 
-// List 全部配置（对齐 ConfigController.findAll，权限 setting:read）。
-func (s *ConfigService) List() ([]model.Config, error) {
+// List 全部配置（对齐 ConfigController.findAll，权限 config:read）。
+//
+// 返回管理端视图：敏感项（s3_access_key / s3_secret_key / search_password 等）已打码。
+func (s *ConfigService) List() ([]ConfigView, error) {
+	rows, err := s.listRaw()
+	if err != nil {
+		return nil, err
+	}
+	return toViews(rows), nil
+}
+
+// listRaw 读全部配置实体（内部使用方法，保留明文 value）。
+func (s *ConfigService) listRaw() ([]model.Config, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")
 	}
@@ -122,7 +238,18 @@ func (s *ConfigService) List() ([]model.Config, error) {
 }
 
 // ByGroup 按分组取配置（对齐 findByGroup）。
-func (s *ConfigService) ByGroup(group string) ([]model.Config, error) {
+//
+// 与 List 同为管理端读路径，同样返回打码视图——否则按分组读取就能绕过打码。
+func (s *ConfigService) ByGroup(group string) ([]ConfigView, error) {
+	rows, err := s.byGroupRaw(group)
+	if err != nil {
+		return nil, err
+	}
+	return toViews(rows), nil
+}
+
+// byGroupRaw 按分组读实体（内部使用方法，保留明文 value）。
+func (s *ConfigService) byGroupRaw(group string) ([]model.Config, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")
 	}
@@ -136,8 +263,18 @@ func (s *ConfigService) ByGroup(group string) ([]model.Config, error) {
 	return out, nil
 }
 
-// ByID 按主键取配置。
-func (s *ConfigService) ByID(id string) (*model.Config, error) {
+// ByID 按主键取配置（管理端视图，敏感项打码）。
+func (s *ConfigService) ByID(id string) (*ConfigView, error) {
+	c, err := s.getByIDRaw(id)
+	if err != nil {
+		return nil, err
+	}
+	v := toView(*c)
+	return &v, nil
+}
+
+// getByIDRaw 按主键取实体（内部使用方法，含明文 value；写路径一律走它）。
+func (s *ConfigService) getByIDRaw(id string) (*model.Config, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")
 	}
@@ -151,8 +288,18 @@ func (s *ConfigService) ByID(id string) (*model.Config, error) {
 	return &c, nil
 }
 
-// ByKey 按 key 取配置。
-func (s *ConfigService) ByKey(key string) (*model.Config, error) {
+// ByKey 按 key 取配置（管理端视图，敏感项打码）。
+func (s *ConfigService) ByKey(key string) (*ConfigView, error) {
+	c, err := s.getByKeyRaw(key)
+	if err != nil {
+		return nil, err
+	}
+	v := toView(*c)
+	return &v, nil
+}
+
+// getByKeyRaw 按 key 取实体（内部使用方法，含明文 value）。
+func (s *ConfigService) getByKeyRaw(key string) (*model.Config, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")
 	}
@@ -176,13 +323,46 @@ type ConfigInput struct {
 	Public      *bool  `json:"public"`
 }
 
+// rejectStartupOnlyKey 启动期配置写入的统一拦截（纯函数，便于单测；返回 nil 表示放行）。
+//
+// 背景：S3 / storage_driver 这类配置绑定启动期创建的 client，改库不生效（必须改环境变量 + 重启）。
+// 删掉种子只堵住「启动时自动写入」，POST /config、PATCH /config/:id、PATCH /config 以及
+// 业务域直写 UpdateOne 仍是可手工造出「永不生效的假配置」的入口 —— 在这里统一拒绝，
+// 让运维拿到明确报错，而不是写成功后再也等不到生效。
+//
+// 为什么是一个函数而不是各入口各写一份 if：入口有四处，规则必须只有一份，
+// 否则 model 侧以后加 key 时会漏掉某个入口。规则本身（哪些 key）只在
+// model.ConfigStartupOnlyKeys 里维护，这里不做任何硬编码。
+//
+// 空 key 直接放行：交给调用方各自的「配置 key 不能为空」去报，不在这里抢错误。
+func rejectStartupOnlyKey(key string) error {
+	if strings.TrimSpace(key) == "" {
+		return nil
+	}
+	if !model.IsStartupOnlyConfigKey(key) {
+		return nil
+	}
+	// 文案给运维可执行的话，而不是只说「不允许」：否则运维会以为后台坏了，
+	// 转头去 SQL 直改库，绕开所有校验 —— 那比报错本身更糟。
+	return errcode.ErrBadRequest.Withf(
+		"配置项 %s 属于启动期配置（存储 / 搜索客户端在服务启动时按它初始化），写入数据库不会生效；"+
+			"请改环境变量或配置文件后重启服务才会生效", key)
+}
+
 // Create 新建配置（key 唯一，冲突返回 409）。
-func (s *ConfigService) Create(in ConfigInput) (*model.Config, error) {
+//
+// 返回管理端视图（与 List/ByGroup/ByKey/ByID/Update 口径一致）：创建者能看见自己刚填的值，
+// 敏感项照常打码，前端只需一套解析逻辑。
+// 启动期配置（S3 / storage_driver）拒绝创建 —— 见 rejectStartupOnlyKey。
+func (s *ConfigService) Create(in ConfigInput) (*ConfigView, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")
 	}
 	if strings.TrimSpace(in.Key) == "" {
 		return nil, errcode.ErrBadRequest.With("配置 key 不能为空")
+	}
+	if err := rejectStartupOnlyKey(in.Key); err != nil {
+		return nil, err
 	}
 	var cnt int64
 	if err := s.db.Model(&model.Config{}).Where("key = ?", in.Key).Count(&cnt).Error; err != nil {
@@ -205,17 +385,21 @@ func (s *ConfigService) Create(in ConfigInput) (*model.Config, error) {
 		return nil, svcInternal("创建配置失败: %v", err)
 	}
 	s.invalidate(c.Key)
-	return c, nil
+	return s.ByKey(c.Key)
 }
 
-// Update 按主键更新配置。
-func (s *ConfigService) Update(id string, in ConfigInput) (*model.Config, error) {
-	c, err := s.ByID(id)
-	if err != nil {
-		return nil, err
-	}
+// buildUpdates 由入参与现有实体推导 PATCH 需要写的列集合（纯函数，便于单测）。
+//
+// 「空值不覆盖」语义集中在两处：
+//   - value：空串一律不写列——旧实现写成 `in.Value != "" || in.Type != ""`，
+//     导致「只改 type 不改 value」时把 value 覆盖成空串，本函数顺带修掉该缺陷；
+//   - 敏感 key：value 为 "***"（读接口的打码占位符）同样不写列，
+//     前端把读到的对象原样回传即可，密钥保持原值。
+//
+// 其余字段语义不变：description / type / group 非空才写，public 非 nil 才写。
+func buildUpdates(c model.Config, in ConfigInput) map[string]interface{} {
 	updates := map[string]interface{}{}
-	if in.Value != "" || in.Type != "" {
+	if in.Value != "" && !skipValueUpdate(c.Key, in.Value) {
 		updates["value"] = in.Value
 	}
 	if in.Description != "" {
@@ -230,19 +414,44 @@ func (s *ConfigService) Update(id string, in ConfigInput) (*model.Config, error)
 	if in.Public != nil {
 		updates["public"] = *in.Public
 	}
+	return updates
+}
+
+// Update 按主键更新配置，返回管理端视图（敏感项打码）。
+//
+// 启动期配置（S3 / storage_driver）拒绝修改 —— 见 rejectStartupOnlyKey。
+func (s *ConfigService) Update(id string, in ConfigInput) (*ConfigView, error) {
+	c, err := s.getByIDRaw(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := rejectStartupOnlyKey(c.Key); err != nil {
+		return nil, err
+	}
+	updates := buildUpdates(*c, in)
 	if len(updates) > 0 {
 		if err := s.db.Model(&model.Config{}).Where("id = ?", c.ID).Updates(updates).Error; err != nil {
 			return nil, svcInternal("更新配置失败: %v", err)
 		}
 		s.invalidate(c.Key)
+		// 敏感词被逐条更新时同步重建前缀树（与 UpdateAll 行为一致）
+		if c.Key == model.ConfigKeySensitiveWords {
+			_ = s.ReloadSensitiveWords()
+		}
 	}
 	return s.ByID(id)
 }
 
 // UpdateOne 按 key 更新单个值（供业务域写配置，如审核开关）。
+//
+// 启动期配置（S3 / storage_driver）拒绝写入 —— 含「不存在则创建」分支，
+// 否则业务域误传一个 s3_* key 就会凭空造出永不生效的配置行。
 func (s *ConfigService) UpdateOne(key, value string) error {
 	if s.db == nil {
 		return svcUnavailable("数据库不可用")
+	}
+	if err := rejectStartupOnlyKey(key); err != nil {
+		return err
 	}
 	var c model.Config
 	if err := s.db.Where("key = ?", key).First(&c).Error; err != nil {
@@ -263,40 +472,56 @@ func (s *ConfigService) UpdateOne(key, value string) error {
 	return nil
 }
 
-// UpdateAll 批量更新（body 为 [{key,value}] 或 [{id,value}]，对齐 updateAll）。
-func (s *ConfigService) UpdateAll(items []ConfigInput) error {
+// UpdateAll 批量更新（body 为 [{key,value}]，对齐 updateAll）。
+//
+// 返回 (实际更新条数, 跳过条数, error)。跳过规则：
+//   - key 不存在：静默忽略（对齐原实现），计入跳过数；
+//   - 敏感 key 且 value 为空串或 "***"：不写库、不失效缓存，计入跳过数；
+//   - 非敏感 key 的 value 保持原语义（含显式写入空串，不做额外拦截）。
+//
+// 启动期配置（S3 / storage_driver）**整批报错回滚**（不静默计入 skipped）：
+// 这个入口能改到库里残留的旧 S3 行，写了也不生效，必须让调用方看见失败。
+func (s *ConfigService) UpdateAll(items []ConfigInput) (int, int, error) {
 	if s.db == nil {
-		return svcUnavailable("数据库不可用")
+		return 0, 0, svcUnavailable("数据库不可用")
 	}
 	if len(items) == 0 {
-		return errcode.ErrBadRequest.With("配置列表不能为空")
+		return 0, 0, errcode.ErrBadRequest.With("配置列表不能为空")
 	}
+	updated, skipped := 0, 0
 	// 收集实际改动的 key，事务提交后统一失效缓存（含 Redis，多实例一致）
 	changed := make([]string, 0, len(items))
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, it := range items {
-			var c model.Config
-			var err error
-			if it.Key != "" {
-				err = tx.Where("key = ?", it.Key).First(&c).Error
-			} else {
+			if it.Key == "" {
 				return errcode.ErrBadRequest.With("配置项缺少 key")
 			}
+			if err := rejectStartupOnlyKey(it.Key); err != nil {
+				return err // 事务回滚：批量里混入启动期配置整批拒绝
+			}
+			var c model.Config
+			err := tx.Where("key = ?", it.Key).First(&c).Error
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
+					skipped++
 					continue // 不存在的 key 跳过（对齐原实现：静默忽略）
 				}
 				return svcInternal("查询配置失败: %v", err)
 			}
+			if skipValueUpdate(c.Key, it.Value) {
+				skipped++
+				continue // 敏感项的空值/占位符：保持库里原值
+			}
 			if err := tx.Model(&model.Config{}).Where("id = ?", c.ID).Update("value", it.Value).Error; err != nil {
 				return svcInternal("更新配置失败: %v", err)
 			}
+			updated++
 			changed = append(changed, c.Key)
 		}
 		return nil
 	})
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	for _, key := range changed {
 		s.invalidate(key)
@@ -307,35 +532,38 @@ func (s *ConfigService) UpdateAll(items []ConfigInput) error {
 			_ = s.ReloadSensitiveWords()
 		}
 	}
-	return nil
+	return updated, skipped, nil
 }
 
 // UpdateGroup 批量更新某分组（先校验分组存在，再逐项更新）。
-func (s *ConfigService) UpdateGroup(group string, items []ConfigInput) error {
+//
+// 跳过语义完全复用 UpdateAll（敏感项空值/占位符不覆盖）。
+func (s *ConfigService) UpdateGroup(group string, items []ConfigInput) (int, int, error) {
 	if s.db == nil {
-		return svcUnavailable("数据库不可用")
+		return 0, 0, svcUnavailable("数据库不可用")
 	}
 	if strings.TrimSpace(group) == "" {
-		return errcode.ErrBadRequest.With("分组不能为空")
+		return 0, 0, errcode.ErrBadRequest.With("分组不能为空")
 	}
 	var cnt int64
 	if err := s.db.Model(&model.Config{}).Where(`"group" = ?`, group).Count(&cnt).Error; err != nil {
-		return svcInternal("查询分组配置失败: %v", err)
+		return 0, 0, svcInternal("查询分组配置失败: %v", err)
 	}
 	if cnt == 0 {
-		return errcode.ErrNotFound.Withf("分组 %s 不存在", group)
+		return 0, 0, errcode.ErrNotFound.Withf("分组 %s 不存在", group)
 	}
-	if err := s.UpdateAll(items); err != nil {
-		return err
+	updated, skipped, err := s.UpdateAll(items)
+	if err != nil {
+		return 0, 0, err
 	}
 	// 分组内变更：清空整组缓存
 	s.invalidateGroup(group)
-	return nil
+	return updated, skipped, nil
 }
 
 // Remove 删除配置（按主键）。
 func (s *ConfigService) Remove(id string) error {
-	c, err := s.ByID(id)
+	c, err := s.getByIDRaw(id)
 	if err != nil {
 		return err
 	}
@@ -360,22 +588,35 @@ func (s *ConfigService) PublicConfigs() (map[string]map[string]interface{}, erro
 	if err := s.db.Where("public = ?", true).Order(`"group" ASC, key ASC`).Find(&rows).Error; err != nil {
 		return nil, svcInternal("查询公开配置失败: %v", err)
 	}
+	return aggregatePublic(rows), nil
+}
+
+// aggregatePublic 把 public 配置聚合成 {group: {key: value}}（纯函数，便于单测）。
+//
+// 兜底剔除两类：
+//  1. 敏感项（isSensitiveKey 命中）一律不下发——即便被误标 public（例如有人把
+//     s3_secret_key 的 public 改成 true），也不会经匿名接口泄露；
+//  2. 敏感词表（sensitive_words）单独剔除：它不在密钥白名单里（词表不是密钥），
+//     但它是内容审核资产，绝不能出现在匿名接口（原实现同样在此处 delete，语义保持）。
+func aggregatePublic(rows []model.Config) map[string]map[string]interface{} {
 	out := make(map[string]map[string]interface{}, 8)
 	for _, c := range rows {
+		if isSensitiveKey(c.Key) || c.Key == model.ConfigKeySensitiveWords {
+			continue
+		}
 		g := orDefaultStr(c.Group, model.ConfigGroupSystem)
 		if out[g] == nil {
 			out[g] = map[string]interface{}{}
 		}
 		out[g][c.Key] = castValue(c.Value, c.Type)
 	}
-	// 敏感词绝不下发到匿名接口（即便误标 public 也强制剔除）
-	for _, g := range out {
-		delete(g, model.ConfigKeySensitiveWords)
-	}
-	return out, nil
+	return out
 }
 
 // AdvertisementConfig 广告配置（对齐 getAdvertisementConfig，public + group=advertisement）。
+//
+// 广告组不含密钥类配置，故此处不做打码/剔除；若将来把敏感项误归入 advertisement 组，
+// 需要在此追加 isSensitiveKey 兜底（与 PublicConfigs 的 aggregatePublic 保持一致）。
 func (s *ConfigService) AdvertisementConfig() (map[string]interface{}, error) {
 	if s.db == nil {
 		return nil, svcUnavailable("数据库不可用")

@@ -12,6 +12,11 @@
 //
 // 文章数据读取走原生表查询（不 import content 域的 model.Article），
 // 保证跨域并行开发期不产生编译耦合；列名以 articles 表实际 snake_case 为准。
+//
+// 运行期可调（T-34d）：search_enabled / search_addresses / search_username /
+// search_password / search_articles_index 一律「DB 优先、env 兜底」。其中前四项
+// 共同决定 ES client 身份，因此按「配置签名 + 惰性重建」处理：签名变化才重建
+// client（见 ensureClient），不做每次读配置就换连接的傻事。
 package infra
 
 import (
@@ -21,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -34,16 +40,91 @@ import (
 // searchTimeout ES 调用超时。
 const searchTimeout = 10 * time.Second
 
+// searchParamsTTL 运行期 ES 参数的本地快照窗口。
+//
+// 每个对外方法入口都要知道「当前生效的 ES 参数」（DB 优先、env 兜底），而 bulk
+// 写入是**每行一次** Index() 调用 —— 不做本地节流，一次全量同步会把 DB/Redis
+// 打出上万次往返。1 秒窗口对「改 DB 后不重启生效」的体感无影响（运维改完配置
+// 最多 1 秒被读到），且与配置服务自身的 Redis 一级缓存是两层独立缓存：
+// 这层只缓存「我读到的那份参数快照」，不做失效广播，靠 TTL 自然收敛。
+const searchParamsTTL = time.Second
+
 // articlesIndexDefault 默认索引名（对齐原 ELASTICSEARCH_INDEX_ARTICLE 语义）。
 const articlesIndexDefault = "picart_articles"
 
-// Searcher Elasticsearch 搜索服务（客户端懒初始化）。
+// esParams 某一时刻生效的 ES 连接参数快照（启动期 env/config 值为底，DB 配置覆盖）。
+type esParams struct {
+	Enabled   bool
+	Addresses []string
+	Username  string
+	Password  string
+	Index     string
+}
+
+// parseAddresses 解析地址配置串：JSON 数组优先，失败或为空则按逗号分隔
+// （对齐 internal/config/infra.go 的 parseListEnv：SEARCH_ADDRESSES 支持
+// `["http://a:9200","http://b:9200"]` 与 `http://a:9200,http://b:9200` 两种写法）。
+//
+// 结果去空白、去空项、去重并保序；返回 nil 表示「没有可用的地址配置」，
+// 调用方据此回退启动期的 env 值 —— DB 种子值 `[]` 不能把 env 里的地址清空。
+func parseAddresses(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	var out []string
+	seen := make(map[string]struct{}, 4)
+	add := func(a string) {
+		a = strings.TrimSpace(a)
+		if a == "" {
+			return
+		}
+		if _, ok := seen[a]; ok {
+			return
+		}
+		seen[a] = struct{}{}
+		out = append(out, a)
+	}
+	if strings.HasPrefix(raw, "[") {
+		var list []string
+		if err := json.Unmarshal([]byte(raw), &list); err == nil {
+			for _, a := range list {
+				add(a)
+			}
+			return out
+		}
+		// JSON 解析失败：落到逗号分隔分支（容忍手工填的半截 JSON）
+	}
+	for _, p := range strings.Split(raw, ",") {
+		add(p)
+	}
+	return out
+}
+
+// signParams 参数签名：地址 / 用户名 / 密码 / 索引任一项变化即不同。
+//
+// 用 %q 序列化，避免「地址里含分隔符」造成的签名碰撞。
+func signParams(p esParams) string {
+	return fmt.Sprintf("%q|%q|%q|%q", p.Addresses, p.Username, p.Password, p.Index)
+}
+
+// Searcher Elasticsearch 搜索服务（客户端懒初始化 + 按配置签名惰性重建）。
 type Searcher struct {
 	cfg config.SearchEngineConfig
 
-	mu      sync.Mutex
-	client  *elasticsearch.Client // nil 表示尚未初始化
-	initErr error                 // 初始化失败原因（避免每次重试打满日志）
+	// cfgSvc 运行期配置源（DB 优先、env 兜底）；nil 时全部走 cfg（测试/未注入场景）
+	cfgSvc *ConfigService
+
+	// paramsMu 保护「当前生效 ES 参数」的本地快照（见 searchParamsTTL）。
+	// 独立于 mu：ensureClient 持 mu 时仍需要读 params，共用一把锁会自锁。
+	paramsMu sync.RWMutex
+	params   esParams
+	paramsAt time.Time
+
+	mu        sync.RWMutex
+	client    *elasticsearch.Client // nil 表示尚未初始化
+	initErr   error                 // 最近一次初始化失败原因（同签名下不重复重试）
+	signature string                // client 对应的配置签名（signParams 结果）
 
 	// logs 检索日志（热门搜索词来源，见 search_log.go）；nil 表示不记录
 	logs *SearchLogService
@@ -63,39 +144,153 @@ func (s *Searcher) WithLogs(logs *SearchLogService) *Searcher { s.logs = logs; r
 // Logs 取检索日志服务（nil 时调用方需自行判空）。
 func (s *Searcher) Logs() *SearchLogService { return s.logs }
 
-// Enabled ES 是否已配置（enabled=true 且至少一个地址）。
+// WithConfigService 注入配置服务（ES 参数运行期可调）；nil 时全部走启动期 env 值。
+// 同 storage.go 的 WithConfigService 风格，装配处（router）传进程级单例。
+func (s *Searcher) WithConfigService(cs *ConfigService) *Searcher { s.cfgSvc = cs; return s }
+
+// Enabled ES 是否可用（enabled=true 且至少一个地址）。
+//
+// DB 优先（search_enabled / search_addresses），env 兜底 —— 改 DB 后不重启即生效。
 // 对齐原 isElasticsearchEnabled：未配置时 /search 系列端点返回 5030「服务未配置」。
 func (s *Searcher) Enabled() bool {
-	return s.cfg.Enabled && len(s.cfg.Addresses) > 0
+	p := s.currentParams()
+	return p.Enabled && len(p.Addresses) > 0
 }
 
-// Index 索引名。
-func (s *Searcher) Index() string { return s.cfg.ArticlesIndex }
+// Index 索引名（DB 优先 search_articles_index，env 兜底；空值回退默认索引）。
+func (s *Searcher) Index() string {
+	p := s.currentParams()
+	if p.Index == "" {
+		return articlesIndexDefault
+	}
+	return p.Index
+}
 
-// clientOrInit 懒初始化 ES 客户端（并发安全，只初始化一次）。
+// readParams 读取一次当前生效的 ES 参数：启动期 env/config 值为底，DB 配置覆盖。
+func (s *Searcher) readParams() esParams {
+	p := esParams{
+		Enabled:   s.cfg.Enabled,
+		Addresses: s.cfg.Addresses,
+		Username:  s.cfg.Username,
+		Password:  s.cfg.Password,
+		Index:     s.cfg.ArticlesIndex,
+	}
+	if s.cfgSvc != nil {
+		p.Enabled = s.cfgSvc.GetBool(model.ConfigKeySearchEnabled, p.Enabled)
+		// 地址：DB 值能解析出非空列表才采用；空串 / 种子值 "[]" / 解析失败一律
+		// 回退 env —— 否则新建库写下的默认种子会把环境变量里的地址清空。
+		if addrs := parseAddresses(s.cfgSvc.GetString(model.ConfigKeySearchAddresses, "")); len(addrs) > 0 {
+			p.Addresses = addrs
+		}
+		p.Username = s.cfgSvc.GetString(model.ConfigKeySearchUsername, p.Username)
+		p.Password = s.cfgSvc.GetString(model.ConfigKeySearchPassword, p.Password)
+		if idx := strings.TrimSpace(s.cfgSvc.GetString(model.ConfigKeySearchArticlesIndex, "")); idx != "" {
+			p.Index = idx
+		}
+	}
+	if p.Index == "" {
+		p.Index = articlesIndexDefault
+	}
+	return p
+}
+
+// currentParams 取当前生效参数（searchParamsTTL 内直接用本地快照，毫秒级回落读一次配置）。
+func (s *Searcher) currentParams() esParams {
+	s.paramsMu.RLock()
+	p, at := s.params, s.paramsAt
+	s.paramsMu.RUnlock()
+	if !at.IsZero() && time.Since(at) < searchParamsTTL {
+		return p
+	}
+	fresh := s.readParams()
+	s.paramsMu.Lock()
+	s.params, s.paramsAt = fresh, time.Now()
+	s.paramsMu.Unlock()
+	return fresh
+}
+
+// configSignature 当前生效的 ES 连接参数签名（地址|用户名|密码|索引）。
+//
+// 四项任一变化即视为需要重建 client —— 「只有重启才改得了 ES 连接」的旧行为
+// 由此替换成运行期生效。签名本身不触发重建，由 ensureClient 比对后决定。
+func (s *Searcher) configSignature() string { return signParams(s.currentParams()) }
+
+// ensureClient 按最新配置惰性建立/重建 ES 客户端。
+//
+// 并发模型：读路径取 mu.RLock 比对签名（未变直接返回，零分配）；变化时释放读锁、
+// 取写锁重建并双检（并发下只有一个协程真正建连）。search_enabled 关闭时直接返回
+// nil 且不建 client —— 调用方靠 Enabled() 短路，不把「关闭」当错误。
+//
+// 失败处理：不 panic。新建失败记日志并保留旧 client（旧 client 非 nil 时继续可用），
+// 同时把签名记为本次值，避免同一套坏参数每次请求都重连刷日志；参数一改自然重试。
+func (s *Searcher) ensureClient() error {
+	p := s.currentParams()
+	if !p.Enabled || len(p.Addresses) == 0 {
+		return nil
+	}
+	sig := signParams(p)
+
+	s.mu.RLock()
+	if s.client != nil && s.signature == sig {
+		s.mu.RUnlock()
+		return nil
+	}
+	s.mu.RUnlock()
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.client != nil && s.signature == sig { // 双检：并发下已有协程完成重建
+		return nil
+	}
+	if s.client == nil && s.signature == sig && s.initErr != nil {
+		// 同一套参数、上次就失败：不重复建连、不重复打日志
+		return svcUnavailable("Elasticsearch 初始化失败: " + s.initErr.Error())
+	}
+	c, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: p.Addresses,
+		Username:  p.Username,
+		Password:  p.Password,
+	})
+	if err != nil {
+		s.initErr = err
+		s.signature = sig
+		if s.client != nil {
+			log.Printf("[search] ES 配置变更后重建 client 失败，继续使用旧连接: %v", err)
+		} else {
+			log.Printf("[search] ES client 初始化失败（%s）: %v", strings.Join(p.Addresses, ","), err)
+		}
+		return svcUnavailable("Elasticsearch 初始化失败: " + err.Error())
+	}
+	old := s.client
+	s.client = c
+	s.initErr = nil
+	s.signature = sig
+	if old != nil {
+		// 运行期换了地址/账号/索引：重建成功才落日志，便于排查「配置改了何时生效」
+		log.Printf("[search] ES client 已按新配置重建（index=%s addresses=%s）", p.Index, strings.Join(p.Addresses, ","))
+	}
+	return nil
+}
+
+// clientOrInit 取可用 ES 客户端（必要时按最新配置惰性重建）。
+//
+// 所有使用 client 的方法都只经由此处，ensureClient 因此只需挂一个入口，
+// 不会漏掉任何调用点。关闭状态下返回「服务未配置」，由调用方决定是否降级 ——
+// 注意这里必须先判 Enabled：关闭时 ensureClient 会刻意保留旧 client（供重新打开
+// 时按签名复用），不能让它流到调用方手里继续打 ES。
 func (s *Searcher) clientOrInit() (*elasticsearch.Client, error) {
 	if !s.Enabled() {
 		return nil, svcUnavailable("Elasticsearch 未配置")
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.client != nil {
-		return s.client, nil
+	if err := s.ensureClient(); err != nil {
+		return nil, err
 	}
-	if s.initErr != nil {
-		return nil, svcUnavailable("Elasticsearch 初始化失败: " + s.initErr.Error())
+	s.mu.RLock()
+	c := s.client
+	s.mu.RUnlock()
+	if c == nil {
+		return nil, svcUnavailable("Elasticsearch 未配置")
 	}
-	cfg := elasticsearch.Config{Addresses: s.cfg.Addresses}
-	if s.cfg.Username != "" {
-		cfg.Username = s.cfg.Username
-		cfg.Password = s.cfg.Password
-	}
-	c, err := elasticsearch.NewClient(cfg)
-	if err != nil {
-		s.initErr = err
-		return nil, svcUnavailable("Elasticsearch 初始化失败: " + err.Error())
-	}
-	s.client = c
 	return c, nil
 }
 
@@ -282,6 +477,10 @@ func (s *Searcher) SyncArticles(ctx context.Context, db *gorm.DB, batchSize int,
 	if db == nil {
 		return 0, svcUnavailable("数据库不可用")
 	}
+	// 搜索被关闭时跳过索引（返回 0 条而非报错：批量同步不该因开关失败）
+	if !s.Enabled() {
+		return 0, nil
+	}
 	if _, err := s.clientOrInit(); err != nil {
 		return 0, err
 	}
@@ -343,12 +542,13 @@ func (s *Searcher) bulkIndex(ctx context.Context, rows []map[string]interface{})
 		return 0, err
 	}
 	var buf bytes.Buffer
+	idx := s.Index() // 循环内复用：索引名最多 1 秒刷新一次，不必每行重读配置
 	for _, r := range rows {
 		id := asString(r["id"])
 		if id == "" {
 			continue
 		}
-		action := map[string]interface{}{"index": map[string]interface{}{"_index": s.Index(), "_id": id}}
+		action := map[string]interface{}{"index": map[string]interface{}{"_index": idx, "_id": id}}
 		line, err := json.Marshal(action)
 		if err != nil {
 			continue
@@ -454,8 +654,12 @@ type SearchResult struct {
 
 // SearchArticles 文章检索：ES 出 id 与顺序 → 回库取完整行（保持 ES 排序）。
 //
-// ES 未配置时返回 503（errcode 5030 语义，见 handler 的分支处理）。
+// ES 未配置时返回 503（errcode 5030 语义，见 handler 的分支处理）；
+// 运行期把 search_enabled 关掉时短路为空结果（不报 500，前端退化为空列表）。
 func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleSearchRequest) (*SearchResult, error) {
+	if !s.Enabled() {
+		return &SearchResult{List: []map[string]interface{}{}, Total: 0}, nil
+	}
 	c, err := s.clientOrInit()
 	if err != nil {
 		return nil, err

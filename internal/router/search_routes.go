@@ -18,12 +18,18 @@ var infraSearchSingleton *infra.Searcher
 // infraSearchLogsSingleton 检索日志服务单例（热门搜索词来源）。
 var infraSearchLogsSingleton *infra.SearchLogService
 
-// infraSearchSvc 取搜索服务单例（同时注入检索日志服务）。
+// infraSearchSvc 取搜索服务单例（同时注入检索日志服务与进程级配置服务）。
+//
+// 注入 infraConfigSvc（= infra.Default 单例）后，search_enabled / search_addresses /
+// search_username / search_password / search_articles_index 全部 DB 优先、env 兜底：
+// 管理端改配置 → 下一次请求在读到时按签名惰性重建 ES client，无需重启。
 func infraSearchSvc(opt Option) *infra.Searcher {
 	if infraSearchSingleton == nil {
 		cfg := config.LoadInfra()
 		infraSearchLogsSingleton = infra.NewSearchLogService(opt.DB, opt.Redis)
-		infraSearchSingleton = infra.NewSearcher(cfg.Search).WithLogs(infraSearchLogsSingleton)
+		infraSearchSingleton = infra.NewSearcher(cfg.Search).
+			WithLogs(infraSearchLogsSingleton).
+			WithConfigService(infraConfigSvc(opt))
 	}
 	return infraSearchSingleton
 }

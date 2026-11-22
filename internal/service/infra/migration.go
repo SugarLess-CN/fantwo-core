@@ -107,9 +107,42 @@ func (f *Infra) MigrationProcess(ctx context.Context, limit int, dryRun bool) (*
 		return res, nil
 	}
 
+	// 压缩开关：与实时链路（processImageThumbnails）同源判定（compressionEnabled：
+	// env 兜底 + upload_compression_enabled DB 优先）。批次内只读一次，中途改配置
+	// 不影响本批语义。
+	compression := f.compressionEnabled()
+
 	for i := range list {
 		up := &list[i]
 		if up.Storage != model.UploadStorageLocal {
+			res.Skipped++
+			continue
+		}
+		// 压缩关闭：补处理只补 original 元数据（宽高与压缩无关，前端排版需要），
+		// 不生成缩略图 —— 否则运维在压缩关闭状态下跑一次补处理，就把开关语义打破了，
+		// 与「假开关」是同一类毛病，只是路径不同。
+		//
+		// 取舍（明确记录，非默默决定）：这里 **仍把 processed 置 true** 并计入 Skipped。
+		// 理由：本端点的拣选条件是 processed = false（见上方 Where），若不置 true，
+		// 这些压缩关闭时上传的记录会永远留在待补队列里，每次跑都被挑中、每次都被跳过，
+		// 形成噪声并让 stats 的 unprocessed 永久虚高。语义上「压缩关闭 ⇒ 这类记录本就
+		// 不该有缩略图」就是它们的最终态，与实时链路 processImageThumbnails 的处置一致。
+		// 计入 Skipped 而非 Processed：Processed 的口径是「本次生成了缩略图」。
+		if !compression {
+			updates := map[string]interface{}{"processed": true}
+			if up.OriginalJSON == "" || up.OriginalJSON == "null" {
+				if w, h, err := imageSize(up.Path); err == nil {
+					if payload, merr := json.Marshal(model.UploadOriginal{
+						URL: up.URL, Path: up.Path, Size: up.Size, Width: w, Height: h,
+					}); merr == nil {
+						updates["original"] = string(payload)
+					}
+				}
+			}
+			if err := f.db.Model(&model.Upload{}).Where("id = ?", up.ID).Updates(updates).Error; err != nil {
+				res.Failed++
+				continue
+			}
 			res.Skipped++
 			continue
 		}

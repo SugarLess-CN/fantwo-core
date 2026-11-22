@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/filecheck"
 	"github.com/disintegration/imaging"
@@ -47,6 +46,12 @@ const (
 )
 
 // processS3Image 异步处理 S3 直传图片：下载 → 压缩/缩略图 → 回传 → 更新记录。
+//
+// 压缩开关三分支（语义对齐原 upload.service.ts:332-373，与本地链路
+// processImageThumbnails 保持一致）：
+//   - 压缩关 + 水印不要 → 跳过（不下载、不回传），processed=true 标记已决最终态；
+//   - 压缩关 + 水印要   → 只打水印并回传主图（水印必然重编码），不生成缩略图；
+//   - 压缩开            → 水印（如需）+ 按 thumbnail_specs 生成缩略图。
 func (f *Infra) processS3Image(up *model.Upload) {
 	if f.db == nil || f.client == nil || up.Storage != model.UploadStorageS3 {
 		return
@@ -54,6 +59,16 @@ func (f *Infra) processS3Image(up *model.Upload) {
 	if !filecheck.IsProcessableImage(up.MimeType) {
 		return
 	}
+	compression := f.compressionEnabled()
+	wmOpt, needWatermark := f.watermarkOptions(up)
+
+	// ① 压缩关 + 水印不要：整体跳过。processed 置 true（见本地分支同款说明）。
+	if !compression && !needWatermark {
+		_ = f.db.Model(&model.Upload{}).Where("id = ?", up.ID).
+			Update("processed", true).Error
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), s3DownloadTimeout)
 	defer cancel()
 
@@ -76,14 +91,15 @@ func (f *Infra) processS3Image(up *model.Upload) {
 	origW, origH := bounds.Dx(), bounds.Dy()
 
 	compressed := src
-	if origW > s3CompressMaxWidth || origH > s3CompressMaxHeight {
+	// 压缩开启才做等比缩放；压缩关闭时保留原始尺寸（水印分支也不改尺寸）
+	if compression && (origW > s3CompressMaxWidth || origH > s3CompressMaxHeight) {
 		compressed = imaging.Fit(src, s3CompressMaxWidth, s3CompressMaxHeight, imaging.Lanczos)
 	}
 
-	// 水印（avatar 场景跳过）：画在压缩后的图上，缩略图随之继承
+	// 水印（独立于压缩判定；avatar 场景已由 watermarkOptions 排除）：画在主图上，缩略图随之继承
 	watermarked := false
-	if opt, need := f.watermarkOptions(up); need {
-		if marked, werr := drawWatermark(compressed, opt); werr == nil {
+	if needWatermark {
+		if marked, werr := drawWatermark(compressed, wmOpt); werr == nil {
 			compressed = marked
 			watermarked = true
 		}
@@ -101,33 +117,34 @@ func (f *Infra) processS3Image(up *model.Upload) {
 		return
 	}
 
-	// 4) 生成并回传缩略图
-	specs := f.cfg.Upload.ThumbnailSpecs
-	if len(specs) == 0 {
-		specs = []config.ThumbSpec{{Name: "thumb", Size: 200}}
-	}
-	thumbs := make([]model.UploadThumbnail, 0, len(specs))
-	for _, spec := range specs {
-		if spec.Size <= 0 {
-			continue
+	// 4) 生成并回传缩略图（规格与本地链路同源：env 兜底 + DB 优先）
+	// 仅压缩开启时生成：压缩关 + 只要水印的分支不应产生缩略图（对齐原实现）。
+	thumbs := make([]model.UploadThumbnail, 0)
+	if compression {
+		specs := f.thumbnailSpecs()
+		thumbs = make([]model.UploadThumbnail, 0, len(specs))
+		for _, spec := range specs {
+			if spec.Size <= 0 {
+				continue
+			}
+			dst := imaging.Fit(compressed, spec.Size, spec.Size, imaging.Lanczos)
+			var buf bytes.Buffer
+			if err := imaging.Encode(&buf, dst, imaging.JPEG, imaging.JPEGQuality(s3CompressQuality)); err != nil {
+				continue
+			}
+			thumbKey := derivedKey(up.Path, keyThumbPrefix+spec.Name+"_", "jpg")
+			if err := f.putObject(ctx, thumbKey, buf.Bytes(), "image/jpeg"); err != nil {
+				continue
+			}
+			thumbs = append(thumbs, model.UploadThumbnail{
+				Name:   spec.Name,
+				URL:    f.s3AccessURL(thumbKey),
+				Path:   thumbKey,
+				Size:   int64(buf.Len()),
+				Width:  dst.Bounds().Dx(),
+				Height: dst.Bounds().Dy(),
+			})
 		}
-		dst := imaging.Fit(compressed, spec.Size, spec.Size, imaging.Lanczos)
-		var buf bytes.Buffer
-		if err := imaging.Encode(&buf, dst, imaging.JPEG, imaging.JPEGQuality(s3CompressQuality)); err != nil {
-			continue
-		}
-		thumbKey := derivedKey(up.Path, keyThumbPrefix+spec.Name+"_", "jpg")
-		if err := f.putObject(ctx, thumbKey, buf.Bytes(), "image/jpeg"); err != nil {
-			continue
-		}
-		thumbs = append(thumbs, model.UploadThumbnail{
-			Name:   spec.Name,
-			URL:    f.s3AccessURL(thumbKey),
-			Path:   thumbKey,
-			Size:   int64(buf.Len()),
-			Width:  dst.Bounds().Dx(),
-			Height: dst.Bounds().Dy(),
-		})
 	}
 
 	// 5) 更新记录：original 留原图，主字段指向压缩图
@@ -143,7 +160,11 @@ func (f *Infra) processS3Image(up *model.Upload) {
 		"processed":   true,
 		"watermarked": watermarked,
 		"original":    mustJSON(original),
-		"thumbnails":  mustJSON(thumbs),
+	}
+	// 压缩关闭时不写 thumbnails 字段：保持库里原值（不主动覆盖成 null/[]，
+	// 避免 /upload/migration 与前端读到「被清空的缩略图」）
+	if compression {
+		updates["thumbnails"] = mustJSON(thumbs)
 	}
 	if err := f.db.Model(&model.Upload{}).Where("id = ?", up.ID).Updates(updates).Error; err != nil {
 		f.markProcessedFalse(up.ID)
