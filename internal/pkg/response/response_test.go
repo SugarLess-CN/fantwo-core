@@ -222,10 +222,10 @@ func TestFailWith(t *testing.T) {
 // 防的是：total=11, limit=10 算出 1 页 → 最后一页（第 2 页的 1 条）永远取不到。
 func TestSuccessPage_TotalPagesCeiling(t *testing.T) {
 	cases := []struct {
-		name       string
-		total      int64
+		name        string
+		total       int64
 		page, limit int
-		wantPages  int64
+		wantPages   int64
 	}{
 		{"整除", 20, 1, 10, 2},
 		{"有余数必须进位", 11, 1, 10, 2},

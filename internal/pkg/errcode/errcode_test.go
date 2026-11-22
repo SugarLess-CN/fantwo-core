@@ -50,8 +50,8 @@ func TestPredefined_HTTPAndCodeMatch(t *testing.T) {
 // 防的是：细分码忘记设 HTTP（默认 0），response.Fail 会写出 HTTP 0 → 连接异常。
 func TestBusinessCodes_MapToRealHTTPStatus(t *testing.T) {
 	cases := []struct {
-		name    string
-		e       *Err
+		name     string
+		e        *Err
 		wantHTTP int
 	}{
 		{"ErrUserAlreadyExists", ErrUserAlreadyExists, http.StatusConflict},

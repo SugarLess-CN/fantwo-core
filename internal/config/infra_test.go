@@ -1,11 +1,11 @@
 // Package config 基础设施域配置测试（LoadInfra）。
 //
 // 防的 bug（T-29，真机联调发现）：
-//   1) search.addresses 是切片，viper 的 AutomaticEnv 对 []string 的 Unmarshal
-//      完全不解析环境变量 —— 设了 SEARCH_ADDRESSES 也不生效；
-//   2) storage.driver 拼错（如 "S3 " 带空格、"aws"）会让上传静默失败，
-//      因此必须归一化并回退 local；
-//   3) storage= s3 但 bucket/endpoint 缺一个时，上传必然 500，必须在 Load 期降级。
+//  1. search.addresses 是切片，viper 的 AutomaticEnv 对 []string 的 Unmarshal
+//     完全不解析环境变量 —— 设了 SEARCH_ADDRESSES 也不生效；
+//  2. storage.driver 拼错（如 "S3 " 带空格、"aws"）会让上传静默失败，
+//     因此必须归一化并回退 local；
+//  3. storage= s3 但 bucket/endpoint 缺一个时，上传必然 500，必须在 Load 期降级。
 package config
 
 import (
