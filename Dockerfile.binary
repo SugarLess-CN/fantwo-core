@@ -79,7 +79,11 @@ ENV SERVER_PORT=3000 \
     STORAGE_DRIVER=local \
     STORAGE_LOCAL_DIR=/app/uploads
 
-EXPOSE 3000
+# 刻意不写 EXPOSE：
+# 监听端口由运行时 SERVER_PORT 决定（默认 3000，但 1panel 等面板可能注入别的值）。
+# 写死 EXPOSE 3000 会让面板的端口列表里出现一个永远没人监听的「幽灵端口」
+# —— 实测 SERVER_PORT=8079 时容器内只监听 :::8079，而面板仍列出 3000/tcp。
+# 端口映射请用 compose 的 ports（容器侧端口应与 SERVER_PORT 一致）。
 VOLUME ["/app/uploads"]
 
 # 探针只判 HTTP 可达性（/health 恒 200，依赖状态在 data.dependencies 里）
