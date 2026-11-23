@@ -39,7 +39,10 @@
 #  本编排只定义 app 一个服务。PostgreSQL / Redis / Elasticsearch 都在
 #  【别的容器】里（1panel 应用商店装的，或独立部署），这里只管连接。
 
-name: fantwo-core
+# 项目名（决定资源名前缀：卷、网络、默认镜像名）。
+# 可被 .env 的 COMPOSE_PROJECT_NAME 覆盖，便于 build / binary 两套编排共存，
+# 不共用同一批卷（否则两套会挂到同一个 uploads 卷上互相干扰）。
+name: ${COMPOSE_PROJECT_NAME:-fantwo-core-binary}
 
 services:
   app:
@@ -62,7 +65,10 @@ services:
     # 不写 image 时 compose 自动命名为 <项目名>-<服务名>（即 fantwo-core-app），
     # 1panel 找不到可拉取的远程名，就直接走 build。
     pull_policy: build
-    container_name: fantwo-core
+    # 容器名可覆盖：build 模式与 binary 模式的默认名不同，
+    # 避免两套编排都注册在面板里时争抢同一个名字（报 Conflict: container name
+    # "/fantwo-core" is already in use）。
+    container_name: ${CONTAINER_NAME:-fantwo-core-binary}
     restart: unless-stopped
     networks:
       - ext

@@ -43,7 +43,9 @@
 #  如果 PG/Redis 是宿主机端口映射（不走容器名），把 EXTERNAL_NETWORK 留空，
 #  并改用 host.docker.internal（见文件末尾 networks 段注释）。
 
-name: fantwo-core
+# 项目名（决定资源名前缀：卷、网络、默认镜像名）。
+# 与 binary 模式区分开，两套编排共存时不会抢同一批卷。
+name: ${COMPOSE_PROJECT_NAME:-fantwo-core-build}
 
 services:
   app:
@@ -65,7 +67,9 @@ services:
     # 1panel 找不到可拉取的远程名，就直接走 build。
     # pull_policy: build 是第二道保险（`docker compose pull` 会把 app 标记为 Skipped）。
     pull_policy: build
-    container_name: fantwo-core
+    # 容器名可覆盖：与 binary 模式默认名区分开，
+    # 避免两套编排共存时争抢同名容器（Conflict: name already in use）。
+    container_name: ${CONTAINER_NAME:-fantwo-core-build}
     restart: unless-stopped
     networks:
       - ext
