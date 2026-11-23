@@ -1,105 +1,42 @@
-# 一键部署编排：PostgreSQL + Redis + 应用（Elasticsearch 可选）
+# 单服务编排：只跑 fantwo-core（Go 编译产物）
 #
 # ══════════════════════════════════════════════════════════════════════════
-#  一条命令完成全部（宿主机不需要装 Go，编译在容器内进行）：
+#  本 compose 只定义 app 一个服务。PostgreSQL / Redis / Elasticsearch
+#  都在【别的容器】里（1panel 应用商店装的、或独立部署的），这里只管连接。
 #
-#      cp .env.example .env      # 填 JWT_SECRET 与 POSTGRES_PASSWORD
+#  用法：
+#      cp .env.example .env      # 填 JWT_SECRET / POSTGRES_PASSWORD / 数据库地址
 #      docker compose up -d --build
 #      curl http://127.0.0.1:3000/health
 #
+#  为什么只有一个服务：
+#      生产环境的 PG/Redis/ES 通常由面板或 DBA 统一管理（备份、监控、升级），
+#      和业务容器混在一个 compose 里会导致「删编排连库一起删」的事故。
 # ══════════════════════════════════════════════════════════════════════════
 #
-# 构建二选一（由 .env 的 BUILD_TARGET 控制，默认 from-source）：
+# ── 关于网络（最关键的一步）───────────────────────────────────────────────
+#  容器间用【容器名】互访，前提是它们在同一个 Docker 网络里。
+#  1panel 装的容器通常在 `1panel-network`，本服务默认也加入这个网络。
 #
-#   BUILD_TARGET=from-source   编译在 Docker 里跑（推荐，宿主机零依赖）
-#                              拉 golang:1.26.11 → go mod download → 编译 → 装进 alpine
+#  先确认网络名：
+#      docker inspect <PG容器名> --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
 #
-#   BUILD_TARGET=from-binary   只 COPY 宿主机上已有的 Linux 二进制（约 5 秒）
-#                              需先在宿主机交叉编译：
-#                                CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-#                                  go build -trimpath -ldflags="-s -w" \
-#                                  -o dist/fantwo-core-linux-amd64 ./cmd/server
+#  然后在 .env 里设：
+#      EXTERNAL_NETWORK=1panel-network
+#      POSTGRES_HOST=<PG容器名，如 1Panel-postgresql-xxxx>
+#      REDIS_ADDR=<Redis容器名>:6379
 #
-# 两种模式产出的运行镜像完全相同：同一个静态二进制 + 同一套运行环境
-# （证书 237 个 / TZ=Asia/Shanghai / curl 探针 / ffmpeg / 非 root / 上传目录）。
+#  如果你的 PG/Redis 是宿主机端口映射（不走容器名），把 EXTERNAL_NETWORK 留空
+#  并改用 host.docker.internal（见文件末尾注释）。
 #
-# 需要全文检索时（默认不启动，国内服务器基本拉不动 docker.elastic.co）：
-#   docker compose --profile search up -d --build
-#   并在 .env 里设 SEARCH_ENABLED=true
-#
-# 国内服务器拉不到 Docker Hub 官方 tag 时，用 .env 覆盖镜像名：
-#   POSTGRES_IMAGE=postgres:latest
-#   REDIS_IMAGE=redis:latest
-#   POSTGRES_IMAGE=docker.m.daocloud.io/library/postgres:18-alpine
+# ── 关于构建 ──────────────────────────────────────────────────────────────
+#  编译在容器内进行（from-source），宿主机不需要装 Go。
+#  想用提前交叉编译好的二进制（秒级）就设 BUILD_TARGET=from-binary，
+#  并把二进制放到 dist/fantwo-core-linux-amd64。
 
 name: fantwo-core
 
 services:
-  postgres:
-    image: ${POSTGRES_IMAGE:-postgres:18-alpine}
-    container_name: fantwo-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      # 强制必填：缺了直接报错退出，不会静默用 postgres/postgres 起一个不安全的服务
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置（.env 里填）}
-      POSTGRES_DB: ${POSTGRES_DATABASE:-fantwo_core}
-      LANG: C.UTF-8
-      TZ: ${TZ:-Asia/Shanghai}
-    # 只绑宿主机回环，不把 5432 暴露在公网。
-    # 需要远程连库（pgAdmin/Navicat）请用 SSH 隧道：
-    #   ssh -L 5432:127.0.0.1:5432 user@server
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DATABASE:-fantwo_core}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  redis:
-    image: ${REDIS_IMAGE:-redis:7-alpine}
-    container_name: fantwo-redis
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-    ports:
-      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
-
-  elasticsearch:
-    image: ${ES_IMAGE:-docker.elastic.co/elasticsearch/elasticsearch:8.15.0}
-    container_name: fantwo-es
-    restart: unless-stopped
-    # 可选服务，默认【不启动】
-    profiles: ["search"]
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-      TZ: ${TZ:-Asia/Shanghai}
-    ports:
-      - "127.0.0.1:${ES_PORT:-9200}:9200"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
-
   app:
     build:
       context: .
@@ -111,15 +48,20 @@ services:
         GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
         WITH_FFMPEG: ${WITH_FFMPEG:-true}
         BINARY: ${BINARY_PATH:-dist/fantwo-core-linux-amd64}
-    # 自定义 tag 便于回滚：升级时换新版本号，旧 tag 保留
-    image: ${APP_IMAGE:-fantwo-core:latest}
+    # ⚠️ 刻意不写 image: 字段。
+    #
+    # 原因：1panel 的「创建编排」会先对每个 service 的 image 执行 docker pull，
+    # 再去 build。若这里写 `image: fantwo-core:latest`，1panel 会去 Docker Hub 拉
+    # 一个不存在的镜像 → 报 "error from registry: denied" / 拉取超时，编排直接失败。
+    #
+    # 不写 image 时 compose 自动命名为 <项目名>-<服务名>（即 fantwo-core-app），
+    # 1panel 找不到可拉取的远程名，就直接走 build。
+    # pull_policy: build 是第二道保险（`docker compose pull` 会把 app 标记为 Skipped）。
+    pull_policy: build
     container_name: fantwo-core
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    networks:
+      - ext
     environment:
       SERVER_PORT: "3000"
       SERVER_MODE: release
@@ -127,25 +69,30 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       TZ: ${TZ:-Asia/Shanghai}
 
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
+      # ---- 数据库（外面已有的容器，用容器名或 IP）----
+      POSTGRES_HOST: ${POSTGRES_HOST:?POSTGRES_HOST 必须设置（PG 容器名或 IP）}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置（.env 里填）}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-fantwo_core}
-      POSTGRES_SSL_MODE: disable
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE:-disable}
 
-      REDIS_ADDR: redis:6379
+      # ---- Redis（外面已有的容器）----
+      REDIS_ADDR: ${REDIS_ADDR:?REDIS_ADDR 必须设置（如 redis:6379）}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
 
+      # ---- JWT ----
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 必须设置（用 openssl rand -hex 32 生成）}
       JWT_ISSUER: fantwo-core
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-168h}
 
-      # 存储：默认本地盘挂卷；用对象存储改 s3 并在下方补 S3_* 系列
+      # ---- 存储 ----
+      # local：上传文件落 /app/uploads（挂卷）
+      # s3：走对象存储，需同时配下面的 S3_* 系列
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_LOCAL_DIR: /app/uploads
-      # S3_* 是启动期配置，只能走环境变量（改了必须重启容器）
+      # S3_* 与 CDN 只能在启动时生效，改了要重启容器：
       # S3_ENDPOINT: ""
       # S3_BUCKET: ""
       # S3_ACCESS_KEY: ""
@@ -155,20 +102,41 @@ services:
       # S3_FORCE_PATH_STYLE: "true"
       # CDN_BASE_URL: ""
 
-      # 全文检索：未起 ES 时必须保持 false（否则 /search 报错而非降级 5030）
+      # ---- 全文检索（ES 在另一个容器）----
+      # 不启用就设 SEARCH_ENABLED=false；/search 会降级返回 5030，其它业务不受影响。
       SEARCH_ENABLED: ${SEARCH_ENABLED:-false}
-      SEARCH_ADDRESSES: ${SEARCH_ADDRESSES:-http://elasticsearch:9200}
+      SEARCH_ADDRESSES: ${SEARCH_ADDRESSES:-}
+      SEARCH_USERNAME: ${SEARCH_USERNAME:-}
+      SEARCH_PASSWORD: ${SEARCH_PASSWORD:-}
+      SEARCH_ARTICLES_INDEX: ${SEARCH_ARTICLES_INDEX:-picart_articles}
 
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
     ports:
       # 唯一对外端口。生产建议前面套 Nginx / Caddy 做 TLS
       - "${APP_PORT:-3000}:3000"
     volumes:
-      # 上传文件必须挂卷，否则容器重建后用户上传的图片全丢
+      # 上传文件必须持久化，否则容器重建后用户图片全丢。
+      # 用命名卷而非绑定挂载：镜像里 /app/uploads 的属主是 appuser(10001)，
+      # 命名卷首次挂载会沿用该属主；绑定挂载会变成宿主机 root 属主 → 应用写不进去。
+      # 想用绑定挂载（便于 1panel 备份）见文档：需先 chown 10001:10001 ./data/uploads
       - uploads:/app/uploads
+    # Linux 下访问宿主机端口（PG/Redis 只在宿主机监听时用）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
-  pgdata:
-  redisdata:
-  esdata:
   uploads:
+
+networks:
+  # 外部网络（已存在，不由本 compose 创建）。
+  # 名字用 .env 的 EXTERNAL_NETWORK 指定，默认 1panel-network。
+  #
+  # ⚠️ 如果这个网络不存在，compose up 会报
+  #    network 1panel-network declared as external, but could not be found
+  # 两种情况：
+  #   a) 1panel 装的容器 → 先 docker network ls 确认真实名字，填进 .env
+  #   b) PG/Redis 走宿主机端口 → 把整个 networks/ext 段和 app.networks 删掉，
+  #      改用 POSTGRES_HOST=host.docker.internal（app 会自动用默认网络）
+  ext:
+    external: true
+    name: ${EXTERNAL_NETWORK:-1panel-network}
