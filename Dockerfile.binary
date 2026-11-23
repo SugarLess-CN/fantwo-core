@@ -1,0 +1,68 @@
+# 预编译二进制镜像 —— 容器内【不做任何编译】
+#
+# 与 Dockerfile（多阶段源码构建）的区别：
+#   Dockerfile          : 构建上下文里跑 go build，需要拉 golang 镜像 + go mod download（慢，需外网）
+#   Dockerfile.binary   : 只 COPY 一个已在别处交叉编译好的 Linux 二进制，构建只需拉 alpine（12MB）
+#
+# 用法：
+#   1) 先在开发机交叉编译（Windows / macOS / Linux 都能做，不需要 Linux 环境）：
+#        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+#          go build -trimpath -ldflags="-s -w" -o dist/fantwo-core-linux-amd64 ./cmd/server
+#      arm64 服务器（如 AWS Graviton / 鲲鹏）改成 GOARCH=arm64，输出名也换掉。
+#
+#   2) 把 dist/ 下的二进制连同本文件传到服务器，构建：
+#        docker build -f Dockerfile.binary -t fantwo-core:1.0.0 .
+#
+#   3) 或者配合 docker-compose.binary.yml 一键起栈：
+#        docker compose -f docker-compose.binary.yml up -d
+#
+# 前提：二进制必须是 linux 同架构且 CGO_ENABLED=0（本项目图片处理走纯 Go 的 imaging，无 CGO 依赖）。
+
+FROM alpine:3.20
+
+# 二进制文件路径（相对构建上下文根目录）
+# 默认值对应开发机的交叉编译输出目录 dist/；
+# 如果你把二进制直接放在项目根目录，用 --build-arg BINARY=fantwo-core-linux-amd64 覆盖。
+# 例：--build-arg BINARY=fantwo-core-linux-arm64
+ARG BINARY=dist/fantwo-core-linux-amd64
+
+# 是否安装 ffmpeg（video-compression 队列依赖外部 ffmpeg 命令）
+# 不用视频压缩可关掉，省 ~100MB：--build-arg WITH_FFMPEG=false
+ARG WITH_FFMPEG=true
+
+# 阿里云镜像源（官方源在国内常超时）
+RUN set -eux; \
+    if [ -f /etc/apk/repositories ]; then \
+        sed -i 's|https://dl-cdn.alpinelinux.org|https://mirrors.aliyun.com|g' /etc/apk/repositories; \
+    fi; \
+    apk add --no-cache ca-certificates tzdata curl; \
+    if [ "$WITH_FFMPEG" = "true" ]; then apk add --no-cache ffmpeg; fi; \
+    update-ca-certificates
+
+WORKDIR /app
+
+# 唯一「构建」动作：拷贝 + 加可执行位
+COPY ${BINARY} /app/fantwo-core
+RUN chmod +x /app/fantwo-core
+
+# 本地存储模式的落盘目录 + 非 root 运行
+RUN mkdir -p /app/uploads \
+ && adduser -D -u 10001 appuser \
+ && chown -R appuser:appuser /app
+USER appuser
+
+ENV SERVER_PORT=3000 \
+    SERVER_MODE=release \
+    LOG_FORMAT=json \
+    TZ=Asia/Shanghai \
+    STORAGE_DRIVER=local \
+    STORAGE_LOCAL_DIR=/app/uploads
+
+EXPOSE 3000
+VOLUME ["/app/uploads"]
+
+# 探针只判 HTTP 可达性（/health 恒 200，依赖状态在 data.dependencies 里）
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${SERVER_PORT}/health" >/dev/null || exit 1
+
+ENTRYPOINT ["/app/fantwo-core"]

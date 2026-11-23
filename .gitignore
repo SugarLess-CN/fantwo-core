@@ -29,3 +29,6 @@ todo.md
 
 # 运行时上传产物（本地存储模式）
 uploads/
+
+# 交叉编译产物（Dockerfile.binary 用；二进制不进仓库，由开发机生成后上传）
+dist/
