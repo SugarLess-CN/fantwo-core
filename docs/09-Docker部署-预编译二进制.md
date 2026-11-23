@@ -5,6 +5,20 @@
 
 ---
 
+> ⚠️ **本文档已拆分，请优先看新版本**
+>
+> 编排文件已按构建方式拆成两份显式文件（不再用单个 compose 靠 BUILD_TARGET 切换）：
+>
+> | 需求 | 编排 | env 模板 | 教程 |
+> |---|---|---|---|
+> | 容器内编译（宿主机零依赖） | `docker-compose.build.yml` | `.env.build.example` | `docs/12` |
+> | 只跑预编译二进制（秒级重建） | `docker-compose.binary.yml` | `.env.binary.example` | `docs/12` |
+>
+> 本文档保留下来是因为其中**编排之外的章节**仍然有效且有价值
+> （Nginx/Caddy 反代 + TLS 配置、日常运维命令、备份、国内镜像加速、故障排查）。
+> 只是文中的文件名请按上表替换：`docker-compose.yml` → 对应模式的编排文件，
+> `.env.example` → 对应模式的 env 模板。
+
 ## 一、为什么用这种方式
 
 | 方案 | 服务器要做什么 | 服务器要拉什么 | 耗时 |

@@ -22,9 +22,9 @@ fantwo-core-deploy-<日期>.tar.gz        ← 唯一要上传的文件（1.8MB�
 │   └── swagger/              ← 关键！docs.go 被 swagger_routes.go 空导入
 ├── go.mod / go.sum           ← 依赖清单
 ├── Dockerfile.binary         ← 多阶段构建（from-source / from-binary）
-├── docker-compose.yml        ← 编排
+├── docker-compose.build.yml  ← 编排（build 模式）
 ├── .dockerignore             ← 构建上下文裁剪
-├── .env.example              ← 配置模板（服务器上 cp 成 .env）
+├── .env.build.example        ← 配置模板（服务器上 cp 成 .env）
 └── README.md
 ```
 
@@ -101,10 +101,10 @@ bash scripts/make-deploy-pkg.sh
 tar -czf fantwo-core-deploy.tar.gz \
     cmd internal migrations docs \
     go.mod go.sum \
-    Dockerfile.binary docker-compose.yml .dockerignore .env.example README.md
+    Dockerfile.binary docker-compose.build.yml .dockerignore .env.build.example README.md
 ```
 
-> 注意 `tar` 一定要显式列出 `.dockerignore` 和 `.env.example`——以 `.` 开头的文件容易被 `*` 通配漏掉。
+> 注意 `tar` 一定要显式列出 `.dockerignore` 和 `.env.build.example`——以 `.` 开头的文件容易被 `*` 通配漏掉。
 
 ---
 
@@ -120,7 +120,7 @@ scp dist/fantwo-core-deploy-20261123.tar.gz root@<服务器IP>:/opt/
 mkdir -p /opt/fantwo-core
 tar xzf /opt/fantwo-core-deploy-20261123.tar.gz -C /opt/fantwo-core
 ls /opt/fantwo-core
-# 应该看到：cmd internal migrations docs go.mod go.sum Dockerfile.binary docker-compose.yml ...
+# 应该看到：cmd internal migrations docs go.mod go.sum Dockerfile.binary docker-compose.build.yml ...
 ```
 
 ### 6.2 配 .env

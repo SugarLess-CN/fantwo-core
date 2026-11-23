@@ -39,10 +39,10 @@ cp go.mod go.sum "$STAGE"/
 cp -r docs "$STAGE"/
 
 # 容器构建与编排
-cp Dockerfile.binary docker-compose.yml .dockerignore "$STAGE"/
+cp Dockerfile.binary docker-compose.build.yml .dockerignore "$STAGE"/
 
 # 配置模板（服务器上 cp 成 .env 再改）
-cp .env.example "$STAGE"/
+cp .env.build.example "$STAGE"/
 
 # 说明文档
 cp README.md "$STAGE"/ 2>/dev/null || true
@@ -64,5 +64,5 @@ echo ""
 echo "上传步骤（1panel）："
 echo "  1) scp $TARBALL root@<服务器>:/opt/"
 echo "  2) ssh 到服务器：mkdir -p /opt/fantwo-core && tar xzf /opt/$(basename "$TARBALL") -C /opt/fantwo-core"
-echo "  3) cd /opt/fantwo-core && cp .env.example .env && vim .env"
-echo "  4) 1panel 面板 → 容器 → 编排 → 新建，目录选 /opt/fantwo-core，或直接 docker compose up -d --build"
+echo "  3) cd /opt/fantwo-core && cp .env.build.example .env && vim .env"
+echo "  4) docker compose -f docker-compose.build.yml up -d --build"
