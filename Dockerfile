@@ -5,11 +5,21 @@
 # 构建（最小镜像，去掉 ffmpeg；video-compression 队列将不可用）：
 #   docker build --build-arg WITH_FFMPEG=false -t fantwo-core:slim .
 #
+# 国内服务器建议显式指定 Go 模块代理（默认已设 goproxy.cn）：
+#   docker build --build-arg GOPROXY=https://goproxy.cn,direct -t fantwo-core:latest .
+# 海外服务器可改回官方：
+#   docker build --build-arg GOPROXY=https://proxy.golang.org,direct -t fantwo-core:latest .
+#
 # 说明：刻意不使用 `# syntax=docker/dockerfile:1` 与 RUN --mount=type=cache，
 # 避免构建时额外拉取 dockerfile 前端镜像（离线/受限网络下会失败）。
 
 # ---------- 构建阶段 ----------
 FROM golang:1.26.11-bookworm AS builder
+
+# Go 模块代理。不设的话国内服务器 go mod download 会长时间卡住/超时。
+# 传 direct（不带代理）时用 GOPRIVATE/npm 式的直连逻辑。
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
 
 WORKDIR /build
 

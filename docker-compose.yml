@@ -1,28 +1,44 @@
-# 项目名显式指定：工作区目录名含中文，compose 无法据此生成项目名。
-name: fantwo-core
-
-# 本地一键起栈：PostgreSQL + Redis + Elasticsearch + 应用
+# 生产部署编排：PostgreSQL + Redis + 应用（容器内源码构建）
 #
 # 用法：
-#   cp .env.example .env      # 填 JWT_SECRET 等
+#   cp .env.example .env         # 至少填 JWT_SECRET 与 POSTGRES_PASSWORD
 #   docker compose up -d --build
-#   curl http://localhost:3000/health
+#   curl http://127.0.0.1:3000/health
 #
-# 说明：ES 用单节点 + 关闭安全，仅适合本地开发；生产请走托管服务。
+# 需要全文检索时（默认不启动，国内服务器基本拉不动 docker.elastic.co）：
+#   docker compose --profile search up -d --build
+#   并在 .env 里设 SEARCH_ENABLED=true
+#
+# ---- 关于镜像 tag ----
+# 国内服务器常拉不到 Docker Hub 官方 tag（报 EOF / timeout）。三种解法：
+#   1) 配镜像加速器（推荐，见 docs/10-Docker部署-源码构建.md 第六节）
+#   2) 用本机已有镜像覆盖：
+#        POSTGRES_IMAGE=postgres:latest REDIS_IMAGE=redis:latest docker compose up -d
+#   3) 用国内镜像站前缀：
+#        POSTGRES_IMAGE=docker.m.daocloud.io/library/postgres:18-alpine
+#
+# 项目名显式指定：工作区目录名含中文，compose 无法据此生成项目名。
+
+name: fantwo-core
 
 services:
   postgres:
-    image: postgres:18-alpine
+    image: ${POSTGRES_IMAGE:-postgres:18-alpine}
     container_name: fantwo-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # 强制必填：缺了直接报错退出，不会静默用 postgres/postgres 起一个不安全的服务
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置（.env 里填）}
       POSTGRES_DB: ${POSTGRES_DATABASE:-fantwo_core}
       # 中文排序与大小写处理
       LANG: C.UTF-8
+      TZ: ${TZ:-Asia/Shanghai}
+    # 只绑宿主机本地回环，不把 5432 暴露在公网。
+    # 需要远程连库（如用 pgAdmin）时临时改成 "${POSTGRES_PORT:-5432}:5432"，
+    # 或走 SSH 隧道。
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -30,14 +46,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   redis:
-    image: redis:7-alpine
+    image: ${REDIS_IMAGE:-redis:7-alpine}
     container_name: fantwo-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    # 同上：只绑回环
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redisdata:/data
     healthcheck:
@@ -47,15 +67,19 @@ services:
       retries: 5
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    image: ${ES_IMAGE:-docker.elastic.co/elasticsearch/elasticsearch:8.15.0}
     container_name: fantwo-es
     restart: unless-stopped
+    # 可选服务，默认【不启动】：
+    #   docker compose --profile search up -d
+    profiles: ["search"]
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
-      - "${ES_PORT:-9200}:9200"
+      - "127.0.0.1:${ES_PORT:-9200}:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
     healthcheck:
@@ -63,11 +87,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
+      start_period: 40s
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    # 自定义镜像名/tag，便于保留旧版本回滚
+    image: ${APP_IMAGE:-fantwo-core:latest}
     container_name: fantwo-core
     restart: unless-stopped
     depends_on:
@@ -79,32 +106,37 @@ services:
       SERVER_PORT: "3000"
       SERVER_MODE: release
       LOG_FORMAT: json
-      LOG_LEVEL: info
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TZ: ${TZ:-Asia/Shanghai}
 
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置（.env 里填）}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-fantwo_core}
       POSTGRES_SSL_MODE: disable
 
       REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
 
       # 必须替换：JWT 签名密钥（留空则服务无法签发令牌）
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 必须设置}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 必须设置（用 openssl rand -hex 32 生成）}
       JWT_ISSUER: fantwo-core
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-168h}
 
-      STORAGE_DRIVER: local
+      # 存储：默认本地盘挂卷；用对象存储时改 s3 并配 S3_* 系列
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_LOCAL_DIR: /app/uploads
 
-      # 全文检索：不填 ELASTICSEARCH 相关则 /search 返回 5030（安全降级）
+      # 全文检索：未起 ES 时必须保持 false（否则 /search 会报错而非降级 5030）
       SEARCH_ENABLED: ${SEARCH_ENABLED:-false}
-      SEARCH_ADDRESSES: http://elasticsearch:9200
+      SEARCH_ADDRESSES: ${SEARCH_ADDRESSES:-http://elasticsearch:9200}
 
       # 生产默认关闭 Swagger
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     volumes:
       - uploads:/app/uploads
 
