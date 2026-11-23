@@ -63,7 +63,10 @@ services:
     networks:
       - ext
     environment:
-      SERVER_PORT: "3000"
+      # 容器内监听端口。与 ports 的容器侧端口必须一致（下面 ports 已用同名变量）。
+      # 1panel 可能注入自己的 SERVER_PORT（实测被设成 8079），这里显式声明，
+      # 以 .env 为准，避免「容器内 8079、映射到 3000」这类错位。
+      SERVER_PORT: ${SERVER_PORT:-3000}
       SERVER_MODE: release
       LOG_FORMAT: json
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -125,7 +128,7 @@ services:
       #    两种解法：
       #      a) 改 .env 的 APP_PORT=3100（推荐，不动别人）
       #      b) 停掉占用者
-      - "${APP_BIND_IP:-0.0.0.0}:${APP_PORT:-3000}:3000"
+      - "${APP_BIND_IP:-0.0.0.0}:${APP_PORT:-3000}:${SERVER_PORT:-3000}"
     volumes:
       # 上传文件必须持久化，否则容器重建后用户图片全丢。
       # 用命名卷而非绑定挂载：镜像里 /app/uploads 的属主是 appuser(10001)，
