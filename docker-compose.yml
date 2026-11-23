@@ -112,8 +112,20 @@ services:
 
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
     ports:
-      # 唯一对外端口。生产建议前面套 Nginx / Caddy 做 TLS
-      - "${APP_PORT:-3000}:3000"
+      # 唯一对外端口。生产建议前面套 Nginx / Caddy 做 TLS。
+      #
+      # APP_BIND_IP 控制绑哪个网卡：
+      #   0.0.0.0（默认）→ 公网可直接访问（APP_PORT 需在防火墙上放行）
+      #   127.0.0.1     → 只能本机访问，由 Nginx/Caddy 反代出去（更安全，推荐）
+      #
+      # ⚠️ 报 "Bind for 0.0.0.0:3000 failed: port is already allocated" 时：
+      #    宿主机 3000 端口被别的程序占了。先查是谁：
+      #        ss -lntp | grep :3000          # 或 netstat -lntp | grep :3000
+      #        docker ps --format '{{.Names}}\t{{.Ports}}' | grep 3000
+      #    两种解法：
+      #      a) 改 .env 的 APP_PORT=3100（推荐，不动别人）
+      #      b) 停掉占用者
+      - "${APP_BIND_IP:-0.0.0.0}:${APP_PORT:-3000}:3000"
     volumes:
       # 上传文件必须持久化，否则容器重建后用户图片全丢。
       # 用命名卷而非绑定挂载：镜像里 /app/uploads 的属主是 appuser(10001)，
