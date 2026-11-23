@@ -1,0 +1,141 @@
+# 二进制编排（binary 模式）—— 容器内不编译，只拷已交叉编译好的 Linux 二进制
+#
+# ══════════════════════════════════════════════════════════════════════════
+#  与 docker-compose.build.yml 的区别：
+#
+#    docker-compose.build.yml     （build 模式）
+#        拉 golang:1.26.11（1.23GB）→ go mod download → go build
+#        首次 3~15 分钟，宿主机零依赖
+#
+#    docker-compose.binary.yml    （本文件，binary 模式）
+#        只 COPY dist/ 里的二进制，只拉 alpine（12MB），约 5 秒
+#        前提：宿主机先交叉编译（见下）
+#
+#  两者产出的运行镜像完全相同（同一个静态二进制 + 同一套运行环境：
+#  证书 237 个 / TZ=Asia/Shanghai / curl 探针 / ffmpeg / 非 root / 上传目录）。
+#
+# ── 使用前必须先编译 ──────────────────────────────────────────────────────
+#  在项目根目录（开发机，Windows/macOS/Linux 都行）：
+#
+#    # x86_64 服务器
+#    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+#      go build -trimpath -ldflags="-s -w" \
+#      -o dist/fantwo-core-linux-amd64 ./cmd/server
+#
+#    # ARM64 服务器（AWS Graviton / 阿里云倚天 / 华为鲲鹏）
+#    CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+#      go build -trimpath -ldflags="-s -w" \
+#      -o dist/fantwo-core-linux-arm64 ./cmd/server
+#
+#  然后把 dist/ 下的二进制一起传上服务器。
+#  注意：GOARCH 必须与服务器一致，否则容器起来就是 "exec format error"。
+#
+# ── 用法 ──────────────────────────────────────────────────────────────────
+#      cp .env.binary.example .env
+#      docker compose -f docker-compose.binary.yml up -d --build
+#      curl http://127.0.0.1:8079/health
+# ══════════════════════════════════════════════════════════════════════════
+#
+#  本编排只定义 app 一个服务。PostgreSQL / Redis / Elasticsearch 都在
+#  【别的容器】里（1panel 应用商店装的，或独立部署），这里只管连接。
+
+name: fantwo-core
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.binary
+      # 本文件固定用 from-binary（只拷二进制，不编译）
+      target: from-binary
+      args:
+        # 二进制路径（相对构建上下文根目录）
+        # arm64 服务器改成 dist/fantwo-core-linux-arm64
+        BINARY: ${BINARY_PATH:-dist/fantwo-core-linux-amd64}
+        WITH_FFMPEG: ${WITH_FFMPEG:-true}
+    # ⚠️ 刻意不写 image: 字段。
+    #
+    # 原因：1panel 的「创建编排」会先对每个 service 的 image 执行 docker pull，
+    # 再去 build。若写 `image: fantwo-core:latest`，1panel 会去 Docker Hub 拉
+    # 一个不存在的镜像 → 报 "error from registry: denied" / 拉取超时，编排直接失败。
+    #
+    # 不写 image 时 compose 自动命名为 <项目名>-<服务名>（即 fantwo-core-app），
+    # 1panel 找不到可拉取的远程名，就直接走 build。
+    pull_policy: build
+    container_name: fantwo-core
+    restart: unless-stopped
+    networks:
+      - ext
+    environment:
+      # 容器内监听端口（应用读这个）
+      SERVER_PORT: ${SERVER_PORT:-3000}
+      SERVER_MODE: ${SERVER_MODE:-release}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TZ: ${TZ:-Asia/Shanghai}
+
+      # ---- 数据库（外面已有的容器，用容器名或 IP）----
+      POSTGRES_HOST: ${POSTGRES_HOST:?POSTGRES_HOST 必须设置（PG 容器名或 IP）}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须设置}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-fantwo_core}
+      POSTGRES_SSL_MODE: ${POSTGRES_SSL_MODE:-disable}
+      POSTGRES_LOG_LEVEL: ${POSTGRES_LOG_LEVEL:-warn}
+
+      # ---- Redis（外面已有的容器）----
+      REDIS_ADDR: ${REDIS_ADDR:?REDIS_ADDR 必须设置（如 redis:6379）}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+
+      # ---- JWT ----
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 必须设置（用 openssl rand -hex 32 生成）}
+      JWT_ISSUER: ${JWT_ISSUER:-fantwo-core}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-168h}
+
+      # ---- 存储 ----
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      # 容器内固定这个路径（挂卷点），不要改成 ./uploads
+      STORAGE_LOCAL_DIR: /app/uploads
+      # S3 七项与 CDN 只能在启动时生效，改了要重启容器：
+      # S3_ENDPOINT: ""
+      # S3_BUCKET: ""
+      # S3_ACCESS_KEY: ""
+      # S3_SECRET_KEY: ""
+      # S3_REGION: "us-east-1"
+      # S3_USE_SSL: "false"
+      # S3_FORCE_PATH_STYLE: "true"
+      # CDN_BASE_URL: ""
+
+      # ---- 全文检索（ES 在另一个容器）----
+      SEARCH_ENABLED: ${SEARCH_ENABLED:-false}
+      SEARCH_ADDRESSES: ${SEARCH_ADDRESSES:-}
+      SEARCH_USERNAME: ${SEARCH_USERNAME:-}
+      SEARCH_PASSWORD: ${SEARCH_PASSWORD:-}
+      SEARCH_ARTICLES_INDEX: ${SEARCH_ARTICLES_INDEX:-picart_articles}
+
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+    ports:
+      # 映射规则：宿主机 SERVER_BIND_PORT → 容器 SERVER_PORT
+      #
+      #   SERVER_BIND_PORT  宿主机端口（默认 3000；1panel 面板常占 3000，可改 8079）
+      #   SERVER_PORT       容器内监听端口（默认 3000）
+      #   APP_BIND_IP       0.0.0.0（公网可访问）/ 127.0.0.1（只本机，走反代）
+      - "${APP_BIND_IP:-0.0.0.0}:${SERVER_BIND_PORT:-3000}:${SERVER_PORT:-3000}"
+    volumes:
+      # 上传文件必须持久化，否则容器重建后用户图片全丢。
+      # 命名卷会沿用镜像里 /app/uploads 的属主 appuser(10001)；
+      # 绑定挂载需先 chown 10001:10001 ./data/uploads
+      - uploads:/app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  uploads:
+
+networks:
+  # 外部网络（已存在，不由本 compose 创建），用 EXTERNAL_NETWORK 指定。
+  ext:
+    external: true
+    name: ${EXTERNAL_NETWORK:-1panel-network}

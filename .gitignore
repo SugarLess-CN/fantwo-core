@@ -12,6 +12,8 @@ coverage.*
 .env
 .env.*
 !.env.example
+!.env.build.example
+!.env.binary.example
 
 # 编辑器与系统
 .DS_Store
