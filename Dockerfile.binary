@@ -1,35 +1,60 @@
-# 预编译二进制镜像 —— 容器内【不做任何编译】
+# 一体化镜像构建 —— 同时支持两种模式，由 compose 的 build.target 选择
 #
-# 与 Dockerfile（多阶段源码构建）的区别：
-#   Dockerfile          : 构建上下文里跑 go build，需要拉 golang 镜像 + go mod download（慢，需外网）
-#   Dockerfile.binary   : 只 COPY 一个已在别处交叉编译好的 Linux 二进制，构建只需拉 alpine（12MB）
+#   target: from-source  （默认，docker-compose.binary.yml 用这个）
+#     容器内用 golang 镜像交叉编译 → 装进 alpine 运行镜像
+#     一条 `docker compose up -d --build` 完成全部，宿主机不需要装 Go
 #
-# 用法：
-#   1) 先在开发机交叉编译（Windows / macOS / Linux 都能做，不需要 Linux 环境）：
-#        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-#          go build -trimpath -ldflags="-s -w" -o dist/fantwo-core-linux-amd64 ./cmd/server
-#      arm64 服务器（如 AWS Graviton / 鲲鹏）改成 GOARCH=arm64，输出名也换掉。
+#   target: from-binary
+#     只 COPY 宿主机上已有的 Linux 二进制（不用 golang 镜像，构建约 5 秒）
+#     需要先在宿主机交叉编译：
+#       CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+#         go build -trimpath -ldflags="-s -w" -o dist/fantwo-core-linux-amd64 ./cmd/server
 #
-#   2) 把 dist/ 下的二进制连同本文件传到服务器，构建：
-#        docker build -f Dockerfile.binary -t fantwo-core:1.0.0 .
+# 两种模式产出的运行镜像完全相同（同一个静态二进制 + 同一套运行环境）：
+#   ca-certificates（237 个根证书）/ tzdata（TZ=Asia/Shanghai）/ curl（HEALTHCHECK）/
+#   ffmpeg（video-compression 队列）/ 非 root（uid 10001）/ /app/uploads 挂载点
 #
-#   3) 或者配合 docker-compose.binary.yml 一键起栈：
-#        docker compose -f docker-compose.binary.yml up -d
+# 直接构建示例：
+#   docker build -f Dockerfile.binary --target from-source -t fantwo-core:1.0.0 .
+#   docker build -f Dockerfile.binary --target from-binary -t fantwo-core:1.0.0 .
 #
-# 前提：二进制必须是 linux 同架构且 CGO_ENABLED=0（本项目图片处理走纯 Go 的 imaging，无 CGO 依赖）。
+# 前提：CGO_ENABLED=0（本项目图片处理走纯 Go 的 disintegration/imaging，无 CGO 依赖）
 
-FROM alpine:3.20
+# ============================================================================
+# 阶段 A —— 编译（只有 target=from-source 时才会执行）
+# ============================================================================
+FROM golang:1.26.11-bookworm AS compile
 
-# 二进制文件路径（相对构建上下文根目录）
-# 默认值对应开发机的交叉编译输出目录 dist/；
-# 如果你把二进制直接放在项目根目录，用 --build-arg BINARY=fantwo-core-linux-amd64 覆盖。
-# 例：--build-arg BINARY=fantwo-core-linux-arm64
-ARG BINARY=dist/fantwo-core-linux-amd64
+# Go 模块代理：国内服务器直连 proxy.golang.org 会长时间卡死
+# 海外服务器可覆盖：--build-arg GOPROXY=https://proxy.golang.org,direct
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
 
-# 是否安装 ffmpeg（video-compression 队列依赖外部 ffmpeg 命令）
-# 不用视频压缩可关掉，省 ~100MB：--build-arg WITH_FFMPEG=false
+WORKDIR /build
+
+# 依赖层单独缓存：改代码不会重新下载依赖
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# CGO_ENABLED=0 → 纯静态二进制，可在 alpine（musl）直接跑
+ENV CGO_ENABLED=0 GOOS=linux
+RUN go build -trimpath -ldflags="-s -w" -o /build/fantwo-core ./cmd/server
+
+# ============================================================================
+# 阶段 B —— 运行环境（不含二进制；两个 target 共用）
+# ============================================================================
+FROM alpine:3.20 AS runtime
+
+# 是否安装 ffmpeg（video-compression 队列依赖外部命令）
+# 不用视频压缩可关掉，省 ~176MB：--build-arg WITH_FFMPEG=false
 ARG WITH_FFMPEG=true
 
+# ca-certificates：外部 HTTPS（GitHub OAuth / SMTP / 短信网关 / 支付 / 云审核）
+# tzdata：日志与业务时间按本地时区（否则「今日签到」等日期边界会偏 8 小时）
+# curl：HEALTHCHECK 探针
+# ffmpeg：video-compression 队列
 # 阿里云镜像源（官方源在国内常超时）
 RUN set -eux; \
     if [ -f /etc/apk/repositories ]; then \
@@ -40,10 +65,6 @@ RUN set -eux; \
     update-ca-certificates
 
 WORKDIR /app
-
-# 唯一「构建」动作：拷贝 + 加可执行位
-COPY ${BINARY} /app/fantwo-core
-RUN chmod +x /app/fantwo-core
 
 # 本地存储模式的落盘目录 + 非 root 运行
 RUN mkdir -p /app/uploads \
@@ -64,5 +85,36 @@ VOLUME ["/app/uploads"]
 # 探针只判 HTTP 可达性（/health 恒 200，依赖状态在 data.dependencies 里）
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS "http://127.0.0.1:${SERVER_PORT}/health" >/dev/null || exit 1
+
+# ============================================================================
+# 阶段 C —— 源码编译产物（compose 默认 target；一条命令完成全部）
+# ============================================================================
+FROM runtime AS from-source
+
+# 切回 root 拷文件：runtime 阶段已 USER appuser，以 appuser 身份 COPY 到 /app
+# 会因目录属主为 root 而失败；COPY 完再把属主与权限交给 appuser。
+USER root
+COPY --from=compile /build/fantwo-core /app/fantwo-core
+RUN chmod 0755 /app/fantwo-core && chown appuser:appuser /app/fantwo-core
+USER appuser
+
+ENTRYPOINT ["/app/fantwo-core"]
+
+# ============================================================================
+# 阶段 D —— 外部预编译二进制（构建快，但宿主机得先有 dist/ 里的文件）
+# ============================================================================
+FROM runtime AS from-binary
+
+# 二进制路径（相对构建上下文根目录）
+# 默认对应开发机的交叉编译输出目录 dist/；
+# 放在其它位置时覆盖：--build-arg BINARY=fantwo-core-linux-amd64
+# arm64 服务器：--build-arg BINARY=dist/fantwo-core-linux-arm64
+ARG BINARY=dist/fantwo-core-linux-amd64
+
+# 同 from-source：先以 root 拷入并设置权限/属主，再切回非 root 运行
+USER root
+COPY ${BINARY} /app/fantwo-core
+RUN chmod 0755 /app/fantwo-core && chown appuser:appuser /app/fantwo-core
+USER appuser
 
 ENTRYPOINT ["/app/fantwo-core"]
