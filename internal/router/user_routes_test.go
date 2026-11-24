@@ -155,7 +155,7 @@ func TestProtectedRouteRequiresAuth(t *testing.T) {
 			t.Errorf("%s 期望 401，实际 %d（body=%s）", path, w.Code, w.Body.String())
 			continue
 		}
-		if !contains(w.Body.String(), `"status_code":401`) {
+		if !contains(w.Body.String(), `"message":"Please log in first"`) {
 			t.Errorf("%s 期望 status_code=401，实际 body=%s", path, w.Body.String())
 		}
 	}

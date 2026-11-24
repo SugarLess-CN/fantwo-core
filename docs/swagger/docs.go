@@ -32,7 +32,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -68,7 +68,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -92,7 +92,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -116,7 +116,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -144,7 +144,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -175,7 +175,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -218,7 +218,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -251,7 +251,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -315,7 +315,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -352,19 +352,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -397,7 +397,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -421,7 +421,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -456,7 +456,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -494,7 +494,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -518,7 +518,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -542,7 +542,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -575,7 +575,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -606,7 +606,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -644,7 +644,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -682,7 +682,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -720,7 +720,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -739,7 +739,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -777,7 +777,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -796,7 +796,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -824,7 +824,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -857,7 +857,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -885,13 +885,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -922,13 +922,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -971,13 +971,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1022,7 +1022,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1055,7 +1055,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1086,7 +1086,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1119,7 +1119,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1152,7 +1152,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1183,7 +1183,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1216,7 +1216,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1261,7 +1261,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1294,7 +1294,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1322,7 +1322,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1350,7 +1350,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1395,7 +1395,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1423,7 +1423,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1453,7 +1453,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1483,7 +1483,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1507,7 +1507,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -1543,7 +1543,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1562,7 +1562,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1590,7 +1590,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1621,7 +1621,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1664,7 +1664,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1683,7 +1683,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1719,7 +1719,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1747,7 +1747,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1778,7 +1778,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1821,7 +1821,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1865,7 +1865,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -1910,7 +1910,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1943,7 +1943,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -1967,7 +1967,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2003,7 +2003,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2036,7 +2036,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2069,7 +2069,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2102,7 +2102,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2133,7 +2133,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2176,7 +2176,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2216,7 +2216,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2254,7 +2254,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2299,7 +2299,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2344,7 +2344,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2382,7 +2382,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2419,13 +2419,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2465,7 +2465,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2493,7 +2493,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2526,7 +2526,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2554,7 +2554,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2585,13 +2585,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2634,7 +2634,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2667,7 +2667,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2712,7 +2712,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2750,7 +2750,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -2786,7 +2786,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2819,7 +2819,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2838,7 +2838,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2871,7 +2871,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2914,7 +2914,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2947,7 +2947,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -2966,7 +2966,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3004,7 +3004,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -3037,7 +3037,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3070,7 +3070,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3105,7 +3105,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3138,7 +3138,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3162,7 +3162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3195,7 +3195,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3226,7 +3226,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3269,7 +3269,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3314,7 +3314,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3338,7 +3338,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3362,7 +3362,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3400,7 +3400,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3438,7 +3438,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -3476,7 +3476,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3500,7 +3500,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -3536,7 +3536,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3560,7 +3560,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3598,7 +3598,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -3631,7 +3631,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3664,7 +3664,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3688,7 +3688,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3721,7 +3721,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3752,7 +3752,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3795,7 +3795,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3819,7 +3819,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3854,7 +3854,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3892,7 +3892,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3925,7 +3925,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3958,7 +3958,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -3982,7 +3982,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4006,7 +4006,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4039,7 +4039,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4072,7 +4072,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4103,7 +4103,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4146,7 +4146,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4165,7 +4165,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -4201,7 +4201,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4220,7 +4220,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4244,7 +4244,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4263,7 +4263,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -4299,7 +4299,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4327,7 +4327,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4358,7 +4358,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4401,7 +4401,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4446,7 +4446,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4486,7 +4486,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4536,7 +4536,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4555,7 +4555,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4579,7 +4579,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4617,7 +4617,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4645,7 +4645,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4676,7 +4676,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4719,7 +4719,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4752,7 +4752,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4783,7 +4783,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4816,7 +4816,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4840,7 +4840,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4864,7 +4864,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4888,7 +4888,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4912,7 +4912,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4950,7 +4950,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -4983,7 +4983,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5021,7 +5021,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -5058,13 +5058,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5099,7 +5099,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5132,7 +5132,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5163,7 +5163,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5187,7 +5187,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5225,7 +5225,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5258,7 +5258,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5291,7 +5291,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5326,7 +5326,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5359,7 +5359,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5405,13 +5405,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5435,7 +5435,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5473,7 +5473,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -5497,7 +5497,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5530,7 +5530,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5561,7 +5561,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5604,7 +5604,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5637,7 +5637,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5675,7 +5675,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -5713,13 +5713,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5757,13 +5757,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5796,7 +5796,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5834,7 +5834,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -5872,7 +5872,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -5896,7 +5896,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5929,13 +5929,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -5968,7 +5968,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6013,13 +6013,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6058,13 +6058,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6166,7 +6166,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6199,7 +6199,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6234,7 +6234,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6272,7 +6272,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -6296,7 +6296,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6332,7 +6332,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6356,7 +6356,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6389,7 +6389,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6420,7 +6420,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6463,7 +6463,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6482,7 +6482,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -6515,7 +6515,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6543,7 +6543,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6574,7 +6574,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6617,7 +6617,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6650,7 +6650,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6688,7 +6688,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6712,7 +6712,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6750,7 +6750,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6774,7 +6774,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6798,7 +6798,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6831,7 +6831,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6869,7 +6869,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -6907,7 +6907,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -6940,7 +6940,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -6978,7 +6978,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7002,7 +7002,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7026,7 +7026,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7062,7 +7062,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7086,7 +7086,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7119,7 +7119,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7150,7 +7150,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7193,7 +7193,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7217,7 +7217,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7253,7 +7253,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7277,7 +7277,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7315,7 +7315,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7348,7 +7348,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7379,7 +7379,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7422,7 +7422,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7455,7 +7455,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7488,7 +7488,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7531,7 +7531,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7576,7 +7576,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7621,7 +7621,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7660,7 +7660,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7684,7 +7684,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7703,7 +7703,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7727,7 +7727,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7751,7 +7751,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7775,7 +7775,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7813,7 +7813,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7832,7 +7832,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7868,7 +7868,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7892,7 +7892,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -7911,7 +7911,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7930,7 +7930,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7958,7 +7958,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -7989,7 +7989,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8032,7 +8032,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8065,7 +8065,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8096,7 +8096,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8134,7 +8134,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -8158,7 +8158,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8177,7 +8177,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8215,7 +8215,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8257,7 +8257,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8290,7 +8290,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8325,7 +8325,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8360,7 +8360,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8384,7 +8384,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8422,7 +8422,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8455,7 +8455,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8500,7 +8500,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8536,13 +8536,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8577,7 +8577,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8601,7 +8601,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8625,7 +8625,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8663,7 +8663,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8687,7 +8687,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8720,7 +8720,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/certification/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "我的认证记录",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8744,7 +8768,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8779,7 +8803,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8803,7 +8827,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8836,7 +8860,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8860,7 +8884,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8896,7 +8920,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8934,7 +8958,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -8972,7 +8996,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9002,7 +9026,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9034,7 +9058,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.loginRequest"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.loginRequest"
                         }
                     }
                 ],
@@ -9042,13 +9066,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9073,13 +9097,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9103,7 +9127,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9138,7 +9162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9157,7 +9181,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9185,7 +9209,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9204,7 +9228,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9239,7 +9263,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9269,7 +9293,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9293,13 +9317,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9336,13 +9360,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9380,7 +9404,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9418,7 +9442,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -9451,7 +9475,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9486,7 +9510,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9521,7 +9545,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9562,13 +9586,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9602,13 +9626,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9632,7 +9656,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9670,7 +9694,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -9694,7 +9718,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9718,7 +9742,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9742,7 +9766,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9780,7 +9804,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -9815,7 +9839,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9848,13 +9872,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9885,13 +9909,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9934,7 +9958,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -9967,7 +9991,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -10000,7 +10024,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -10028,7 +10052,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -10061,7 +10085,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody"
                         }
                     }
                 }
@@ -10089,7 +10113,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -10122,7 +10146,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -10155,7 +10179,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody"
                         }
                     }
                 }
@@ -10166,30 +10190,30 @@ const docTemplate = `{
         "internal_handler.ResponseBody": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 200
-                },
                 "data": {},
                 "message": {
                     "type": "string",
-                    "example": "操作成功"
+                    "example": "Success"
+                },
+                "status_code": {
+                    "type": "integer",
+                    "example": 200
                 }
             }
         },
         "internal_handler.ResponsePageBody": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 200
-                },
                 "data": {
                     "$ref": "#/definitions/internal_handler.ResponsePageInner"
                 },
                 "message": {
                     "type": "string",
-                    "example": "操作成功"
+                    "example": "Success"
+                },
+                "status_code": {
+                    "type": "integer",
+                    "example": 200
                 }
             }
         },
@@ -10224,6 +10248,77 @@ const docTemplate = `{
             }
         },
         "internal_handler.loginRequest": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "tmp_deploy-pkg_internal_handler.ResponseBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "操作成功"
+                }
+            }
+        },
+        "tmp_deploy-pkg_internal_handler.ResponsePageBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageInner"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "操作成功"
+                }
+            }
+        },
+        "tmp_deploy-pkg_internal_handler.ResponsePageInner": {
+            "type": "object",
+            "properties": {
+                "list": {},
+                "meta": {
+                    "$ref": "#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageMeta"
+                }
+            }
+        },
+        "tmp_deploy-pkg_internal_handler.ResponsePageMeta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "totalPages": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "tmp_deploy-pkg_internal_handler.loginRequest": {
             "type": "object",
             "properties": {
                 "account": {

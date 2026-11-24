@@ -73,8 +73,8 @@ func TestSuccess(t *testing.T) {
 		t.Errorf("HTTP：得到 %d，期望 200", w.Code)
 	}
 	m := decode(t, w)
-	if got := m["status_code"].(float64); got != 200 {
-		t.Errorf("status_code：得到 %v，期望 200", got)
+	if got := m["status_code"].(float64); got != 0 {
+		t.Errorf("status_code：得到 %v，期望 0（成功默认 0）", got)
 	}
 	if got := m["message"].(string); got != "Success" {
 		t.Errorf("message：得到 %q，期望 \"Success\"", got)
@@ -114,12 +114,13 @@ func TestHealth(t *testing.T) {
 	if got := m["status_code"].(float64); got != 0 {
 		t.Errorf("status_code：得到 %v，期望 0", got)
 	}
-	if got := m["message"].(string); got != "OK" {
-		t.Errorf("message：得到 %q，期望 \"OK\"", got)
+	// 新契约：Health 的 data/message 全省略，响应体只有 status_code
+	if len(m) != 1 {
+		t.Errorf("Health 响应应只有 status_code 一个字段，实际 %d 个：%s", len(m), w.Body.String())
 	}
 }
 
-// TestFail 失败响应：HTTP 状态与 status_code 一致，data 为 null。
+// TestFail 失败响应：HTTP=401，status_code=业务码（10002），data 省略。
 func TestFail(t *testing.T) {
 	c, w := newCtx(http.MethodGet, "/api/v1/user/profile")
 	Fail(c, errcode.ErrUnauthorized)
@@ -128,11 +129,11 @@ func TestFail(t *testing.T) {
 		t.Errorf("HTTP：得到 %d，期望 401", w.Code)
 	}
 	m := decode(t, w)
-	if got := m["status_code"].(float64); got != 401 {
-		t.Errorf("status_code：得到 %v，期望 401", got)
+	if got := m["status_code"].(float64); got != float64(errcode.BizUnauthorized) {
+		t.Errorf("status_code：得到 %v，期望 %d（业务码）", got, errcode.BizUnauthorized)
 	}
-	if m["data"] != nil {
-		t.Errorf("失败响应 data 应为 null，得到 %v", m["data"])
+	if _, exists := m["data"]; exists {
+		t.Errorf("失败响应 data 应省略（空数据不返回），body=%s", w.Body.String())
 	}
 	if got := m["message"].(string); got != "Unauthorized" {
 		t.Errorf("message：得到 %q，期望 \"Unauthorized\"", got)
@@ -198,15 +199,15 @@ func TestAllMessagesEnglish(t *testing.T) {
 	errs := []*errcode.Err{
 		errcode.ErrBadRequest, errcode.ErrUnauthorized, errcode.ErrForbidden,
 		errcode.ErrNotFound, errcode.ErrConflict, errcode.ErrTooManyRequests,
-		errcode.ErrInternal, errcode.ErrUserAlreadyExists, errcode.ErrBadCredentials,
+		errcode.ErrInternal, errcode.ErrAlreadyExists, errcode.ErrPasswordError,
 	}
 	for _, e := range errs {
 		msg := e.Msg()
 		if msg == "" {
-			t.Errorf("错误码 %d 的 message 是空串", e.Code)
+			t.Errorf("错误码 %d 的 message 是空串", e.BizCode)
 		}
 		if strings.ContainsFunc(msg, func(r rune) bool { return r >= 0x4e00 && r <= 0x9fff }) {
-			t.Errorf("错误码 %d 的 message 含中文：%q", e.Code, msg)
+			t.Errorf("错误码 %d 的 message 含中文：%q", e.BizCode, msg)
 		}
 	}
 }

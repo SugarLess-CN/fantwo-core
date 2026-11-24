@@ -430,7 +430,7 @@ func (s *PaymentService) createBalancePayment(record *model.Payment, order *mode
 			return errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 		}
 		if user.Wallet < order.Amount {
-			return errcode.ErrInsufficientWallet
+			return errcode.ErrInsufficientBalance
 		}
 		newBalance := user.Wallet - order.Amount
 		if err := tx.Model(&model.UserPaymentView{}).Where("id = ?", user.ID).

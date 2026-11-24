@@ -143,7 +143,7 @@ func TestJWTAuthV2RejectsNoToken(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("期望 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), `"status_code":401`) {
+	if !bodyHas(w.Body.String(), `"message":"Please log in first"`) {
 		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
 	}
 	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthNeedLogin)) {
@@ -239,11 +239,11 @@ func TestJWTAuthV2PermVersionMismatch(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("版本不一致应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), `"status_code":401`) {
-		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
-	}
 	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthPermVersionStale)) {
 		t.Errorf("期望 message=%q，body=%s", i18n.T(i18n.AuthPermVersionStale), w.Body.String())
+	}
+	if !bodyHas(w.Body.String(), "20002") {
+		t.Errorf("期望业务码 20002，body=%s", w.Body.String())
 	}
 }
 
@@ -286,8 +286,8 @@ func TestRequireAnyPermission(t *testing.T) {
 	}{
 		{"命中第一个权限", []string{"user:read"}, http.StatusOK, ""},
 		{"命中第二个权限", []string{"user:manage"}, http.StatusOK, ""},
-		{"无相关权限", []string{"article:read"}, http.StatusForbidden, "403"},
-		{"空权限集", nil, http.StatusForbidden, "403"},
+		{"无相关权限", []string{"article:read"}, http.StatusForbidden, "20003"},
+		{"空权限集", nil, http.StatusForbidden, "20003"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -315,7 +315,7 @@ func TestRequireAnyPermissionWithoutLogin(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("未登录应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), `"status_code":401`) {
+	if !bodyHas(w.Body.String(), `"message":"Please log in first"`) {
 		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
 	}
 }

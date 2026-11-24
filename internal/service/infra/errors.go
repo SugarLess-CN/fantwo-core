@@ -11,25 +11,31 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
+// 基础设施域业务码（60000 段）。
+const (
+	BizInfraUnavailable = 60001
+	BizSearchInit       = 60002
+)
+
 // svcUnavailable 服务依赖不可用（DB / Redis / S3 / ES 未初始化或降级）。
 //
 // 默认文案 "Dependency service unavailable, please try again later"；
 // 需要更具体的提示时用 svcUnavailableKey。
 func svcUnavailable() *errcode.Err {
 	return &errcode.Err{
-		Code: http.StatusServiceUnavailable,
-		HTTP: http.StatusServiceUnavailable,
-		Key:  i18n.CommonDependencyUnavailable,
+		BizCode: errcode.BizInfraUnavailable,
+		HTTP:    http.StatusServiceUnavailable,
+		Key:     i18n.CommonDependencyUnavailable,
 	}
 }
 
 // svcUnavailableKey 带具体 i18n key 的依赖不可用错误。
 func svcUnavailableKey(k i18n.Key, args ...interface{}) *errcode.Err {
 	return &errcode.Err{
-		Code: http.StatusServiceUnavailable,
-		HTTP: http.StatusServiceUnavailable,
-		Key:  k,
-		Args: args,
+		BizCode: errcode.BizInfraUnavailable,
+		HTTP:    http.StatusServiceUnavailable,
+		Key:     k,
+		Args:    args,
 	}
 }
 

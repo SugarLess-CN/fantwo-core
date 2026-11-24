@@ -2,24 +2,24 @@ basePath: /api/v1
 definitions:
   internal_handler.ResponseBody:
     properties:
-      code:
-        example: 200
-        type: integer
       data: {}
       message:
-        example: 操作成功
+        example: Success
         type: string
+      status_code:
+        example: 200
+        type: integer
     type: object
   internal_handler.ResponsePageBody:
     properties:
-      code:
-        example: 200
-        type: integer
       data:
         $ref: '#/definitions/internal_handler.ResponsePageInner'
       message:
-        example: 操作成功
+        example: Success
         type: string
+      status_code:
+        example: 200
+        type: integer
     type: object
   internal_handler.ResponsePageInner:
     properties:
@@ -49,6 +49,55 @@ definitions:
       password:
         type: string
     type: object
+  tmp_deploy-pkg_internal_handler.ResponseBody:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data: {}
+      message:
+        example: 操作成功
+        type: string
+    type: object
+  tmp_deploy-pkg_internal_handler.ResponsePageBody:
+    properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageInner'
+      message:
+        example: 操作成功
+        type: string
+    type: object
+  tmp_deploy-pkg_internal_handler.ResponsePageInner:
+    properties:
+      list: {}
+      meta:
+        $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageMeta'
+    type: object
+  tmp_deploy-pkg_internal_handler.ResponsePageMeta:
+    properties:
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 100
+        type: integer
+      totalPages:
+        example: 10
+        type: integer
+    type: object
+  tmp_deploy-pkg_internal_handler.loginRequest:
+    properties:
+      account:
+        type: string
+      password:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact:
@@ -67,7 +116,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 成就列表
       tags:
       - 成就
@@ -87,7 +136,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建成就定义
@@ -107,7 +156,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除成就定义
@@ -126,7 +175,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 成就详情
       tags:
       - 成就
@@ -151,7 +200,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新成就定义
@@ -171,7 +220,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 领取成就奖励
@@ -185,7 +234,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 一键领取全部可领成就
@@ -199,7 +248,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的成就进度统计
@@ -243,7 +292,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 文章列表
       tags:
       - 文章
@@ -264,15 +313,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建文章
@@ -292,11 +341,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除文章
@@ -315,11 +364,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 文章详情
       tags:
       - 文章
@@ -344,11 +393,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新文章
@@ -376,7 +425,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 上报阅读进度
@@ -396,7 +445,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消点踩
@@ -415,7 +464,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 点踩文章
@@ -435,7 +484,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 点踩状态
@@ -455,7 +504,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消收藏
@@ -474,7 +523,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 收藏文章
@@ -494,7 +543,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 收藏状态
@@ -522,7 +571,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 设置/取消精华
@@ -542,7 +591,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 点赞文章
@@ -562,7 +611,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 点赞数
       tags:
       - 文章
@@ -580,7 +629,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 点赞状态
       tags:
       - 文章
@@ -606,7 +655,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 设置/取消主页置顶
@@ -626,7 +675,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 分享文章
       tags:
       - 文章
@@ -647,7 +696,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 作者主页文章
       tags:
       - 文章
@@ -659,7 +708,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 清空浏览历史
@@ -679,7 +728,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除浏览记录
@@ -698,7 +747,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 单条浏览记录
@@ -719,7 +768,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量删除浏览记录
@@ -742,7 +791,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 浏览历史
@@ -756,7 +805,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 最近浏览
@@ -770,7 +819,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 浏览统计
@@ -793,7 +842,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我点踩的文章
@@ -816,7 +865,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的草稿箱
@@ -839,7 +888,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我收藏的文章
@@ -853,7 +902,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 热搜词
       tags:
       - 文章
@@ -874,7 +923,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我赞过的文章
@@ -888,7 +937,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 已发布文章 ID 列表
       tags:
       - 文章
@@ -906,7 +955,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 相关文章推荐
       tags:
       - 文章
@@ -927,7 +976,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 文章搜索（ES）
       tags:
       - 文章
@@ -946,7 +995,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 手机验证码登录
       tags:
       - 用户认证
@@ -965,7 +1014,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 发送短信验证码
       tags:
       - 用户认证
@@ -977,7 +1026,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 轮播位列表（管理端）
@@ -999,7 +1048,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建轮播位
@@ -1019,7 +1068,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除轮播位
@@ -1038,7 +1087,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 轮播位详情
       tags:
       - 轮播
@@ -1063,7 +1112,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新轮播位
@@ -1077,7 +1126,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 当前生效轮播
       tags:
       - 轮播
@@ -1089,7 +1138,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 分类列表
       tags:
       - 分类
@@ -1109,7 +1158,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建分类
@@ -1129,7 +1178,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除分类
@@ -1148,7 +1197,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 分类详情
       tags:
       - 分类
@@ -1173,7 +1222,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新分类
@@ -1200,7 +1249,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 认证申请列表（管理端）
@@ -1228,7 +1277,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 认证审核
@@ -1248,7 +1297,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 撤销认证
@@ -1262,7 +1311,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 合集列表
@@ -1284,7 +1333,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建合集
@@ -1304,7 +1353,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除合集
@@ -1323,7 +1372,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 合集详情
@@ -1350,7 +1399,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新合集
@@ -1375,7 +1424,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 从合集移除文章
@@ -1399,7 +1448,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 添加文章到合集
@@ -1427,7 +1476,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 合集内文章列表
@@ -1455,7 +1504,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 调整合集内文章顺序
@@ -1475,7 +1524,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 文章合集信息
@@ -1495,7 +1544,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 文章所在合集检查
@@ -1518,7 +1567,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 全部评论（管理端）
@@ -1541,11 +1590,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建评论
@@ -1565,11 +1614,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除评论
@@ -1588,7 +1637,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 评论详情
       tags:
       - 评论
@@ -1613,7 +1662,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新评论
@@ -1633,7 +1682,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 点赞评论
@@ -1661,7 +1710,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 设置/取消评论置顶
@@ -1689,7 +1738,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 文章评论列表
       tags:
       - 评论
@@ -1707,7 +1756,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 文章评论数
       tags:
       - 评论
@@ -1728,7 +1777,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 用户评论列表
       tags:
       - 评论
@@ -1749,7 +1798,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 配置列表（管理端）
@@ -1769,7 +1818,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量更新配置
@@ -1791,7 +1840,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建配置项
@@ -1811,7 +1860,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除配置项
@@ -1830,7 +1879,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 配置项详情
@@ -1857,7 +1906,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按 ID 更新配置项
@@ -1871,7 +1920,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 广告位配置
       tags:
       - 系统配置
@@ -1889,7 +1938,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按分组读配置
@@ -1916,7 +1965,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按分组更新配置
@@ -1936,7 +1985,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按键读配置
@@ -1950,7 +1999,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 公开配置
       tags:
       - 系统配置
@@ -1969,7 +2018,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除敏感词
@@ -1991,7 +2040,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 敏感词列表
@@ -2011,7 +2060,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 新增敏感词
@@ -2032,7 +2081,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量删除敏感词
@@ -2052,7 +2101,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量导入敏感词
@@ -2066,7 +2115,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 清空敏感词缓存
@@ -2094,7 +2143,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 人工复审文章
@@ -2108,7 +2157,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 审核配置
@@ -2122,7 +2171,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 重载审核配置
@@ -2145,7 +2194,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 图片送审（调试）
@@ -2168,7 +2217,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 待人工复审文章
@@ -2191,7 +2240,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 文本送审（调试）
@@ -2205,7 +2254,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 装饰品商城列表
@@ -2227,7 +2276,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建装饰品
@@ -2247,7 +2296,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除装饰品
@@ -2266,7 +2315,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 装饰品详情
@@ -2293,7 +2342,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新装饰品
@@ -2307,7 +2356,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的成就徽章
@@ -2330,7 +2379,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 装饰品活动列表
@@ -2350,7 +2399,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建装饰品限时活动
@@ -2370,7 +2419,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除装饰品活动
@@ -2389,7 +2438,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 活动详情
@@ -2416,7 +2465,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新装饰品活动
@@ -2436,7 +2485,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 领取活动奖励
@@ -2450,7 +2499,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的活动进度
@@ -2464,7 +2513,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 清理过期装饰品（管理触发）
@@ -2485,7 +2534,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 赠送装饰品
@@ -2508,7 +2557,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 购买装饰品
@@ -2528,7 +2577,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 卸下装饰品
@@ -2548,7 +2597,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 佩戴装饰品
@@ -2568,7 +2617,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 指定用户装饰品
@@ -2582,7 +2631,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我当前佩戴的装饰品
@@ -2596,7 +2645,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的装饰品
@@ -2610,7 +2659,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 表情列表
       tags:
       - 表情包
@@ -2630,7 +2679,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建表情
@@ -2650,7 +2699,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除表情
@@ -2669,7 +2718,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 表情详情
       tags:
       - 表情包
@@ -2694,7 +2743,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新表情
@@ -2714,7 +2763,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消收藏表情
@@ -2733,7 +2782,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 收藏表情
@@ -2753,7 +2802,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 记录表情使用
@@ -2767,7 +2816,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 表情分类
       tags:
       - 表情包
@@ -2779,7 +2828,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我收藏的表情
@@ -2793,7 +2842,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 表情包列表
       tags:
       - 表情包
@@ -2813,7 +2862,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建表情包
@@ -2833,7 +2882,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除表情包
@@ -2852,7 +2901,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 表情包详情
       tags:
       - 表情包
@@ -2877,7 +2926,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新表情包
@@ -2905,7 +2954,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 向表情包添加表情
@@ -2930,7 +2979,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 从表情包移除表情
@@ -2962,7 +3011,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新包内表情
@@ -2976,7 +3025,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 热门表情
       tags:
       - 表情包
@@ -2988,7 +3037,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我最近使用的表情
@@ -3011,7 +3060,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 上传表情（走图片审核队列）
@@ -3025,7 +3074,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 生成邀请码
@@ -3045,7 +3094,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 邀请码详情
@@ -3059,7 +3108,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的邀请收益
@@ -3073,7 +3122,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的邀请码列表
@@ -3087,7 +3136,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的邀请统计
@@ -3110,7 +3159,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 绑定邀请人
@@ -3133,7 +3182,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的消息列表
@@ -3156,11 +3205,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建站内消息
@@ -3180,7 +3229,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除消息
@@ -3199,7 +3248,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 消息详情
@@ -3226,7 +3275,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新消息
@@ -3246,7 +3295,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 单条已读
@@ -3267,7 +3316,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量操作（已读/删除）
@@ -3296,11 +3345,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 发送私信
@@ -3320,7 +3369,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消拉黑
@@ -3339,7 +3388,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 拉黑用户
@@ -3353,7 +3402,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的拉黑列表
@@ -3376,7 +3425,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 私信会话列表
@@ -3396,7 +3445,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 私信历史
@@ -3416,7 +3465,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 整会话已读
@@ -3437,7 +3486,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量私信已读
@@ -3457,7 +3506,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 撤回私信
@@ -3471,7 +3520,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 全部已读
@@ -3494,7 +3543,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 消息高级查询
@@ -3508,7 +3557,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 未读计数
@@ -3531,7 +3580,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 全部订单（管理端）
@@ -3551,11 +3600,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 订单详情
@@ -3575,7 +3624,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消订单
@@ -3603,11 +3652,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 申请退款
@@ -3630,11 +3679,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建文章购买订单
@@ -3657,11 +3706,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建会员订单
@@ -3681,7 +3730,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按订单号查询
@@ -3704,7 +3753,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的待支付订单
@@ -3727,7 +3776,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的订单
@@ -3741,7 +3790,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 钱包余额
@@ -3765,11 +3814,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 发起支付
@@ -3834,7 +3883,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 按订单查支付记录
@@ -3854,7 +3903,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 支付记录详情
@@ -3875,7 +3924,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 易支付签名调试
@@ -3898,7 +3947,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的支付记录
@@ -3912,7 +3961,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 权限点列表
@@ -3934,7 +3983,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建权限点
@@ -3954,7 +4003,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除权限点
@@ -3973,7 +4022,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 权限点详情
@@ -4000,7 +4049,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新权限点
@@ -4014,7 +4063,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 权限树
@@ -4028,7 +4077,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 积分活动列表
       tags:
       - 积分
@@ -4046,7 +4095,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建积分活动
@@ -4066,7 +4115,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除积分活动
@@ -4085,7 +4134,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 积分活动详情
       tags:
       - 积分
@@ -4110,7 +4159,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新积分活动
@@ -4130,7 +4179,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 领取积分活动奖励
@@ -4153,7 +4202,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 加积分
@@ -4167,7 +4216,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的积分余额
@@ -4190,7 +4239,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 花积分
@@ -4204,7 +4253,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 积分统计
@@ -4218,7 +4267,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的积分任务
@@ -4238,7 +4287,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的任务进度
@@ -4261,7 +4310,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的积分流水
@@ -4284,7 +4333,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 全部积分流水（管理端）
@@ -4304,7 +4353,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 指定用户积分余额
@@ -4327,7 +4376,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 指定用户积分流水
@@ -4341,7 +4390,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的菜单树
@@ -4355,7 +4404,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 举报列表（管理端）
@@ -4377,7 +4426,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 提交举报
@@ -4397,7 +4446,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除举报
@@ -4416,7 +4465,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 举报详情
@@ -4443,7 +4492,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 处理举报
@@ -4457,7 +4506,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 举报统计
@@ -4471,7 +4520,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 角色列表（全量）
@@ -4493,7 +4542,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建角色
@@ -4513,7 +4562,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除角色
@@ -4532,7 +4581,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 角色详情
@@ -4559,7 +4608,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新角色
@@ -4579,7 +4628,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 复制角色
@@ -4599,7 +4648,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 角色菜单
@@ -4626,7 +4675,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 绑定角色菜单
@@ -4654,7 +4703,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 绑定角色权限
@@ -4682,7 +4731,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 启用/禁用角色
@@ -4696,7 +4745,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 启用中的角色
@@ -4719,7 +4768,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 角色分页列表
@@ -4746,7 +4795,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 搜索文章
       tags:
       - 搜索
@@ -4758,7 +4807,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 清空文章索引
@@ -4772,7 +4821,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 热搜词
       tags:
       - 搜索
@@ -4784,7 +4833,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 搜索索引状态
@@ -4798,7 +4847,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 全量同步文章到 ES
@@ -4812,7 +4861,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 站点总览统计
@@ -4835,7 +4884,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 站点趋势统计
@@ -4849,7 +4898,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 标签列表
       tags:
       - 标签
@@ -4869,7 +4918,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 创建标签
@@ -4889,7 +4938,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除标签
@@ -4908,7 +4957,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 标签详情
       tags:
       - 标签
@@ -4933,7 +4982,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新标签
@@ -4953,7 +5002,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消关注标签
@@ -4972,7 +5021,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 关注标签
@@ -4986,7 +5035,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我关注的标签
@@ -5000,7 +5049,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 热门标签
       tags:
       - 标签
@@ -5012,7 +5061,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 推荐标签
       tags:
       - 标签
@@ -5033,7 +5082,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 上传记录列表
@@ -5053,7 +5102,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除上传记录
@@ -5067,7 +5116,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 上传头像（走图片审核）
@@ -5081,7 +5130,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 上传限制配置
       tags:
       - 上传
@@ -5102,7 +5151,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 确认直传完成入库
@@ -5128,7 +5177,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 上传文件
@@ -5148,7 +5197,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 上传记录详情
@@ -5169,7 +5218,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 回填元数据
@@ -5190,7 +5239,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 执行本地→S3 迁移
@@ -5204,7 +5253,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 迁移统计
@@ -5227,7 +5276,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: S3 预签名直传
@@ -5255,7 +5304,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 用户列表
@@ -5277,11 +5326,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 管理员创建用户
@@ -5301,11 +5350,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 删除用户
@@ -5324,11 +5373,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 用户详情
@@ -5355,7 +5404,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新用户（管理端）
@@ -5375,7 +5424,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 关注用户
@@ -5398,7 +5447,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 粉丝列表
       tags:
       - 用户管理
@@ -5416,7 +5465,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 粉丝数
       tags:
       - 用户管理
@@ -5437,7 +5486,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       summary: 关注列表
       tags:
       - 用户管理
@@ -5455,7 +5504,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 关注数
       tags:
       - 用户管理
@@ -5473,7 +5522,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 会员状态检查
@@ -5493,7 +5542,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消关注
@@ -5514,7 +5563,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 申请注销账号
@@ -5528,7 +5577,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 取消注销申请
@@ -5542,7 +5591,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 注销申请状态
@@ -5565,7 +5614,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 提交认证申请
@@ -5579,7 +5628,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的身份标识
@@ -5599,10 +5648,24 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 指定用户身份标识
+      tags:
+      - 用户认证
+  /user/certification/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 我的认证记录
       tags:
       - 用户认证
   /user/certification/status:
@@ -5613,7 +5676,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的认证状态
@@ -5634,7 +5697,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 佣金试算
@@ -5648,7 +5711,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 读取佣金配置
@@ -5668,7 +5731,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 设置佣金配置
@@ -5682,7 +5745,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 我的用户配置
@@ -5704,7 +5767,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新用户配置
@@ -5727,7 +5790,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新全局佣金配置
@@ -5750,7 +5813,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新通知偏好
@@ -5771,7 +5834,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 发送邮箱验证码
       tags:
       - 用户认证
@@ -5790,18 +5853,18 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_handler.loginRequest'
+          $ref: '#/definitions/tmp_deploy-pkg_internal_handler.loginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 用户登录
       tags:
       - 用户认证
@@ -5814,11 +5877,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 退出登录
@@ -5832,7 +5895,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 全端退出登录
@@ -5853,7 +5916,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 批量会员状态检查
@@ -5867,7 +5930,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: GitHub 回调（重定向模式）
       tags:
       - 用户认证
@@ -5885,7 +5948,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: GitHub 回调（SPA 模式换本站 token）
       tags:
       - 用户认证
@@ -5897,7 +5960,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: GitHub 授权链接
       tags:
       - 用户认证
@@ -5916,7 +5979,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 修改密码
@@ -5937,7 +6000,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 邮箱验证码重置密码
       tags:
       - 用户认证
@@ -5949,11 +6012,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 当前用户资料
@@ -5976,11 +6039,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 更新当前用户资料
@@ -6003,7 +6066,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 修改联系方式
@@ -6026,7 +6089,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 我的收藏夹
@@ -6046,7 +6109,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 收藏项详情
@@ -6067,7 +6130,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 绑定手机号
@@ -6088,7 +6151,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 发送绑定手机验证码
@@ -6117,11 +6180,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 刷新 access token
       tags:
       - 用户认证
@@ -6143,11 +6206,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: 用户注册
       tags:
       - 用户认证
@@ -6159,7 +6222,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 每日签到
@@ -6182,7 +6245,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 签到记录
@@ -6196,7 +6259,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 签到统计
@@ -6210,7 +6273,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 钱包余额
@@ -6224,7 +6287,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 钱包统计
@@ -6247,7 +6310,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponsePageBody'
       security:
       - BearerAuth: []
       summary: 钱包流水
@@ -6268,7 +6331,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       security:
       - BearerAuth: []
       summary: 钱包提现

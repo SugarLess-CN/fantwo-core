@@ -22,6 +22,7 @@ func TestPredefined_HTTPAndCodeMatch(t *testing.T) {
 		want int
 	}{
 		{"Success", Success, http.StatusOK},
+		{"Success", Success, http.StatusOK},
 		{"ErrBadRequest", ErrBadRequest, http.StatusBadRequest},
 		{"ErrUnauthorized", ErrUnauthorized, http.StatusUnauthorized},
 		{"ErrForbidden", ErrForbidden, http.StatusForbidden},
@@ -32,11 +33,15 @@ func TestPredefined_HTTPAndCodeMatch(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if c.e.Code != c.want {
-				t.Errorf("Code：得到 %d，期望 %d", c.e.Code, c.want)
-			}
 			if c.e.HTTP != c.want {
-				t.Errorf("HTTP：得到 %d，期望 %d（Code 与 HTTP 必须一致）", c.e.HTTP, c.want)
+				t.Errorf("HTTP：得到 %d，期望 %d", c.e.HTTP, c.want)
+			}
+			if c.e == Success {
+				if c.e.BizCode != 0 {
+					t.Errorf("Success 的 BizCode 应为 0，得到 %d", c.e.BizCode)
+				}
+			} else if c.e.BizCode == 0 {
+				t.Errorf("失败错误码的 BizCode 不应为 0")
 			}
 			if c.e.Msg() == "" {
 				t.Error("Msg 为空：前端会显示空白提示")
@@ -54,16 +59,16 @@ func TestBusinessCodes_MapToRealHTTPStatus(t *testing.T) {
 		e        *Err
 		wantHTTP int
 	}{
-		{"ErrUserAlreadyExists", ErrUserAlreadyExists, http.StatusConflict},
-		{"ErrBadCredentials", ErrBadCredentials, http.StatusUnauthorized},
+		{"ErrUserNotExist", ErrUserNotExist, http.StatusNotFound},
+		{"ErrPasswordError", ErrPasswordError, http.StatusBadRequest},
 		{"ErrAccountBanned", ErrAccountBanned, http.StatusForbidden},
-		{"ErrTokenExpired", ErrTokenExpired, http.StatusUnauthorized},
-		{"ErrInsufficientWallet", ErrInsufficientWallet, http.StatusBadRequest},
+		{"ErrRefreshTokenExpired", ErrRefreshTokenExpired, http.StatusUnauthorized},
+		{"ErrInsufficientBalance", ErrInsufficientBalance, http.StatusBadRequest},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if c.e.Code < 1000 {
-				t.Errorf("业务细分码应 >= 1000，得到 %d", c.e.Code)
+			if c.e.BizCode < 10000 {
+				t.Errorf("业务码应为 5~6 位（>=10000），得到 %d", c.e.BizCode)
 			}
 			if c.e.HTTP != c.wantHTTP {
 				t.Errorf("HTTP：得到 %d，期望 %d", c.e.HTTP, c.wantHTTP)
@@ -82,18 +87,18 @@ func TestAllPredefined_HaveValidHTTP(t *testing.T) {
 		Success,
 		ErrBadRequest, ErrUnauthorized, ErrForbidden, ErrNotFound,
 		ErrConflict, ErrTooManyRequests, ErrInternal,
-		ErrUserAlreadyExists, ErrBadCredentials, ErrAccountBanned,
-		ErrTokenExpired, ErrInsufficientWallet,
+		ErrUserNotExist, ErrPasswordError, ErrAccountBanned,
+		ErrRefreshTokenExpired, ErrInsufficientBalance,
 	}
 	for _, e := range all {
 		if e == nil {
 			t.Fatal("预定义码中存在 nil（引用即 panic）")
 		}
 		if e.HTTP < 100 || e.HTTP > 599 {
-			t.Errorf("code=%d 的 HTTP=%d 非法", e.Code, e.HTTP)
+			t.Errorf("bizcode=%d 的 HTTP=%d 非法", e.BizCode, e.HTTP)
 		}
 		if e.Msg() == "" {
-			t.Errorf("code=%d 的 Msg 为空", e.Code)
+			t.Errorf("bizcode=%d 的 Msg 为空", e.BizCode)
 		}
 	}
 }
@@ -117,8 +122,8 @@ func TestWith_DoesNotMutateOriginal(t *testing.T) {
 		t.Error("With 返回了同一个指针（应为新对象）")
 	}
 	// Code/HTTP 必须继承
-	if custom.Code != ErrBadRequest.Code || custom.HTTP != ErrBadRequest.HTTP {
-		t.Errorf("With 丢失了 Code/HTTP：得到 code=%d http=%d", custom.Code, custom.HTTP)
+	if custom.BizCode != ErrBadRequest.BizCode || custom.HTTP != ErrBadRequest.HTTP {
+		t.Errorf("With 丢失了 Code/HTTP：得到 code=%d http=%d", custom.BizCode, custom.HTTP)
 	}
 }
 

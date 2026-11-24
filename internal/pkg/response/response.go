@@ -1,25 +1,36 @@
-// Package response 统一响应包装（国际化契约，2026-11-24 重构）。
+// Package response 统一响应包装（i18n + 业务错误码契约，2026-11-24 定稿）。
 //
-// 响应契约（全部接口一致，成功与失败同构）：
+// 响应契约：
 //
-//	{
-//	  "data":        <object|null>,
-//	  "message":     "Success",
-//	  "status_code": 200
-//	}
+//	成功：{"message":"Success"}                    （data 为空时整个字段省略）
+//	成功：{"data":{...},"message":"Success"}       （data 非空才返回）
+//	失败：{"message":"Article not found","status_code":40401}
 //
-// 设计变更（相对原 NestJS 契约）：
-//   - 字段名 status_code（snake_case），替代原 code；
-//   - 去掉 timestamp / path —— 前端不需要，日志中间件已记录；
-//   - message 一律英文，来自 internal/pkg/i18n 文案表；
-//   - **原先塞在 data 里的 message 一律提到顶层**：
-//     旧：{"code":200,"message":"Success","data":{"success":true,"message":"Logged out"}}
-//     新：{"data":{"success":true},"message":"Logged out","status_code":200}
-//     成功提示走顶层 message，data 只放业务数据。
-//   - HTTP 状态码与 status_code 保持一致（不出现 HTTP 200 + status_code 500 的分裂）。
+// 规则（用户 2026-11-24 定稿，写进 AGENTS.md）：
+//  1. status_code 是【自定义业务错误码】，与 HTTP 状态码无关；
+//     5~6 位数字：5 位 = 通用错误，6 位 = 带域前缀的细分错误；
+//     0 = 成功（所有成功响应的默认值）。
+//  2. **字段缺省**：data 为空（nil）时整个 data 字段不出现在 JSON 里；
+//     message 为空串时整个 message 字段也不出现（例如探针端点 {"status_code":0}）。
+//  3. message 一律英文，来自 internal/pkg/i18n 文案表，key 即错误码的唯一语义来源。
+//  4. HTTP 状态码仍然是标准的（404/401/403...），供网关/浏览器/监控使用；
+//     status_code 才是前端判断业务成败的依据。
+//
+// 错误码段位规划（5~6 位）：
+//
+//	    0                    成功
+//	10000 ~ 19999            通用错误（参数/认证/权限/限流/内部）
+//	20001 ~ 29999            认证与用户域
+//	30001 ~ 39999            内容域（文章/评论/合集/分类标签）
+//	40001 ~ 49999            交易域（订单/支付/钱包/会员）
+//	50001 ~ 59999            运营域（积分/成就/装饰品/邀请/举报）
+//	60001 ~ 69999            基础设施域（上传/消息/配置/搜索/审核）
+//	70001 ~ 79999            RBAC（角色/权限）
+//	90000+                   预留
 package response
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -29,11 +40,45 @@ import (
 
 // Body 统一响应体。
 //
-// 字段顺序固定为 data / message / status_code，便于日志与前端解析。
+// 零值省略：Data（omitempty 依赖自定 MarshalJSON，见 Body.MarshalJSON）、
+// Message 为空串时省略。StatusCode 恒在（业务契约核心字段）。
 type Body struct {
-	Data       interface{} `json:"data"`
-	Message    string      `json:"message"`
+	Data       interface{} `json:"data,omitempty"`
+	Message    string      `json:"message,omitempty"`
 	StatusCode int         `json:"status_code"`
+}
+
+// MarshalJSON 自定义序列化：data 为 nil 或空对象时省略整个字段。
+//
+// 不能用裸 omitempty —— omitempty 对 interface{} 只在 nil 时省略，
+// 但对空 map/空 slice 不省略；这里统一按「无有效数据」处理。
+func (b Body) MarshalJSON() ([]byte, error) {
+	type alias struct {
+		Message    string      `json:"message,omitempty"`
+		StatusCode int         `json:"status_code"`
+		Data       interface{} `json:"data,omitempty"`
+	}
+	a := alias{Message: b.Message, StatusCode: b.StatusCode, Data: b.Data}
+	if isEmptyData(b.Data) {
+		a.Data = nil // 触发 omitempty
+	}
+	return jsonMarshal(alias(a))
+}
+
+// isEmptyData 判断 data 是否「空到不值得返回」。
+func isEmptyData(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	switch t := v.(type) {
+	case string:
+		return t == ""
+	case []interface{}:
+		return len(t) == 0
+	case map[string]interface{}:
+		return len(t) == 0
+	}
+	return false
 }
 
 // Meta 分页元信息。
@@ -50,25 +95,31 @@ type PageData struct {
 	Meta Meta        `json:"meta"`
 }
 
-// Success 成功响应：{data, message:"Success", status_code:200}。
+// Success 成功响应：data 非空时返回 {"data":...,"message":"Success"}，
+// data 为空时 {"message":"Success"}。status_code 恒 0。
 func Success(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, Body{
 		Data:       data,
 		Message:    i18n.T(i18n.CommonOK),
-		StatusCode: http.StatusOK,
+		StatusCode: 0,
 	})
 }
 
 // SuccessMsg 成功响应，并指定顶层提示（业务动作类接口用）。
-//
-// 用在「操作成功但需要告知具体结果」的场景，例如登出、发送验证码。
-// 原先这类提示塞在 data 里（{"success":true,"message":"Logged out"}），
-// 现在统一提到顶层 message。
 func SuccessMsg(c *gin.Context, key i18n.Key, data interface{}, args ...interface{}) {
 	c.JSON(http.StatusOK, Body{
 		Data:       data,
 		Message:    i18n.Tf(key, args...),
-		StatusCode: http.StatusOK,
+		StatusCode: 0,
+	})
+}
+
+// SuccessCode 成功响应，带自定义业务码（极少用；默认成功一律 0）。
+func SuccessCode(c *gin.Context, code int, data interface{}) {
+	c.JSON(http.StatusOK, Body{
+		Data:       data,
+		Message:    i18n.T(i18n.CommonOK),
+		StatusCode: code,
 	})
 }
 
@@ -87,29 +138,22 @@ func SuccessPage(c *gin.Context, list interface{}, total int64, page, limit int)
 	})
 }
 
-// Health 健康检查响应：{data, message:"OK", status_code:0}。
-//
-// 保留 status_code:0 的骨架约定 —— /health 是运维探针端点，
-// 与业务接口的 200 语义不同（0 = 探针专用成功），前端不会调用它。
+// Health 健康检查响应：{"status_code":0}（探针端点，data/message 全省略）。
 func Health(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, Body{
-		Data:       data,
-		Message:    "OK",
-		StatusCode: 0,
-	})
+	c.JSON(http.StatusOK, Body{StatusCode: 0})
 }
 
-// Fail 失败响应：{data:null, message, status_code}。
+// Fail 失败响应：{"message","status_code"}，data 省略。
 //
-// HTTP 状态取 err.HTTP，与 status_code 一致；Abort 阻止后续 handler 继续写响应。
+// HTTP 状态码独立于 status_code（HTTP 供网关/监控，status_code 供前端判断业务）；
+// Abort 阻止后续 handler 继续写响应。
 func Fail(c *gin.Context, e *errcode.Err) {
 	if e == nil {
 		e = errcode.ErrInternal
 	}
 	c.AbortWithStatusJSON(e.HTTP, Body{
-		Data:       nil,
 		Message:    e.Msg(),
-		StatusCode: e.HTTP,
+		StatusCode: e.BizCode,
 	})
 }
 
@@ -118,9 +162,12 @@ func FailKey(c *gin.Context, e *errcode.Err, key i18n.Key, args ...interface{}) 
 	Fail(c, e.WithKeyf(key, args...))
 }
 
-// FailWith 覆盖提示信息的 Fail。
-//
-// 注意：msg 必须是英文。优先用 FailKey；这里留给确实无法预置文案的场景。
+// FailWith 覆盖提示信息的 Fail。msg 必须是英文。
 func FailWith(c *gin.Context, e *errcode.Err, msg string) {
 	Fail(c, e.With(msg))
+}
+
+// jsonMarshal 局部引入 encoding/json（避免包名冲突且集中管理）。
+func jsonMarshal(v interface{}) ([]byte, error) {
+	return json.Marshal(v)
 }

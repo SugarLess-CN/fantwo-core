@@ -25,10 +25,14 @@ import (
 )
 
 // ErrServiceNotConfigured 服务未配置（errcode 5030，语义对齐任务书）。
+// BizSearchNotConfigured 搜索未配置业务码（6 万段，基础设施域）。
+const BizSearchNotConfigured = 60100
+
+// ErrServiceNotConfigured 服务未配置（语义对齐原任务书 5030）。
 var ErrServiceNotConfigured = &errcode.Err{
-	Code: 5030,
-	HTTP: http.StatusServiceUnavailable,
-	Key:  i18n.SearchNotConfigured,
+	BizCode: BizSearchNotConfigured,
+	HTTP:    http.StatusServiceUnavailable,
+	Key:     i18n.SearchNotConfigured,
 }
 
 // SearchHandler 搜索端点。

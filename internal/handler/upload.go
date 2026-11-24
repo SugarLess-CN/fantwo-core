@@ -92,7 +92,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 func (h *UploadHandler) Info(c *gin.Context) {
 	up, err := h.svc.GetFileInfo(c.Param("id"))
 	if err != nil {
-		if e, ok := err.(*errcode.Err); ok && e.Code == http.StatusNotFound {
+		if e, ok := err.(*errcode.Err); ok && e.HTTP == http.StatusNotFound {
 			response.Success(c, nil) // 原实现 return null 而非 404
 			return
 		}

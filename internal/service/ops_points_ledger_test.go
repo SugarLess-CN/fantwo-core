@@ -263,7 +263,7 @@ func TestServiceSpendInsufficientKeepsBalance(t *testing.T) {
 	if err == nil {
 		t.Fatalf("余额不足应报错，实际成功: %+v", res)
 	}
-	if e, ok := err.(*errcode.Err); !ok || e.Code != errcode.ErrBadRequest.Code {
+	if e, ok := err.(*errcode.Err); !ok || e.BizCode != errcode.ErrBadRequest.BizCode {
 		t.Errorf("错误类型应为 400 业务错误，实际 %T %v", err, err)
 	}
 	if got := ledger.balanceOf("u-4"); got != before {
