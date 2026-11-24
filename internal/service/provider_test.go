@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
 )
 
 // TestRenderTemplate 短信/邮件模板占位符替换。
@@ -34,8 +36,10 @@ func TestProvidersNotConfiguredByDefault(t *testing.T) {
 	if NewSMSSender(d).Configured() {
 		t.Error("短信渠道未配置时应为 false")
 	}
-	if NewGithubOAuth(d).Configured() {
-		t.Error("GitHub OAuth 未配置时应为 false")
+	// T-37c：GitHub OAuth 改走 oauthkit，未配置时 oauthProvider 返回业务码 20026。
+	if _, e := NewAuthService(d).oauthProvider(oauthkit.ProviderGitHub, oauthkit.ChannelWeb); e == nil ||
+		e.BizCode != errcode.BizOAuthNotConfigured {
+		t.Errorf("GitHub OAuth 未配置时应返回业务码 %d，实际 %v", errcode.BizOAuthNotConfigured, e)
 	}
 	// 未配置下的投递调用返回 ErrProviderNotConfigured（由上层降级为「只写 Redis + log」）。
 	if err := NewMailer(d).Send("a@b.com", "s", "b"); err != ErrProviderNotConfigured {
@@ -43,9 +47,6 @@ func TestProvidersNotConfiguredByDefault(t *testing.T) {
 	}
 	if err := NewSMSSender(d).Send(context.Background(), "13800138000", "123456", "login"); err != ErrProviderNotConfigured {
 		t.Errorf("短信未配置应返回 ErrProviderNotConfigured，实际 %v", err)
-	}
-	if _, err := NewGithubOAuth(d).AuthorizeURL(context.Background(), "st"); err != ErrProviderNotConfigured {
-		t.Errorf("OAuth 未配置应返回 ErrProviderNotConfigured，实际 %v", err)
 	}
 }
 
@@ -105,36 +106,64 @@ func TestSMSChannelResponseMismatch(t *testing.T) {
 
 // TestGithubAuthorizeURL 已配置时生成正确授权链接并写入 state。
 func TestGithubAuthorizeURL(t *testing.T) {
+	kv := newMemKV()
 	d := NewDeps(nil, nil, nil, nil, nil)
+	d.AuthTok = kv
 	d.Cfg = stubConfig{
-		cfgGithubClientID:     "cid",
-		cfgGithubClientSecret: "secret",
-		cfgGithubRedirectURI:  "https://api.example.com/api/v1/user/oauth/github/callback",
+		oauthkit.ConfigKeyGitHubClientID:     "cid",
+		oauthkit.ConfigKeyGitHubClientSecret: "secret",
+		oauthkit.ConfigKeyGitHubRedirectURI:  "https://api.example.com/api/v1/user/oauth/github/callback",
 	}
-	g := NewGithubOAuth(d)
-	if !g.Configured() {
-		t.Fatal("配置齐全时应 Configured=true")
+	out, e := NewAuthService(d).GithubAuthURL(context.Background())
+	if e != nil {
+		t.Fatalf("生成授权链接失败: %v", e)
 	}
-	// Redis 为 nil：state 仍应拼进 URL（仅跳过持久化）。
-	u, err := g.AuthorizeURL(context.Background(), "abc123")
-	if err != nil {
-		t.Fatalf("生成授权链接失败: %v", err)
-	}
-	for _, want := range []string{"client_id=cid", "state=abc123", "redirect_uri=", "scope="} {
+	u, _ := out["url"].(string)
+	for _, want := range []string{"client_id=cid", "state=", "redirect_uri=", "scope="} {
 		if !strings.Contains(u, want) {
 			t.Errorf("授权链接缺少 %s: %s", want, u)
 		}
 	}
-	if g.SuccessRedirectURL() != "/" {
-		t.Errorf("未配置前端跳转地址时应回落 /，实际 %s", g.SuccessRedirectURL())
+	state, _ := out["state"].(string)
+	if state == "" || !kv.has(oauthStatePrefix(oauthkit.ProviderGitHub, oauthkit.ChannelWeb)+state) {
+		t.Errorf("state 应写入 Redis 键前缀 %s", oauthStatePrefix(oauthkit.ProviderGitHub, oauthkit.ChannelWeb))
+	}
+	if got := NewAuthService(d).oauthSuccessURL(oauthkit.ProviderGitHub, oauthkit.ChannelWeb); got != "/" {
+		t.Errorf("未配置前端跳转地址时应回落 /，实际 %s", got)
 	}
 }
 
-// TestGithubStateVerifyWithoutRedis Redis 不可用时 state 校验放行（降级语义）。
-func TestGithubStateVerifyWithoutRedis(t *testing.T) {
+// TestOAuthStateFailClosed Redis 不可用时 state 校验必须拒绝（fail-closed）。
+//
+// 防的 bug（docs/14 §6.4）：旧实现 Redis 不可用即放行，CSRF 防护整条消失。
+func TestOAuthStateFailClosed(t *testing.T) {
+	// ① AuthTok 为 nil（降级模式）→ 503，不放行。
 	d := NewDeps(nil, nil, nil, nil, nil)
-	if !NewGithubOAuth(d).VerifyState(context.Background(), "anything") {
-		t.Error("Redis 不可用时应放行 state 校验")
+	if e := NewAuthService(d).verifyOAuthState(context.Background(),
+		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "anything"); e == nil ||
+		e.BizCode != errcode.BizDependencyDown {
+		t.Errorf("AuthTok 为 nil 时应拒绝并返回 503，实际 %v", e)
+	}
+	// ② Redis 报错 → 503，不放行。
+	kv := newMemKV()
+	kv.fail = true
+	d2 := NewDeps(nil, nil, nil, nil, nil)
+	d2.AuthTok = kv
+	if e := NewAuthService(d2).verifyOAuthState(context.Background(),
+		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "anything"); e == nil ||
+		e.BizCode != errcode.BizDependencyDown {
+		t.Errorf("Redis 报错时应拒绝并返回 503，实际 %v", e)
+	}
+	// ③ 签发 state 也 fail-closed。
+	if _, e := NewAuthService(d2).issueOAuthState(context.Background(),
+		oauthkit.ProviderGitHub, oauthkit.ChannelWeb); e == nil ||
+		e.BizCode != errcode.BizDependencyDown {
+		t.Errorf("Redis 报错时不得签发 state，实际 %v", e)
+	}
+	// ④ 空 state 先判参数错（禁令 3）。
+	if e := NewAuthService(d).verifyOAuthState(context.Background(),
+		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "  "); e == nil || e.BizCode != errcode.BizInvalidParam {
+		t.Errorf("空 state 应返回参数错误，实际 %v", e)
 	}
 }
 
@@ -216,24 +245,33 @@ func TestGithubStateOneTimeUse(t *testing.T) {
 	d := NewDeps(nil, nil, nil, nil, nil)
 	d.AuthTok = kv
 	d.Cfg = stubConfig{
-		cfgGithubClientID:     "cid",
-		cfgGithubClientSecret: "secret",
+		oauthkit.ConfigKeyGitHubClientID:     "cid",
+		oauthkit.ConfigKeyGitHubClientSecret: "secret",
 	}
-	g := NewGithubOAuth(d)
-	if _, err := g.AuthorizeURL(context.Background(), "state-1"); err != nil {
-		t.Fatalf("生成授权链接失败: %v", err)
+	svc := NewAuthService(d)
+	state, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb)
+	if e != nil {
+		t.Fatalf("签发 state 失败: %v", e)
 	}
-	if !g.VerifyState(context.Background(), "state-1") {
-		t.Fatal("首次校验应通过")
+	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e != nil {
+		t.Fatalf("首次校验应通过: %v", e)
 	}
-	if g.VerifyState(context.Background(), "state-1") {
+	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e == nil {
 		t.Error("同一 state 第二次校验应失败（一次性）")
 	}
-	if g.VerifyState(context.Background(), "") {
+	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, ""); e == nil {
 		t.Error("空 state 应校验失败")
 	}
-	if g.VerifyState(context.Background(), "never-issued") {
+	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "never-issued"); e == nil {
 		t.Error("未签发的 state 应校验失败")
+	}
+	// 跨渠道重放：微信 web 的 state 不能拿去校验 QQ web 的回调。
+	stateWx, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderWechat, oauthkit.ChannelWeb)
+	if e != nil {
+		t.Fatalf("签发微信 state 失败: %v", e)
+	}
+	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateWx); e == nil {
+		t.Error("跨渠道复用 state 应校验失败")
 	}
 }
 

@@ -116,6 +116,13 @@ func (p *qqProvider) AuthURL(state string) (string, error) {
 	if strings.TrimSpace(state) == "" {
 		return "", ErrInvalidArgument
 	}
+	// redirect_uri 必填：QQ 要求它必须与开放平台登记的回调地址完全一致，
+	// 空值会被上游直接拒绝（且错误码模糊，联调时极难定位）。
+	// 这与 wechat.go 的 AuthURL 保持一致 —— 缺 redirect_uri 属于**配置不全**（ErrNotConfigured），
+	// 不是「用户没授权」，端点应降级为 20026 让运维去补，而不是生成一个必然失败的 URL。
+	if strings.TrimSpace(p.cfg.RedirectURI) == "" {
+		return "", fmt.Errorf("oauthkit: qq AuthURL requires redirect_uri: %w", ErrNotConfigured)
+	}
 	q := url.Values{}
 	q.Set("response_type", "code")
 	q.Set("client_id", p.cfg.ClientID)

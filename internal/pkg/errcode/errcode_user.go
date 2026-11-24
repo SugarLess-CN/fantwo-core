@@ -106,8 +106,16 @@ var (
 	ErrCertificationNotFound = &Err{BizCode: BizCertNotFound, HTTP: http.StatusNotFound, Key: i18n.UserCertificationNotFound}
 	// ErrCertificationNotPending 认证记录不在待审核状态。
 	ErrCertificationNotPending = &Err{BizCode: BizCertNotPending, HTTP: http.StatusConflict, Key: i18n.UserCertificationNotPending}
-	// ErrGithubOAuthNotConfigured GitHub OAuth 未配置。
-	ErrGithubOAuthNotConfigured = &Err{BizCode: BizOAuthNotConfigured, HTTP: http.StatusBadRequest, Key: i18n.AuthOAuthNotConfigured}
+	// ErrOAuthNotConfigured 第三方登录未配置（任一 provider 的 appid / secret 缺失）。
+	//
+	// 语义一直是通用的，旧名 ErrGithubOAuthNotConfigured 只在 GitHub 是唯一渠道时
+	// 才准确 —— 现在有微信 web/app、QQ web/app 四个渠道，故改名。
+	ErrOAuthNotConfigured = &Err{BizCode: BizOAuthNotConfigured, HTTP: http.StatusBadRequest, Key: i18n.AuthOAuthNotConfigured}
+
+	// ErrGithubOAuthNotConfigured 旧名，保留别名避免破坏既有引用。
+	//
+	// Deprecated: 用 ErrOAuthNotConfigured。
+	ErrGithubOAuthNotConfigured = ErrOAuthNotConfigured
 
 	// ---- RBAC 细分 ----
 	// ErrRoleNameExists 角色名已存在。

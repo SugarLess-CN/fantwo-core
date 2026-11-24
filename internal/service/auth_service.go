@@ -26,6 +26,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -525,51 +526,290 @@ func (s *AuthService) SmsLogin(ctx context.Context, phone, code, deviceID string
 	return user, token, refresh, nil
 }
 
-// GithubAuthURL 生成 GitHub 授权链接（state 随机生成并存入 Redis）。
-func (s *AuthService) GithubAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
-	oauth := NewGithubOAuth(s.d)
-	if !oauth.Configured() {
-		return nil, errcode.ErrGithubOAuthNotConfigured
+// ---------------------------------------------------------------------------
+// 第三方登录编排（T-37c：全部走 internal/pkg/oauthkit）
+//
+// 分工：协议交互在 oauthkit（拼 URL / 换 token / 拉 userinfo / 校验 token），
+// 账号归属在 OAuthService.FindOrCreateByOAuth，本段只做「state + 流程串联 + 双 token」。
+//
+// 硬约束（docs/14 §7.1.2）：
+//   - 禁令 1/2：日志只打 oauthErrClass(err) 与 provider/channel，不打 Token/User，
+//     也不打 err.Error()（SDK 错误文本可能夹带上游响应体）。
+//   - 禁令 3：参数先本地校验（空 code / 空 state / 空 token 用 ErrInvalidArgument）。
+//   - 禁令 5：QQ app 的 token 必须先 ValidateToken，绝不手工置 Verified。
+// ---------------------------------------------------------------------------
+
+// oauthStateTTL state 在 Redis 的有效期（一次授权流程足够）。
+const oauthStateTTL = 10 * time.Minute
+
+// oauthStatePrefix state 键前缀：oauth:<provider>:<channel>:state:
+//
+// 按 (provider, channel) 分开，避免「微信 web 的 state 被拿去换 QQ 的 code」这类
+// 跨渠道重放；GitHub 只有 web 一个渠道，同样落在 oauth:github:web:state: 下。
+func oauthStatePrefix(provider, channel string) string {
+	return "oauth:" + provider + ":" + channel + ":state:"
+}
+
+// oauthProvider 按 (provider, channel) 构造 SDK 实例。
+//
+// 配置读取：oauthkit.ConfigKeys 给出该组合需要的 5 个键名（不在此处硬编码键名），
+// 值从 s.d.Cfg 读（配置服务已实现 DB 优先 + env 兜底），未配置齐全返回 20026。
+func (s *AuthService) oauthProvider(provider, channel string) (oauthkit.Provider, *errcode.Err) {
+	if s.d.Cfg == nil {
+		return nil, errOAuthNotConfigured
+	}
+	keyID, keySecret, keyRedirect, keyScope, keySuccess := oauthkit.ConfigKeys(provider, channel)
+	if keyID == "" {
+		// (provider, channel) 组合不受支持 —— 接线错误，不是配置事故。
+		s.d.Logger.Error("oauth unsupported provider/channel",
+			zap.String("provider", provider), zap.String("channel", channel))
+		return nil, oauthFailed()
+	}
+	cfg := oauthkit.Config{
+		ClientID:     strings.TrimSpace(s.d.Cfg.GetString(keyID, "")),
+		ClientSecret: readOptionalConfig(s.d.Cfg, keySecret),
+		RedirectURI:  readOptionalConfig(s.d.Cfg, keyRedirect),
+		Scope:        readOptionalConfig(s.d.Cfg, keyScope),
+	}
+	if keySuccess != "" {
+		cfg.SuccessRedirectURL = readOptionalConfig(s.d.Cfg, keySuccess)
+	}
+	p, err := oauthkit.New(provider, channel, cfg)
+	if err != nil {
+		// New 只在 provider/channel 组合不支持或 github scope 为空时失败。
+		s.d.Logger.Error("oauth build provider", zap.String("provider", provider),
+			zap.String("channel", channel), zapErr(err))
+		return nil, oauthFailed()
+	}
+	if !p.Configured() {
+		return nil, errOAuthNotConfigured
+	}
+	return p, nil
+}
+
+// readOptionalConfig 读取可能为空的配置键（键名为空时直接返回空串）。
+func readOptionalConfig(cfg ConfigReader, key string) string {
+	if key == "" || cfg == nil {
+		return ""
+	}
+	return strings.TrimSpace(cfg.GetString(key, ""))
+}
+
+// oauthSuccessURL 登录成功后前端跳转地址（未配置回落 "/"）。
+func (s *AuthService) oauthSuccessURL(provider, channel string) string {
+	_, _, _, _, keySuccess := oauthkit.ConfigKeys(provider, channel)
+	if u := readOptionalConfig(s.d.Cfg, keySuccess); u != "" {
+		return u
+	}
+	return "/"
+}
+
+// issueOAuthState 生成 state 并写入 Redis（**fail-closed**）。
+//
+// 旧实现（github_oauth.go:91-95）在 Set 失败时只打一条 warn 就继续放行，
+// 回调时 VerifyState 又因为「Redis 不可用 → return true」放行 —— 两道防线同时失效，
+// 等于 CSRF 防护完全不存在（docs/14 §6.4 记录的缺陷）。
+// 新实现：state 写不进去就不发授权链接，直接 503 让前端稍后重试。
+func (s *AuthService) issueOAuthState(ctx context.Context, provider, channel string) (string, *errcode.Err) {
+	if s.d.AuthTok == nil {
+		s.d.Logger.Error("oauth state store unavailable (AuthTok nil), refuse to start oauth flow",
+			zap.String("provider", provider), zap.String("channel", channel))
+		return "", errcode.ErrDependencyUnavailable
 	}
 	state, err := randomState()
 	if err != nil {
-		return nil, errcode.ErrInternal
+		s.d.Logger.Error("oauth generate state", zapErr(err))
+		return "", errcode.ErrInternal
 	}
-	u, err := oauth.AuthorizeURL(ctx, state)
+	if err := s.d.AuthTok.Set(ctx, oauthStatePrefix(provider, channel)+state, 1, oauthStateTTL); err != nil {
+		s.d.Logger.Error("oauth persist state failed, refuse to start oauth flow",
+			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
+		return "", errcode.ErrDependencyUnavailable
+	}
+	return state, nil
+}
+
+// verifyOAuthState 校验并消费 state（**fail-closed**）。
+//
+// 三种结果严格区分：
+//   - state 为空 → 400 参数错误（禁令 3：调用方没传，重试无用）
+//   - Redis 不可用 / 读写报错 → 503（依赖故障，可重试；**绝不放行**）
+//   - 未命中 / 已用过 → 400 AuthOAuthFailed（过期或被重放）
+func (s *AuthService) verifyOAuthState(ctx context.Context, provider, channel, state string) *errcode.Err {
+	if strings.TrimSpace(state) == "" {
+		return errcode.ErrInvalidParam
+	}
+	if s.d.AuthTok == nil {
+		s.d.Logger.Error("oauth state store unavailable (AuthTok nil), refuse to verify state",
+			zap.String("provider", provider), zap.String("channel", channel))
+		return errcode.ErrDependencyUnavailable
+	}
+	key := oauthStatePrefix(provider, channel) + state
+	n, err := s.d.AuthTok.Exists(ctx, key)
 	if err != nil {
-		s.d.Logger.Error("github authorize url", zapErr(err))
-		return nil, errcode.ErrGithubOAuthNotConfigured
+		s.d.Logger.Error("oauth verify state failed, refuse the callback",
+			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
+		return errcode.ErrDependencyUnavailable
+	}
+	if n == 0 {
+		return oauthFailed()
+	}
+	// 一次性消费：删不掉也当失败处理（否则同一 state 可被重放换 token）。
+	if err := s.d.AuthTok.Del(ctx, key); err != nil {
+		s.d.Logger.Error("oauth consume state failed, refuse the callback",
+			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
+		return errcode.ErrDependencyUnavailable
+	}
+	return nil
+}
+
+// oauthAuthURL 取授权链接 + 签发 state（web 渠道通用）。
+func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel string) (map[string]interface{}, *errcode.Err) {
+	p, e := s.oauthProvider(provider, channel)
+	if e != nil {
+		return nil, e
+	}
+	state, e := s.issueOAuthState(ctx, provider, channel)
+	if e != nil {
+		return nil, e
+	}
+	u, err := p.AuthURL(state)
+	if err != nil {
+		// AuthURL 的失败一般是配置缺项（redirect_uri 未配）或渠道不支持，均非用户可修。
+		s.d.Logger.Error("oauth build auth url",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		if e := mapOAuthErr(err); e != nil && e.BizCode == errcode.BizInvalidParam {
+			return nil, e
+		}
+		return nil, oauthFailed()
 	}
 	return map[string]interface{}{"url": u, "state": state}, nil
 }
 
-// GithubCallback GitHub 登录（SPA 模式：用 code 换 token 并签发本站双 token）。
-// 按 github_id 找用户；找不到时按邮箱合并绑定；仍无则自动建号（随机密码，不可密码登录）。
-func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+// oauthWebCallback web 渠道回调（微信 / QQ / GitHub 共用）。
+//
+// 顺序固定：校验 state（fail-closed）→ Exchange(code) → UserInfo → 账号归属 → 双 token。
+func (s *AuthService) oauthWebCallback(ctx context.Context, provider, channel, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, "", "", e
 	}
-	oauth := NewGithubOAuth(s.d)
-	if !oauth.Configured() {
-		return nil, "", "", errcode.ErrGithubOAuthNotConfigured
+	// 禁令 3：空 code 先本地拦掉，别白耗一次上游配额。
+	if strings.TrimSpace(code) == "" {
+		return nil, "", "", errcode.ErrInvalidParam
 	}
-	if !oauth.VerifyState(ctx, state) {
-		return nil, "", "", errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, "Invalid or expired OAuth state")
+	p, e := s.oauthProvider(provider, channel)
+	if e != nil {
+		return nil, "", "", e
 	}
-	profile, err := oauth.Exchange(ctx, code)
+	if e := s.verifyOAuthState(ctx, provider, channel, state); e != nil {
+		return nil, "", "", e
+	}
+
+	tok, err := p.Exchange(ctx, code)
 	if err != nil {
-		s.d.Logger.Error("github exchange", zapErr(err))
-		return nil, "", "", errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, err.Error())
+		s.d.Logger.Error("oauth exchange failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
 	}
-	user, e := s.findOrCreateGithubUser(ctx, profile)
+	u, err := p.UserInfo(ctx, tok)
+	if err != nil {
+		// 禁令 2：只打分类标签，不打 err.Error()（可能夹带上游响应体）。
+		s.d.Logger.Error("oauth userinfo failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
+	}
+	return s.finishOAuthLogin(ctx, tok, u, deviceID)
+}
+
+// oauthAppLoginByCode app 渠道「交 code」登录（微信移动应用）。
+//
+// 微信 App 交的是 code（客户端 SDK 换不到 token，后端自己换），因此**不需要**
+// ValidateToken —— 这一点与 QQ app 相反，不许为「接口统一」而抹平（docs/14 §8.5 问题 2）。
+// App 渠道没有 state（客户端不参与浏览器跳转），CSRF 面由 code 一次性 + 服务端换 token 覆盖。
+func (s *AuthService) oauthAppLoginByCode(ctx context.Context, provider, channel, code, deviceID string) (*model.User, string, string, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, "", "", e
+	}
+	if strings.TrimSpace(code) == "" {
+		return nil, "", "", errcode.ErrInvalidParam
+	}
+	p, e := s.oauthProvider(provider, channel)
+	if e != nil {
+		return nil, "", "", e
+	}
+	tok, err := p.Exchange(ctx, code)
+	if err != nil {
+		s.d.Logger.Error("oauth app exchange failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
+	}
+	u, err := p.UserInfo(ctx, tok)
+	if err != nil {
+		s.d.Logger.Error("oauth app userinfo failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
+	}
+	return s.finishOAuthLogin(ctx, tok, u, deviceID)
+}
+
+// oauthAppLoginByToken app 渠道「交 token」登录（QQ 移动应用）。
+//
+// 安全要点（禁令 5）：access_token 与 openid 都来自客户端，可信度为零 ——
+// **必须** ValidateToken（内部调 oauth2.0/me 并比对 openid 一致性）后才允许 UserInfo。
+// 绝不手工 `tok.Verified = true`：那等于把伪造防护整条拆掉。
+func (s *AuthService) oauthAppLoginByToken(ctx context.Context, provider, channel, accessToken, openID, deviceID string) (*model.User, string, string, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, "", "", e
+	}
+	accessToken = strings.TrimSpace(accessToken)
+	openID = strings.TrimSpace(openID)
+	if accessToken == "" || openID == "" {
+		return nil, "", "", errcode.ErrInvalidParam
+	}
+	p, e := s.oauthProvider(provider, channel)
+	if e != nil {
+		return nil, "", "", e
+	}
+	tok, err := p.ValidateToken(ctx, &oauthkit.Token{
+		AccessToken: accessToken,
+		OpenID:      openID,
+		Channel:     channel,
+		Verified:    false, // 必须由 ValidateToken 置 true，见函数注释
+	})
+	if err != nil {
+		s.d.Logger.Error("oauth app validate token failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
+	}
+	u, err := p.UserInfo(ctx, tok)
+	if err != nil {
+		s.d.Logger.Error("oauth app userinfo failed",
+			zap.String("provider", provider), zap.String("channel", channel),
+			zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
+	}
+	return s.finishOAuthLogin(ctx, tok, u, deviceID)
+}
+
+// finishOAuthLogin 收尾：账号归属 → 封禁判断 → 双 token。
+func (s *AuthService) finishOAuthLogin(ctx context.Context, tok *oauthkit.Token, u *oauthkit.User, deviceID string) (*model.User, string, string, *errcode.Err) {
+	user, e := NewOAuthService(s.d).FindOrCreateByOAuth(ctx, tok, u)
 	if e != nil {
 		return nil, "", "", e
 	}
 	if user.Status == model.UserStatusBanned {
 		return nil, "", "", errcode.ErrAccountBanned
 	}
-	if deviceID == "" {
-		deviceID = "github-" + profile.ID
+	if strings.TrimSpace(deviceID) == "" {
+		// 与旧实现一致：第三方登录没有 device-id 头时用「平台-openid」占位，
+		// 保证同一账号在不同平台的会话互不覆盖。
+		deviceID = strings.ToLower(u.Provider) + "-" + u.ID
 	}
 	token, refresh, e := s.issueTokens(ctx, user, deviceID)
 	if e != nil {
@@ -578,84 +818,122 @@ func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID 
 	return user, token, refresh, nil
 }
 
+// GithubAuthURL 生成 GitHub 授权链接（state 随机生成并存入 Redis）。
+func (s *AuthService) GithubAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb)
+}
+
+// GithubCallback GitHub 登录（SPA 模式：用 code 换 token 并签发本站双 token）。
+//
+// 账号归属（按 github_id / 邮箱合并 / 自动建号）已统一收敛到
+// OAuthService.FindOrCreateByOAuth，本方法只负责流程串联。
+func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+	return s.oauthWebCallback(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb, code, state, deviceID)
+}
+
 // GithubRedirectURL 重定向模式：返回应 302 的前端地址（成功带 token，失败带 error）。
 func (s *AuthService) GithubRedirectURL(ctx context.Context, code, state, oauthError, deviceID string) string {
-	oauth := NewGithubOAuth(s.d)
-	base := "/"
-	if oauth.Configured() {
-		base = oauth.SuccessRedirectURL()
-	}
+	return s.oauthRedirectURL(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb, code, state, oauthError, deviceID)
+}
+
+// oauthRedirectURL 重定向模式通用实现（微信 / QQ / GitHub web 共用）。
+//
+// 成功 URL 来自配置（<provider>_<channel>_success_redirect_url），未配置回落 "/"。
+func (s *AuthService) oauthRedirectURL(ctx context.Context, provider, channel, code, state, oauthError, deviceID string) string {
+	base := s.oauthSuccessURL(provider, channel)
+	// 用户在授权页点了拒绝：上游会带 error 回来，不需要再打接口。
 	if oauthError != "" {
 		return base + "?error=" + url.QueryEscape(oauthError)
 	}
-	_, token, _, e := s.GithubCallback(ctx, code, state, deviceID)
+	_, token, _, e := s.oauthWebCallback(ctx, provider, channel, code, state, deviceID)
 	if e != nil {
 		return base + "?error=" + url.QueryEscape(e.Msg())
 	}
 	return base + "?token=" + url.QueryEscape(token)
 }
 
-// findOrCreateGithubUser 按 github_id / 邮箱匹配，必要时建号。
-func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfile) (*model.User, *errcode.Err) {
-	if p.ID == "" {
-		return nil, errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, "GitHub did not return a user ID")
+// ---- 微信 ----
+
+// WechatWebAuthURL 微信网站应用（PC 扫码）授权链接。
+func (s *AuthService) WechatWebAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb)
+}
+
+// WechatWebCallback 微信网站应用回调（state 前缀 oauth:wechat:web:state:）。
+func (s *AuthService) WechatWebCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+	return s.oauthWebCallback(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, code, state, deviceID)
+}
+
+// WechatWebRedirectURL 微信网站应用重定向模式。
+func (s *AuthService) WechatWebRedirectURL(ctx context.Context, code, state, oauthError, deviceID string) string {
+	return s.oauthRedirectURL(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, code, state, oauthError, deviceID)
+}
+
+// WechatAppLogin 微信移动应用登录：客户端交 code，后端用 appid+secret 换 token。
+//
+// 无 state（App 不走浏览器跳转）；不调 ValidateToken（token 是后端自己换的，天然可信）。
+func (s *AuthService) WechatAppLogin(ctx context.Context, code, deviceID string) (*model.User, string, string, *errcode.Err) {
+	return s.oauthAppLoginByCode(ctx, oauthkit.ProviderWechat, oauthkit.ChannelApp, code, deviceID)
+}
+
+// ---- QQ ----
+
+// QQWebAuthURL QQ 网站应用授权链接。
+func (s *AuthService) QQWebAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb)
+}
+
+// QQWebCallback QQ 网站应用回调（state 前缀 oauth:qq:web:state:）。
+func (s *AuthService) QQWebCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+	return s.oauthWebCallback(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, code, state, deviceID)
+}
+
+// QQWebRedirectURL QQ 网站应用重定向模式。
+func (s *AuthService) QQWebRedirectURL(ctx context.Context, code, state, oauthError, deviceID string) string {
+	return s.oauthRedirectURL(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, code, state, oauthError, deviceID)
+}
+
+// QQAppLogin QQ 移动应用登录：客户端上报 access_token + openid。
+//
+// 两者都可伪造 → 必须 ValidateToken（禁令 5）。客户端上报的 expires_in 一律不采信，
+// 因此这里直接手工构造 Token 而不走 ParseQQAppLoginPayload（那份 JSON 里的
+// expires_in 对后端登录没有任何用处，少一个被污染的字段）。
+func (s *AuthService) QQAppLogin(ctx context.Context, accessToken, openID, deviceID string) (*model.User, string, string, *errcode.Err) {
+	return s.oauthAppLoginByToken(ctx, oauthkit.ProviderQQ, oauthkit.ChannelApp, accessToken, openID, deviceID)
+}
+
+// QQAppLoginPayload QQ 移动应用登录（原始回调 JSON 形态）。
+//
+// 客户端直接上报 SDK onComplete 的 JSONObject 时走这里：expires_in 是字符串
+// "7776000"、msg 拼成 "sucess"，解析口径统一由 oauthkit.ParseQQAppLoginPayload 负责。
+// 解析出的 Verified 恒为 false，仍必须 ValidateToken。
+func (s *AuthService) QQAppLoginPayload(ctx context.Context, raw []byte, deviceID string) (*model.User, string, string, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, "", "", e
 	}
-	if user, err := s.d.Users.FindByGithubID(s.d.DB, p.ID); err == nil {
-		// 已有绑定：刷新资料
-		fields := map[string]interface{}{"github_username": p.Login}
-		if p.AvatarURL != "" {
-			fields["avatar"] = p.AvatarURL
-		}
-		_ = s.d.Users.UpdateFields(s.d.DB, user.ID, fields)
-		return s.findUserOrErr(user.ID)
-	} else if !IsNotFound(err) {
-		return nil, errcode.ErrInternal
+	if len(raw) == 0 {
+		return nil, "", "", errcode.ErrInvalidParam
 	}
-	// 邮箱合并：老账号补绑 github_id
-	if p.Email != "" {
-		if existing, err := s.d.Users.FindByEmail(s.d.DB, p.Email); err == nil {
-			_ = s.d.Users.UpdateFields(s.d.DB, existing.ID, map[string]interface{}{
-				"github_id": p.ID, "github_username": p.Login,
-			})
-			return s.findUserOrErr(existing.ID)
-		} else if !IsNotFound(err) {
-			return nil, errcode.ErrInternal
-		}
+	p, e := s.oauthProvider(oauthkit.ProviderQQ, oauthkit.ChannelApp)
+	if e != nil {
+		return nil, "", "", e
 	}
-	// 建号：用户名唯一化（github 登录名 → 冲突则追加 -ghN）
-	username, uerr := uniqueUsername(p.Login, "gh"+p.ID,
-		func(cand string) (bool, error) { return s.d.Users.ExistsUsername(s.d.DB, cand, "") },
-		func() string { return genCode()[:3] }, 5)
-	if uerr != nil {
-		return nil, errcode.ErrInternal
-	}
-	pwd, err := hashPassword(genCode() + genCode())
+	tok, err := oauthkit.ParseQQAppLoginPayload(raw)
 	if err != nil {
-		return nil, errcode.ErrInternal
+		s.d.Logger.Error("oauth qq app parse payload failed", zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
 	}
-	var nickname *string
-	if p.Name != "" {
-		nickname = &p.Name
+	tok, err = p.ValidateToken(ctx, tok)
+	if err != nil {
+		s.d.Logger.Error("oauth qq app validate token failed", zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
 	}
-	user := &model.User{
-		Username: username, Nickname: nickname, Password: pwd,
-		Status: model.UserStatusActive, GithubID: &p.ID, GithubUsername: &p.Login,
+	u, err := p.UserInfo(ctx, tok)
+	if err != nil {
+		s.d.Logger.Error("oauth qq app userinfo failed", zap.String("class", oauthErrClass(err)))
+		return nil, "", "", mapOAuthErr(err)
 	}
-	if p.Email != "" {
-		user.Email = &p.Email
-	}
-	if p.AvatarURL != "" {
-		user.Avatar = &p.AvatarURL
-	}
-	if role, rerr := s.d.Roles.FindByName(s.d.DB, model.RoleNameUser); rerr == nil {
-		user.Roles = []model.Role{*role}
-	}
-	if err := s.d.Users.Create(s.d.DB, user); err != nil {
-		s.d.Logger.Error("github register", zapErr(err))
-		return nil, errcode.ErrInternal
-	}
-	_ = s.d.Users.CreateProfile(s.d.DB, &model.UserProfile{UserID: user.ID})
-	return s.findUserOrErr(user.ID)
+	return s.finishOAuthLogin(ctx, tok, u, deviceID)
 }
 
 // randomState 生成 OAuth state（16 字节 hex）。

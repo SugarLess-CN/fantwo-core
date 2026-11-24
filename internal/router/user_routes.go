@@ -71,6 +71,22 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	v1.POST("/user/oauth/github/callback", authH.GithubCallback)
 	v1.GET("/user/oauth/github/callback", authH.GithubRedirect)
 
+	// ---------- 第三方登录（T-37c，全部 NoAuth）----------
+	//
+	// 8 个核心端点，按「平台 / 渠道」分层（docs/14 §8.4 渠道矩阵）：
+	//   微信 web（PC 扫码）/ 微信 app（App 内 SDK 把 code 交后端）
+	//   QQ  web（网页登录）/ QQ  app（SDK 直接给 access_token，后端必须校验）
+	//
+	// 为什么微信 app 交 code、QQ app 交 token（不抹平）：见 internal/handler/oauth.go 包注释。
+	v1.GET("/user/oauth/wechat/web/url", authH.WechatWebURL)
+	v1.POST("/user/oauth/wechat/web/callback", authH.WechatWebCallback)
+	v1.GET("/user/oauth/wechat/web/callback", authH.WechatWebRedirect)
+	v1.POST("/user/oauth/wechat/app/login", authH.WechatAppLogin)
+	v1.GET("/user/oauth/qq/web/url", authH.QQWebURL)
+	v1.POST("/user/oauth/qq/web/callback", authH.QQWebCallback)
+	v1.GET("/user/oauth/qq/web/callback", authH.QQWebRedirect)
+	v1.POST("/user/oauth/qq/app/login", authH.QQAppLogin)
+
 	// ---------- 认证（需登录） ----------
 	authGroup := v1.Group("")
 	authGroup.Use(auth)

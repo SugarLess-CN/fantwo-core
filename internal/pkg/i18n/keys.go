@@ -69,7 +69,19 @@ const (
 	AuthOldPasswordWrong   Key = "auth.old_password_wrong"
 	AuthOAuthNotConfigured Key = "auth.oauth_not_configured"
 	AuthOAuthFailed        Key = "auth.oauth_failed"
-	AuthDeviceLimit        Key = "auth.device_limit"
+	// AuthOAuthFailedDetail 带细节的失败文案（%s 为原因，**只放本方可读的原因**，
+	// 禁止放上游响应体片段 —— 见 docs/14 §7.1.2 禁令 2）。
+	AuthOAuthFailedDetail Key = "auth.oauth_failed_detail"
+	// AuthOAuthReauthRequired 平台的 token 已失效 / 被撤销，需要用户重新授权
+	// （对应 oauthkit.ErrTokenExpired / ErrRefreshDead）。
+	AuthOAuthReauthRequired Key = "auth.oauth_reauth_required"
+	// AuthOAuthTokenForged 客户端上报的 token 未通过校验，或与声称的 openid 不匹配
+	// （对应 oauthkit.ErrTokenNotVerified / ErrTokenMismatch）—— 安全事件，按 403 处理。
+	AuthOAuthTokenForged Key = "auth.oauth_token_forged"
+	// AuthOAuthScopeMissing 用户未授予必需的作用域
+	// （对应 oauthkit.ErrScopeMissing，典型：GitHub 未授 user:email）。
+	AuthOAuthScopeMissing Key = "auth.oauth_scope_missing"
+	AuthDeviceLimit       Key = "auth.device_limit"
 
 	// ---------- user ----------
 	UserNotFound            Key = "user.not_found"

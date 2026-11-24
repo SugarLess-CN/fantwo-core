@@ -120,6 +120,18 @@ func (r *UserRepo) ExistsUsername(db *gorm.DB, username, excludeID string) (bool
 	return n > 0, err
 }
 
+// ExistsNickname 昵称是否占用（昵称列在 user 表上是 varchar(64) + uniqueIndex；
+// 第三方登录建号时昵称重名率极高，必须与 username 一样做唯一化，否则必然撞索引）。
+func (r *UserRepo) ExistsNickname(db *gorm.DB, nickname, excludeID string) (bool, error) {
+	var n int64
+	q := db.Model(&model.User{}).Where("nickname = ?", nickname)
+	if excludeID != "" {
+		q = q.Where("id <> ?", excludeID)
+	}
+	err := q.Count(&n).Error
+	return n > 0, err
+}
+
 // ExistsEmail 邮箱是否占用。
 func (r *UserRepo) ExistsEmail(db *gorm.DB, email, excludeID string) (bool, error) {
 	var n int64
