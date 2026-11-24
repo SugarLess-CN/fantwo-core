@@ -29,6 +29,9 @@ func MigrateUser(db *gorm.DB) error {
 		&model.UserFollowing{},
 		&model.UserCertification{},
 		&model.AccountDeletion{},
+		// 第三方账号绑定（T-37）：独立表而非 user 表加列 —— 同一平台 web/app 渠道
+		// 产生不同 openid，单表列存不下；(provider, openid) 复合唯一索引表达平台内唯一。
+		&model.UserOAuthBinding{},
 		// 钱包流水
 		&model.WalletTransaction{},
 	)

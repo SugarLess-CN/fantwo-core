@@ -57,6 +57,11 @@ func TestConfigSensitiveKeysWhitelist(t *testing.T) {
 		"tencent_secret_key",
 		"aliyun_access_key_id",
 		"aliyun_access_key_secret",
+		// T-37 第三方登录：四个 secret/appkey 全部打码（qq_app 无 appkey，故意不设）
+		"wechat_web_secret",
+		"wechat_app_secret",
+		"qq_web_appkey",
+		"github_client_secret",
 	}
 	if len(ConfigSensitiveKeys) != len(want) {
 		t.Fatalf("ConfigSensitiveKeys 条数 = %d, want %d: %v", len(ConfigSensitiveKeys), len(want), ConfigSensitiveKeys)
@@ -145,11 +150,13 @@ func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
 // -  1（T-34f：删死配置 content_audit_text_enabled —— 全仓无读取点、原仓库也没有这个 key）
 // + 15（T-34f：审核行为/场景 7 条 + provider 凭据 8 条）
 // = 56
+// + 16（T-37b：第三方登录 —— 微信 web 4 + 微信 app 2 + QQ web 4 + QQ app 1 + GitHub 5）
+// = 72
 //
 // 任何增删都应是有意为之 —— 数字对不上时先看 DefaultConfigSeeds 的取舍说明，别直接改这个常量。
 func TestDefaultConfigSeedsCount(t *testing.T) {
-	if got := len(DefaultConfigSeeds()); got != 56 {
-		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 56（增删种子请同步更新取舍说明与算式）", got)
+	if got := len(DefaultConfigSeeds()); got != 72 {
+		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 72（增删种子请同步更新取舍说明与算式）", got)
 	}
 }
 

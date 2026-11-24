@@ -5,7 +5,11 @@
 // group 用于分组批量读写，public 标记是否可被匿名接口 /config/public 读取。
 package model
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+)
 
 // 配置值类型（原 config.type，默认 string）。
 const (
@@ -28,6 +32,7 @@ const (
 	ConfigGroupArticle       = "article"
 	ConfigGroupStorage       = "storage"
 	ConfigGroupCDN           = "cdn"
+	ConfigGroupOAuth         = "oauth"
 )
 
 // 敏感词配置键：敏感词以 JSON 数组字符串存在该 key 下（对齐原 getSensitiveWords）。
@@ -152,6 +157,13 @@ var ConfigSensitiveKeys = []string{
 	ConfigKeyTencentSecretKey,
 	ConfigKeyAliyunAccessKeyID,
 	ConfigKeyAliyunAccessKeySecret,
+	// 第三方登录凭据（T-37）：四个 secret/appkey 全部打码。
+	// appid / client_id 只是公开标识，不打码（便于运维核对填错）。
+	// 唯一定义源是 oauthkit.SensitiveConfigKeys，这里逐条列出以保持白名单扁平可读。
+	oauthkit.ConfigKeyWechatWebSecret,
+	oauthkit.ConfigKeyWechatAppSecret,
+	oauthkit.ConfigKeyQQWebAppKey,
+	oauthkit.ConfigKeyGitHubClientSecret,
 }
 
 // sensitiveConfigKeywords IsSensitiveConfigKey 的命名兜底关键词（小写，子串匹配）。
@@ -300,5 +312,38 @@ func DefaultConfigSeeds() []ConfigSeed {
 
 		// 敏感词（非公开）
 		{ConfigKeySensitiveWords, "[]", "敏感词列表（JSON 数组）", ConfigTypeJSON, ConfigGroupSystem, false},
+
+		// ---- 第三方登录（T-37 oauthkit）----
+		// 配置键口径：<provider>_<channel>_<field>（唯一定义源见 internal/pkg/oauthkit/config.go）。
+		// 微信 / QQ 各有 web（网站应用）与 app（移动应用）两套 appid —— 是两个独立应用，
+		// openid 不同、unionid 相同；登录查找必须先 unionid 后 openid，否则同一人 PC+App 会变两个账号。
+		// GitHub 只有一个渠道，沿用既有 github_* 键名（不破坏已有部署的 env）。
+		//
+		// 未配置即降级：任一 provider 的 appid/secret 为空时，其端点返回业务码 20026，
+		// 不影响其他 provider（对齐原有「可配置即生效、未配置即降级」语义）。
+
+		// 微信 - 网站应用扫码
+		{oauthkit.ConfigKeyWechatWebAppID, "", "微信网站应用 AppID", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyWechatWebSecret, "", "微信网站应用 AppSecret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyWechatWebRedirectURI, "", "微信网站应用回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyWechatWebSuccessURL, "", "微信登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
+		// 微信 - 移动应用（App 内微信 SDK 授权后把 code 交后端换 token）
+		{oauthkit.ConfigKeyWechatAppAppID, "", "微信移动应用 AppID（与网站应用是两个独立应用）", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyWechatAppSecret, "", "微信移动应用 AppSecret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
+
+		// QQ - 网页登录
+		{oauthkit.ConfigKeyQQWebAppID, "", "QQ 网站应用 AppID", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyQQWebAppKey, "", "QQ 网站应用 AppKey（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyQQWebRedirectURI, "", "QQ 网站应用回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyQQWebSuccessURL, "", "QQ 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
+		// QQ - 移动应用（QQ SDK 直接给 access_token + openid，后端不换 token、不需要 AppKey）
+		{oauthkit.ConfigKeyQQAppAppID, "", "QQ 移动应用 AppID（后端只校验 token，不需要 AppKey）", ConfigTypeString, ConfigGroupOAuth, false},
+
+		// GitHub - 网页 OAuth（唯一渠道）
+		{oauthkit.ConfigKeyGitHubClientID, "", "GitHub OAuth Client ID", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyGitHubClientSecret, "", "GitHub OAuth Client Secret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
+		{oauthkit.ConfigKeyGitHubRedirectURI, "", "GitHub OAuth 回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyGitHubScope, "read:user user:email", "GitHub 授权作用域", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyGitHubSuccessURL, "", "GitHub 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
 	}
 }
