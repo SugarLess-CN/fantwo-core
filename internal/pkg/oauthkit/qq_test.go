@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 // qqMockServer QQ 四个端点的 mock，响应体可按用例改写。
@@ -492,9 +494,22 @@ func TestQQWebRefresh(t *testing.T) {
 		t.Errorf("err = %v, want ErrRefreshDead（100037）", err)
 	}
 
-	// 空 refresh_token 直接拒，不打上游
-	if _, err := p.Refresh(context.Background(), &Token{Channel: ChannelWeb}); !errors.Is(err, ErrRefreshDead) {
-		t.Errorf("err = %v, want ErrRefreshDead", err)
+	// 空 refresh_token 直接拒，不打上游。
+	//
+	// 期望 ErrInvalidArgument 而非 ErrRefreshDead（2026-11-25 lead 裁定，规则见 docs/14 §7.1.2 禁令 3）：
+	//   ErrRefreshDead     = 平台告知「这个 refresh_token 已失效或被撤销」→ 该引导用户重新授权；
+	//   ErrInvalidArgument = 调用方传了空值（没先 Exchange，或落库时丢了字段）→ 该修调用链。
+	// 两者处置相反：混用会让调用方对一个纯编程错误提示用户「请重新授权」，
+	// 而用户重新授权后错误依旧（因为 refresh_token 仍然没被存下来），变成查不出的死循环。
+	//
+	// 原断言（期望 ErrRefreshDead）写于 ErrInvalidArgument 哨兵诞生之前 —— 那时没有更精确的语义可用。
+	// 这不是「改测试迁就实现」，是新哨兵落地后旧断言语义不再正确。
+	if _, err := p.Refresh(context.Background(), &Token{Channel: ChannelWeb}); !errors.Is(err, ErrInvalidArgument) {
+		t.Errorf("err = %v, want ErrInvalidArgument（空 refresh_token 是调用方错误，不是平台侧失效）", err)
+	}
+	// 反面断言：防止未来有人顺手改回 ErrRefreshDead —— 那会让调用方朝反方向处理。
+	if _, err := p.Refresh(context.Background(), &Token{Channel: ChannelWeb}); errors.Is(err, ErrRefreshDead) {
+		t.Error("空 refresh_token 被判成 ErrRefreshDead 会让调用方提示用户重新授权 —— 那是错的处置")
 	}
 }
 
@@ -589,4 +604,450 @@ func TestQQStripJSONPIdempotent(t *testing.T) {
 			t.Errorf("非幂等：%q → %q", once, twice)
 		}
 	}
+}
+
+// ============================================================
+// 审计回归测试（R1-R7）：只钉「测试此前没覆盖、但生产会出事」的点。
+// ============================================================
+
+// R1｜`callback(` 出现在 JSON 字符串字面量里时不许误剥。
+//
+// 旧实现用 strings.Index 任意位搜索：昵称叫 `callback(abc` 会被从中间截断，
+// 合法 userinfo 直接解析失败（这条路径真实可达 —— 昵称是用户自填的）。
+func TestQQStripJSONPNoFalseStripOnLiteralCallback(t *testing.T) {
+	t.Run("纯 JSON 的字符串值含 callback(", func(t *testing.T) {
+		// user/get_user_info 真实可能出现的响应
+		in := `{"ret":0,"nickname":"callback(abc","figureurl_qq_2":"http://q.qlogo.cn/x/100"}`
+		got := string(stripJSONP([]byte(in)))
+		if got != in {
+			t.Errorf("stripJSONP 误剥：\n got=%q\nwant=%q", got, in)
+		}
+		if !json.Valid([]byte(got)) {
+			t.Errorf("结果不是合法 JSON：%q", got)
+		}
+	})
+
+	t.Run("纯 JSON 中间含 callback( 且无闭合括号", func(t *testing.T) {
+		in := `{"nickname":"x callback(y","ret":0}`
+		got := string(stripJSONP([]byte(in)))
+		if got != in {
+			t.Errorf("stripJSONP 误剥：\n got=%q\nwant=%q", got, in)
+		}
+	})
+
+	t.Run("真 JSONP 包裹里的值含 callback(", func(t *testing.T) {
+		in := `callback( {"openid":"A","nickname":"callback(z"} );`
+		want := `{"openid":"A","nickname":"callback(z"}`
+		if got := string(stripJSONP([]byte(in))); got != want {
+			t.Errorf("stripJSONP = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("前缀不是 callback 的纯 JSON 原样返回", func(t *testing.T) {
+		in := `{"callback(flag)":"v"}`
+		if got := string(stripJSONP([]byte(in))); got != in {
+			t.Errorf("stripJSONP = %q, want %q", got, in)
+		}
+	})
+}
+
+// R1b｜JSON 字符串值含 `)` 时不许被 LastIndex 截断。
+func TestQQStripJSONPRightBoundaryBrackets(t *testing.T) {
+	cases := []struct{ in, want string }{
+		// 父括号没被 LastIndex 误当定界符（旧实现会剩 `");` 之类残渣）
+		{`callback({"nickname":"a)b"});`, `{"nickname":"a)b"}`},
+		{`callback( {"nickname":"a)b","openid":"O"} );`, `{"nickname":"a)b","openid":"O"}`},
+		// 值里的花括号也必须跳过
+		{`callback({"a":"}{","b":1});`, `{"a":"}{","b":1}`},
+		// 转义引号不得提前结束字符串态
+		{`callback({"a":"x\"y","b":")"});`, `{"a":"x\"y","b":")"}`},
+		// 官方错误体（换行 + 尾逗号）
+		{"callback(\n{\n\"error\":100016,\n\"error_description\":\"x\",\n}\n);",
+			`{"error":100016,"error_description":"x"}`},
+	}
+	for _, c := range cases {
+		got := string(stripJSONP([]byte(c.in)))
+		if got != c.want {
+			t.Errorf("stripJSONP(%q) = %q, want %q", c.in, got, c.want)
+		}
+		if !json.Valid([]byte(got)) {
+			t.Errorf("stripJSONP(%q) = %q 不是合法 JSON", c.in, got)
+		}
+	}
+}
+
+// R2｜qqFlexInt 边界：非法形态必须报错（不许静默变 0），溢出必须被截断。
+func TestQQFlexIntBoundaries(t *testing.T) {
+	t.Run("合法形态", func(t *testing.T) {
+		cases := []struct {
+			in   string
+			want int64
+		}{
+			{`7776000`, 7776000},
+			{`"7776000"`, 7776000}, // app SDK 官方形态
+			{`""`, 0},              // 空串 = 缺失
+			{`null`, 0},            // null = 缺失
+			{`7776000.0`, 7776000}, // 浮点兜底
+			{`1e6`, 1000000},       // 科学计数兜底
+			{`-1`, -1},             // 负数原样保留（由 qqExpiresAt 判 <=0）
+			{`9223372036854775807`, 9223372036854775807},
+		}
+		for _, c := range cases {
+			var v qqFlexInt
+			if err := json.Unmarshal([]byte(c.in), &v); err != nil {
+				t.Errorf("Unmarshal(%s) 意外报错：%v", c.in, err)
+				continue
+			}
+			if int64(v) != c.want {
+				t.Errorf("Unmarshal(%s) = %d, want %d", c.in, int64(v), c.want)
+			}
+		}
+	})
+
+	t.Run("非法形态必须报错而非静默变 0", func(t *testing.T) {
+		// 静默变 0 的两种致命后果：
+		//   错误码 error/ret → 把「上游报错」当成功；
+		//   expires_in → ExpiresAt 零值（= 不过期），过期 token 被长期当有效。
+		for _, in := range []string{`999999999999999999999`, `"abc"`, `"12x"`, `{}`, `true`, `1.5e400`} {
+			var v qqFlexInt
+			if err := json.Unmarshal([]byte(in), &v); err == nil {
+				t.Errorf("Unmarshal(%s) 应当报错，实际得到 %d", in, int64(v))
+			}
+		}
+	})
+
+	t.Run("错误码字段非法时整段解析失败", func(t *testing.T) {
+		// error 是非数字 → 绝不能当成 error=0（成功）
+		if _, err := qqParseTokenBody([]byte(`{"error":"boom","error_description":"x"}`)); err == nil {
+			t.Error("非法 error 字段应导致解析失败")
+		}
+	})
+}
+
+// R2b｜expires_in 极大值不得让 ExpiresAt 溢出到过去。
+func TestQQExpiresAtNoOverflow(t *testing.T) {
+	now := time.Now()
+	cases := []struct {
+		name      string
+		expiresIn int64
+	}{
+		{"60 天", 5184000},
+		{"90 天", 7776000},
+		{"int64 上限（会溢出成负数）", math.MaxInt64},
+		{"超过纳秒上限一秒", qqMaxExpiresIn + 1},
+		{"天文数字", 999999999999999999},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			at := qqExpiresAt(c.expiresIn)
+			if at.IsZero() {
+				t.Fatalf("expires_in=%d 不应得到零值", c.expiresIn)
+			}
+			// 核心断言：截断后必须仍在未来（旧实现在 MaxInt64 时掉到「现在前 1 秒」）
+			if !at.After(now) {
+				t.Errorf("ExpiresAt = %v 不是未来时间（溢出），expires_in=%d", at, c.expiresIn)
+			}
+		})
+	}
+	if got := qqExpiresAt(0); !got.IsZero() {
+		t.Errorf("expires_in=0 应得零值（不过期），实际 %v", got)
+	}
+	if got := qqExpiresAt(-1); !got.IsZero() {
+		t.Errorf("expires_in=-1 应得零值，实际 %v", got)
+	}
+}
+
+// R3｜url.ParseQuery 容错边界：解析成功 ≠ 拿到 token。
+func TestQQParseTokenBodyQueryEdgeCases(t *testing.T) {
+	t.Run("空 body", func(t *testing.T) {
+		if _, err := qqParseTokenBody(nil); !errors.Is(err, ErrUpstream) {
+			t.Error("空 body 应报 ErrUpstream")
+		}
+	})
+	t.Run("只有空白", func(t *testing.T) {
+		if _, err := qqParseTokenBody([]byte("   \n\t ")); !errors.Is(err, ErrUpstream) {
+			t.Error("纯空白应报 ErrUpstream")
+		}
+	})
+	t.Run("HTML 错误页不许被当成响应", func(t *testing.T) {
+		// url.ParseQuery 会把它解成一个奇形怪状的 key（err=nil），旧实现因此「成功但无 token」
+		html := []byte("<html><body>500 Internal Server Error</body></html>")
+		_, err := qqParseTokenBody(html)
+		if !errors.Is(err, ErrUpstream) {
+			t.Fatalf("HTML 错误页 err = %v, want ErrUpstream", err)
+		}
+		// 错误信息不得夹带响应体内容（怕夹带明文 token）
+		if strings.Contains(err.Error(), "<html>") || strings.Contains(err.Error(), "500") {
+			t.Errorf("错误信息夹带了响应体内容：%v", err)
+		}
+	})
+	t.Run("access_token 值为空 → 由 Exchange 判空拦截", func(t *testing.T) {
+		payload, err := qqParseTokenBody([]byte("access_token=&expires_in=5184000"))
+		if err != nil {
+			t.Fatalf("解析本身不应报错：%v", err)
+		}
+		if payload.AccessToken != "" {
+			t.Errorf("AccessToken = %q, want 空", payload.AccessToken)
+		}
+		// Exchange 层必须因此失败（不能拿空 token 继续）
+		m := newQQMockServer(t)
+		m.tokenBody = "access_token=&expires_in=5184000"
+		p := m.provider(ChannelWeb, qqWebConfig())
+		if _, err := p.Exchange(context.Background(), "CODE"); !errors.Is(err, ErrUpstream) {
+			t.Errorf("空 access_token 时 Exchange err = %v, want ErrUpstream", err)
+		}
+	})
+}
+
+// R7｜导出 qqFlexInt 之外的公开入口：app SDK 登录载荷解析。
+func TestParseQQAppLoginPayload(t *testing.T) {
+	// 官方 Android SDK onComplete 原文样例（tmp/oauth/qq_login.txt:194-203）
+	official := []byte(`{
+	  "ret":0,
+	  "pay_token":"xxxxxxxxxxxxxxxx",
+	  "pf":"openmobile_android",
+	  "expires_in":"7776000",
+	  "openid":"8C75BBE3DC6B0E9A64BD31449A3C8CB0",
+	  "pfkey":"xxxxxxxxxxxxxxxxxxx",
+	  "msg":"sucess",
+	  "access_token":"xxxxxxxxxxxxxxxxxxxxx"
+	}`)
+
+	t.Run("官方样例", func(t *testing.T) {
+		tok, err := ParseQQAppLoginPayload(official)
+		if err != nil {
+			t.Fatalf("ParseQQAppLoginPayload: %v（msg 是 \"sucess\"，不许断言）", err)
+		}
+		if tok.AccessToken != "xxxxxxxxxxxxxxxxxxxxx" {
+			t.Errorf("AccessToken = %q", tok.AccessToken)
+		}
+		if tok.OpenID != "8C75BBE3DC6B0E9A64BD31449A3C8CB0" {
+			t.Errorf("OpenID = %q", tok.OpenID)
+		}
+		if tok.ExpiresIn != 7776000 {
+			t.Errorf("ExpiresIn = %d, want 7776000（字符串形态）", tok.ExpiresIn)
+		}
+		if tok.Channel != ChannelApp {
+			t.Errorf("Channel = %q, want app", tok.Channel)
+		}
+		if tok.Verified {
+			t.Error("客户端上报的 token 必须 Verified=false（等 ValidateToken）")
+		}
+		if tok.RefreshToken != "" {
+			t.Errorf("SDK 不返回 refresh_token，实际 %q", tok.RefreshToken)
+		}
+		if tok.ExpiresAt.IsZero() || !tok.ExpiresAt.After(time.Now()) {
+			t.Errorf("ExpiresAt = %v，应为未来时间", tok.ExpiresAt)
+		}
+	})
+
+	t.Run("ret != 0 → 哨兵错误", func(t *testing.T) {
+		_, err := ParseQQAppLoginPayload([]byte(`{"ret":100016,"msg":"access token check failed"}`))
+		if !errors.Is(err, ErrTokenExpired) {
+			t.Errorf("err = %v, want ErrTokenExpired（100016）", err)
+		}
+	})
+
+	t.Run("缺 access_token / openid → ErrUpstream", func(t *testing.T) {
+		if _, err := ParseQQAppLoginPayload([]byte(`{"ret":0,"openid":"O"}`)); !errors.Is(err, ErrUpstream) {
+			t.Errorf("缺 access_token err = %v", err)
+		}
+		if _, err := ParseQQAppLoginPayload([]byte(`{"ret":0,"access_token":"T"}`)); !errors.Is(err, ErrUpstream) {
+			t.Errorf("缺 openid err = %v", err)
+		}
+	})
+
+	t.Run("非 JSON / 空 → ErrUpstream", func(t *testing.T) {
+		for _, in := range []string{"", "   ", "not json at all", `[1,2]`} {
+			if _, err := ParseQQAppLoginPayload([]byte(in)); !errors.Is(err, ErrUpstream) {
+				t.Errorf("输入 %q err = %v, want ErrUpstream", in, err)
+			}
+		}
+	})
+
+	t.Run("expires_in 非法 → 报错不静默", func(t *testing.T) {
+		_, err := ParseQQAppLoginPayload([]byte(`{"ret":0,"access_token":"T","openid":"O","expires_in":"abc"}`))
+		if !errors.Is(err, ErrUpstream) {
+			t.Errorf("err = %v, want ErrUpstream", err)
+		}
+	})
+
+	t.Run("解析后 UserInfo 仍被硬拒（未校验）", func(t *testing.T) {
+		tok, err := ParseQQAppLoginPayload(official)
+		if err != nil {
+			t.Fatalf("parse: %v", err)
+		}
+		m := newQQMockServer(t)
+		p := m.provider(ChannelApp, qqAppConfig())
+		if _, err := p.UserInfo(context.Background(), tok); !errors.Is(err, ErrTokenNotVerified) {
+			t.Errorf("err = %v, want ErrTokenNotVerified", err)
+		}
+		if m.lastUserQuery != nil {
+			t.Error("未校验的 token 不该打上游")
+		}
+	})
+}
+
+// R4｜openid 比对必须大小写敏感（绑定主键不允许折叠）。
+func TestQQValidateTokenOpenIDCaseSensitive(t *testing.T) {
+	m := newQQMockServer(t)
+	m.meBody = `callback( {"client_id":"APP","openid":"8c75bbe3dc6b0e9a"} );` // 小写
+	p := m.provider(ChannelApp, qqAppConfig())
+
+	// 客户端上报大写形态 → 必须判 mismatch（不折叠大小写）
+	tok := &Token{AccessToken: "T", OpenID: "8C75BBE3DC6B0E9A", Channel: ChannelApp}
+	if _, err := p.ValidateToken(context.Background(), tok); !errors.Is(err, ErrTokenMismatch) {
+		t.Errorf("err = %v, want ErrTokenMismatch（openid 比对须精确相等）", err)
+	}
+
+	// 完全一致才放行
+	tok2 := &Token{AccessToken: "T", OpenID: "8c75bbe3dc6b0e9a", Channel: ChannelApp}
+	got, err := p.ValidateToken(context.Background(), tok2)
+	if err != nil {
+		t.Fatalf("ValidateToken: %v", err)
+	}
+	if !got.Verified {
+		t.Error("应置 Verified")
+	}
+}
+
+// R5｜/oauth2.0/me 只带 access_token（官方通用参数表未要求 oauth_consumer_key），
+// 且绝不应把 oauth_consumer_key 混进去 —— 参数错了会 110404。
+func TestQQMeEndpointParams(t *testing.T) {
+	m := newQQMockServer(t)
+	m.meBody = `callback( {"openid":"O"} );`
+	p := m.provider(ChannelApp, qqAppConfig())
+	if _, err := p.ValidateToken(context.Background(), &Token{AccessToken: "T", OpenID: "O"}); err != nil {
+		t.Fatalf("ValidateToken: %v", err)
+	}
+	if got := m.lastMeQuery.Get("access_token"); got != "T" {
+		t.Errorf("me access_token = %q", got)
+	}
+	if got := m.lastMeQuery.Get("oauth_consumer_key"); got != "" {
+		t.Errorf("me 不应传 oauth_consumer_key，实际 %q", got)
+	}
+	// user/get_user_info 则三个通用参数都必须有
+	m.userBody = `{"ret":0,"nickname":"n"}`
+	tok := &Token{AccessToken: "T", OpenID: "O", Channel: ChannelApp, Verified: true}
+	if _, err := p.UserInfo(context.Background(), tok); err != nil {
+		t.Fatalf("UserInfo: %v", err)
+	}
+	for _, k := range []string{"access_token", "oauth_consumer_key", "openid"} {
+		if m.lastUserQuery.Get(k) == "" {
+			t.Errorf("user/get_user_info 缺少必传参数 %s", k)
+		}
+	}
+	if got := m.lastUserQuery.Get("oauth_consumer_key"); got != qqAppConfig().ClientID {
+		t.Errorf("oauth_consumer_key = %q, want %q（app 实例的 ClientID = qq_app_appid）", got, qqAppConfig().ClientID)
+	}
+}
+
+// R3 补漏｜JSON 分支的「必须是 QQ 响应」判定（与 query string 分支对称）。
+//
+// 原来只在 query 分支做了 known==0 拦截，JSON 分支漏了：网关把 body 换成
+// `{"status":"error"}` 这类合法 JSON 时，会拿到空 payload 并报「no access_token」，
+// 把「上游挂了」误导成「QQ 不给 token」。同时不能误拒**合法错误体**。
+func TestQQParseTokenBodyJSONUnknownFields(t *testing.T) {
+	t.Run("合法 JSON 但不含任何 QQ 字段 → ErrUpstream", func(t *testing.T) {
+		for _, in := range []string{
+			`{"not":"query string"}`,
+			`{"status":"error","message":"bad gateway"}`, // 网关替换的真实形态
+			`{}`,                     // 空对象
+			`{"code":0,"data":null}`, // 别的平台的响应样式
+		} {
+			payload, err := qqParseTokenBody([]byte(in))
+			if !errors.Is(err, ErrUpstream) {
+				t.Errorf("%s → err = %v, want ErrUpstream", in, err)
+			}
+			if payload != nil {
+				t.Errorf("%s → 失败时不应返回 payload：%+v", in, payload)
+			}
+		}
+	})
+
+	t.Run("合法错误体不许误拒", func(t *testing.T) {
+		cases := []struct {
+			in     string
+			errFld int64
+			retFld int64
+			desc   string
+			want   error
+		}{
+			{`{"error":100016,"error_description":"access token check failed"}`,
+				100016, 0, "access token check failed", ErrTokenExpired},
+			// ret 形态的错误信息在 msg 字段（不是 error_description），且 100019 属 code 类
+			{`{"ret":100019,"msg":"code to access token error"}`,
+				0, 100019, "code to access token error", ErrCodeInvalid},
+			// 码被拼成字符串也要认
+			{`{"error":"100021","error_description":"refresh failed"}`,
+				100021, 0, "refresh failed", ErrRefreshDead},
+		}
+		for _, c := range cases {
+			payload, err := qqParseTokenBody([]byte(c.in))
+			if err != nil {
+				t.Errorf("%s 是合法错误体，不应被拒：%v", c.in, err)
+				continue
+			}
+			if int64(payload.Error) != c.errFld || int64(payload.Ret) != c.retFld {
+				t.Errorf("%s 解析结果错：error=%d ret=%d", c.in, int64(payload.Error), int64(payload.Ret))
+				continue
+			}
+			// 描述字段：error 形态在 ErrorDescription，ret 形态在 Msg
+			gotDesc := payload.ErrorDescription
+			if gotDesc == "" {
+				gotDesc = payload.Msg
+			}
+			if gotDesc != c.desc {
+				t.Errorf("%s → desc = %q, want %q", c.in, gotDesc, c.desc)
+			}
+			// 错误体必须能被 errOrNil 映射出哨兵错误（上层靠这个走分支）
+			if err := payload.errOrNil(); !errors.Is(err, c.want) {
+				t.Errorf("%s → errOrNil = %v, want %v", c.in, err, c.want)
+			}
+		}
+	})
+
+	t.Run("合法成功体照常通过", func(t *testing.T) {
+		cases := []string{
+			`{"access_token":"AT","expires_in":5184000}`,
+			`{"access_token":"AT","expires_in":"7776000","openid":"O","refresh_token":"R"}`,
+			`callback( {"access_token":"AT","expires_in":5184000} );`,
+		}
+		for _, in := range cases {
+			payload, err := qqParseTokenBody([]byte(in))
+			if err != nil {
+				t.Errorf("%s 不应被拒：%v", in, err)
+				continue
+			}
+			if payload.AccessToken != "AT" {
+				t.Errorf("%s → AccessToken = %q", in, payload.AccessToken)
+			}
+			if err := payload.errOrNil(); err != nil {
+				t.Errorf("%s → errOrNil 应为 nil，实际 %v", in, err)
+			}
+		}
+	})
+
+	t.Run("网关返回非 QQ JSON 时 Exchange 报错方向正确", func(t *testing.T) {
+		m := newQQMockServer(t)
+		m.tokenBody = `{"status":"error","message":"bad gateway"}`
+		p := m.provider(ChannelWeb, qqWebConfig())
+		_, err := p.Exchange(context.Background(), "CODE")
+		if !errors.Is(err, ErrUpstream) {
+			t.Fatalf("err = %v, want ErrUpstream", err)
+		}
+		// 关键：错误信息要指向「这不是 QQ 响应」，不能是「没有 access_token」
+		if !strings.Contains(err.Error(), "no recognized field") {
+			t.Errorf("错误信息未指出「不是 QQ 响应」：%v", err)
+		}
+		if strings.Contains(err.Error(), "bad gateway") {
+			t.Errorf("错误信息夹带了响应体内容：%v", err)
+		}
+	})
+
+	t.Run("query string 分支的同类形态仍然报错（对称性）", func(t *testing.T) {
+		if _, err := qqParseTokenBody([]byte("status=error&message=bad+gateway")); !errors.Is(err, ErrUpstream) {
+			t.Errorf("err = %v, want ErrUpstream（query 分支应同样拒）", err)
+		}
+	})
 }

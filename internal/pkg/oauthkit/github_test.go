@@ -181,8 +181,23 @@ func TestGitHubAuthURL(t *testing.T) {
 	githubCheck(t, q.Get("response_type") == "code", "response_type = %q", q.Get("response_type"))
 
 	// 空 state 必须拒绝：它是唯一的 CSRF 凭据。
-	if _, err := p.AuthURL("  "); err == nil {
-		t.Error("AuthURL(空 state) 应当返回错误")
+	// 哨兵必须是 ErrInvalidArgument：调用方漏传 state 是编程错误，不能混成平台侧失败
+	// （否则调用方会把它当「用户没授权」去引导重新授权，见 docs/14 §7.1.2 禁令 3）。
+	if _, err := p.AuthURL("  "); !errors.Is(err, ErrInvalidArgument) {
+		t.Errorf("AuthURL(空 state) err = %v, want ErrInvalidArgument", err)
+	}
+	// 反面断言：防止未来改回裸错误或平台侧语义。
+	if _, err := p.AuthURL("  "); errors.Is(err, ErrScopeMissing) || errors.Is(err, ErrCodeInvalid) {
+		t.Error("空 state 不能判成平台侧语义（ErrScopeMissing / ErrCodeInvalid）—— 那是错的处置")
+	}
+
+	// 空 code 同样必须是 ErrInvalidArgument，不是 ErrCodeInvalid
+	// （后者语义是「平台说这个 code 无效」→ 引导用户重新授权；空 code 是我们的 bug → 改代码）。
+	if _, err := p.Exchange(context.Background(), "  "); !errors.Is(err, ErrInvalidArgument) {
+		t.Errorf("Exchange(空 code) err = %v, want ErrInvalidArgument", err)
+	}
+	if _, err := p.Exchange(context.Background(), "  "); errors.Is(err, ErrCodeInvalid) {
+		t.Error("空 code 被判成 ErrCodeInvalid 会让调用方请用户重新授权 —— 那是错的")
 	}
 
 	// 未配置时降级为 ErrNotConfigured（调用方据此映射业务码 20026）。

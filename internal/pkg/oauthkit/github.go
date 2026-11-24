@@ -137,7 +137,10 @@ func (g *githubProvider) AuthURL(state string) (string, error) {
 		return "", ErrNotConfigured
 	}
 	if strings.TrimSpace(state) == "" {
-		return "", fmt.Errorf("oauthkit: github AuthURL requires non-empty state")
+		// 不传 state 等于 CSRF 保护静默失效 —— 是调用方漏了，不是平台允许省略。
+		// 用 ErrInvalidArgument 而非 ErrScopeMissing：后者会让调用方误判成
+		// 「用户没给授权范围」，从而多做一次无意义的重新授权引导（docs/14 §7.1.2 禁令 3）。
+		return "", fmt.Errorf("%w: github AuthURL requires non-empty state", ErrInvalidArgument)
 	}
 	return g.oc.AuthCodeURL(state), nil
 }
@@ -154,7 +157,10 @@ func (g *githubProvider) Exchange(ctx context.Context, code string) (*Token, err
 		return nil, ErrNotConfigured
 	}
 	if strings.TrimSpace(code) == "" {
-		return nil, fmt.Errorf("%w: empty authorization code", ErrCodeInvalid)
+		// 空 code 是我们的编程错误（回调没拿到 code 就往下走），不是「平台说这个 code 无效」。
+		// ErrCodeInvalid 对应「引导用户重新授权」；空 code 对应「改代码」—— 处置相反，
+		// 混用会让调用方对一个必失败的动作反复请用户重新授权（docs/14 §7.1.2 禁令 3）。
+		return nil, fmt.Errorf("%w: github Exchange requires non-empty code", ErrInvalidArgument)
 	}
 
 	// x/oauth2 通过 ctx 里的 oauth2.HTTPClient 取 client（ctx.go: ContextClient）。

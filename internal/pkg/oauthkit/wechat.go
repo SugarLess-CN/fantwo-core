@@ -127,10 +127,15 @@ func (p *wechatProvider) scope() string {
 // app 渠道返回 ErrAuthURLUnsupported：移动应用由客户端 SDK（WXApi.sendReq）拉起微信，
 // 后端不生成任何 URL（§8.1.2 第一步）。
 //
+// state 必须非空：它既是防 CSRF 的唯一凭据，也是回调时把 code 关联到本次会话的依据。
+// 微信把 state 列为可选，但「平台允许」不等于「我们可以不要」—— 空 state 等于关掉
+// 防护，与 github.go 的立场保持一致（那边同样拒绝空 state）。
+//
 // 参数顺序严格按官方模板手写拼接，**不能用 url.Values.Encode()** ——
 // 它按 key 字母序重排（appid, redirect_uri, response_type, scope, state 恰好字母序，
 // 但一旦加入 forcePopup / lang 就会错位），而微信对授权链接做正则强匹配校验（§8.1.4 坑 1）。
-// 末尾必须带 #wechat_redirect。
+// redirect_uri 必须 urlEncode（微信硬要求），否则未编码的 `https://` 里的 `:` `/` 会让
+// 上游参数解析错位。末尾必须带 #wechat_redirect。
 func (p *wechatProvider) AuthURL(state string) (string, error) {
 	if p.channel == ChannelApp {
 		return "", fmt.Errorf("oauthkit: wechat channel %q cannot build auth url (client SDK does): %w",
@@ -142,6 +147,12 @@ func (p *wechatProvider) AuthURL(state string) (string, error) {
 	if strings.TrimSpace(p.cfg.RedirectURI) == "" {
 		return "", fmt.Errorf("oauthkit: wechat AuthURL requires redirect_uri: %w", ErrNotConfigured)
 	}
+	state = strings.TrimSpace(state)
+	if state == "" {
+		// 空 state 是调用方编程错误：重试无用，也不该被误判成「用户没给授权范围」，
+		// 故套 ErrInvalidArgument 而非任何平台侧哨兵（取舍见 types.go 该哨兵注释）。
+		return "", fmt.Errorf("%w: wechat AuthURL requires non-empty state", ErrInvalidArgument)
+	}
 
 	var b strings.Builder
 	b.WriteString(p.authBase)
@@ -152,10 +163,8 @@ func (p *wechatProvider) AuthURL(state string) (string, error) {
 	b.WriteString("&response_type=code")
 	b.WriteString("&scope=")
 	b.WriteString(url.QueryEscape(p.scope()))
-	if s := strings.TrimSpace(state); s != "" {
-		b.WriteString("&state=")
-		b.WriteString(url.QueryEscape(s))
-	}
+	b.WriteString("&state=")
+	b.WriteString(url.QueryEscape(state))
 	b.WriteString(wechatRedirectAnchor)
 	return b.String(), nil
 }
@@ -274,6 +283,11 @@ func (p *wechatProvider) UserInfo(ctx context.Context, tok *Token) (*User, error
 	}
 	if err := resp.err(); err != nil {
 		return nil, fmt.Errorf("oauthkit: wechat UserInfo: %w", err)
+	}
+	// 拦截 `{}` / `null` / 非微信格式的零值响应：官方成功响应至少带 openid，
+	// 业务字段全空说明这根本不是一条 userinfo 响应，不能当成「用户昵称就叫空串」。
+	if resp.empty() {
+		return nil, fmt.Errorf("oauthkit: wechat UserInfo: %w: empty userinfo response", ErrUpstream)
 	}
 
 	id := strings.TrimSpace(resp.OpenID)
@@ -416,15 +430,30 @@ func (n *wechatFlexInt64) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// wechatErrResponse 只含错误字段的响应（sns/auth 的成功体就是 {"errcode":0,"errmsg":"ok"}）。
+// wechatErrResponse 只含错误字段的响应，**专供 sns/auth 使用**。
+//
+// 这里必须是 ErrCode 指针 + 缺失即失败，理由是这个端点的特殊性：
+// sns/auth 的成功体明确是 {"errcode":0,"errmsg":"ok"}（docs/14 §1.2.5），
+// 所以「有 errcode 字段」本身就是「这是一条微信业务响应」的证据。字段缺失
+// 意味着上游给了别的东西（网关错误页 / 空 body / 格式变更），此时**必须拒绝**。
+//
+// 若在这里放行，`{}` / `null` 会被判校验通过，ValidateToken 会给客户端伪造的
+// token 盖上 Verified 章 —— 直接绕过 UserInfo 的 ErrTokenNotVerified 硬约束，
+// 等于把 app 渠道的账号防伪整条拆掉。这是全文件唯一不能宽容的地方。
+//
+// 注意：换 token / userinfo 的成功响应体**没有** errcode 字段（官方样例如此），
+// 所以那两个响应类型不能用这套判据，它们各自靠业务字段校验兜底。
 type wechatErrResponse struct {
-	ErrCode wechatFlexInt64 `json:"errcode"`
-	ErrMsg  string          `json:"errmsg"`
+	ErrCode *wechatFlexInt64 `json:"errcode"`
+	ErrMsg  string           `json:"errmsg"`
 }
 
-// err 把 errcode 非 0 的响应转成哨兵错误；0 表示成功。
+// err 把 errcode 非 0 的响应转成哨兵错误；0 表示成功；字段缺失按 ErrUpstream 拒绝。
 func (r wechatErrResponse) err() error {
-	code := int(r.ErrCode)
+	if r.ErrCode == nil {
+		return fmt.Errorf("%w: wechat response missing errcode field (errmsg=%q)", ErrUpstream, r.ErrMsg)
+	}
+	code := int(*r.ErrCode)
 	if code == 0 {
 		return nil
 	}
@@ -432,6 +461,14 @@ func (r wechatErrResponse) err() error {
 }
 
 // wechatTokenResponse 换 token / 刷新 token 共用的响应结构（两接口字段一致）。
+//
+// ErrCode 用值类型：**微信换 token 的成功响应体里根本没有 errcode 字段**
+// （官方样例见 docs/14 §1.2.2，只有 access_token/expires_in/... 六个业务字段），
+// 失败时才带 errcode。所以「缺失」= 成功，不能按字段缺失拒绝 —— 这一点与
+// sns/auth 相反（那边成功体明确是 {"errcode":0,"errmsg":"ok"}）。
+//
+// 相应的空响应防护不靠 errcode，而是靠业务字段校验：Exchange / Refresh 都会检查
+// access_token 非空，`{}` / `null` 这类响应因此仍被 ErrUpstream 拒掉。
 type wechatTokenResponse struct {
 	AccessToken  string          `json:"access_token"`
 	ExpiresIn    wechatFlexInt64 `json:"expires_in"`
@@ -443,7 +480,7 @@ type wechatTokenResponse struct {
 	ErrMsg       string          `json:"errmsg"`
 }
 
-// err 把 errcode 非 0 的响应转成哨兵错误。
+// err 把 errcode 非 0 的响应转成哨兵错误；0 或缺省都表示成功。
 func (r wechatTokenResponse) err() error {
 	code := int(r.ErrCode)
 	if code == 0 {
@@ -472,6 +509,10 @@ func (r wechatTokenResponse) token(channel string) *Token {
 }
 
 // wechatUserInfoResponse sns/userinfo 响应。
+//
+// ErrCode 与 wechatTokenResponse 一致用值类型：官方成功响应样例（docs/14 §1.2.4）
+// 只有 openid/nickname/headimgurl/... 等业务字段，没有 errcode；失败时才带。
+// 空响应防护靠 UserInfo 侧的「业务字段全空」检查，不靠 errcode 是否存在。
 type wechatUserInfoResponse struct {
 	OpenID     string `json:"openid"`
 	Nickname   string `json:"nickname"`
@@ -489,13 +530,22 @@ type wechatUserInfoResponse struct {
 	ErrMsg  string          `json:"errmsg"`
 }
 
-// err 把 errcode 非 0 的响应转成哨兵错误。
+// err 把 errcode 非 0 的响应转成哨兵错误；0 或缺省都表示成功。
 func (r wechatUserInfoResponse) err() error {
 	code := int(r.ErrCode)
 	if code == 0 {
 		return nil
 	}
 	return wechatErrf(code, r.ErrMsg)
+}
+
+// empty 判断是否为「零值响应」（非微信业务响应的特征）。
+//
+// 用于拦截 `{}` / `null` 这类会被 json.Unmarshal 静默解成零值结构的响应：
+// 若放行，UserInfo 会返回昵称与头像都是空串的 User，调用方拿它建号或覆盖
+// 已有昵称 → 静默污染用户数据，比直接报错难查得多。
+func (r wechatUserInfoResponse) empty() bool {
+	return r.OpenID == "" && r.Nickname == "" && r.HeadImgURL == "" && r.UnionID == ""
 }
 
 // wechatErrorSentinel 把微信全局返回码映射为哨兵错误。

@@ -29,6 +29,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -106,6 +107,15 @@ func (p *qqProvider) AuthURL(state string) (string, error) {
 	if !p.Configured() {
 		return "", ErrNotConfigured
 	}
+	// state 必须非空：我们的 CSRF 方案完全依赖它回传后比对。
+	// 空 state 不是「QQ 允许省略」，而是调用方漏了保护 —— 静默拼一个不带 state 的 URL
+	// 等于让 CSRF 保护无声失效，且这种失败在联调阶段完全看不出来（授权页照常打开）。
+	//
+	// 用 ErrInvalidArgument 而不是 ErrScopeMissing：后者会让调用方误判成
+	// 「用户没授权范围」→ 多做一次无意义的重新授权引导。这类错误重试无用，只能改代码。
+	if strings.TrimSpace(state) == "" {
+		return "", ErrInvalidArgument
+	}
 	q := url.Values{}
 	q.Set("response_type", "code")
 	q.Set("client_id", p.cfg.ClientID)
@@ -130,8 +140,12 @@ func (p *qqProvider) Exchange(ctx context.Context, code string) (*Token, error) 
 	if !p.Configured() {
 		return nil, ErrNotConfigured
 	}
+	// 空 code 是我们自己的编程错误，不是「平台说 code 无效」。
+	// ErrCodeInvalid 的语义是「平台侧判定 code 无效/已用」→ 调用方会引导用户重新授权；
+	// 空 code 引导用户重新授权毫无意义（下次还是空），只会把调用方带进死循环。
+	// 这类错误重试与重新授权都无用，只能改代码 → ErrInvalidArgument。
 	if strings.TrimSpace(code) == "" {
-		return nil, ErrCodeInvalid
+		return nil, ErrInvalidArgument
 	}
 
 	q := url.Values{}
@@ -214,7 +228,13 @@ func (p *qqProvider) ValidateToken(ctx context.Context, tok *Token) (*Token, err
 	if me.OpenID == "" {
 		return nil, fmt.Errorf("%w: qq me response has no openid", ErrUpstream)
 	}
-	// 客户端上报了 openid 就必须一致；上报为空则以 me 的权威值为准（me 是 QQ 侧返回的）。
+	// 客户端上报了 openid 就必须与 QQ 侧返回值一致；上报为空则以 me 的权威值为准。
+	//
+	// 比对用**精确相等**（大小写敏感），不做 EqualFold：
+	// QQ openid 是平台分配的 hex 串，官方文档未声明大小写不敏感，也没有任何「大小写等价」的约定；
+	// 而 openid 是账号绑定主键 —— 放宽大小写等于把两个不同的标识折叠成一个，
+	// 反而扩大「A 的 token 配 B 的 openid」的命中面。宁可让异常上报的大写形式失败，
+	// 也不让绑定主键失去唯一性（客户端本应原样回传 SDK 给的值，不该有大小写漂移）。
 	if tok.OpenID != "" && tok.OpenID != me.OpenID {
 		return nil, fmt.Errorf("%w: qq me openid mismatch", ErrTokenMismatch)
 	}
@@ -295,8 +315,12 @@ func (p *qqProvider) Refresh(ctx context.Context, tok *Token) (*Token, error) {
 	if !p.Configured() {
 		return nil, ErrNotConfigured
 	}
+	// tok 为空 / refresh_token 为空都是调用方没先完成 Exchange（或落库时丢了字段），
+	// 属编程错误：带着空 token 打上游只会白耗 QQ 的限频配额，还得不到有效错误。
+	// 同样不能给 ErrRefreshDead —— 那会让调用方提示用户「请重新授权」，
+	// 而真正该做的是修调用链（先 Exchange 再存 refresh_token）。
 	if tok == nil || strings.TrimSpace(tok.RefreshToken) == "" {
-		return nil, ErrRefreshDead
+		return nil, ErrInvalidArgument
 	}
 
 	q := url.Values{}
@@ -343,6 +367,68 @@ func (p *qqProvider) Refresh(ctx context.Context, tok *Token) (*Token, error) {
 }
 
 // ---- 内部实现 ----
+
+// ParseQQAppLoginPayload 解析 QQ 移动端 SDK 登录回调的 JSON，归一化为 Token。
+//
+// **为什么放在 SDK 里**：这是 QQ 平台协议解析（`expires_in` 是字符串 `"7776000"`、
+// `msg` 拼成 `"sucess"`、还有 pay_token/pf/pfkey 等无关字段），属于 oauthkit 的职责；
+// 让 service 层各写一遍必然分叉成两套口径。
+//
+// 输入是客户端 `onComplete(JSONObject)` 上报的原文（官方样例）：
+//
+//	{
+//	  "ret":0, "pay_token":"...", "pf":"openmobile_android",
+//	  "expires_in":"7776000", "openid":"...", "pfkey":"...",
+//	  "msg":"sucess", "access_token":"..."
+//	}
+//
+// 返回的 Token 恒为 Channel=app、Verified=**false** —— 调用方**必须**再调 ValidateToken：
+// 这份 payload 来自客户端、完全不可信，ValidateToken 会用 oauth2.0/me 校验
+// access_token 并比对 openid，通过后才允许 UserInfo。
+//
+// 错误：ret != 0 → 对应哨兵错误（按 QQ 公共返回码表）；
+// access_token / openid 缺失 → ErrUpstream；JSON 非法或 expires_in 非整数 → ErrUpstream。
+// 不对 msg 做任何字符串断言（官方样例是 "sucess"，漏一个 c）。
+func ParseQQAppLoginPayload(raw []byte) (*Token, error) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return nil, fmt.Errorf("%w: qq app login payload empty", ErrUpstream)
+	}
+	if trimmed[0] != '{' {
+		// SDK 回调应当是 JSONObject；非 JSON 形态不猜，直接拒。
+		return nil, fmt.Errorf("%w: qq app login payload is not json (%d bytes)", ErrUpstream, len(trimmed))
+	}
+
+	var payload qqTokenPayload
+	// 不用 DisallowUnknownFields：SDK 字段多于所需（pay_token/pf/pfkey），必须容忍。
+	if err := json.Unmarshal(trimmed, &payload); err != nil {
+		return nil, fmt.Errorf("%w: qq app login payload decode: %v", ErrUpstream, err)
+	}
+	// ret != 0 直接失败（SDK 层错误含用户拒绝、无权限等，靠 msg 定位）。
+	if err := payload.errOrNil(); err != nil {
+		return nil, err
+	}
+	if payload.AccessToken == "" {
+		return nil, fmt.Errorf("%w: qq app login payload has no access_token", ErrUpstream)
+	}
+	if payload.OpenID == "" {
+		// openid 是账号绑定主键，缺了就没有意义（也防止把空 ID 建成账号）。
+		return nil, fmt.Errorf("%w: qq app login payload has no openid", ErrUpstream)
+	}
+
+	tok := &Token{
+		AccessToken: payload.AccessToken,
+		// SDK 不返回 refresh_token（§8.2.1），这里恒为空。
+		ExpiresIn: int64(payload.ExpiresIn),
+		OpenID:    payload.OpenID,
+		Channel:   ChannelApp,
+		// 客户端上报 → 未校验。UserInfo 会因为 !Verified 直接拒，直到 ValidateToken 放行。
+		Verified: false,
+		Raw:      trimmed,
+	}
+	tok.ExpiresAt = qqExpiresAt(tok.ExpiresIn)
+	return tok, nil
+}
 
 // get 发起一次 GET 并读回响应体（限 1 MiB）。
 func (p *qqProvider) get(ctx context.Context, path string, q url.Values) ([]byte, error) {
@@ -478,38 +564,86 @@ func qqParseTokenBody(body []byte) (*qqTokenPayload, error) {
 	}
 
 	// 形态一：JSON（fmt=json，或被 callback 包裹的错误体剥壳后）
+	//
+	// 与下面 query string 分支同理：**能 json.Unmarshal ≠ 是 QQ 的响应**。
+	// 网关把 body 换成 `{"status":"error","message":"bad gateway"}` 这类合法 JSON 时，
+	// 不拦就会拿到空 payload，最终报「no access_token」——把「上游是不是挂了」
+	// 误导成「QQ 为什么不给 token」。所以必须至少命中一个已知字段。
+	//
+	// 判定用「字段有没有值」而不是只判 AccessToken 为空：合法的错误体
+	// `{"error":100016,"error_description":"..."}` 必须放过，交给 errOrNil() 映射哨兵错误。
 	if trimmed[0] == '{' {
 		var payload qqTokenPayload
 		if err := json.Unmarshal(trimmed, &payload); err != nil {
 			return nil, fmt.Errorf("%w: qq token json decode: %v", ErrUpstream, err)
 		}
+		if payload.AccessToken == "" && payload.Error == 0 && payload.Ret == 0 &&
+			payload.ErrorDescription == "" && payload.ExpiresIn == 0 {
+			// 只报字节数不报内容：错误信息会进日志，不给它夹带明文的机会
+			return nil, fmt.Errorf("%w: qq token response json has no recognized field (%d bytes)",
+				ErrUpstream, len(trimmed))
+		}
 		return &payload, nil
 	}
 
 	// 形态二：裸 query string
+	//
+	// url.ParseQuery 的容错度高得危险：空串返回空 map + nil error；HTML 错误页会被解成
+	// 一个奇形怪状的 key；`access_token=` 得到空值。所以「能 ParseQuery 成功」绝不等于
+	// 「拿到 token」—— 必须自己判「有没有解出任何已知字段」。
 	values, err := url.ParseQuery(string(trimmed))
 	if err != nil {
 		return nil, fmt.Errorf("%w: qq token body is neither json nor query string: %v", ErrUpstream, err)
 	}
-	payload := &qqTokenPayload{
-		AccessToken:      values.Get("access_token"),
-		RefreshToken:     values.Get("refresh_token"),
-		OpenID:           values.Get("openid"),
-		ErrorDescription: values.Get("error_description"),
+
+	payload := &qqTokenPayload{}
+	known := 0
+	for _, k := range []string{"access_token", "refresh_token", "expires_in", "openid", "error", "ret", "error_description", "msg"} {
+		if values.Has(k) {
+			known++
+		}
 	}
+	// 一个已知字段都没有 → 不是 QQ 的 token 响应（典型：网关 500 的 HTML 页）。
+	// 不报错的话 AccessToken 为空会一路走到「成功但没 token」，比直接失败更难排查。
+	// 注意：错误信息里**只放长度不放内容** —— 这个分支理论上不含 token 字段，
+	// 但错误信息是会被写日志的，不能给它任何夹带明文的机会。
+	if known == 0 {
+		return nil, fmt.Errorf("%w: qq token response is not a recognizable query string (%d bytes)",
+			ErrUpstream, len(trimmed))
+	}
+
+	payload.AccessToken = values.Get("access_token")
+	payload.RefreshToken = values.Get("refresh_token")
+	payload.OpenID = values.Get("openid")
+	payload.ErrorDescription = values.Get("error_description")
 	if payload.ErrorDescription == "" {
 		payload.ErrorDescription = values.Get("msg")
 	}
-	payload.Error = qqParseFlexInt(values.Get("error"))
-	payload.Ret = qqParseFlexInt(values.Get("ret"))
-	payload.ExpiresIn = qqParseFlexInt(values.Get("expires_in"))
+	// 数值字段解析失败即报错（静默变 0 会把「上游报错」当成功，见 qqFlexInt 注释）
+	for _, f := range []struct {
+		key string
+		dst *qqFlexInt
+	}{
+		{"error", &payload.Error},
+		{"ret", &payload.Ret},
+		{"expires_in", &payload.ExpiresIn},
+	} {
+		v, err := qqParseFlexInt(values.Get(f.key))
+		if err != nil {
+			return nil, fmt.Errorf("%w: qq token %s: %v", ErrUpstream, f.key, err)
+		}
+		*f.dst = v
+	}
 	return payload, nil
 }
 
 // qqTrailingComma 去掉 JSON 对象 / 数组结尾多余的逗号（官方 JSONP 错误体样例带尾逗号）。
 var qqTrailingComma = regexp.MustCompile(`,\s*([}\]])`)
 
-// stripJSONP 幂等剥壳，返回**干净 JSON**：无 `callback(` 包裹时原样可解（fmt=json 的纯 JSON）。
+// qqJSONPCallback QQ JSONP 的固定前缀。官方样例恒为 `callback( {...} );`。
+const qqJSONPCallback = "callback"
+
+// stripJSONP 幂等剥壳，返回**干净 JSON**：无 `callback` 包裹时原样可解（fmt=json 的纯 JSON）。
 //
 // 官方样例：`callback( {"client_id":"...","openid":"..."} );`
 // 错误样例（带换行、缩进与尾逗号，严格 JSON 解析必失败）：
@@ -522,19 +656,25 @@ var qqTrailingComma = regexp.MustCompile(`,\s*([}\]])`)
 //	);
 //
 // 处理顺序（顺序不能反）：
-//  1. 剥掉 `callback(` 与末尾 `)`（不含包裹时跳过）；
-//  2. **TrimSpace** —— 首尾空白（含 \n / \t）先清掉，否则第 3 步的正则看不到 `"…",\n\t}` 这类形态；
-//  3. 清尾逗号（`,\s*}` / `,\s*]`），对上例的 `,\n}` 同样生效；
-//  4. 用 json.Compact 压掉所有无语义空白（字符串内部的空格/换行原样保留）——
+//  1. **只认前缀** `callback`：在任意位置搜 `callback(` 会被 JSON 字符串字面量误伤 ——
+//     用户昵称叫 `callback(abc` 时（user/get_user_info 完全可能出现），
+//     Index 会从昵称中间截断，把合法响应打成解析失败。前缀匹配是更弱的假设，更安全。
+//  2. 右边界用**括号配平**而不是 `LastIndex(")")`：`{"nickname":"a)b"}` 这类值里的 `)`
+//     会被 LastIndex 误当定界符（末尾无 `)` 的畸形包裹尤其致命）；配平同时尊重字符串
+//     字面量与 \" 转义，只认真正匹配的闭括号。
+//  3. **TrimSpace** —— 首尾空白（含 \n / \t）先清掉，否则第 4 步的正则看不到 `"…",\n\t}` 这类形态；
+//  4. 清尾逗号（`,\s*}` / `,\s*]`），对上例的 `,\n}` 同样生效；
+//  5. 用 json.Compact 压掉所有无语义空白（字符串内部的空格/换行原样保留）——
 //     微信/QQ 的 JSONP 错误体常带换行与缩进，函数契约是「返回干净 JSON」，不能把这些交给下游。
 //
-// 不是合法 JSON 时（例如上游返回纯文本）只做 TrimSpace 后原样返回，不吞掉内容。
+// 不是合法 JSON 时（例如上游返回纯文本 / HTML 错误页）只做 TrimSpace 后原样返回，不吞掉内容。
 func stripJSONP(body []byte) []byte {
 	s := strings.TrimSpace(string(body))
-	if i := strings.Index(s, "callback("); i >= 0 {
-		s = strings.TrimSpace(s[i+len("callback("):])
-		if j := strings.LastIndex(s, ")"); j >= 0 {
-			s = s[:j]
+	// 只在前缀处认包裹；允许 `callback (` 这种中间夹空白的写法，但空白之后必须是 '('。
+	if strings.HasPrefix(s, qqJSONPCallback) {
+		rest := s[len(qqJSONPCallback):]
+		if j := strings.IndexByte(rest, '('); j >= 0 && strings.TrimSpace(rest[:j]) == "" {
+			s = strings.TrimSpace(qqCutMatchedBrackets(strings.TrimSpace(rest[j+1:])))
 		}
 	}
 	// 先 trim 再清尾逗号：`"…",\n\t}` 这种形态必须先去空白才落进正则
@@ -550,47 +690,120 @@ func stripJSONP(body []byte) []byte {
 	return []byte(s)
 }
 
+// qqCutMatchedBrackets 从 s 的第一个 `{` / `[` 起做括号配平，返回截至匹配闭括号的子串。
+//
+// 用于剥 JSONP 右边界：比 `strings.LastIndex(s, ")")` 安全 —— 字符串字面量里的 `)`、`}`、
+// `\]` 全部跳过（含 `\"` 转义），只认结构上真正闭合的那一个。
+// 不以 `{` / `[` 开头（或括号配不平，说明包裹本身畸形）时原样返回，交给后续解析报错。
+func qqCutMatchedBrackets(s string) string {
+	start := strings.IndexAny(s, "{[")
+	if start < 0 {
+		return s
+	}
+	depth := 0
+	inString := false
+	escaped := false
+	for i := start; i < len(s); i++ {
+		c := s[i]
+		if inString {
+			switch {
+			case escaped:
+				escaped = false
+			case c == '\\':
+				escaped = true
+			case c == '"':
+				inString = false
+			}
+			continue
+		}
+		switch c {
+		case '"':
+			inString = true
+		case '{', '[':
+			depth++
+		case '}', ']':
+			depth--
+			if depth == 0 {
+				return s[start : i+1]
+			}
+		}
+	}
+	return s
+}
+
 // qqFlexInt 兼容 JSON 里「数字」与「带引号字符串」两种形态的整型。
 //
 // 移动端 SDK 登录回调里 expires_in 是字符串 `"7776000"`，网页端 token 接口是数字 `5184000`，
 // 错误码在 JSONP 里是数字、偶尔被拼成字符串 —— 一并兜住（docs/14 §8.2.2 实现要点 1）。
 type qqFlexInt int64
 
-// UnmarshalJSON 数字 / 字符串 / null 都能解；非数字形态按 0 处理，
-// 不让一个次要字段毁掉整段解析（必填字段仍会在判空时暴露）。
+// UnmarshalJSON 数字 / 字符串 / null / 浮点 / 科学计数都能解。
+//
+// **解析失败必须报错，不能静默变 0**（这一点很关键，两种情况都会造成误判）：
+//   - 错误码（error / ret）静默变 0 → 把「上游报错」当成「成功」；
+//   - expires_in 静默变 0 → Token.ExpiresAt 取零值（types.go 约定零值 = 不过期）
+//     → 过期 token 被长期当成有效。
+//
+// 因此非数字形态返回 error，让整段 json.Unmarshal 失败并上抛 ErrUpstream —— 宁可拒绝也不误判。
 func (v *qqFlexInt) UnmarshalJSON(b []byte) error {
 	s := strings.TrimSpace(string(b))
+	// 显式 null / 空串 = 上游没给这个字段，按 0 处理（这是「缺失」，不是「非法」）
+	if s == "null" {
+		*v = 0
+		return nil
+	}
 	s = strings.Trim(s, `"`)
-	if s == "" || s == "null" {
+	if s == "" {
 		*v = 0
 		return nil
 	}
-	n, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		*v = 0
+	// 整数形态（绝大多数情况）
+	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+		*v = qqFlexInt(n)
 		return nil
 	}
-	*v = qqFlexInt(n)
+	// 兜底：浮点 / 科学计数（7776000.0、1e6）—— 取整后仍在 int64 内才接受
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil || math.IsNaN(f) || math.IsInf(f, 0) || f > math.MaxInt64 || f < math.MinInt64 {
+		return fmt.Errorf("oauthkit: qq integer field %q is not a valid integer", s)
+	}
+	*v = qqFlexInt(int64(f))
 	return nil
 }
 
-// qqParseFlexInt 把 query string 里的字符串值转成 qqFlexInt（空串 / 非数字 → 0）。
-func qqParseFlexInt(s string) qqFlexInt {
+// qqParseFlexInt 把 query string 里的字符串值转成 qqFlexInt。
+//
+// 与 UnmarshalJSON 同口径：空串 = 缺失（0，无错）；给了但不是整数 = 报错。
+func qqParseFlexInt(s string) (qqFlexInt, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return 0
+		return 0, nil
 	}
-	n, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return 0
+	var v qqFlexInt
+	if err := v.UnmarshalJSON([]byte(s)); err != nil {
+		return 0, err
 	}
-	return qqFlexInt(n)
+	return v, nil
 }
 
-// qqExpiresAt 由有效期秒数推导到期时间；<=0 返回零值表示「上游未给有效期」。
+// qqMaxExpiresIn 可安全换算成 time.Duration 的最大秒数。
+//
+// time.Duration 是 int64 纳秒，上限约 292 年 = 9,223,372,036 秒；
+// 超过这个值 `time.Duration(n) * time.Second` 会**溢出成负数**，
+// ExpiresAt 直接掉到过去（token 一拿到就被当成过期）。
+// 实测：9223372037 → 1734-08-16；9223372036854775807 → 当前时间前 1 秒。
+const qqMaxExpiresIn int64 = math.MaxInt64 / int64(time.Second)
+
+// qqExpiresAt 由有效期秒数推导到期时间。
+//
+//   - <= 0：返回零值（types.go 约定「零值表示不过期」，仅用于上游确实没给有效期）；
+//   - 超过 int64 纳秒上限：截到 qqMaxExpiresIn（约 292 年），不让乘法溢出成过去时间。
 func qqExpiresAt(expiresIn int64) time.Time {
 	if expiresIn <= 0 {
 		return time.Time{}
+	}
+	if expiresIn > qqMaxExpiresIn {
+		expiresIn = qqMaxExpiresIn
 	}
 	return time.Now().Add(time.Duration(expiresIn) * time.Second)
 }
@@ -643,7 +856,16 @@ func qqCodeError(code int64, desc string) error {
 		return qqWrapCode(ErrTokenMismatch, code, desc)
 	}
 
-	// 未知码 / 其余上游异常（110405 登录受限、110406 未过审、110500~110510、110407 等文档未列码）
+	// 未知码 / 其余上游异常 → 一律 ErrUpstream，但**保留 ret 与 msg 原文**便于排错。
+	//
+	// 已确认落在这一支的码（排错时不要怀疑是自己映射漏了）：
+	//   - 110405 登录请求被限制（限频，可退避重试）
+	//   - 110406 应用没有通过审核（配置问题，重试无用）
+	//   - **110407：官方公共返回码全表（docs/14 §2.3）里不存在这个码** ——
+	//     只在个别接口文档示例中出现，语义未定义。故不做猜测性映射（别以为它
+	//     等价于 110406），走兜底原样抛出，真机遇到时按当时请求参数排查。
+	//   - 110500~110510 授权 / token 相关服务端失败（110501 获取应用授权信息失败、
+	//     110504 系统内部错误、110510 Disable 等）
 	return fmt.Errorf("%w: qq ret=%d msg=%s", ErrUpstream, code, desc)
 }
 

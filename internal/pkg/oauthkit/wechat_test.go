@@ -537,6 +537,101 @@ func TestWechatErrcode40001StaysCredentialBad(t *testing.T) {
 	}
 }
 
+// TestWechatValidateTokenRejectsNonWechatBody sns/auth 返回非微信业务响应时必须拒绝。
+//
+// 这是审计发现的真实缺陷的防回归断言：sns/auth 的成功体是 {"errcode":0,"errmsg":"ok"}，
+// 所以「响应里出现 errcode 字段」本身即「这是微信业务响应」的证据。修复前
+// `{}` / `null` / `{"foo":"bar"}` 会被 json.Unmarshal 静默解成零值结构，
+// errcode=0 → 判定校验通过 → ValidateToken 给伪造 token 盖上 Verified=true，
+// 直接绕过 UserInfo 的 ErrTokenNotVerified 硬约束（app 渠道防伪整条失效）。
+func TestWechatValidateTokenRejectsNonWechatBody(t *testing.T) {
+	bodies := []string{
+		`{}`,              // 空对象
+		`null`,            // JSON null
+		`{"foo":"bar"}`,   // 非微信字段
+		`{"errmsg":"网关"}`, // 只有 errmsg，没有 errcode
+	}
+	for _, body := range bodies {
+		t.Run(body, func(t *testing.T) {
+			p, _ := newWechatMockProvider(t, ChannelApp, func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(w, body)
+			})
+
+			out, err := p.ValidateToken(context.Background(), &Token{AccessToken: "FORGED", OpenID: "OID"})
+			if out != nil {
+				t.Fatalf("ValidateToken must return nil token for non-wechat body %q, got %+v", body, out)
+			}
+			if !errors.Is(err, ErrUpstream) {
+				t.Fatalf("ValidateToken err = %v, want ErrUpstream for body %q", err, body)
+			}
+		})
+	}
+}
+
+// TestWechatValidateTokenAcceptsExplicitZeroErrcode 显式 errcode=0 才是成功。
+func TestWechatValidateTokenAcceptsExplicitZeroErrcode(t *testing.T) {
+	p, _ := newWechatMockProvider(t, ChannelApp, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"errcode":0,"errmsg":"ok"}`)
+	})
+
+	out, err := p.ValidateToken(context.Background(), &Token{AccessToken: "AT", OpenID: "OID"})
+	if err != nil {
+		t.Fatalf("ValidateToken: unexpected error: %v", err)
+	}
+	if !out.Verified {
+		t.Error("explicit errcode=0 must set Verified=true")
+	}
+}
+
+// TestWechatUserInfoRejectsEmptyResponse userinfo 零值响应必须拒绝，不得返回空昵称 User。
+func TestWechatUserInfoRejectsEmptyResponse(t *testing.T) {
+	for _, body := range []string{`{}`, `null`, `{"foo":"bar"}`} {
+		t.Run(body, func(t *testing.T) {
+			p, _ := newWechatMockProvider(t, ChannelApp, func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprint(w, body)
+			})
+
+			user, err := p.UserInfo(context.Background(), &Token{
+				AccessToken: "AT", OpenID: "OID", Channel: ChannelApp, Verified: true,
+			})
+			if user != nil {
+				t.Fatalf("UserInfo must not return a zero-value User for body %q, got %+v", body, user)
+			}
+			if !errors.Is(err, ErrUpstream) {
+				t.Fatalf("UserInfo err = %v, want ErrUpstream for body %q", err, body)
+			}
+		})
+	}
+}
+
+// TestWechatAuthURLRejectsEmptyState 空 state 是调用方编程错误，必须显式拒绝（对齐 github.go）。
+//
+// 断言哨兵而不只是 err != nil：类型化错误是调用方的分支依据 ——
+// ErrInvalidArgument 表示「自己代码/配置写错，重试无用」，
+// 与平台侧失败（ErrCodeInvalid / ErrTokenExpired / ErrUpstream）的处理路径完全不同。
+// 若有人把它改回裸 fmt.Errorf，本条会立刻红掉。
+func TestWechatAuthURLRejectsEmptyState(t *testing.T) {
+	p := newWechat(ChannelWeb, wechatTestConfig())
+	for _, state := range []string{"", "   ", "\t\n"} {
+		got, err := p.AuthURL(state)
+		if err == nil {
+			t.Fatalf("AuthURL(%q) must fail: empty state disables CSRF protection, got %q", state, got)
+		}
+		if !errors.Is(err, ErrInvalidArgument) {
+			t.Errorf("AuthURL(%q) err = %v, want ErrInvalidArgument", state, err)
+		}
+		// 不得混入平台侧失败语义：那会让调用方把「自己忘传 state」误判成「用户没授权」
+		for _, wrong := range []error{ErrScopeMissing, ErrCodeInvalid, ErrTokenExpired, ErrUpstream} {
+			if errors.Is(err, wrong) {
+				t.Errorf("AuthURL(%q) must not be classified as %v, got %v", state, wrong, err)
+			}
+		}
+		if got != "" {
+			t.Errorf("AuthURL(%q) must return empty url on error, got %q", state, got)
+		}
+	}
+}
+
 // TestWechatNameAndChannel 两渠道 Name 相同、Channel 不同。
 func TestWechatNameAndChannel(t *testing.T) {
 	web := newWechat(ChannelWeb, wechatTestConfig())

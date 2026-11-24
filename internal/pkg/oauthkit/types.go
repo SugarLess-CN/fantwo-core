@@ -122,6 +122,11 @@ type Token struct {
 	// UnionID 跨应用统一标识：微信 / QQ unionid，可空。
 	//
 	// 多端打通必须靠它：微信 web 与 app 是两套 appid，同一用户 openid 不同、unionid 相同。
+	//
+	// **空串一律视为「无 unionid」，不得参与任何查询**。微信 web 渠道经常不返回它，
+	// 所以空串是常态而非异常。调用方按「先 unionid 后 openid」查绑定时必须先判空
+	// （`if tok.UnionID != ""`），否则空串会匹配到另一个同样没有 unionid 的用户，
+	// 把两个不同的人并成一个账号 —— 这是本节最危险的一个接线错误。
 	UnionID string
 	// Channel 该 token 所属渠道（"web" / "app"），落库时必须一起存 ——
 	// 因为 refresh_token 有效期按渠道不同（微信 web 30 天 / app 180 天）。
@@ -149,6 +154,17 @@ type User struct {
 var (
 	// ErrNotConfigured 未配置齐全（appid / secret 缺失）。端点应降级为 20026。
 	ErrNotConfigured = errors.New("oauthkit: provider not configured")
+
+	// ErrInvalidArgument 调用方参数错误（空 state / 空 code / 非法配置组合）。
+	//
+	// 与「平台侧失败」严格区分：这一类**重试无用**，是调用方的编程错误 ——
+	// 调用方该修代码或修配置，不是重试、也不是引导用户重新授权。
+	//
+	// 为什么必须有这个哨兵（实测踩过）：微信 AuthURL 的空 state 一度只能裸
+	// fmt.Errorf，有人为了让调用方能 errors.Is 判断，硬套了 ErrScopeMissing ——
+	// 结果调用方把「我忘了传 state」误判成「用户没给授权范围」，
+	// 多做一次无意义的重新授权引导。报错语义错位比报错本身更贵。
+	ErrInvalidArgument = errors.New("oauthkit: invalid argument supplied by caller")
 
 	// ErrAuthURLUnsupported 该渠道不支持生成授权 URL（微信 app / QQ app）。
 	ErrAuthURLUnsupported = errors.New("oauthkit: provider does not support auth url for this channel")
