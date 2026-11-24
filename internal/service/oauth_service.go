@@ -73,12 +73,124 @@ func oauthFailed() *errcode.Err {
 }
 
 // OAuthService 第三方账号绑定服务。
+//
+// data 数据访问实现（oauthDataAccess）：nil 时 accessor() 回落 oauthGormAccess，
+// 生产路径零感知；测试注入内存桩后可脱离真实 DB 覆盖账号归属逻辑。
 type OAuthService struct {
-	d *Deps
+	d    *Deps
+	data oauthDataAccess
 }
 
 // NewOAuthService 构造。
 func NewOAuthService(d *Deps) *OAuthService { return &OAuthService{d: d} }
+
+// oauthDataAccess OAuthService 对持久层的最小依赖面（T-37d 引入）。
+//
+// 背景：go.mod 无 sqlite / sqlmock 驱动（归 lead 独占管理），service 层测试
+// 无法起内存 DB。默认实现 oauthGormAccess 直接吃 s.d.DB（生产路径行为完全不变）；
+// 测试注入内存桩，覆盖 FindOrCreateByOAuth 查找顺序（禁令 4 回归防线）。
+//
+// 方法面 = oauth_service.go 实际触达 DB 的全部查询（grep 核对，不增不减）：
+// 绑定按 unionid / openid 查、建绑定、刷快照、邮箱占用（含软删）、
+// 用户按 id 查、用户名 / 昵称占用检查。
+type oauthDataAccess interface {
+	// FindBindingByUnionID 按 provider + unionid 查绑定；不存在返回 (nil, nil)。
+	// 调用方已保证 unionID 非空（禁令 4）；实现可再挡一次空串。
+	FindBindingByUnionID(provider, unionID string) (*model.UserOAuthBinding, error)
+	// FindBindingByOpenID 按 provider + openid 查绑定（不带 channel，故意）；
+	// 不存在返回 (nil, nil)。
+	FindBindingByOpenID(provider, openID string) (*model.UserOAuthBinding, error)
+	// CreateBinding 建绑定记录。
+	CreateBinding(b *model.UserOAuthBinding) error
+	// RefreshBindingSnapshot 刷新昵称/头像/渠道快照与首次见到的 unionid。
+	RefreshBindingSnapshot(b *model.UserOAuthBinding, fields map[string]interface{}) error
+	// EmailTakenIncludingDeleted email 是否被占用（含软删记录）。
+	EmailTakenIncludingDeleted(email string) (bool, error)
+	// FindUserByID 按 id 取用户；不存在返回 gorm.ErrRecordNotFound（保持原语义，
+	// 由调用方统一转 errcode）。
+	FindUserByID(id string) (*model.User, error)
+	// ExistsUsername 用户名是否被占用（excludeID 预留）。
+	ExistsUsername(username, excludeID string) (bool, error)
+	// ExistsNickname 昵称是否被占用（excludeID 预留）。
+	ExistsNickname(nickname, excludeID string) (bool, error)
+	// FindUserByEmail 按 email 查用户（GitHub email 合并用）；不存在返回 not found。
+	FindUserByEmail(email string) (*model.User, error)
+	// UpdateUserFields 局部更新用户字段（GitHub 兼容字段用）。
+	UpdateUserFields(id string, fields map[string]interface{}) error
+	// FindRoleByName 按名称取角色（建号挂 user 角色用）。
+	FindRoleByName(name string) (*model.Role, error)
+	// CreateUser 建用户（含随机密码 bcrypt，已在 service 层完成）。
+	CreateUser(u *model.User) error
+	// CreateProfile 建 profile。
+	CreateProfile(userID string) error
+}
+
+// oauthGormAccess 生产实现：全部走 s.d.DB / s.d.Users / s.d.Roles，
+// 与改造前逐行为等价（同一条件、同一软删语义、同一 not-found 归一）。
+type oauthGormAccess struct{ s *OAuthService }
+
+func (g oauthGormAccess) FindBindingByUnionID(provider, unionID string) (*model.UserOAuthBinding, error) {
+	if strings.TrimSpace(unionID) == "" {
+		return nil, nil
+	}
+	return g.s.firstBinding("provider = ? AND unionid = ?", provider, unionID)
+}
+
+func (g oauthGormAccess) FindBindingByOpenID(provider, openID string) (*model.UserOAuthBinding, error) {
+	return g.s.firstBinding("provider = ? AND openid = ?", provider, openID)
+}
+
+func (g oauthGormAccess) CreateBinding(b *model.UserOAuthBinding) error {
+	return g.s.d.DB.Create(b).Error
+}
+
+func (g oauthGormAccess) RefreshBindingSnapshot(b *model.UserOAuthBinding, fields map[string]interface{}) error {
+	return g.s.d.DB.Model(&model.UserOAuthBinding{}).Where("id = ?", b.ID).Updates(fields).Error
+}
+
+func (g oauthGormAccess) EmailTakenIncludingDeleted(email string) (bool, error) {
+	return g.s.emailTakenIncludingDeleted(email)
+}
+
+func (g oauthGormAccess) FindUserByID(id string) (*model.User, error) {
+	return g.s.d.Users.FindByID(g.s.d.DB, id)
+}
+
+func (g oauthGormAccess) ExistsUsername(username, excludeID string) (bool, error) {
+	return g.s.d.Users.ExistsUsername(g.s.d.DB, username, excludeID)
+}
+
+func (g oauthGormAccess) ExistsNickname(nickname, excludeID string) (bool, error) {
+	return g.s.d.Users.ExistsNickname(g.s.d.DB, nickname, excludeID)
+}
+
+func (g oauthGormAccess) FindUserByEmail(email string) (*model.User, error) {
+	return g.s.d.Users.FindByEmail(g.s.d.DB, email)
+}
+
+func (g oauthGormAccess) UpdateUserFields(id string, fields map[string]interface{}) error {
+	return g.s.d.Users.UpdateFields(g.s.d.DB, id, fields)
+}
+
+func (g oauthGormAccess) FindRoleByName(name string) (*model.Role, error) {
+	return g.s.d.Roles.FindByName(g.s.d.DB, name)
+}
+
+func (g oauthGormAccess) CreateUser(u *model.User) error {
+	return g.s.d.Users.Create(g.s.d.DB, u)
+}
+
+func (g oauthGormAccess) CreateProfile(userID string) error {
+	return g.s.d.Users.CreateProfile(g.s.d.DB, &model.UserProfile{UserID: userID})
+}
+
+// accessor 当前数据访问实现（测试可替换；生产恒为 oauthGormAccess）。
+func (s *OAuthService) accessor() oauthDataAccess {
+	if s.data != nil {
+		return s.data
+	}
+	return oauthGormAccess{s: s}
+}
 
 // FindOrCreateByOAuth 按第三方身份查找或创建本站用户，并保证绑定关系落库。
 //
@@ -87,8 +199,12 @@ func NewOAuthService(d *Deps) *OAuthService { return &OAuthService{d: d} }
 //
 // 返回的用户由调用方继续做封禁判断与双 token 签发 —— 本函数不做登录态。
 func (s *OAuthService) FindOrCreateByOAuth(ctx context.Context, tok *oauthkit.Token, u *oauthkit.User) (*model.User, *errcode.Err) {
-	if e := s.d.ready(); e != nil {
-		return nil, e
+	// ready 门只约束生产 gorm 路径（d.DB 必须在）；内存桩路径自带全部数据，
+	// d.DB 为 nil 是桩测试的常态而非降级。
+	if s.data == nil {
+		if e := s.d.ready(); e != nil {
+			return nil, e
+		}
 	}
 	if u == nil {
 		return nil, oauthFailed()
@@ -113,8 +229,9 @@ func (s *OAuthService) FindOrCreateByOAuth(ctx context.Context, tok *oauthkit.To
 
 	// ① unionid → ② openid → ③ GitHub email 合并。
 	userID := ""
+	acc := s.accessor()
 	if unionID != "" { // 禁令 4：空串一律不参与查询
-		b, err := s.findBindingByUnionID(provider, unionID)
+		b, err := acc.FindBindingByUnionID(provider, unionID)
 		if err != nil {
 			s.d.Logger.Error("oauth find binding by unionid", zap.String("provider", provider), zapErr(err))
 			return nil, errcode.ErrInternal
@@ -124,7 +241,7 @@ func (s *OAuthService) FindOrCreateByOAuth(ctx context.Context, tok *oauthkit.To
 		}
 	}
 	if userID == "" {
-		b, err := s.findBindingByOpenID(provider, openID)
+		b, err := acc.FindBindingByOpenID(provider, openID)
 		if err != nil {
 			s.d.Logger.Error("oauth find binding by openid", zap.String("provider", provider), zapErr(err))
 			return nil, errcode.ErrInternal
@@ -135,7 +252,7 @@ func (s *OAuthService) FindOrCreateByOAuth(ctx context.Context, tok *oauthkit.To
 	}
 	if userID == "" && provider == oauthkit.ProviderGitHub {
 		if email := strings.TrimSpace(u.Email); email != "" {
-			existing, err := s.d.Users.FindByEmail(s.d.DB, email)
+			existing, err := acc.FindUserByEmail(email)
 			if err == nil {
 				userID = existing.ID
 			} else if !IsNotFound(err) {
@@ -154,7 +271,15 @@ func (s *OAuthService) FindOrCreateByOAuth(ctx context.Context, tok *oauthkit.To
 		if provider == oauthkit.ProviderGitHub {
 			s.touchGithubCompatFields(finalID, openID, u)
 		}
-		return findUserOrErrByID(s.d, finalID)
+		user, err := acc.FindUserByID(finalID)
+		if IsNotFound(err) {
+			return nil, errcode.ErrUserNotExist
+		}
+		if err != nil {
+			s.d.Logger.Error("oauth find user", zapErr(err))
+			return nil, errcode.ErrInternal
+		}
+		return user, nil
 	}
 
 	return s.createOAuthUser(provider, channel, openID, unionID, u)
@@ -199,7 +324,8 @@ func (s *OAuthService) firstBinding(cond string, args ...interface{}) (*model.Us
 // 以既有绑定为准 —— uk_oauth_provider_openid 是硬约束，跟着唯一索引走才不会
 // 让「同一次登录返回的 user 与落库的绑定」对不上。
 func (s *OAuthService) ensureBinding(provider, channel, openID, unionID string, u *oauthkit.User, userID string) (string, *errcode.Err) {
-	if existing, err := s.findBindingByOpenID(provider, openID); err != nil {
+	acc := s.accessor()
+	if existing, err := acc.FindBindingByOpenID(provider, openID); err != nil {
 		s.d.Logger.Error("oauth check binding", zap.String("provider", provider), zapErr(err))
 		return "", errcode.ErrInternal
 	} else if existing != nil {
@@ -209,7 +335,7 @@ func (s *OAuthService) ensureBinding(provider, channel, openID, unionID string, 
 				zap.String("provider", provider), zap.String("userId", existing.UserID))
 			userID = existing.UserID
 		}
-		s.refreshBindingSnapshot(existing, channel, unionID, u)
+		s.refreshBindingSnapshot(acc, existing, channel, unionID, u)
 		return userID, nil
 	}
 
@@ -225,10 +351,10 @@ func (s *OAuthService) ensureBinding(provider, channel, openID, unionID string, 
 		unionID := unionID
 		b.UnionID = &unionID
 	}
-	if err := s.d.DB.Create(b).Error; err != nil {
+	if err := acc.CreateBinding(b); err != nil {
 		// 并发下短窗口内可能被另一个请求抢先插入同一个 (provider, openid)：
 		// 回查一次，命中即复用，不把并发登录变成 500。
-		if again, ferr := s.findBindingByOpenID(provider, openID); ferr == nil && again != nil {
+		if again, ferr := acc.FindBindingByOpenID(provider, openID); ferr == nil && again != nil {
 			return again.UserID, nil
 		}
 		s.d.Logger.Error("oauth create binding", zap.String("provider", provider), zapErr(err))
@@ -240,7 +366,7 @@ func (s *OAuthService) ensureBinding(provider, channel, openID, unionID string, 
 // refreshBindingSnapshot 刷新昵称/头像快照与首次见到的 unionid。
 //
 // 快照仅用于展示，失败不影响登录（不能因为昵称写不进去就把人挡在门外）。
-func (s *OAuthService) refreshBindingSnapshot(b *model.UserOAuthBinding, channel, unionID string, u *oauthkit.User) {
+func (s *OAuthService) refreshBindingSnapshot(acc oauthDataAccess, b *model.UserOAuthBinding, channel, unionID string, u *oauthkit.User) {
 	fields := map[string]interface{}{
 		"channel":    channel,
 		"nickname":   u.Nickname,
@@ -250,13 +376,14 @@ func (s *OAuthService) refreshBindingSnapshot(b *model.UserOAuthBinding, channel
 	if unionID != "" && (b.UnionID == nil || *b.UnionID == "") {
 		fields["unionid"] = unionID
 	}
-	if err := s.d.DB.Model(&model.UserOAuthBinding{}).Where("id = ?", b.ID).Updates(fields).Error; err != nil {
+	if err := acc.RefreshBindingSnapshot(b, fields); err != nil {
 		s.d.Logger.Warn("oauth refresh binding snapshot failed", zap.String("provider", b.Provider), zapErr(err))
 	}
 }
 
-// createOAuthUser 建新用户 + 建绑定 + 建 profile（单事务）。
+// createOAuthUser 建新用户 + 建绑定 + 建 profile（生产路径单事务）。
 func (s *OAuthService) createOAuthUser(provider, channel, openID, unionID string, u *oauthkit.User) (*model.User, *errcode.Err) {
+	acc := s.accessor()
 	username, err := s.uniqueOAuthUsername(provider, openID, u.Nickname)
 	if err != nil {
 		s.d.Logger.Error("oauth unique username", zapErr(err))
@@ -278,7 +405,7 @@ func (s *OAuthService) createOAuthUser(provider, channel, openID, unionID string
 	}
 	// email 只有 GitHub 会返回；且必须绕过软删账号占用唯一索引的坑（见下）。
 	if email := strings.TrimSpace(u.Email); email != "" {
-		taken, terr := s.emailTakenIncludingDeleted(email)
+		taken, terr := acc.EmailTakenIncludingDeleted(email)
 		if terr != nil {
 			s.d.Logger.Error("oauth check email", zapErr(terr))
 			return nil, errcode.ErrInternal
@@ -305,7 +432,7 @@ func (s *OAuthService) createOAuthUser(provider, channel, openID, unionID string
 			user.GithubUsername = &truncated
 		}
 	}
-	if role, rerr := s.d.Roles.FindByName(s.d.DB, model.RoleNameUser); rerr == nil {
+	if role, rerr := acc.FindRoleByName(model.RoleNameUser); rerr == nil {
 		user.Roles = []model.Role{*role}
 	}
 
@@ -324,20 +451,44 @@ func (s *OAuthService) createOAuthUser(provider, channel, openID, unionID string
 		binding.UnionID = &uid
 	}
 
-	if err := s.d.DB.Transaction(func(tx *gorm.DB) error {
-		if err := s.d.Users.Create(tx, user); err != nil {
-			return err
+	// 落库：生产路径走单事务（user → binding → profile 原子成功或整体回滚），
+	// 桩实现（内存）逐条落，无事务语义 —— 事务边界本身不属于本服务层测试目标。
+	if _, isStub := acc.(interface{ createOAuthUserTx() bool }); !isStub {
+		if err := s.d.DB.Transaction(func(tx *gorm.DB) error {
+			if err := s.d.Users.Create(tx, user); err != nil {
+				return err
+			}
+			binding.UserID = user.ID
+			if err := tx.Create(binding).Error; err != nil {
+				return err
+			}
+			return s.d.Users.CreateProfile(tx, &model.UserProfile{UserID: user.ID})
+		}); err != nil {
+			s.d.Logger.Error("oauth register", zap.String("provider", provider), zapErr(err))
+			return nil, errcode.ErrInternal
 		}
-		binding.UserID = user.ID
-		if err := tx.Create(binding).Error; err != nil {
-			return err
-		}
-		return s.d.Users.CreateProfile(tx, &model.UserProfile{UserID: user.ID})
-	}); err != nil {
+		return findUserOrErrByID(s.d, user.ID)
+	}
+
+	if err := acc.CreateUser(user); err != nil {
 		s.d.Logger.Error("oauth register", zap.String("provider", provider), zapErr(err))
 		return nil, errcode.ErrInternal
 	}
-	return findUserOrErrByID(s.d, user.ID)
+	binding.UserID = user.ID
+	if err := acc.CreateBinding(binding); err != nil {
+		s.d.Logger.Error("oauth register binding", zap.String("provider", provider), zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	if err := acc.CreateProfile(user.ID); err != nil {
+		s.d.Logger.Error("oauth register profile", zap.String("provider", provider), zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	user2, ferr := acc.FindUserByID(user.ID)
+	if ferr != nil {
+		s.d.Logger.Error("oauth register find back", zap.String("provider", provider), zapErr(ferr))
+		return nil, errcode.ErrInternal
+	}
+	return user2, nil
 }
 
 // emailTakenIncludingDeleted email 是否被占用（**含软删记录**）。
@@ -358,7 +509,7 @@ func (s *OAuthService) touchGithubCompatFields(userID, githubID string, u *oauth
 	if nick := strings.TrimSpace(u.Nickname); nick != "" {
 		fields["github_username"] = nick
 	}
-	if err := s.d.Users.UpdateFields(s.d.DB, userID, fields); err != nil {
+	if err := s.accessor().UpdateUserFields(userID, fields); err != nil {
 		// 撞 github_id 唯一索引（脏数据）时不能让登录失败。
 		s.d.Logger.Warn("oauth touch github compat fields failed", zap.String("userId", userID), zapErr(err))
 	}
@@ -376,7 +527,7 @@ func (s *OAuthService) uniqueOAuthUsername(provider, openID, nickname string) (s
 		cand = fallback
 	}
 	for i := 0; i < 5; i++ {
-		dup, err := s.d.Users.ExistsUsername(s.d.DB, cand, "")
+		dup, err := s.accessor().ExistsUsername(cand, "")
 		if err != nil {
 			return "", err
 		}
@@ -533,7 +684,7 @@ func (s *OAuthService) uniqueOAuthNickname(provider, nickname string) *string {
 	}
 	nick := base
 	for i := 0; i < 5; i++ {
-		dup, err := s.d.Users.ExistsNickname(s.d.DB, nick, "")
+		dup, err := s.accessor().ExistsNickname(nick, "")
 		if err != nil {
 			// 查询失败不阻断建号：交给唯一索引兜底。理由：一次 DB 抖动不该让用户
 			// 登不进来；若真撞索引，插入会报错并返回 500（可观测），

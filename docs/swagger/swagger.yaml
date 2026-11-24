@@ -9,6 +9,12 @@ definitions:
       status_code:
         example: 200
         type: integer
+      timestamp:
+        example: 1795540372656
+        type: integer
+      trace_id:
+        example: 4c3abb48-ddf2-4943-b685-ec4ec35449ed
+        type: string
     type: object
   internal_handler.ResponsePageBody:
     properties:
@@ -20,6 +26,12 @@ definitions:
       status_code:
         example: 200
         type: integer
+      timestamp:
+        example: 1795540372656
+        type: integer
+      trace_id:
+        example: 4c3abb48-ddf2-4943-b685-ec4ec35449ed
+        type: string
     type: object
   internal_handler.ResponsePageInner:
     properties:
@@ -5962,6 +5974,132 @@ paths:
           schema:
             $ref: '#/definitions/tmp_deploy-pkg_internal_handler.ResponseBody'
       summary: GitHub 授权链接
+      tags:
+      - 用户认证
+  /user/oauth/qq/app/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体 {accessToken, openId} 或 {payload}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: QQ App 登录（客户端交 access_token）
+      tags:
+      - 用户认证
+  /user/oauth/qq/web/callback:
+    get:
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+      summary: QQ 网页回调（重定向模式，302 回前端带 token）
+      tags:
+      - 用户认证
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体 {code, state}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: QQ 网页回调（SPA 模式换本站 token）
+      tags:
+      - 用户认证
+  /user/oauth/qq/web/url:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: QQ 网页登录（取授权链接）
+      tags:
+      - 用户认证
+  /user/oauth/wechat/app/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体 {code}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 微信 App 登录（客户端交 code）
+      tags:
+      - 用户认证
+  /user/oauth/wechat/web/callback:
+    get:
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+      summary: 微信扫码回调（重定向模式，302 回前端带 token）
+      tags:
+      - 用户认证
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求体 {code, state}
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 微信扫码回调（SPA 模式换本站 token）
+      tags:
+      - 用户认证
+  /user/oauth/wechat/web/url:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 微信扫码登录（取授权链接）
       tags:
       - 用户认证
   /user/password/change:

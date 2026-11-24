@@ -9234,6 +9234,204 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/oauth/qq/app/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "QQ App 登录（客户端交 access_token）",
+                "parameters": [
+                    {
+                        "description": "请求体 {accessToken, openId} 或 {payload}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/qq/web/callback": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "QQ 网页回调（重定向模式，302 回前端带 token）",
+                "responses": {
+                    "302": {
+                        "description": "Found"
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "QQ 网页回调（SPA 模式换本站 token）",
+                "parameters": [
+                    {
+                        "description": "请求体 {code, state}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/qq/web/url": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "QQ 网页登录（取授权链接）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/wechat/app/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "微信 App 登录（客户端交 code）",
+                "parameters": [
+                    {
+                        "description": "请求体 {code}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/wechat/web/callback": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "微信扫码回调（重定向模式，302 回前端带 token）",
+                "responses": {
+                    "302": {
+                        "description": "Found"
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "微信扫码回调（SPA 模式换本站 token）",
+                "parameters": [
+                    {
+                        "description": "请求体 {code, state}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/wechat/web/url": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "微信扫码登录（取授权链接）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
         "/user/password/change": {
             "post": {
                 "security": [
@@ -10198,6 +10396,14 @@ const docTemplate = `{
                 "status_code": {
                     "type": "integer",
                     "example": 200
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1795540372656
+                },
+                "trace_id": {
+                    "type": "string",
+                    "example": "4c3abb48-ddf2-4943-b685-ec4ec35449ed"
                 }
             }
         },
@@ -10214,6 +10420,14 @@ const docTemplate = `{
                 "status_code": {
                     "type": "integer",
                     "example": 200
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "example": 1795540372656
+                },
+                "trace_id": {
+                    "type": "string",
+                    "example": "4c3abb48-ddf2-4943-b685-ec4ec35449ed"
                 }
             }
         },
