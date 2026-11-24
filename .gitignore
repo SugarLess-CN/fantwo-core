@@ -34,3 +34,4 @@ uploads/
 
 # 交叉编译产物（Dockerfile.binary 用；二进制不进仓库，由开发机生成后上传）
 dist/
+__pycache__/

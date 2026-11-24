@@ -49,7 +49,37 @@ def main(src, out_dir):
         500: (10007, "Internal server error"),
     }
 
-    # ---------- schema 批次 ----------
+    
+# Apifox 原有目录名映射（tag → Apifox folder 名）
+# Apifox 按 tag 自动建目录；tag 必须与 Apifox 原有目录名完全一致
+TAG_MAP = {
+    "成就": "成就管理",
+    "文章": "文章管理",
+    "装饰品": "装饰品管理",
+    "表情包": "表情包管理",
+    "消息": "信息管理",
+    "积分": "积分管理",
+    "角色": "角色管理",
+    "合集": "合集管理",
+    "上传": "上传管理",
+    "评论": "评论管理",
+    "订单": "订单管理",
+    "标签": "标签管理",
+    "支付": "支付管理",
+    "轮播": "轮播管理",
+    "邀请": "邀请管理",
+    "权限": "权限管理",
+    "举报": "举报管理",
+    "分类": "分类管理",
+    "搜索": "搜索管理",
+    "统计": "统计模块",
+}
+
+def map_tag(tag):
+    return TAG_MAP.get(tag, tag)
+
+
+# ---------- schema 批次 ----------
     s_idx = 0
     for name, schema in schemas.items():
         s_idx += 1
@@ -71,7 +101,7 @@ def main(src, out_dir):
             op.setdefault('description', '')
             op.setdefault('operationId',
                           f"{method}_{re.sub(r'[^a-zA-Z0-9]', '_', path).strip('_')}")
-            op.setdefault('tags', ['未分类'])
+            op['tags'] = [map_tag(t) for t in op.get('tags', ['未分类'])]
             op.setdefault('deprecated', False)
             op.setdefault('parameters', [])
 
