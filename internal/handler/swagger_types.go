@@ -17,6 +17,8 @@ type ResponseBody struct {
 	Data       interface{} `json:"data"`
 	Message    string      `json:"message" example:"Success"`
 	StatusCode int         `json:"status_code" example:"200"`
+	TraceID    string      `json:"trace_id" example:"4c3abb48-ddf2-4943-b685-ec4ec35449ed"`
+	Timestamp  int64       `json:"timestamp" example:"1795540372656"`
 }
 
 // ResponsePageBody 分页响应的文档展示类型（data = {list, meta}）。
@@ -24,6 +26,8 @@ type ResponsePageBody struct {
 	Data       ResponsePageInner `json:"data"`
 	Message    string            `json:"message" example:"Success"`
 	StatusCode int               `json:"status_code" example:"200"`
+	TraceID    string            `json:"trace_id" example:"4c3abb48-ddf2-4943-b685-ec4ec35449ed"`
+	Timestamp  int64             `json:"timestamp" example:"1795540372656"`
 }
 
 // ResponsePageInner 分页载荷（对齐 response.PageData）。

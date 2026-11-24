@@ -49,18 +49,18 @@ func TestContract_FieldNames(t *testing.T) {
 	Success(c, map[string]string{"id": "a-1"})
 	m := decode(t, w)
 
-	for _, k := range []string{"data", "message", "status_code"} {
+	for _, k := range []string{"data", "message", "status_code", "trace_id", "timestamp"} {
 		if _, ok := m[k]; !ok {
 			t.Errorf("响应体缺少字段 %q：%s", k, w.Body.String())
 		}
 	}
-	for _, k := range []string{"code", "timestamp", "path"} {
+	for _, k := range []string{"code", "path"} {
 		if _, ok := m[k]; ok {
 			t.Errorf("响应体不应再有字段 %q（已重构）：%s", k, w.Body.String())
 		}
 	}
-	if len(m) != 3 {
-		t.Errorf("响应体应恰好 3 个字段，实际 %d 个：%s", len(m), w.Body.String())
+	if len(m) != 5 {
+		t.Errorf("响应体应恰好 5 个字段，实际 %d 个：%s", len(m), w.Body.String())
 	}
 }
 
@@ -114,9 +114,12 @@ func TestHealth(t *testing.T) {
 	if got := m["status_code"].(float64); got != 0 {
 		t.Errorf("status_code：得到 %v，期望 0", got)
 	}
-	// 新契约：Health 的 data/message 全省略，响应体只有 status_code
-	if len(m) != 1 {
-		t.Errorf("Health 响应应只有 status_code 一个字段，实际 %d 个：%s", len(m), w.Body.String())
+	// Health 契约：data/message 省略；trace_id/timestamp 恒在（非测试 Context 无请求，为空/0 是正常的）
+	if _, ok := m["trace_id"]; !ok {
+		t.Errorf("Health 响应缺少 trace_id：%s", w.Body.String())
+	}
+	if _, ok := m["timestamp"]; !ok {
+		t.Errorf("Health 响应缺少 timestamp：%s", w.Body.String())
 	}
 }
 
