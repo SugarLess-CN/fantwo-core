@@ -8,6 +8,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -96,7 +97,7 @@ func NewCollectionService(
 }
 
 // ErrCollectionNotFound 合集不存在。
-var ErrCollectionNotFound = errcode.ErrNotFound.With("合集不存在")
+var ErrCollectionNotFound = errcode.ErrNotFound.WithKey(i18n.CollectionNotFound)
 
 // getCollection 取合集并校验归属（ownerOnly 时要求本人）。
 func (s *CollectionService) getCollection(ctx context.Context, id string, actor Actor, ownerOnly bool) (*model.Collection, *errcode.Err) {
@@ -109,11 +110,11 @@ func (s *CollectionService) getCollection(ctx context.Context, id string, actor 
 		return nil, errcode.ErrInternal
 	}
 	if ownerOnly && c.UserID != actor.UserID {
-		return nil, errcode.ErrForbidden.With("没有操作该合集的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CollectionNoPermission)
 	}
 	// 私有合集：非本人不可见
 	if !ownerOnly && !c.IsPublic && c.UserID != actor.UserID {
-		return nil, errcode.ErrForbidden.With("该合集为私有")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CollectionPrivate)
 	}
 	return c, nil
 }
@@ -125,7 +126,7 @@ func (s *CollectionService) Create(ctx context.Context, actor Actor, req CreateC
 	}
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return nil, errcode.ErrBadRequest.With("合集名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.CollectionNameRequired)
 	}
 	c := &model.Collection{
 		Name:        name,
@@ -214,7 +215,7 @@ func (s *CollectionService) Update(ctx context.Context, id string, actor Actor, 
 	if req.Name != nil {
 		name := strings.TrimSpace(*req.Name)
 		if name == "" {
-			return nil, errcode.ErrBadRequest.With("合集名称不能为空")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.CollectionNameRequired)
 		}
 		fields["name"] = name
 	}
@@ -280,13 +281,14 @@ func (s *CollectionService) AddArticle(ctx context.Context, id, articleID string
 	// 文章存在性
 	if _, err := s.arts.FindByID(ctx, articleID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("文章不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
 		}
 		s.log.Error("查询文章失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
 	if _, err := s.repo.FindItem(ctx, id, articleID); err == nil {
-		out := map[string]interface{}{"added": false, "message": "文章已在该合集中"}
+		// message 提到顶层：handler 按 added=false 用 SuccessMsg 提示已存在
+		out := map[string]interface{}{"added": false}
 		return &out, nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询合集条目失败", zap.Error(err))

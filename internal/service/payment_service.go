@@ -30,6 +30,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/hibiken/asynq"
 	"github.com/smartwalle/alipay/v3"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
@@ -180,14 +181,14 @@ func (s *PaymentService) getAlipayClient(cfg PayConfig) (*alipay.Client, error) 
 		return s.alipaySDK, nil
 	}
 	if cfg.Alipay.AppID == "" || cfg.Alipay.PrivateKey == "" {
-		return nil, errcode.ErrBadRequest.With("支付宝配置不完整")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
 	}
 	client, err := alipay.New(cfg.Alipay.AppID, cfg.Alipay.PrivateKey, !strings.Contains(cfg.Alipay.Gateway, "sandbox"))
 	if err != nil {
-		return nil, errcode.ErrBadRequest.Withf("支付宝 SDK 初始化失败: %v", err)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentAlipaySDKInitFailed, err)
 	}
 	if err = client.LoadAliPayPublicKey(cfg.Alipay.PublicKey); err != nil {
-		return nil, errcode.ErrBadRequest.Withf("支付宝公钥加载失败: %v", err)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentAlipayPubkeyFailed, err)
 	}
 	s.alipaySDK = client
 	return client, nil
@@ -230,32 +231,32 @@ func (s *PaymentService) CreatePayment(userID string, in CreatePaymentInput) (ma
 	var order model.Order
 	if err := s.DB.First(&order, "id = ? AND user_id = ?", in.OrderID, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("订单不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.OrderNotFound)
 		}
 		return nil, err
 	}
 	if order.Status == model.OrderStatusPaid {
-		return nil, errcode.ErrBadRequest.With("订单已支付")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.OrderAlreadyPaid)
 	}
 
 	cfg := s.loadPayConfig()
 	switch in.PaymentMethod {
 	case model.PayMethodAlipay:
 		if !cfg.AlipayEnabled {
-			return nil, errcode.ErrBadRequest.With("支付宝支付未启用")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentChannelDisabled)
 		}
 	case model.PayMethodWechat:
 		if !cfg.WechatEnabled {
-			return nil, errcode.ErrBadRequest.With("微信支付未启用")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentChannelDisabled)
 		}
 	case model.PayMethodEpay:
 		if !cfg.EpayEnabled {
-			return nil, errcode.ErrBadRequest.With("易支付未启用")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentChannelDisabled)
 		}
 	case model.PayMethodBalance:
 		// 余额支付无需外部凭据
 	default:
-		return nil, errcode.ErrBadRequest.With("不支持的支付方式")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentNotSupported, in.PaymentMethod)
 	}
 
 	record := &model.Payment{
@@ -301,7 +302,7 @@ func (s *PaymentService) createAlipayPayment(record *model.Payment, order *model
 	}
 	payURL, err := client.TradePagePay(p)
 	if err != nil {
-		return nil, errcode.ErrBadRequest.Withf("创建支付宝支付失败: %v", err)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentAlipayCreateFailed, err)
 	}
 	_ = s.DB.Model(record).Update("details", map[string]interface{}{
 		"alipayUrl": payURL.String(), "orderNo": order.OrderNo, "amount": order.Amount,
@@ -315,11 +316,11 @@ func (s *PaymentService) createAlipayPayment(record *model.Payment, order *model
 func (s *PaymentService) createWechatPayment(record *model.Payment, order *model.Order, cfg PayConfig) (map[string]interface{}, error) {
 	w := cfg.Wechat
 	if w.AppID == "" || w.MchID == "" || w.PrivateKey == "" {
-		return nil, errcode.ErrBadRequest.With("微信支付配置不完整")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
 	}
 	codeURL, prepayID, err := s.wechatNativeOrder(&w, order, cfg.NotifyURL+"/wechat")
 	if err != nil {
-		return nil, errcode.ErrBadRequest.Withf("创建微信支付失败: %v", err)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentWechatCreateFailed, err)
 	}
 	_ = s.DB.Model(record).Update("details", map[string]interface{}{
 		"wechatCodeUrl": codeURL, "orderNo": order.OrderNo, "amount": order.Amount,
@@ -335,13 +336,13 @@ func (s *PaymentService) createWechatPayment(record *model.Payment, order *model
 func (s *PaymentService) wechatNativeOrder(w *WechatCfg, order *model.Order, notifyURL string) (codeURL, prepayID string, err error) {
 	privKey, err := utils.LoadPrivateKey(w.PrivateKey)
 	if err != nil {
-		return "", "", fmt.Errorf("微信商户私钥解析失败: %w", err)
+		return "", "", fmt.Errorf("failed to parse WeChat merchant private key: %w", err)
 	}
 	ctx := context.Background()
 	client, err := core.NewClient(ctx,
 		option.WithWechatPayAutoAuthCipher(w.MchID, w.SerialNo, privKey, w.APIv3Key))
 	if err != nil {
-		return "", "", fmt.Errorf("微信支付客户端初始化失败: %w", err)
+		return "", "", fmt.Errorf("failed to initialize WeChat pay client: %w", err)
 	}
 	svc := native.NativeApiService{Client: client}
 	resp, _, err := svc.Prepay(ctx, native.PrepayRequest{
@@ -356,7 +357,7 @@ func (s *PaymentService) wechatNativeOrder(w *WechatCfg, order *model.Order, not
 		return "", "", err
 	}
 	if resp.CodeUrl == nil {
-		return "", "", errors.New("微信下单未返回 code_url")
+		return "", "", errors.New("WeChat prepay response missing code_url")
 	}
 	// v3 Native 下单响应只含 code_url；prepay_id 不含在本响应内
 	return *resp.CodeUrl, "", nil
@@ -366,7 +367,7 @@ func (s *PaymentService) wechatNativeOrder(w *WechatCfg, order *model.Order, not
 func (s *PaymentService) createEpayPayment(record *model.Payment, order *model.Order, cfg PayConfig, returnUrl, payType string) (map[string]interface{}, error) {
 	e := cfg.Epay
 	if e.AppID == "" || e.AppKey == "" || e.Gateway == "" {
-		return nil, errcode.ErrBadRequest.With("易支付配置不完整")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
 	}
 	if payType == "" {
 		payType = "alipay"
@@ -426,7 +427,7 @@ func (s *PaymentService) createBalancePayment(record *model.Payment, order *mode
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
 		var user model.UserPaymentView
 		if err := tx.Clauses(dbLocking()).First(&user, "id = ?", order.UserID).Error; err != nil {
-			return errcode.ErrNotFound.With("用户不存在")
+			return errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 		}
 		if user.Wallet < order.Amount {
 			return errcode.ErrInsufficientWallet
@@ -616,12 +617,12 @@ func (s *PaymentService) writeCommissionInTx(tx *gorm.DB, order *model.Order) (*
 func (s *PaymentService) settleOrderPaid(orderNo, method, thirdNo string) (*model.Order, error) {
 	var order model.Order
 	if err := s.DB.First(&order, "order_no = ?", orderNo).Error; err != nil {
-		return nil, errcode.ErrNotFound.With("订单不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.OrderNotFound)
 	}
 	var record model.Payment
 	if err := s.DB.First(&record, "order_id = ? AND payment_method = ?", order.ID, method).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("支付记录不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.PaymentRecordNotFound)
 		}
 		return nil, err
 	}
@@ -664,11 +665,11 @@ func (s *PaymentService) HandleAlipayNotify(r *http.Request) (bool, string) {
 	cfg := s.loadPayConfig()
 	client, err := s.getAlipayClient(cfg)
 	if err != nil {
-		return false, "SDK 未初始化"
+		return false, "Alipay SDK not initialized"
 	}
 	notification, err := client.GetTradeNotification(r) // 内部完成验签
 	if err != nil {
-		return false, "签名验证失败"
+		return false, "Signature verification failed"
 	}
 	if notification.TradeStatus != alipay.TradeStatusSuccess && notification.TradeStatus != alipay.TradeStatusFinished {
 		return true, ""
@@ -684,17 +685,17 @@ func (s *PaymentService) HandleWechatNotify(r *http.Request) (bool, string) {
 	cfg := s.loadPayConfig()
 	w := cfg.Wechat
 	if w.MchID == "" || w.APIv3Key == "" {
-		return false, "微信支付配置不完整"
+		return false, "WeChat pay is not configured"
 	}
 	ctx := context.Background()
 	certVisitor := downloader.MgrInstance().GetCertificateVisitor(w.MchID)
 	handler, err := notify.NewRSANotifyHandler(w.APIv3Key, verifiers.NewSHA256WithRSAVerifier(certVisitor))
 	if err != nil {
-		return false, "回调处理器初始化失败: " + err.Error()
+		return false, "Failed to initialize notify handler: " + err.Error()
 	}
 	transaction := new(payments.Transaction)
 	if _, err := handler.ParseNotifyRequest(ctx, r, transaction); err != nil {
-		return false, "签名验证失败: " + err.Error()
+		return false, "Signature verification failed: " + err.Error()
 	}
 	// 交易状态非 SUCCESS 不落账（幂等返回成功，微信不再重发）
 	if transaction.TradeState == nil || *transaction.TradeState != "SUCCESS" {
@@ -718,11 +719,11 @@ func (s *PaymentService) HandleEpayNotify(query map[string]string) (bool, string
 	cfg := s.loadPayConfig()
 	e := cfg.Epay
 	if e.AppKey == "" {
-		return false, "易支付配置不完整"
+		return false, "Epay is not configured"
 	}
 	expect := epaySign(query, e.AppKey)
 	if query["sign"] != expect {
-		return false, "签名验证失败"
+		return false, "Signature verification failed"
 	}
 	if query["trade_status"] != "TRADE_SUCCESS" {
 		return true, ""
@@ -739,7 +740,7 @@ func (s *PaymentService) HandleEpayNotify(query map[string]string) (bool, string
 func (s *PaymentService) TestEpaySignature(params map[string]string) (string, error) {
 	cfg := s.loadPayConfig()
 	if cfg.Epay.AppKey == "" {
-		return "", errcode.ErrBadRequest.With("易支付配置不完整")
+		return "", errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
 	}
 	if params == nil {
 		params = map[string]string{}
@@ -752,7 +753,7 @@ func (s *PaymentService) GetPaymentRecord(id, userID string) (*model.Payment, er
 	var p model.Payment
 	if err := s.DB.First(&p, "id = ? AND user_id = ?", id, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("支付记录不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.PaymentRecordNotFound)
 		}
 		return nil, err
 	}
@@ -797,7 +798,7 @@ func (s *PaymentService) ListUserPayments(userID string, page, limit int) ([]mod
 func parseRSAPrivateKeyPEM(pemStr string) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode([]byte(pemStr))
 	if block == nil {
-		return nil, errors.New("私钥 PEM 解析失败")
+		return nil, errors.New("failed to parse private key PEM")
 	}
 	if k, err := x509.ParsePKCS1PrivateKey(block.Bytes); err == nil {
 		return k, nil
@@ -809,5 +810,5 @@ func parseRSAPrivateKeyPEM(pemStr string) (*rsa.PrivateKey, error) {
 	if k, ok := k8.(*rsa.PrivateKey); ok {
 		return k, nil
 	}
-	return nil, errors.New("非 RSA 私钥")
+	return nil, errors.New("not an RSA private key")
 }

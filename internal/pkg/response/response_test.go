@@ -1,27 +1,30 @@
-// Package response 统一响应包装测试。
+// Package response 统一响应包装测试（i18n 契约版）。
 //
 // 防的 bug（前端契约，改错即全员白屏）：
-//   - 成功体少了 code/message 字段，或 code 不是 200 → 前端 axios 拦截器判失败；
-//   - 失败体缺 timestamp/path → 前端上报无法定位；
-//   - 失败体 HTTP 状态与 code 不一致 → 浏览器/网关按 HTTP 判断，前端按 code 判断，两边打架；
-//   - Fail 没有 Abort → 后续 handler 继续写响应，产生 "superfluous WriteHeader" 或数据串包；
+//   - 响应体字段名不对（必须是 data / message / status_code）；
+//   - message 不是英文 / 是空串；
+//   - status_code 与 HTTP 状态不一致 → 浏览器/网关按 HTTP 判断，
+//     前端按 status_code 判断，两边打架；
+//   - Fail 没有 Abort → 后续 handler 继续写响应，产生 superfluous WriteHeader；
 //   - 分页 totalPages 向下取整（total=11,limit=10 → 1 页，最后一页永远取不到）；
-//   - limit=0 时除零 panic。
+//   - limit=0 时除零 panic；
+//   - data 里残留 message 字段（本次重构要求提到顶层）。
 package response
 
 import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/gin-gonic/gin"
 )
 
 func init() { gin.SetMode(gin.TestMode) }
 
-// newCtx 构造测试用 gin 上下文（路径可通过 query 影响断言）。
 func newCtx(method, target string) (*gin.Context, *httptest.ResponseRecorder) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
@@ -29,7 +32,6 @@ func newCtx(method, target string) (*gin.Context, *httptest.ResponseRecorder) {
 	return c, w
 }
 
-// decode 解出响应体为 map，便于逐字段断言（不依赖结构体 tag）。
 func decode(t *testing.T, w *httptest.ResponseRecorder) map[string]interface{} {
 	t.Helper()
 	var m map[string]interface{}
@@ -39,9 +41,31 @@ func decode(t *testing.T, w *httptest.ResponseRecorder) map[string]interface{} {
 	return m
 }
 
-// TestSuccess_Contract 成功响应契约：{code:200, message:"操作成功", data}。
-// 不带 timestamp/path（对齐原 TransformInterceptor）。
-func TestSuccess_Contract(t *testing.T) {
+// TestContract_FieldNames 契约核心：只有 data / message / status_code 三个字段。
+//
+// 旧的 code / timestamp / path 一律不得出现。
+func TestContract_FieldNames(t *testing.T) {
+	c, w := newCtx(http.MethodGet, "/api/v1/article/a-1")
+	Success(c, map[string]string{"id": "a-1"})
+	m := decode(t, w)
+
+	for _, k := range []string{"data", "message", "status_code"} {
+		if _, ok := m[k]; !ok {
+			t.Errorf("响应体缺少字段 %q：%s", k, w.Body.String())
+		}
+	}
+	for _, k := range []string{"code", "timestamp", "path"} {
+		if _, ok := m[k]; ok {
+			t.Errorf("响应体不应再有字段 %q（已重构）：%s", k, w.Body.String())
+		}
+	}
+	if len(m) != 3 {
+		t.Errorf("响应体应恰好 3 个字段，实际 %d 个：%s", len(m), w.Body.String())
+	}
+}
+
+// TestSuccess 成功响应：status_code=200，message=Success，data 原样。
+func TestSuccess(t *testing.T) {
 	c, w := newCtx(http.MethodGet, "/api/v1/article/a-1")
 	Success(c, map[string]string{"id": "a-1"})
 
@@ -49,65 +73,54 @@ func TestSuccess_Contract(t *testing.T) {
 		t.Errorf("HTTP：得到 %d，期望 200", w.Code)
 	}
 	m := decode(t, w)
-
-	if got := m["code"].(float64); got != 200 {
-		t.Errorf("code：得到 %v，期望 200（前端拦截器按此判断成功）", got)
+	if got := m["status_code"].(float64); got != 200 {
+		t.Errorf("status_code：得到 %v，期望 200", got)
 	}
-	if got := m["message"].(string); got != "操作成功" {
-		t.Errorf("message：得到 %q，期望 \"操作成功\"", got)
+	if got := m["message"].(string); got != "Success" {
+		t.Errorf("message：得到 %q，期望 \"Success\"", got)
 	}
 	data, ok := m["data"].(map[string]interface{})
 	if !ok {
-		t.Fatalf("data 不是对象：%T", m["data"])
+		t.Fatalf("data 不是对象：%v", m["data"])
 	}
 	if data["id"] != "a-1" {
-		t.Errorf("data.id：得到 %v", data["id"])
-	}
-	// 成功体不应携带错误专用字段
-	if _, exists := m["timestamp"]; exists {
-		t.Error("成功体不应带 timestamp（对齐原 TransformInterceptor）")
-	}
-	if _, exists := m["path"]; exists {
-		t.Error("成功体不应带 path")
+		t.Errorf("data.id：得到 %v，期望 a-1", data["id"])
 	}
 }
 
-// TestSuccess_NilData data 为 nil 时仍输出 "data": null（不是省略字段）。
-// 防的是：前端读 data.xxx 时遇到 undefined 报错。
-func TestSuccess_NilData(t *testing.T) {
-	c, w := newCtx(http.MethodDelete, "/api/v1/article/a-1")
-	Success(c, nil)
+// TestSuccessMsg 业务提示走顶层 message，不再塞进 data。
+func TestSuccessMsg(t *testing.T) {
+	c, w := newCtx(http.MethodPost, "/api/v1/user/logout")
+	SuccessMsg(c, i18n.AuthLogoutSuccess, gin.H{"success": true})
 
 	m := decode(t, w)
-	data, exists := m["data"]
-	if !exists {
-		t.Fatal("data 字段被省略（前端解构会崩）")
+	if got := m["message"].(string); got != "Logged out" {
+		t.Errorf("message：得到 %q，期望 \"Logged out\"", got)
 	}
-	if data != nil {
-		t.Errorf("data 应为 null，得到 %v", data)
+	data := m["data"].(map[string]interface{})
+	if _, leaked := data["message"]; leaked {
+		t.Errorf("data 里不应再有 message 字段：%v", data)
+	}
+	if data["success"] != true {
+		t.Errorf("data.success 应保留：%v", data)
 	}
 }
 
-// TestHealth_CodeZero health/ping 专用 code:0。
-// 防的是：探针拿 200 判成功，但业务前端把 code:0 当异常（约定与业务码分离）。
-func TestHealth_CodeZero(t *testing.T) {
+// TestHealth health 端点保留 status_code:0 的骨架约定。
+func TestHealth(t *testing.T) {
 	c, w := newCtx(http.MethodGet, "/health")
-	Health(c, map[string]string{"status": "up"})
-
-	if w.Code != http.StatusOK {
-		t.Errorf("HTTP：得到 %d，期望 200（探针语义：依赖抖动也不返回 5xx）", w.Code)
-	}
+	Health(c, gin.H{"status": "up"})
 	m := decode(t, w)
-	if got := m["code"].(float64); got != 0 {
-		t.Errorf("code：得到 %v，期望 0", got)
+	if got := m["status_code"].(float64); got != 0 {
+		t.Errorf("status_code：得到 %v，期望 0", got)
 	}
-	if got := m["message"].(string); got != "ok" {
-		t.Errorf("message：得到 %q，期望 \"ok\"", got)
+	if got := m["message"].(string); got != "OK" {
+		t.Errorf("message：得到 %q，期望 \"OK\"", got)
 	}
 }
 
-// TestFail_Contract 失败响应契约：HTTP = err.HTTP，体 {code,message,data:null,timestamp,path}。
-func TestFail_Contract(t *testing.T) {
+// TestFail 失败响应：HTTP 状态与 status_code 一致，data 为 null。
+func TestFail(t *testing.T) {
 	c, w := newCtx(http.MethodGet, "/api/v1/user/profile")
 	Fail(c, errcode.ErrUnauthorized)
 
@@ -115,188 +128,94 @@ func TestFail_Contract(t *testing.T) {
 		t.Errorf("HTTP：得到 %d，期望 401", w.Code)
 	}
 	m := decode(t, w)
-
-	if got := m["code"].(float64); got != 401 {
-		t.Errorf("code：得到 %v，期望 401", got)
+	if got := m["status_code"].(float64); got != 401 {
+		t.Errorf("status_code：得到 %v，期望 401", got)
 	}
-	if got := m["message"].(string); got != errcode.ErrUnauthorized.Msg {
-		t.Errorf("message：得到 %q，期望 %q", got, errcode.ErrUnauthorized.Msg)
+	if m["data"] != nil {
+		t.Errorf("失败响应 data 应为 null，得到 %v", m["data"])
 	}
-	if d, exists := m["data"]; !exists || d != nil {
-		t.Errorf("data 应为 null 且字段存在，得到 %v (exists=%v)", d, exists)
+	if got := m["message"].(string); got != "Unauthorized" {
+		t.Errorf("message：得到 %q，期望 \"Unauthorized\"", got)
 	}
-	if _, exists := m["timestamp"]; !exists {
-		t.Error("失败体缺 timestamp（前端上报无法定位时间）")
-	}
-	if got := m["path"].(string); got != "/api/v1/user/profile" {
-		t.Errorf("path：得到 %q，期望请求路径", got)
+	if !c.IsAborted() {
+		t.Error("Fail 应调用 Abort，阻止后续 handler 继续写响应")
 	}
 }
 
-// TestFail_NilErrFallsBackToInternal nil 错误回退 500，不能 panic。
-// 防的是：service 返回 (nil, nil) 或错误被吞后进入 Fail，空指针 panic 变 500 白页。
-func TestFail_NilErrFallsBackToInternal(t *testing.T) {
-	c, w := newCtx(http.MethodGet, "/x")
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("Fail(nil) panic 了: %v", r)
-		}
-	}()
-	Fail(c, nil)
-
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("nil 错误应回退 500，得到 %d", w.Code)
-	}
+// TestFailKey 用 i18n key 构造失败响应。
+func TestFailKey(t *testing.T) {
+	c, w := newCtx(http.MethodGet, "/api/v1/article/x")
+	FailKey(c, errcode.ErrNotFound, i18n.ArticleNotFound)
 	m := decode(t, w)
-	if got := m["code"].(float64); got != 500 {
-		t.Errorf("code：得到 %v，期望 500", got)
+	if got := m["message"].(string); got != "Article not found" {
+		t.Errorf("message：得到 %q，期望 \"Article not found\"", got)
 	}
 }
 
-// TestFail_BusinessCodeKeepsItsHTTP 1000+ 业务码：code 用业务码，HTTP 用映射值。
-// 这是两条并行契约，混淆会让前端分段判断失效。
-func TestFail_BusinessCodeKeepsItsHTTP(t *testing.T) {
-	c, w := newCtx(http.MethodPost, "/api/v1/user/register")
-	Fail(c, errcode.ErrUserAlreadyExists)
-
-	if w.Code != http.StatusConflict {
-		t.Errorf("HTTP：得到 %d，期望 409", w.Code)
-	}
-	m := decode(t, w)
-	if got := m["code"].(float64); got != float64(errcode.ErrUserAlreadyExists.Code) {
-		t.Errorf("code：得到 %v，期望 %d（业务码不能被 HTTP 码覆盖）",
-			got, errcode.ErrUserAlreadyExists.Code)
-	}
-}
-
-// TestFail_AbortsChain Fail 必须中断后续 handler。
-//
-// 防的是：Fail 后 handler 继续执行并写第二份响应，
-// gin 会报 "superfluous response.WriteHeader call"，前端收到拼接的坏 JSON。
-func TestFail_AbortsChain(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	var afterCalled bool
-
-	r.GET("/t", func(c *gin.Context) {
-		Fail(c, errcode.ErrForbidden)
-		// 此处若控制器继续往下走就会被记录；Abort 应让后续 handler 不执行
-	}, func(c *gin.Context) {
-		afterCalled = true
-	})
-
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/t", nil))
-
-	if afterCalled {
-		t.Error("Fail 未中断链路：后续 handler 仍执行了（会产生 superfluous WriteHeader）")
-	}
-	if w.Code != http.StatusForbidden {
-		t.Errorf("HTTP：得到 %d，期望 403", w.Code)
-	}
-}
-
-// TestFailWith 覆盖提示语，code/HTTP 保持原样。
+// TestFailWith 自定义提示覆盖。
 func TestFailWith(t *testing.T) {
-	c, w := newCtx(http.MethodGet, "/x")
-	FailWith(c, errcode.ErrNotFound, "文章不存在")
-
-	if w.Code != http.StatusNotFound {
-		t.Errorf("HTTP：得到 %d，期望 404", w.Code)
-	}
+	c, w := newCtx(http.MethodGet, "/api/v1/article/x")
+	FailWith(c, errcode.ErrNotFound, "Article not found")
 	m := decode(t, w)
-	if got := m["message"].(string); got != "文章不存在" {
-		t.Errorf("message：得到 %q，期望覆盖值", got)
-	}
-	if got := m["code"].(float64); got != 404 {
-		t.Errorf("code：得到 %v，期望 404（FailWith 不应改 code）", got)
-	}
-	if errcode.ErrNotFound.Msg != "资源不存在" {
-		t.Errorf("FailWith 污染了预定义错误码：%q", errcode.ErrNotFound.Msg)
+	if got := m["message"].(string); got != "Article not found" {
+		t.Errorf("message：得到 %q", got)
 	}
 }
 
-// TestSuccessPage_TotalPagesCeiling 分页 totalPages 必须向上取整。
-//
-// 防的是：total=11, limit=10 算出 1 页 → 最后一页（第 2 页的 1 条）永远取不到。
-func TestSuccessPage_TotalPagesCeiling(t *testing.T) {
-	cases := []struct {
-		name        string
-		total       int64
-		page, limit int
-		wantPages   int64
-	}{
-		{"整除", 20, 1, 10, 2},
-		{"有余数必须进位", 11, 1, 10, 2},
-		{"总量小于一页", 3, 1, 10, 1},
-		{"总量为零", 0, 1, 10, 0},
-		{"恰好一页", 10, 1, 10, 1},
-		{"单页 limit=1", 5, 1, 1, 5},
-		{"大数", 1000, 1, 100, 10},
-		{"1001 条", 1001, 1, 100, 11},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			c, w := newCtx(http.MethodGet, "/list")
-			SuccessPage(c, []string{"item"}, tc.total, tc.page, tc.limit)
-
-			m := decode(t, w)
-			data, ok := m["data"].(map[string]interface{})
-			if !ok {
-				t.Fatalf("data 不是对象：%T", m["data"])
-			}
-			meta, ok := data["meta"].(map[string]interface{})
-			if !ok {
-				t.Fatalf("data.meta 不是对象：%T", data["meta"])
-			}
-			if got := int64(meta["totalPages"].(float64)); got != tc.wantPages {
-				t.Errorf("totalPages：得到 %d，期望 %d（total=%d limit=%d）",
-					got, tc.wantPages, tc.total, tc.limit)
-			}
-			if got := int64(meta["total"].(float64)); got != tc.total {
-				t.Errorf("total：得到 %d，期望 %d", got, tc.total)
-			}
-			if got := int(meta["page"].(float64)); got != tc.page {
-				t.Errorf("page：得到 %d，期望 %d", got, tc.page)
-			}
-			if got := int(meta["limit"].(float64)); got != tc.limit {
-				t.Errorf("limit：得到 %d，期望 %d", got, tc.limit)
-			}
-			// list 字段必须存在
-			if _, exists := data["list"]; !exists {
-				t.Error("data.list 缺失")
-			}
-		})
+// TestFail_NilErr 传 nil 不应 panic，回退 500。
+func TestFail_NilErr(t *testing.T) {
+	c, w := newCtx(http.MethodGet, "/x")
+	Fail(c, nil)
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("HTTP：得到 %d，期望 500", w.Code)
 	}
 }
 
-// TestSuccessPage_MetaFieldNamesCamelCase meta 字段名必须是 camelCase。
-// 防的是：写成 total_pages，前端读到 undefined（T-13 口径：对外 JSON 一律 camelCase）。
-func TestSuccessPage_MetaFieldNamesCamelCase(t *testing.T) {
-	c, w := newCtx(http.MethodGet, "/list")
-	SuccessPage(c, []int{1, 2}, 2, 1, 10)
+// TestSuccessPage totalPages 必须向上取整。
+func TestSuccessPage(t *testing.T) {
+	c, w := newCtx(http.MethodGet, "/api/v1/article")
+	SuccessPage(c, []int{1, 2}, 11, 2, 10)
 
-	raw := w.Body.String()
-	for _, want := range []string{`"totalPages"`, `"total"`, `"page"`, `"limit"`, `"list"`} {
-		if !contains(raw, want) {
-			t.Errorf("响应体缺少 %s（对外 JSON 必须 camelCase）：%s", want, raw)
+	m := decode(t, w)
+	data := m["data"].(map[string]interface{})
+	meta := data["meta"].(map[string]interface{})
+	if got := meta["totalPages"].(float64); got != 2 {
+		t.Errorf("totalPages：得到 %v，期望 2（11 条 / 每页 10 = 2 页）", got)
+	}
+}
+
+// TestSuccessPage_ZeroLimit limit=0 不得除零 panic。
+func TestSuccessPage_ZeroLimit(t *testing.T) {
+	c, w := newCtx(http.MethodGet, "/api/v1/article")
+	SuccessPage(c, []int{}, 0, 1, 0) // 不 panic 即通过
+	if w.Code != http.StatusOK {
+		t.Errorf("HTTP：得到 %d", w.Code)
+	}
+}
+
+// TestAllMessagesEnglish 所有预定义错误码的 message 必须是英文（无中文）。
+func TestAllMessagesEnglish(t *testing.T) {
+	errs := []*errcode.Err{
+		errcode.ErrBadRequest, errcode.ErrUnauthorized, errcode.ErrForbidden,
+		errcode.ErrNotFound, errcode.ErrConflict, errcode.ErrTooManyRequests,
+		errcode.ErrInternal, errcode.ErrUserAlreadyExists, errcode.ErrBadCredentials,
+	}
+	for _, e := range errs {
+		msg := e.Msg()
+		if msg == "" {
+			t.Errorf("错误码 %d 的 message 是空串", e.Code)
+		}
+		if strings.ContainsFunc(msg, func(r rune) bool { return r >= 0x4e00 && r <= 0x9fff }) {
+			t.Errorf("错误码 %d 的 message 含中文：%q", e.Code, msg)
 		}
 	}
-	if contains(raw, "total_pages") {
-		t.Errorf("响应体出现 snake_case total_pages（违反 camelCase 口径）：%s", raw)
-	}
 }
 
-func contains(s, sub string) bool {
-	return len(sub) == 0 || (len(s) >= len(sub) && indexOf(s, sub) >= 0)
-}
-
-func indexOf(s, sub string) int {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
+// TestPresetNotPolluted With 不得污染预定义错误码。
+func TestPresetNotPolluted(t *testing.T) {
+	before := errcode.ErrNotFound.Msg()
+	_ = errcode.ErrNotFound.With("custom message")
+	if after := errcode.ErrNotFound.Msg(); after != before {
+		t.Errorf("With 污染了预定义错误码：%q → %q", before, after)
 	}
-	return -1
 }

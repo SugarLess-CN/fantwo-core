@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -154,8 +155,8 @@ func TestProtectedRouteRequiresAuth(t *testing.T) {
 			t.Errorf("%s 期望 401，实际 %d（body=%s）", path, w.Code, w.Body.String())
 			continue
 		}
-		if !contains(w.Body.String(), "2001") {
-			t.Errorf("%s 期望错误码 2001，实际 body=%s", path, w.Body.String())
+		if !contains(w.Body.String(), `"status_code":401`) {
+			t.Errorf("%s 期望 status_code=401，实际 body=%s", path, w.Body.String())
 		}
 	}
 }
@@ -180,8 +181,8 @@ func TestOAuthNotConfigured(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/user/oauth/github/url", nil)
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusBadRequest || !contains(w.Body.String(), "4022") {
-		t.Errorf("期望 400 + code=4022，实际 %d body=%s", w.Code, w.Body.String())
+	if w.Code != http.StatusBadRequest || !contains(w.Body.String(), i18n.T(i18n.AuthOAuthNotConfigured)) {
+		t.Errorf("期望 400 + 未配置提示，实际 %d body=%s", w.Code, w.Body.String())
 	}
 }
 

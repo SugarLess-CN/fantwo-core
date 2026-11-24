@@ -233,7 +233,7 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		defer cancel()
 		if e := roleSvc.InitRBAC(ctx); e != nil {
 			if opt.Logger != nil {
-				opt.Logger.Warn("RBAC 初始化失败（可稍后重试）: " + e.Msg)
+				opt.Logger.Warn("RBAC init failed (retry later): " + e.Msg())
 			}
 		}
 	}

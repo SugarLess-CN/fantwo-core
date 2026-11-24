@@ -13,6 +13,8 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
 // TestPointsLimitBlock 积分活动的限额判定（0 = 不限）。
@@ -31,17 +33,17 @@ func TestPointsLimitBlock(t *testing.T) {
 		act   *model.PointsActivity
 		daily int64
 		total int64
-		want  string
+		want  i18n.Key // 断言 key（契约级），不锁文案；空 key = 可发放
 	}{
 		{"双 0 不限 → 放行", act(0, 0), 9999, 9999, ""},
 		{"日限未到 → 放行", act(5, 0), 4, 0, ""},
-		{"日限刚满 → 拦", act(5, 0), 5, 0, "已达该活动每日次数上限"},
-		{"日限已超 → 拦", act(5, 0), 6, 0, "已达该活动每日次数上限"},
+		{"日限刚满 → 拦", act(5, 0), 5, 0, i18n.PointsDailyLimit},
+		{"日限已超 → 拦", act(5, 0), 6, 0, i18n.PointsDailyLimit},
 		{"总限未到 → 放行", act(0, 3), 0, 2, ""},
-		{"总限刚满 → 拦", act(0, 3), 0, 3, "已达该活动总次数上限"},
-		{"日限与总限同时触发 → 日限优先", act(2, 2), 2, 2, "已达该活动每日次数上限"},
-		{"日限放行但总限满 → 拦总额", act(5, 2), 1, 2, "已达该活动总次数上限"},
-		{"nil 活动 → 明确报不存在", nil, 0, 0, "积分活动不存在"},
+		{"总限刚满 → 拦", act(0, 3), 0, 3, i18n.PointsTotalLimit},
+		{"日限与总限同时触发 → 日限优先", act(2, 2), 2, 2, i18n.PointsDailyLimit},
+		{"日限放行但总限满 → 拦总额", act(5, 2), 1, 2, i18n.PointsTotalLimit},
+		{"nil 活动 → 明确报不存在", nil, 0, 0, i18n.PointsActivityNotFound},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -98,30 +100,30 @@ func TestDecorationPurchaseRejection(t *testing.T) {
 		name     string
 		deco     *model.Decoration
 		existing *model.UserDecoration
-		want     string
+		wantKey  i18n.Key // 断言 Err.Key（契约级），不锁具体文案；空 = 允许
 	}{
 		{"正常可买", deco(true, model.DecorationStatusActive), nil, ""},
-		{"不可购买", deco(false, model.DecorationStatusActive), nil, "该装饰品不可购买"},
-		{"已下架", deco(true, model.DecorationStatusInactive), nil, "该装饰品已下架"},
+		{"不可购买", deco(false, model.DecorationStatusActive), nil, i18n.DecorationNotPurchasable},
+		{"已下架", deco(true, model.DecorationStatusInactive), nil, i18n.DecorationUnavailable},
 		{"已永久持有", deco(true, model.DecorationStatusActive),
-			&model.UserDecoration{IsPermanent: true}, "您已拥有该装饰品"},
+			&model.UserDecoration{IsPermanent: true}, i18n.DecorationAlreadyOwned},
 		{"限时未过期", deco(true, model.DecorationStatusActive),
-			&model.UserDecoration{ExpiresAt: &future}, "您已拥有该装饰品"},
+			&model.UserDecoration{ExpiresAt: &future}, i18n.DecorationAlreadyOwned},
 		{"限时已过期 → 允许复购", deco(true, model.DecorationStatusActive),
 			&model.UserDecoration{ExpiresAt: &past}, ""},
 		{"非永久且无到期时间 → 视为未持有", deco(true, model.DecorationStatusActive),
 			&model.UserDecoration{}, ""},
-		{"装饰品不存在", nil, nil, "装饰品不存在"},
+		{"装饰品不存在", nil, nil, i18n.DecorationNotFound},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			reject := decorationPurchaseRejection(tc.deco, tc.existing, now)
-			got := ""
+			got := i18n.Key("")
 			if reject != nil {
-				got = reject.Msg
+				got = reject.Key
 			}
-			if got != tc.want {
-				t.Errorf("rejection = %q, want %q", got, tc.want)
+			if got != tc.wantKey {
+				t.Errorf("rejection key = %q, want %q", got, tc.wantKey)
 			}
 		})
 	}
@@ -246,27 +248,20 @@ func TestInviteUseRejection(t *testing.T) {
 		name    string
 		inv     *model.Invite
 		invitee string
-		wantMsg string
+		wantKey i18n.Key // 断言 Err.Key（契约级），不锁具体文案；空 = 允许
 	}{
 		{"正常可用", pending(nil, "inviter-1"), "invitee-1", ""},
 		{"未来到期仍可用", pending(&future, "inviter-1"), "invitee-1", ""},
-		{"已过期", pending(&past, "inviter-1"), "invitee-1", inviteRejectExpiredMsg},
-		{"已使用", &model.Invite{InviterID: "inviter-1", Status: model.InviteStatusUsed}, "invitee-1", "邀请码无效或已被使用"},
-		{"已过期状态", &model.Invite{InviterID: "inviter-1", Status: model.InviteStatusExpired}, "invitee-1", "邀请码无效或已被使用"},
-		{"自邀", pending(nil, "same-user"), "same-user", "不能使用自己的邀请码"},
-		{"邀请码不存在", nil, "invitee-1", "邀请码不存在"},
+		{"已过期", pending(&past, "inviter-1"), "invitee-1", inviteRejectExpiredKey},
+		{"已使用", &model.Invite{InviterID: "inviter-1", Status: model.InviteStatusUsed}, "invitee-1", i18n.InviteCodeUsed},
+		{"已过期状态", &model.Invite{InviterID: "inviter-1", Status: model.InviteStatusExpired}, "invitee-1", i18n.InviteCodeUsed},
+		{"自邀", pending(nil, "same-user"), "same-user", i18n.InviteCodeInvalid},
+		{"邀请码不存在", nil, "invitee-1", i18n.InviteCodeInvalid},
 		{"空 invitee（匿名）不走自邀判定", pending(nil, "inviter-1"), "", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			reject := inviteUseRejection(tc.inv, tc.invitee, now)
-			got := ""
-			if reject != nil {
-				got = reject.Msg
-			}
-			if got != tc.wantMsg {
-				t.Errorf("rejection = %q, want %q", got, tc.wantMsg)
-			}
+			assertRejectKey(t, inviteUseRejection(tc.inv, tc.invitee, now), tc.wantKey)
 		})
 	}
 }
@@ -283,31 +278,24 @@ func TestEmojiEditRejection(t *testing.T) {
 	orphanEmoji := &model.Emoji{Type: model.EmojiTypeUser, UserID: ""}
 
 	cases := []struct {
-		name  string
-		e     *model.Emoji
-		uid   string
-		admin bool
-		want  string
+		name    string
+		e       *model.Emoji
+		uid     string
+		admin   bool
+		wantKey i18n.Key // 断言 Err.Key（契约级），不锁具体文案；空 = 允许
 	}{
 		{"本人改自己的用户表情", userEmoji, "u-1", false, ""},
-		{"他人改用户表情 → 拒", userEmoji, "u-2", false, "只能操作自己的表情"},
+		{"他人改用户表情 → 拒", userEmoji, "u-2", false, i18n.EmojiNoPermission},
 		{"管理员可改用户表情", userEmoji, "admin", true, ""},
-		{"普通用户改系统表情 → 拒", sysEmoji, "u-1", false, "系统表情只能由管理员维护"},
+		{"普通用户改系统表情 → 拒", sysEmoji, "u-1", false, i18n.EmojiSystemOnlyAdmin},
 		{"管理员改系统表情", sysEmoji, "admin", true, ""},
-		{"普通用户改无归属表情 → 拒", orphanEmoji, "u-1", false, "只能操作自己的表情"},
+		{"普通用户改无归属表情 → 拒", orphanEmoji, "u-1", false, i18n.EmojiNoPermission},
 		{"管理员改无归属表情", orphanEmoji, "admin", true, ""},
-		{"表情不存在", nil, "u-1", false, "表情不存在"},
+		{"表情不存在", nil, "u-1", false, i18n.EmojiNotFound},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			reject := emojiEditRejection(tc.e, tc.uid, tc.admin)
-			got := ""
-			if reject != nil {
-				got = reject.Msg
-			}
-			if got != tc.want {
-				t.Errorf("rejection = %q, want %q", got, tc.want)
-			}
+			assertRejectKey(t, emojiEditRejection(tc.e, tc.uid, tc.admin), tc.wantKey)
 		})
 	}
 }
@@ -421,26 +409,19 @@ func TestOrderPaidSideEffectRouting(t *testing.T) {
 func TestTaskClaimRejection(t *testing.T) {
 	now := time.Now()
 	cases := []struct {
-		name   string
-		record *model.PointsTaskRecord
-		want   string
+		name    string
+		record  *model.PointsTaskRecord
+		wantKey i18n.Key // 断言 Err.Key（契约级），不锁具体文案；空 = 允许
 	}{
-		{"无任务记录 → 拒绝", nil, "任务记录不存在"},
-		{"未完成 → 拒绝", &model.PointsTaskRecord{IsCompleted: false}, "任务尚未完成"},
+		{"无任务记录 → 拒绝", nil, i18n.PointsRecordNotFound},
+		{"未完成 → 拒绝", &model.PointsTaskRecord{IsCompleted: false}, i18n.PointsTaskNotCompleted},
 		{"已完成未领取 → 放行", &model.PointsTaskRecord{IsCompleted: true}, ""},
-		{"已完成已领取 → 拒绝（幂等）", &model.PointsTaskRecord{IsCompleted: true, IsRewarded: true, RewardedAt: &now}, "奖励已领取"},
-		{"未完成但标记已领取（脏数据）→ 仍按未完成拒绝", &model.PointsTaskRecord{IsCompleted: false, IsRewarded: true}, "任务尚未完成"},
+		{"已完成已领取 → 拒绝（幂等）", &model.PointsTaskRecord{IsCompleted: true, IsRewarded: true, RewardedAt: &now}, i18n.CommonRewardAlreadyClaimed},
+		{"未完成但标记已领取（脏数据）→ 仍按未完成拒绝", &model.PointsTaskRecord{IsCompleted: false, IsRewarded: true}, i18n.PointsTaskNotCompleted},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			reject := taskClaimRejection(tc.record)
-			got := ""
-			if reject != nil {
-				got = reject.Msg
-			}
-			if got != tc.want {
-				t.Errorf("rejection = %q, want %q", got, tc.want)
-			}
+			assertRejectKey(t, taskClaimRejection(tc.record), tc.wantKey)
 		})
 	}
 }
@@ -451,25 +432,39 @@ func TestTaskClaimRejection(t *testing.T) {
 func TestAchievementClaimRejection(t *testing.T) {
 	now := time.Now()
 	cases := []struct {
-		name string
-		ua   *model.UserAchievement
-		want string
+		name    string
+		ua      *model.UserAchievement
+		wantKey i18n.Key // 断言 Err.Key（契约级），不锁具体文案；空 = 允许
 	}{
-		{"无进度记录 → 拒绝", nil, "成就不存在或尚未开始"},
-		{"未完成 → 拒绝", &model.UserAchievement{Completed: false}, "成就尚未完成"},
+		{"无进度记录 → 拒绝", nil, i18n.AchievementNotAvailable},
+		{"未完成 → 拒绝", &model.UserAchievement{Completed: false}, i18n.AchievementNotCompleted},
 		{"已完成未领取 → 放行", &model.UserAchievement{Completed: true, CompletedAt: &now}, ""},
-		{"已领取 → 拒绝（幂等）", &model.UserAchievement{Completed: true, Claimed: true, ClaimedAt: &now}, "奖励已领取"},
+		{"已领取 → 拒绝（幂等）", &model.UserAchievement{Completed: true, Claimed: true, ClaimedAt: &now}, i18n.CommonRewardAlreadyClaimed},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			reject := achievementClaimRejection(tc.ua)
-			got := ""
-			if reject != nil {
-				got = reject.Msg
-			}
-			if got != tc.want {
-				t.Errorf("rejection = %q, want %q", got, tc.want)
-			}
+			assertRejectKey(t, achievementClaimRejection(tc.ua), tc.wantKey)
 		})
+	}
+}
+
+// assertRejectKey 按 i18n key 断言拒绝原因（契约级断言）。
+//
+// 为什么断言 Key 而不是文案：文案属于 i18n 文案表、会随文案润色/多语言调整而变，
+// 而 Key 是业务契约 —— 锁 Key 才能既不因改文案而假红，也不放过「拒绝理由串错」的真 bug。
+// wantKey 为空串表示应当放行（reject == nil）。
+func assertRejectKey(t *testing.T, reject *errcode.Err, wantKey i18n.Key) {
+	t.Helper()
+	if wantKey == "" {
+		if reject != nil {
+			t.Fatalf("应放行，实际被拒: key=%s msg=%q", reject.Key, reject.Msg())
+		}
+		return
+	}
+	if reject == nil {
+		t.Fatalf("应拒绝（key=%s），实际放行", wantKey)
+	}
+	if reject.Key != wantKey {
+		t.Errorf("reject.Key = %q（文案 %q）, want %q", reject.Key, reject.Msg(), wantKey)
 	}
 }

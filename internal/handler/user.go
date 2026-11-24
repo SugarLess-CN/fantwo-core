@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -107,7 +108,7 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "验证码已发送"})
+	response.SuccessMsg(c, i18n.AuthCaptchaSent, gin.H{"success": true})
 }
 
 // BindPhone POST /user/profile/phone：绑定手机号。

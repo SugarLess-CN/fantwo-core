@@ -4,6 +4,7 @@ package handler
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ import (
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput
 	if err := c.ShouldBindJSON(&in); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		response.FailKey(c, errcode.ErrBadRequest, i18n.CommonInvalidParam, err.Error())
 		return
 	}
 	b, err := h.Banner.Create(in)
@@ -106,7 +107,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 	var in model.BannerInput
 	if err := c.ShouldBindJSON(&in); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
+		response.FailKey(c, errcode.ErrBadRequest, i18n.CommonInvalidParam, err.Error())
 		return
 	}
 	b, err := h.Banner.Update(c.Param("id"), in)

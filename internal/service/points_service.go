@@ -13,6 +13,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -67,7 +68,7 @@ type PointsChangeResult struct {
 // Add 发放积分（余额变动 + 流水走 PointsLedger）。
 func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResult, error) {
 	if in.Amount <= 0 {
-		return nil, errcode.ErrBadRequest.With("积分数量必须大于 0")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.PointsAmountInvalid)
 	}
 	var expiredAt *time.Time
 	if in.ValidDays > 0 {
@@ -90,7 +91,7 @@ func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResu
 // Spend 消费积分（余额不足直接失败，不会扣成负数）。
 func (s *PointsService) Spend(userID string, in SpendPointsInput) (*PointsChangeResult, error) {
 	if in.Amount <= 0 {
-		return nil, errcode.ErrBadRequest.With("积分数量必须大于 0")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.PointsAmountInvalid)
 	}
 	balance, record, err := s.ledger.Change(userID, -in.Amount, LedgerMeta{
 		Source:      in.Source,
@@ -111,7 +112,7 @@ func (s *PointsService) AddByRule(userID, activityCode, relatedType, relatedID s
 		return nil, err
 	}
 	if activity == nil || !activity.IsActive {
-		return nil, errcode.ErrNotFound.With("积分活动不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.PointsActivityNotFound)
 	}
 
 	reason, err := s.ruleBlockReason(userID, activity)
@@ -119,7 +120,7 @@ func (s *PointsService) AddByRule(userID, activityCode, relatedType, relatedID s
 		return nil, err
 	}
 	if reason != "" {
-		return nil, errcode.ErrBadRequest.With(reason)
+		return nil, errcode.ErrBadRequest.WithKey(reason)
 	}
 
 	return s.Add(userID, AddPointsInput{
@@ -201,17 +202,17 @@ func (s *PointsService) Transactions(q model.PointsTxQuery) ([]model.PointsTrans
 // CreateActivity 创建活动（code 唯一，应用层校验）。
 func (s *PointsService) CreateActivity(in model.PointsActivityInput) (*model.PointsActivity, error) {
 	if in.Code == nil || *in.Code == "" {
-		return nil, errcode.ErrBadRequest.With("活动代码不能为空")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "code")
 	}
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("活动名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "name")
 	}
 	exists, err := s.activities.FindByCode(s.DB, *in.Code)
 	if err != nil {
 		return nil, err
 	}
 	if exists != nil {
-		return nil, errcode.ErrBadRequest.With("活动代码已存在")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonAlreadyExists, "Activity code")
 	}
 
 	a := &model.PointsActivity{
@@ -236,7 +237,7 @@ func (s *PointsService) UpdateActivity(id string, in model.PointsActivityInput) 
 		return nil, err
 	}
 	if a == nil {
-		return nil, errcode.ErrNotFound.With("积分活动不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.PointsActivityNotFound)
 	}
 	if in.Code != nil && *in.Code != "" && *in.Code != a.Code {
 		other, err := s.activities.FindByCode(s.DB, *in.Code)
@@ -244,7 +245,7 @@ func (s *PointsService) UpdateActivity(id string, in model.PointsActivityInput) 
 			return nil, err
 		}
 		if other != nil {
-			return nil, errcode.ErrBadRequest.With("活动代码已存在")
+			return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonAlreadyExists, "Activity code")
 		}
 	}
 	applyPointsActivityInput(a, in)
@@ -261,7 +262,7 @@ func (s *PointsService) DeleteActivity(id string) error {
 		return err
 	}
 	if a == nil {
-		return errcode.ErrNotFound.With("积分活动不存在")
+		return errcode.ErrNotFound.WithKey(i18n.PointsActivityNotFound)
 	}
 	return s.activities.Delete(s.DB, id)
 }
@@ -273,7 +274,7 @@ func (s *PointsService) Activity(id string) (*model.PointsActivity, error) {
 		return nil, err
 	}
 	if a == nil {
-		return nil, errcode.ErrNotFound.With("积分活动不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.PointsActivityNotFound)
 	}
 	return a, nil
 }
@@ -300,7 +301,7 @@ func (s *PointsService) ClaimTaskReward(userID, activityID string) (*PointsChang
 	result, err := s.Add(userID, AddPointsInput{
 		Amount:      activity.RewardPoints,
 		Source:      activity.Code,
-		Description: "任务奖励：" + activity.Name,
+		Description: "Task reward: " + activity.Name,
 		ValidDays:   activity.ValidDays,
 	})
 	if err != nil {
@@ -324,13 +325,13 @@ func (s *PointsService) ClaimTaskReward(userID, activityID string) (*PointsChang
 //  3. 已领取 → 拒绝（这是幂等的核心：重复点「领取」不会重复发分）。
 func taskClaimRejection(record *model.PointsTaskRecord) *errcode.Err {
 	if record == nil {
-		return errcode.ErrNotFound.With("任务记录不存在")
+		return errcode.ErrNotFound.WithKey(i18n.PointsRecordNotFound)
 	}
 	if !record.IsCompleted {
-		return errcode.ErrBadRequest.With("任务尚未完成")
+		return errcode.ErrBadRequest.WithKey(i18n.PointsTaskNotCompleted)
 	}
 	if record.IsRewarded {
-		return errcode.ErrBadRequest.With("奖励已领取")
+		return errcode.ErrBadRequest.WithKey(i18n.CommonRewardAlreadyClaimed)
 	}
 	return nil
 }
@@ -347,7 +348,7 @@ func (s *PointsService) MyTaskProgress(userID, activityID string) (*model.Points
 		return nil, err
 	}
 	if r == nil {
-		return nil, errcode.ErrNotFound.With("任务记录不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.PointsRecordNotFound)
 	}
 	return r, nil
 }
@@ -497,12 +498,15 @@ func (s *PointsService) Statistics() (*PointsStatistics, error) {
 	return &st, nil
 }
 
-// ruleBlockReason 判定「按活动发放」是否被限额拦下，返回拦截原因（空串=可发放）。
+// ruleBlockReason 判定「按活动发放」是否被限额拦下，返回拦截原因的 i18n key（空 key = 可发放）。
 // 把判定从 AddByRule / TryAddByRule 里抽出来，保证两条路径共用同一套限额语义，
 // 并且可以被单测直接覆盖（不需要数据库）。
-func (s *PointsService) ruleBlockReason(userID string, activity *model.PointsActivity) (string, error) {
+//
+// 返回 i18n.Key 而不是文案：reason 会经 WithKey 进入响应 message（客户端可见），
+// 文案一律留在 i18n 表，判定层只持 key。
+func (s *PointsService) ruleBlockReason(userID string, activity *model.PointsActivity) (i18n.Key, error) {
 	if activity == nil {
-		return "积分活动不存在", nil
+		return i18n.PointsActivityNotFound, nil
 	}
 	var dailyCount, totalCount int64
 	if activity.DailyLimit > 0 {
@@ -524,20 +528,20 @@ func (s *PointsService) ruleBlockReason(userID string, activity *model.PointsAct
 }
 
 // pointsLimitBlock 纯判定：给定活动配置与当前计数，判断是否已触限。
-// 返回 "已达该活动每日次数上限" / "已达该活动总次数上限" / ""（可发放）。
+// 返回 PointsDailyLimit / PointsTotalLimit / ""（空 key = 可发放）。
 //
 // 防的 bug：DailyLimit/TotalLimit 语义是「0 表示不限制」，
 // 若误写成 `count >= limit` 无条件比较，0 限额的活动会被永久拦住；
 // 两条发放路径（AddByRule 报错 / TryAddByRule 静默）必须共用此判定，避免口径分叉。
-func pointsLimitBlock(activity *model.PointsActivity, dailyCount, totalCount int64) string {
+func pointsLimitBlock(activity *model.PointsActivity, dailyCount, totalCount int64) i18n.Key {
 	if activity == nil {
-		return "积分活动不存在"
+		return i18n.PointsActivityNotFound
 	}
 	if activity.DailyLimit > 0 && dailyCount >= int64(activity.DailyLimit) {
-		return "已达该活动每日次数上限"
+		return i18n.PointsDailyLimit
 	}
 	if activity.TotalLimit > 0 && totalCount >= int64(activity.TotalLimit) {
-		return "已达该活动总次数上限"
+		return i18n.PointsTotalLimit
 	}
 	return ""
 }

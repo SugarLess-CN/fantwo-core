@@ -8,6 +8,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -67,16 +68,16 @@ func NewTagService(repo *repository.TagRepository, arts *repository.ArticleRepos
 }
 
 // ErrTagNotFound 标签不存在。
-var ErrTagNotFound = errcode.ErrNotFound.With("标签不存在")
+var ErrTagNotFound = errcode.ErrNotFound.WithKey(i18n.TagNotFound)
 
 // Create 创建标签（名称唯一）。
 func (s *TagService) Create(ctx context.Context, actor Actor, req CreateTagRequest) (*TagView, *errcode.Err) {
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return nil, errcode.ErrBadRequest.With("标签名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.TagNameRequired)
 	}
 	if _, err := s.repo.FindByName(ctx, name); err == nil {
-		return nil, errcode.ErrConflict.With("标签名称已存在")
+		return nil, errcode.ErrConflict.WithKeyf(i18n.TagNameExists, name)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询标签失败", zap.Error(err))
 		return nil, errcode.ErrInternal
@@ -212,11 +213,11 @@ func (s *TagService) Update(ctx context.Context, id string, req UpdateTagRequest
 	if req.Name != nil {
 		name := strings.TrimSpace(*req.Name)
 		if name == "" {
-			return nil, errcode.ErrBadRequest.With("标签名称不能为空")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.TagNameRequired)
 		}
 		// 名称唯一性校验（排除自身）
 		if other, err := s.repo.FindByName(ctx, name); err == nil && other.ID != id {
-			return nil, errcode.ErrConflict.With("标签名称已存在")
+			return nil, errcode.ErrConflict.WithKeyf(i18n.TagNameExists, name)
 		}
 		fields["name"] = name
 	}
@@ -290,7 +291,7 @@ func (s *TagService) Follow(ctx context.Context, tagID string, actor Actor) (*ma
 		return nil, errcode.ErrInternal
 	}
 	if _, err := s.repo.FindFollow(ctx, actor.UserID, tagID); err == nil {
-		return nil, errcode.ErrBadRequest.With("已关注该标签")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.TagAlreadyFollowed)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询标签关注失败", zap.Error(err))
 		return nil, errcode.ErrInternal
@@ -318,7 +319,7 @@ func (s *TagService) Unfollow(ctx context.Context, tagID string, actor Actor) (*
 	}
 	if _, err := s.repo.FindFollow(ctx, actor.UserID, tagID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrBadRequest.With("未关注该标签")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.TagNotFollowed)
 		}
 		return nil, errcode.ErrInternal
 	}

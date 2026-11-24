@@ -28,6 +28,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/filecheck"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -132,15 +133,15 @@ type UploadMetaItem struct {
 // 返回 model.Upload 列表（service 已将 jsonb 列组装为结构化字段）。
 func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMetaItem, scene, baseURL, userID string) ([]model.Upload, error) {
 	if len(files) == 0 {
-		return nil, errcode.ErrBadRequest.With("上传文件不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.UploadNoFile)
 	}
 	// 单次文件数上限：env 兜底 + DB 优先（upload_max_file_count）
 	maxCount := f.uploadMaxFileCount()
 	if len(files) > maxCount {
-		return nil, errcode.ErrBadRequest.Withf("单次最多上传 %d 个文件", maxCount)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.UploadTooManyFiles, maxCount)
 	}
 	if scene != "" && scene != SceneAvatar && scene != SceneImage && scene != SceneOther {
-		return nil, errcode.ErrBadRequest.With("scene 必须是 avatar、image 或 other")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.UploadSceneInvalid, "avatar/image/other")
 	}
 
 	uploads := make([]model.Upload, 0, len(files))
@@ -207,7 +208,7 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 	if ident == "" {
 		h, err := fileHash(fh)
 		if err != nil {
-			return nil, errcode.ErrInternal.Withf("计算文件哈希失败: %v", err)
+			return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "hash calculation")
 		}
 		ident = h
 	}
@@ -220,7 +221,7 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 	if existing != nil {
 		if err := f.db.Model(&model.Upload{}).Where("id = ?", existing.ID).
 			UpdateColumn("reference_count", gorm.Expr("reference_count + 1")).Error; err != nil {
-			return nil, errcode.ErrInternal.Withf("更新引用计数失败: %v", err)
+			return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "reference count update")
 		}
 		return existing, nil
 	}
@@ -251,10 +252,10 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 		localDir := f.localDirRoot()
 		storedPath = filepath.Join(localDir, filename)
 		if err := os.MkdirAll(filepath.Dir(storedPath), 0o755); err != nil {
-			return nil, errcode.ErrInternal.Withf("创建存储目录失败: %v", err)
+			return nil, errcode.ErrInternal.WithKeyf(i18n.UploadSaveFailed, err)
 		}
 		if err := saveMultipart(fh, storedPath); err != nil {
-			return nil, errcode.ErrInternal.Withf("写文件失败: %v", err)
+			return nil, errcode.ErrInternal.WithKeyf(i18n.UploadSaveFailed, err)
 		}
 		fileURL = f.localURL(storedPath)
 	}
@@ -283,7 +284,7 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 	if err := f.db.Create(up).Error; err != nil {
 		// 落库失败：回滚已写盘文件，避免孤儿文件
 		_ = f.removeStored(storage, storedPath)
-		return nil, errcode.ErrInternal.Withf("保存上传记录失败: %v", err)
+		return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "save upload record")
 	}
 
 	// 7) 异步处理（不阻塞响应）
@@ -452,7 +453,7 @@ func (f *Infra) checkSize(size int64, mimeType string) error {
 	maxMB := f.uploadLimitMB(key, envMB, defMB)
 	limit := int64(maxMB) * 1024 * 1024
 	if size > limit {
-		return errcode.ErrBadRequest.Withf("文件大小超过限制: %.1fMB > %dMB", float64(size)/1024/1024, maxMB)
+		return errcode.ErrBadRequest.WithKeyf(i18n.UploadFileTooLarge, float64(size)/1024/1024, maxMB)
 	}
 	return nil
 }
@@ -461,23 +462,23 @@ func (f *Infra) checkSize(size int64, mimeType string) error {
 func (f *Infra) checkMagic(fh *multipart.FileHeader) error {
 	declared := fh.Header.Get("Content-Type")
 	if !filecheck.IsAllowedMime(declared) {
-		return errcode.ErrBadRequest.Withf("不支持的文件类型: %s", declared)
+		return errcode.ErrBadRequest.WithKeyf(i18n.UploadTypeNotAllowed, declared)
 	}
 	file, err := fh.Open()
 	if err != nil {
-		return errcode.ErrBadRequest.With("读取上传文件失败")
+		return errcode.ErrBadRequest.WithKey(i18n.UploadReadFailed)
 	}
 	defer file.Close()
 	head := make([]byte, sniffSize)
 	n, _ := io.ReadFull(file, head)
 	if _, verr := filecheck.Verify(declared, head[:n]); verr != nil {
 		if errors.Is(verr, filecheck.ErrMimeMismatch) {
-			return errcode.ErrBadRequest.Withf("文件真实类型与声明不匹配: 声明为 %s", declared)
+			return errcode.ErrBadRequest.WithKeyf(i18n.UploadMimeMismatch, declared)
 		}
 		if errors.Is(verr, filecheck.ErrMediaWithoutMagic) {
-			return errcode.ErrBadRequest.Withf("文件内容不是有效的 %s 文件（文件头无法识别）", declared)
+			return errcode.ErrBadRequest.WithKeyf(i18n.UploadInvalidContent, declared)
 		}
-		return errcode.ErrBadRequest.Withf("文件校验失败: %v", verr)
+		return errcode.ErrBadRequest.WithKeyf(i18n.CommonOperationFailed, "file verification")
 	}
 	// 嗅探不出格式：放行（对齐原 FileTypeUtil 宽松策略）
 	return nil
@@ -533,11 +534,11 @@ func metaAt(meta []UploadMetaItem, i int) UploadMetaItem {
 // putS3 流式上传到 S3（对齐 uploadToS3：stream body，不整读内存）。
 func (f *Infra) putS3(fh *multipart.FileHeader, key string) error {
 	if f.client == nil {
-		return errcode.ErrInternal.With("S3 客户端未初始化")
+		return errcode.ErrInternal.WithKey(i18n.CommonDependencyUnavailable)
 	}
 	src, err := fh.Open()
 	if err != nil {
-		return errcode.ErrBadRequest.With("读取上传文件失败")
+		return errcode.ErrBadRequest.WithKey(i18n.UploadReadFailed)
 	}
 	defer src.Close()
 	contentType := filecheck.NormalizeMime(fh.Header.Get("Content-Type"))
@@ -546,7 +547,7 @@ func (f *Infra) putS3(fh *multipart.FileHeader, key string) error {
 	_, putErr := f.client.PutObject(ctx, f.cfg.S3.Bucket, key, src, fh.Size,
 		minio.PutObjectOptions{ContentType: contentType})
 	if putErr != nil {
-		return errcode.ErrInternal.Withf("S3 上传失败: %v", putErr)
+		return errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "S3 upload")
 	}
 	return nil
 }
@@ -610,10 +611,10 @@ func (f *Infra) s3AccessURL(key string) string {
 // driver!=s3 或 S3 未配置时返回 503（前端应回退到经后端中转的 /upload/file）。
 func (f *Infra) GeneratePresign(filename, contentType string, size int64) (*S3Presign, error) {
 	if f.client == nil {
-		return nil, svcUnavailable("S3 存储未配置")
+		return nil, svcUnavailable()
 	}
 	if !filecheck.IsAllowedPresignMime(contentType) {
-		return nil, errcode.ErrBadRequest.Withf("不支持的文件类型: %s", contentType)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.UploadTypeNotAllowed, contentType)
 	}
 	if err := f.checkSizePresign(size, contentType); err != nil {
 		return nil, err
@@ -625,7 +626,7 @@ func (f *Infra) GeneratePresign(filename, contentType string, size int64) (*S3Pr
 	defer cancel()
 	url, err := f.client.PresignedPutObject(ctx, f.cfg.S3.Bucket, key, PresignExpires*time.Second)
 	if err != nil {
-		return nil, errcode.ErrInternal.Withf("生成预签名失败: %v", err)
+		return nil, errcode.ErrInternal.WithKeyf(i18n.UploadPresignFailed, err)
 	}
 	return &S3Presign{
 		UploadURL: url.String(),
@@ -638,13 +639,13 @@ func (f *Infra) GeneratePresign(filename, contentType string, size int64) (*S3Pr
 // ConfirmS3Upload S3 直传确认：校验真实类型（Range 下载头部）→ 去重 → 建记录。
 func (f *Infra) ConfirmS3Upload(req S3Confirm, userID string) (*model.Upload, error) {
 	if f.client == nil {
-		return nil, svcUnavailable("S3 存储未配置")
+		return nil, svcUnavailable()
 	}
 	if err := f.checkSize(req.Size, req.MimeType); err != nil {
 		return nil, err
 	}
 	if !filecheck.IsAllowedMime(req.MimeType) {
-		return nil, errcode.ErrBadRequest.Withf("不支持的文件类型: %s", req.MimeType)
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.UploadTypeNotAllowed, req.MimeType)
 	}
 	// 去重：hash 或 key
 	ident := req.Hash
@@ -676,7 +677,7 @@ func (f *Infra) ConfirmS3Upload(req S3Confirm, userID string) (*model.Upload, er
 		VideoCompressionStatus: model.VideoCompressionPending,
 	}
 	if err := f.db.Create(up).Error; err != nil {
-		return nil, errcode.ErrInternal.Withf("保存上传记录失败: %v", err)
+		return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "save upload record")
 	}
 	// S3 直传文件异步后处理：
 	//   1) 魔数校验（Range 下载头部嗅探），不合格标记 rejected；
@@ -727,14 +728,14 @@ func (f *Infra) verifyS3Magic(up *model.Upload) {
 // GetFileInfo 按 ID 查文件（对齐 getFileInfo，NoAuth）。
 func (f *Infra) GetFileInfo(id string) (*model.Upload, error) {
 	if f.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var up model.Upload
 	if err := f.db.First(&up, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errcode.ErrNotFound
 		}
-		return nil, errcode.ErrInternal.Withf("查询文件失败: %v", err)
+		return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "file query")
 	}
 	return &up, nil
 }
@@ -745,7 +746,7 @@ func (f *Infra) GetFileInfo(id string) (*model.Upload, error) {
 // 查看自己的上传」（普通用户视角），避免把全站文件暴露给普通账号。
 func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder, onlyUserID string) ([]model.Upload, int64, error) {
 	if f.db == nil {
-		return nil, 0, svcUnavailable("数据库不可用")
+		return nil, 0, svcUnavailable()
 	}
 	if page < 1 {
 		page = 1
@@ -768,14 +769,14 @@ func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder, onlyUserID string
 		q = q.Where("user_id = ?", onlyUserID)
 	}
 	if err := q.Count(&total).Error; err != nil {
-		return nil, 0, errcode.ErrInternal.Withf("统计上传文件失败: %v", err)
+		return nil, 0, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "file count")
 	}
 	q2 := f.db.Order(order)
 	if onlyUserID != "" {
 		q2 = q2.Where("user_id = ?", onlyUserID)
 	}
 	if err := q2.Offset((page - 1) * limit).Limit(limit).Find(&list).Error; err != nil {
-		return nil, 0, errcode.ErrInternal.Withf("查询上传文件失败: %v", err)
+		return nil, 0, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "file list query")
 	}
 	return list, total, nil
 }
@@ -783,7 +784,7 @@ func (f *Infra) ListUpload(page, limit int, sortBy, sortOrder, onlyUserID string
 // RemoveUpload 引用计数 -1；归零时删盘并删记录（对齐 decreaseReferenceCount / remove）。
 func (f *Infra) RemoveUpload(id string) error {
 	if f.db == nil {
-		return svcUnavailable("数据库不可用")
+		return svcUnavailable()
 	}
 	return f.db.Transaction(func(tx *gorm.DB) error {
 		var up model.Upload
@@ -791,12 +792,12 @@ func (f *Infra) RemoveUpload(id string) error {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errcode.ErrNotFound
 			}
-			return errcode.ErrInternal.Withf("查询文件失败: %v", err)
+			return errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "file query")
 		}
 		remaining := up.ReferenceCount - 1
 		if remaining <= 0 {
 			if err := tx.Delete(&up).Error; err != nil {
-				return errcode.ErrInternal.Withf("删除上传记录失败: %v", err)
+				return errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "delete upload record")
 			}
 			// 事务提交后再删盘（失败仅孤儿文件，不影响一致性）
 			go func() { _ = f.removeStored(up.Storage, up.Path) }()
@@ -935,7 +936,7 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 // findByHash 按哈希查已有上传记录；未命中返回 (nil, nil)。
 func (f *Infra) findByHash(hash string) (*model.Upload, error) {
 	if f.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var up model.Upload
 	err := f.db.Where("hash = ?", hash).First(&up).Error
@@ -943,7 +944,7 @@ func (f *Infra) findByHash(hash string) (*model.Upload, error) {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		return nil, errcode.ErrInternal.Withf("查询去重记录失败: %v", err)
+		return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "dedup query")
 	}
 	return &up, nil
 }

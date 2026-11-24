@@ -8,6 +8,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -75,16 +76,16 @@ func NewCategoryService(repo *repository.CategoryRepository, log *zap.Logger) *C
 }
 
 // ErrCategoryNotFound 分类不存在。
-var ErrCategoryNotFound = errcode.ErrNotFound.With("分类不存在")
+var ErrCategoryNotFound = errcode.ErrNotFound.WithKey(i18n.CategoryNotFound)
 
 // Create 创建分类（名称唯一，父分类需存在）。
 func (s *CategoryService) Create(ctx context.Context, req CreateCategoryRequest) (*CategoryView, *errcode.Err) {
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return nil, errcode.ErrBadRequest.With("分类名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryNameRequired)
 	}
 	if _, err := s.repo.FindByName(ctx, name); err == nil {
-		return nil, errcode.ErrConflict.With("分类名称已存在")
+		return nil, errcode.ErrConflict.WithKeyf(i18n.CategoryNameExists, name)
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询分类失败", zap.Error(err))
 		return nil, errcode.ErrInternal
@@ -93,7 +94,7 @@ func (s *CategoryService) Create(ctx context.Context, req CreateCategoryRequest)
 	// 父分类校验
 	if req.ParentID != nil && *req.ParentID != "" {
 		if _, err := s.repo.FindByID(ctx, *req.ParentID); err != nil {
-			return nil, errcode.ErrBadRequest.With("父分类不存在")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryParentMissing)
 		}
 	}
 
@@ -190,10 +191,10 @@ func (s *CategoryService) Update(ctx context.Context, id string, req UpdateCateg
 	if req.Name != nil {
 		name := strings.TrimSpace(*req.Name)
 		if name == "" {
-			return nil, errcode.ErrBadRequest.With("分类名称不能为空")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryNameRequired)
 		}
 		if other, err := s.repo.FindByName(ctx, name); err == nil && other.ID != id {
-			return nil, errcode.ErrConflict.With("分类名称已存在")
+			return nil, errcode.ErrConflict.WithKeyf(i18n.CategoryNameExists, name)
 		}
 		fields["name"] = name
 	}
@@ -224,10 +225,10 @@ func (s *CategoryService) Update(ctx context.Context, id string, req UpdateCateg
 			fields["parent_id"] = nil
 		} else {
 			if parentID == id {
-				return nil, errcode.ErrBadRequest.With("父分类不能是自身")
+				return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryParentSelf)
 			}
 			if _, err := s.repo.FindByID(ctx, parentID); err != nil {
-				return nil, errcode.ErrBadRequest.With("父分类不存在")
+				return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryParentMissing)
 			}
 			fields["parent_id"] = parentID
 		}
@@ -259,7 +260,7 @@ func (s *CategoryService) Remove(ctx context.Context, id string) (*map[string]in
 		return nil, errcode.ErrInternal
 	}
 	if has {
-		return nil, errcode.ErrBadRequest.With("该分类下存在子分类，请先删除或迁移子分类")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryHasChildren)
 	}
 	if err := s.repo.SoftDelete(ctx, id); err != nil {
 		s.log.Error("删除分类失败", zap.Error(err))

@@ -139,12 +139,12 @@ func (g *MsgGateway) Broadcast(event string, data interface{}) {
 func (g *MsgGateway) Handler(c *gin.Context) {
 	token := extractToken(c)
 	if token == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "未提供 token，连接已断开", "data": nil})
+		c.JSON(http.StatusUnauthorized, gin.H{"data": nil, "message": "Please log in first", "status_code": 401})
 		return
 	}
 	user, ok := g.Auth(token)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "认证失败：token 无效或已过期", "data": nil})
+		c.JSON(http.StatusUnauthorized, gin.H{"data": nil, "message": "Invalid token", "status_code": 401})
 		return
 	}
 

@@ -10,6 +10,7 @@ package service
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -30,10 +31,10 @@ func NewEmojiService(db *gorm.DB) *EmojiService { return &EmojiService{DB: db} }
 // Create 创建表情。
 func (s *EmojiService) Create(userID string, in model.EmojiInput, isAdmin bool) (*model.Emoji, error) {
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("表情名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiNameRequired)
 	}
 	if in.URL == nil || *in.URL == "" {
-		return nil, errcode.ErrBadRequest.With("表情图片地址不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiURLRequired)
 	}
 	if in.Code != nil && *in.Code != "" {
 		exists, err := s.emojis.FindByCode(s.DB, *in.Code)
@@ -41,7 +42,7 @@ func (s *EmojiService) Create(userID string, in model.EmojiInput, isAdmin bool) 
 			return nil, err
 		}
 		if exists != nil {
-			return nil, errcode.ErrBadRequest.With("表情代码已存在")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiCodeExists)
 		}
 	}
 
@@ -80,7 +81,7 @@ func (s *EmojiService) Update(userID, id string, in model.EmojiInput, isAdmin bo
 			return nil, err
 		}
 		if exists != nil {
-			return nil, errcode.ErrBadRequest.With("表情代码已存在")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiCodeExists)
 		}
 	}
 	applyEmojiInput(e, in)
@@ -118,16 +119,16 @@ func (s *EmojiService) checkOwner(e *model.Emoji, userID string, isAdmin bool) e
 //     无归属（UserID 为空）的第三方/系统遗留数据仅管理端可动。
 func emojiEditRejection(e *model.Emoji, userID string, isAdmin bool) *errcode.Err {
 	if e == nil {
-		return errcode.ErrNotFound.With("表情不存在")
+		return errcode.ErrNotFound.WithKey(i18n.EmojiNotFound)
 	}
 	if isAdmin {
 		return nil
 	}
 	if e.Type == model.EmojiTypeSystem {
-		return errcode.ErrForbidden.With("系统表情只能由管理员维护")
+		return errcode.ErrForbidden.WithKey(i18n.EmojiSystemOnlyAdmin)
 	}
 	if e.UserID == "" || e.UserID != userID {
-		return errcode.ErrForbidden.With("只能操作自己的表情")
+		return errcode.ErrForbidden.WithKey(i18n.EmojiNoPermission)
 	}
 	return nil
 }
@@ -139,10 +140,10 @@ func (s *EmojiService) Get(id, viewerID string) (*model.Emoji, error) {
 		return nil, err
 	}
 	if e == nil {
-		return nil, errcode.ErrNotFound.With("表情不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.EmojiNotFound)
 	}
 	if !e.IsPublic && e.UserID != "" && e.UserID != viewerID {
-		return nil, errcode.ErrNotFound.With("表情不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.EmojiNotFound)
 	}
 	return e, nil
 }
@@ -166,6 +167,9 @@ func groupByCategory(list []model.Emoji) map[string][]model.Emoji {
 	for _, e := range list {
 		key := e.Category
 		if key == "" {
+			// 有意保留中文：这是分组的数据值（响应 data 里作为 map key 返回给前端做
+			// 分组归并），不是响应 message。改英文会让老数据里已有的「未分类」分组
+			// 与新产生的分组对不上，前端归并结果分裂。不要 i18n 化。
 			key = "未分类"
 		}
 		out[key] = append(out[key], e)
@@ -207,7 +211,7 @@ func (s *EmojiService) Use(id string) error {
 		return err
 	}
 	if e == nil {
-		return errcode.ErrNotFound.With("表情不存在")
+		return errcode.ErrNotFound.WithKey(i18n.EmojiNotFound)
 	}
 	return s.emojis.IncUseCount(s.DB, id)
 }
@@ -259,7 +263,7 @@ func (s *EmojiService) Favorites(userID string, page, limit int) (*ListResult, e
 // PackCreate 创建表情包。
 func (s *EmojiService) PackCreate(userID string, in model.EmojiPackInput) (*model.EmojiPack, error) {
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("表情包名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiPackNameRequired)
 	}
 	p := &model.EmojiPack{
 		Name:   *in.Name,
@@ -280,7 +284,7 @@ func (s *EmojiService) PackUpdate(userID, id string, in model.EmojiPackInput) (*
 		return nil, err
 	}
 	if p.UserID != userID {
-		return nil, errcode.ErrForbidden.With("只能操作自己的表情包")
+		return nil, errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
 	applyEmojiPackInput(p, in)
 	if err := s.packs.Save(s.DB, p); err != nil {
@@ -296,7 +300,7 @@ func (s *EmojiService) PackDelete(userID, id string) error {
 		return err
 	}
 	if p.UserID != userID {
-		return errcode.ErrForbidden.With("只能操作自己的表情包")
+		return errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
 	return s.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("pack_id = ?", id).Delete(&model.EmojiPackItem{}).Error; err != nil {
@@ -313,10 +317,10 @@ func (s *EmojiService) PackGet(id, viewerID string) (*model.EmojiPack, error) {
 		return nil, err
 	}
 	if p == nil {
-		return nil, errcode.ErrNotFound.With("表情包不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.EmojiPackNotFound)
 	}
 	if !p.IsPublic && p.UserID != viewerID {
-		return nil, errcode.ErrNotFound.With("表情包不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.EmojiPackNotFound)
 	}
 	return p, nil
 }
@@ -387,7 +391,7 @@ func (s *EmojiService) PackAddEmoji(userID, packID, emojiID string) (*model.Emoj
 		return nil, err
 	}
 	if p.UserID != userID {
-		return nil, errcode.ErrForbidden.With("只能操作自己的表情包")
+		return nil, errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
 	if _, err := s.Get(emojiID, userID); err != nil {
 		return nil, err
@@ -417,14 +421,14 @@ func (s *EmojiService) PackUpdateEmojiSort(userID, packID, emojiID string, sort 
 		return nil, err
 	}
 	if p.UserID != userID {
-		return nil, errcode.ErrForbidden.With("只能操作自己的表情包")
+		return nil, errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
 	item, err := s.items.FindItem(s.DB, packID, emojiID)
 	if err != nil {
 		return nil, err
 	}
 	if item == nil {
-		return nil, errcode.ErrNotFound.With("表情不在该表情包中")
+		return nil, errcode.ErrNotFound.WithKey(i18n.EmojiNotInPack)
 	}
 	item.Sort = sort
 	if err := s.DB.Save(item).Error; err != nil {
@@ -440,7 +444,7 @@ func (s *EmojiService) PackRemoveEmoji(userID, packID, emojiID string) error {
 		return err
 	}
 	if p.UserID != userID {
-		return errcode.ErrForbidden.With("只能操作自己的表情包")
+		return errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
 	return s.items.Delete(s.DB, packID, emojiID)
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -348,7 +349,7 @@ func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 func (h *ArticleHandler) BrowseBatchDelete(c *gin.Context) {
 	var req service.BatchDeleteBrowseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	out, e := h.svc.BatchDeleteBrowseHistory(c.Request.Context(), actorOf(c), req.ArticleIDs)

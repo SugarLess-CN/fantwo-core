@@ -25,6 +25,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -228,7 +229,7 @@ func (s *ConfigService) List() ([]ConfigView, error) {
 // listRaw 读全部配置实体（内部使用方法，保留明文 value）。
 func (s *ConfigService) listRaw() ([]model.Config, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var out []model.Config
 	if err := s.db.Order(`"group" ASC, key ASC`).Find(&out).Error; err != nil {
@@ -251,10 +252,10 @@ func (s *ConfigService) ByGroup(group string) ([]ConfigView, error) {
 // byGroupRaw 按分组读实体（内部使用方法，保留明文 value）。
 func (s *ConfigService) byGroupRaw(group string) ([]model.Config, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if strings.TrimSpace(group) == "" {
-		return nil, errcode.ErrBadRequest.With("分组不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ConfigListEmpty)
 	}
 	var out []model.Config
 	if err := s.db.Where(`"group" = ?`, group).Order(`key ASC`).Find(&out).Error; err != nil {
@@ -276,7 +277,7 @@ func (s *ConfigService) ByID(id string) (*ConfigView, error) {
 // getByIDRaw 按主键取实体（内部使用方法，含明文 value；写路径一律走它）。
 func (s *ConfigService) getByIDRaw(id string) (*model.Config, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var c model.Config
 	if err := s.db.First(&c, "id = ?", id).Error; err != nil {
@@ -301,7 +302,7 @@ func (s *ConfigService) ByKey(key string) (*ConfigView, error) {
 // getByKeyRaw 按 key 取实体（内部使用方法，含明文 value）。
 func (s *ConfigService) getByKeyRaw(key string) (*model.Config, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var c model.Config
 	if err := s.db.Where("key = ?", key).First(&c).Error; err != nil {
@@ -344,9 +345,7 @@ func rejectStartupOnlyKey(key string) error {
 	}
 	// 文案给运维可执行的话，而不是只说「不允许」：否则运维会以为后台坏了，
 	// 转头去 SQL 直改库，绕开所有校验 —— 那比报错本身更糟。
-	return errcode.ErrBadRequest.Withf(
-		"配置项 %s 属于启动期配置（存储 / 搜索客户端在服务启动时按它初始化），写入数据库不会生效；"+
-			"请改环境变量或配置文件后重启服务才会生效", key)
+	return errcode.ErrBadRequest.WithKeyf(i18n.ConfigStartupOnlyFix, key)
 }
 
 // Create 新建配置（key 唯一，冲突返回 409）。
@@ -356,10 +355,10 @@ func rejectStartupOnlyKey(key string) error {
 // 启动期配置（S3 / storage_driver）拒绝创建 —— 见 rejectStartupOnlyKey。
 func (s *ConfigService) Create(in ConfigInput) (*ConfigView, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if strings.TrimSpace(in.Key) == "" {
-		return nil, errcode.ErrBadRequest.With("配置 key 不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ConfigKeyRequired)
 	}
 	if err := rejectStartupOnlyKey(in.Key); err != nil {
 		return nil, err
@@ -369,7 +368,7 @@ func (s *ConfigService) Create(in ConfigInput) (*ConfigView, error) {
 		return nil, svcInternal("查询配置失败: %v", err)
 	}
 	if cnt > 0 {
-		return nil, errcode.ErrConflict.Withf("配置项 %s 已存在", in.Key)
+		return nil, errcode.ErrConflict.WithKeyf(i18n.ConfigKeyExists, in.Key)
 	}
 	c := &model.Config{
 		Key:         in.Key,
@@ -448,7 +447,7 @@ func (s *ConfigService) Update(id string, in ConfigInput) (*ConfigView, error) {
 // 否则业务域误传一个 s3_* key 就会凭空造出永不生效的配置行。
 func (s *ConfigService) UpdateOne(key, value string) error {
 	if s.db == nil {
-		return svcUnavailable("数据库不可用")
+		return svcUnavailable()
 	}
 	if err := rejectStartupOnlyKey(key); err != nil {
 		return err
@@ -483,10 +482,10 @@ func (s *ConfigService) UpdateOne(key, value string) error {
 // 这个入口能改到库里残留的旧 S3 行，写了也不生效，必须让调用方看见失败。
 func (s *ConfigService) UpdateAll(items []ConfigInput) (int, int, error) {
 	if s.db == nil {
-		return 0, 0, svcUnavailable("数据库不可用")
+		return 0, 0, svcUnavailable()
 	}
 	if len(items) == 0 {
-		return 0, 0, errcode.ErrBadRequest.With("配置列表不能为空")
+		return 0, 0, errcode.ErrBadRequest.WithKey(i18n.ConfigListEmpty)
 	}
 	updated, skipped := 0, 0
 	// 收集实际改动的 key，事务提交后统一失效缓存（含 Redis，多实例一致）
@@ -494,7 +493,7 @@ func (s *ConfigService) UpdateAll(items []ConfigInput) (int, int, error) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, it := range items {
 			if it.Key == "" {
-				return errcode.ErrBadRequest.With("配置项缺少 key")
+				return errcode.ErrBadRequest.WithKey(i18n.ConfigKeyRequired)
 			}
 			if err := rejectStartupOnlyKey(it.Key); err != nil {
 				return err // 事务回滚：批量里混入启动期配置整批拒绝
@@ -540,17 +539,17 @@ func (s *ConfigService) UpdateAll(items []ConfigInput) (int, int, error) {
 // 跳过语义完全复用 UpdateAll（敏感项空值/占位符不覆盖）。
 func (s *ConfigService) UpdateGroup(group string, items []ConfigInput) (int, int, error) {
 	if s.db == nil {
-		return 0, 0, svcUnavailable("数据库不可用")
+		return 0, 0, svcUnavailable()
 	}
 	if strings.TrimSpace(group) == "" {
-		return 0, 0, errcode.ErrBadRequest.With("分组不能为空")
+		return 0, 0, errcode.ErrBadRequest.WithKey(i18n.ConfigListEmpty)
 	}
 	var cnt int64
 	if err := s.db.Model(&model.Config{}).Where(`"group" = ?`, group).Count(&cnt).Error; err != nil {
 		return 0, 0, svcInternal("查询分组配置失败: %v", err)
 	}
 	if cnt == 0 {
-		return 0, 0, errcode.ErrNotFound.Withf("分组 %s 不存在", group)
+		return 0, 0, errcode.ErrNotFound.WithKeyf(i18n.ConfigGroupNotFound, group)
 	}
 	updated, skipped, err := s.UpdateAll(items)
 	if err != nil {
@@ -582,7 +581,7 @@ func (s *ConfigService) Remove(id string) error {
 // 值按 type 做类型还原（number/boolean/json），与原始实现一致。
 func (s *ConfigService) PublicConfigs() (map[string]map[string]interface{}, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var rows []model.Config
 	if err := s.db.Where("public = ?", true).Order(`"group" ASC, key ASC`).Find(&rows).Error; err != nil {
@@ -619,7 +618,7 @@ func aggregatePublic(rows []model.Config) map[string]map[string]interface{} {
 // 需要在此追加 isSensitiveKey 兜底（与 PublicConfigs 的 aggregatePublic 保持一致）。
 func (s *ConfigService) AdvertisementConfig() (map[string]interface{}, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	var rows []model.Config
 	if err := s.db.Where(`"group" = ?`, model.ConfigGroupAdvertisement).Order(`key ASC`).Find(&rows).Error; err != nil {
@@ -767,7 +766,7 @@ func (s *ConfigService) RefreshCache(key string) {
 // SensitiveWords 敏感词列表（对齐 getSensitiveWords）。
 func (s *ConfigService) SensitiveWords() ([]string, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	raw := s.GetString(model.ConfigKeySensitiveWords, "")
 	if raw == "" {
@@ -846,7 +845,7 @@ func (s *ConfigService) syncWordsIfStale() {
 func (s *ConfigService) AddSensitiveWord(word string) error {
 	w := strings.TrimSpace(word)
 	if w == "" {
-		return errcode.ErrBadRequest.With("敏感词不能为空")
+		return errcode.ErrBadRequest.WithKey(i18n.ConfigSensitiveEmpty)
 	}
 	return s.mutateWords(func(words []string) ([]string, error) {
 		for _, it := range words {
@@ -861,7 +860,7 @@ func (s *ConfigService) AddSensitiveWord(word string) error {
 // BatchAddSensitiveWords 批量添加（去重，忽略空项）。
 func (s *ConfigService) BatchAddSensitiveWords(list []string) (int, error) {
 	if len(list) == 0 {
-		return 0, errcode.ErrBadRequest.With("敏感词列表不能为空")
+		return 0, errcode.ErrBadRequest.WithKey(i18n.ConfigSensitiveEmpty)
 	}
 	added := 0
 	err := s.mutateWords(func(words []string) ([]string, error) {
@@ -890,7 +889,7 @@ func (s *ConfigService) BatchAddSensitiveWords(list []string) (int, error) {
 func (s *ConfigService) RemoveSensitiveWord(word string) error {
 	w := strings.TrimSpace(word)
 	if w == "" {
-		return errcode.ErrBadRequest.With("敏感词不能为空")
+		return errcode.ErrBadRequest.WithKey(i18n.ConfigSensitiveEmpty)
 	}
 	found := false
 	err := s.mutateWords(func(words []string) ([]string, error) {
@@ -908,7 +907,7 @@ func (s *ConfigService) RemoveSensitiveWord(word string) error {
 		return err
 	}
 	if !found {
-		return errcode.ErrNotFound.Withf("敏感词 %s 不存在", w)
+		return errcode.ErrNotFound.WithKeyf(i18n.ConfigSensitiveNotFound, w)
 	}
 	return nil
 }
@@ -916,7 +915,7 @@ func (s *ConfigService) RemoveSensitiveWord(word string) error {
 // BatchRemoveSensitiveWords 批量删除，返回实际删除数量。
 func (s *ConfigService) BatchRemoveSensitiveWords(list []string) (int, error) {
 	if len(list) == 0 {
-		return 0, errcode.ErrBadRequest.With("敏感词列表不能为空")
+		return 0, errcode.ErrBadRequest.WithKey(i18n.ConfigSensitiveEmpty)
 	}
 	drop := make(map[string]struct{}, len(list))
 	for _, raw := range list {
@@ -942,7 +941,7 @@ func (s *ConfigService) BatchRemoveSensitiveWords(list []string) (int, error) {
 // mutateWords 读-改-写敏感词 JSON（事务内 upsert + 重建树 + 缓存失效）。
 func (s *ConfigService) mutateWords(fn func([]string) ([]string, error)) error {
 	if s.db == nil {
-		return svcUnavailable("数据库不可用")
+		return svcUnavailable()
 	}
 	current, err := s.SensitiveWords()
 	if err != nil {

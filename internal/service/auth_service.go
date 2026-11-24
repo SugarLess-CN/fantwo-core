@@ -25,6 +25,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -280,7 +281,7 @@ func (s *AuthService) SendCode(ctx context.Context, in SendCodeInput) *errcode.E
 		subject, body := verifyCodeMail(in.Scene, code)
 		if err := mailer.Send(in.Target, subject, body); err != nil {
 			s.d.Logger.Error("邮件发送失败 target=" + in.Target + " err=" + err.Error())
-			return errcode.ErrInternal.With("验证码发送失败，请稍后重试")
+			return errcode.ErrInternal.WithKey(i18n.AuthCaptchaSendFailed)
 		}
 		return nil
 	}
@@ -292,7 +293,7 @@ func (s *AuthService) SendCode(ctx context.Context, in SendCodeInput) *errcode.E
 	}
 	if err := sms.Send(ctx, in.Target, code, in.Scene); err != nil {
 		s.d.Logger.Error("短信发送失败 phone=" + maskPhone(in.Target) + " err=" + err.Error())
-		return errcode.ErrInternal.With("验证码发送失败，请稍后重试")
+		return errcode.ErrInternal.WithKey(i18n.AuthCaptchaSendFailed)
 	}
 	return nil
 }
@@ -553,12 +554,12 @@ func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID 
 		return nil, "", "", errcode.ErrGithubOAuthNotConfigured
 	}
 	if !oauth.VerifyState(ctx, state) {
-		return nil, "", "", errcode.ErrInvalidParam.With("state 校验失败或已过期")
+		return nil, "", "", errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, "Invalid or expired OAuth state")
 	}
 	profile, err := oauth.Exchange(ctx, code)
 	if err != nil {
 		s.d.Logger.Error("github exchange", zapErr(err))
-		return nil, "", "", errcode.ErrInvalidParam.With("GitHub 授权失败：" + err.Error())
+		return nil, "", "", errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, err.Error())
 	}
 	user, e := s.findOrCreateGithubUser(ctx, profile)
 	if e != nil {
@@ -589,7 +590,7 @@ func (s *AuthService) GithubRedirectURL(ctx context.Context, code, state, oauthE
 	}
 	_, token, _, e := s.GithubCallback(ctx, code, state, deviceID)
 	if e != nil {
-		return base + "?error=" + url.QueryEscape(e.Msg)
+		return base + "?error=" + url.QueryEscape(e.Msg())
 	}
 	return base + "?token=" + url.QueryEscape(token)
 }
@@ -597,7 +598,7 @@ func (s *AuthService) GithubRedirectURL(ctx context.Context, code, state, oauthE
 // findOrCreateGithubUser 按 github_id / 邮箱匹配，必要时建号。
 func (s *AuthService) findOrCreateGithubUser(ctx context.Context, p *GithubProfile) (*model.User, *errcode.Err) {
 	if p.ID == "" {
-		return nil, errcode.ErrInvalidParam.With("GitHub 未返回用户 ID")
+		return nil, errcode.ErrInvalidParam.WithKeyf(i18n.AuthOAuthFailed, "GitHub did not return a user ID")
 	}
 	if user, err := s.d.Users.FindByGithubID(s.d.DB, p.ID); err == nil {
 		// 已有绑定：刷新资料

@@ -33,6 +33,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/elastic/go-elasticsearch/v8"
 	"gorm.io/gorm"
 )
@@ -244,7 +245,7 @@ func (s *Searcher) ensureClient() error {
 	}
 	if s.client == nil && s.signature == sig && s.initErr != nil {
 		// 同一套参数、上次就失败：不重复建连、不重复打日志
-		return svcUnavailable("Elasticsearch 初始化失败: " + s.initErr.Error())
+		return svcUnavailableKey(i18n.SearchInitFailed, s.initErr.Error())
 	}
 	c, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: p.Addresses,
@@ -259,7 +260,7 @@ func (s *Searcher) ensureClient() error {
 		} else {
 			log.Printf("[search] ES client 初始化失败（%s）: %v", strings.Join(p.Addresses, ","), err)
 		}
-		return svcUnavailable("Elasticsearch 初始化失败: " + err.Error())
+		return svcUnavailableKey(i18n.SearchInitFailed, err.Error())
 	}
 	old := s.client
 	s.client = c
@@ -280,7 +281,7 @@ func (s *Searcher) ensureClient() error {
 // 时按签名复用），不能让它流到调用方手里继续打 ES。
 func (s *Searcher) clientOrInit() (*elasticsearch.Client, error) {
 	if !s.Enabled() {
-		return nil, svcUnavailable("Elasticsearch 未配置")
+		return nil, svcUnavailable()
 	}
 	if err := s.ensureClient(); err != nil {
 		return nil, err
@@ -289,7 +290,7 @@ func (s *Searcher) clientOrInit() (*elasticsearch.Client, error) {
 	c := s.client
 	s.mu.RUnlock()
 	if c == nil {
-		return nil, svcUnavailable("Elasticsearch 未配置")
+		return nil, svcUnavailable()
 	}
 	return c, nil
 }
@@ -475,7 +476,7 @@ func (s *Searcher) ClearIndex(ctx context.Context) error {
 // batchSize 默认 100；status 默认 PUBLISHED。返回同步条数。
 func (s *Searcher) SyncArticles(ctx context.Context, db *gorm.DB, batchSize int, status string) (int, error) {
 	if db == nil {
-		return 0, svcUnavailable("数据库不可用")
+		return 0, svcUnavailable()
 	}
 	// 搜索被关闭时跳过索引（返回 0 条而非报错：批量同步不该因开关失败）
 	if !s.Enabled() {
@@ -665,7 +666,7 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 		return nil, err
 	}
 	if db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	query := s.buildQuery(req)
 	var body bytes.Buffer

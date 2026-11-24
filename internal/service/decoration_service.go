@@ -11,6 +11,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -47,10 +48,10 @@ func (s *DecorationService) SetWallet(w WalletDebitor) { s.wallet = w }
 // Create 创建装饰品。
 func (s *DecorationService) Create(in model.DecorationInput) (*model.Decoration, error) {
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("装饰品名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationNameRequired)
 	}
 	if in.Type == nil || *in.Type == "" {
-		return nil, errcode.ErrBadRequest.With("装饰品类型不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationTypeRequired)
 	}
 	d := &model.Decoration{
 		Name:         *in.Name,
@@ -94,7 +95,7 @@ func (s *DecorationService) Get(id string) (*model.Decoration, error) {
 		return nil, err
 	}
 	if d == nil {
-		return nil, errcode.ErrNotFound.With("装饰品不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.DecorationNotFound)
 	}
 	return d, nil
 }
@@ -165,7 +166,7 @@ func (s *DecorationService) Use(userID, decorationID string) (*model.UserDecorat
 		return nil, err
 	}
 	if d.Status != model.DecorationStatusActive {
-		return nil, errcode.ErrBadRequest.With("该装饰品已下架")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationUnavailable)
 	}
 
 	ud, err := s.userDeco.FindByUserAndDecoration(s.DB, userID, decorationID)
@@ -185,11 +186,11 @@ func (s *DecorationService) Use(userID, decorationID string) (*model.UserDecorat
 				return nil, err
 			}
 		} else {
-			return nil, errcode.ErrNotFound.With("您没有该装饰品")
+			return nil, errcode.ErrNotFound.WithKey(i18n.DecorationNotOwned)
 		}
 	}
 	if !ud.IsPermanent && ud.ExpiresAt != nil && ud.ExpiresAt.Before(time.Now()) {
-		return nil, errcode.ErrBadRequest.With("该装饰品已过期")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationExpired)
 	}
 
 	if err := s.userDeco.UnsetType(s.DB, userID, d.Type); err != nil {
@@ -209,7 +210,7 @@ func (s *DecorationService) Unuse(userID, decorationID string) (*model.UserDecor
 		return nil, err
 	}
 	if ud == nil {
-		return nil, errcode.ErrNotFound.With("您没有该装饰品")
+		return nil, errcode.ErrNotFound.WithKey(i18n.DecorationNotOwned)
 	}
 	ud.IsUsing = false
 	if err := s.userDeco.Save(s.DB, ud); err != nil {
@@ -232,7 +233,7 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDe
 		return nil, reject
 	}
 	if s.wallet == nil {
-		return nil, errcode.ErrInternal.With("钱包服务未接入，暂不可购买")
+		return nil, errcode.ErrInternal.WithKey(i18n.DecorationWalletUnavailable)
 	}
 	if err := s.wallet.DeductBalance(userID, d.Price, "DECORATION", "购买装饰品："+d.Name); err != nil {
 		return nil, err
@@ -249,16 +250,16 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDe
 //     而不是「存在记录即拒绝」。
 func decorationPurchaseRejection(d *model.Decoration, existing *model.UserDecoration, now time.Time) *errcode.Err {
 	if d == nil {
-		return errcode.ErrNotFound.With("装饰品不存在")
+		return errcode.ErrNotFound.WithKey(i18n.DecorationNotFound)
 	}
 	if !d.IsPurchasable {
-		return errcode.ErrBadRequest.With("该装饰品不可购买")
+		return errcode.ErrBadRequest.WithKey(i18n.DecorationNotPurchasable)
 	}
 	if d.Status != model.DecorationStatusActive {
-		return errcode.ErrBadRequest.With("该装饰品已下架")
+		return errcode.ErrBadRequest.WithKey(i18n.DecorationUnavailable)
 	}
 	if ownsUnexpired(existing, now) {
-		return errcode.ErrBadRequest.With("您已拥有该装饰品")
+		return errcode.ErrBadRequest.WithKey(i18n.DecorationAlreadyOwned)
 	}
 	return nil
 }
@@ -278,7 +279,7 @@ func ownsUnexpired(ud *model.UserDecoration, now time.Time) bool {
 // Gift 赠送装饰品。
 func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message string) (*model.UserDecoration, error) {
 	if fromUserID == toUserID {
-		return nil, errcode.ErrBadRequest.With("不能赠送给自己")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationCannotGiftSelf)
 	}
 	d, err := s.Get(decorationID)
 	if err != nil {
@@ -289,17 +290,17 @@ func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message str
 		return nil, err
 	}
 	if from == nil {
-		return nil, errcode.ErrBadRequest.With("您没有该装饰品")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationNotOwned)
 	}
 	if !ownsUnexpired(from, time.Now()) {
-		return nil, errcode.ErrBadRequest.With("该装饰品已过期")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationExpired)
 	}
 	to, err := s.userDeco.FindByUserAndDecoration(s.DB, toUserID, decorationID)
 	if err != nil {
 		return nil, err
 	}
 	if ownsUnexpired(to, time.Now()) {
-		return nil, errcode.ErrBadRequest.With("对方已拥有该装饰品")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationRecipientOwned)
 	}
 	return s.grant(toUserID, d, model.DecorationObtainGift, fromUserID, message)
 }
@@ -407,10 +408,10 @@ func (s *DecorationService) CleanExpired() (int64, error) {
 // CreateActivity 创建活动。
 func (s *DecorationService) CreateActivity(in model.DecorationActivityInput) (*model.DecorationActivity, error) {
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("活动名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityNameReq)
 	}
 	if in.DecorationID == nil || *in.DecorationID == "" {
-		return nil, errcode.ErrBadRequest.With("奖励装饰品不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityRewardReq)
 	}
 	if _, err := s.Get(*in.DecorationID); err != nil {
 		return nil, err
@@ -458,7 +459,7 @@ func (s *DecorationService) GetActivity(id string) (*model.DecorationActivity, e
 		return nil, err
 	}
 	if a == nil {
-		return nil, errcode.ErrNotFound.With("活动不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.DecorationActivityNotFound)
 	}
 	return a, nil
 }
@@ -509,10 +510,10 @@ func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*mod
 	}
 	now := time.Now()
 	if a.Status != model.DecorationActivityStatusActive {
-		return nil, errcode.ErrBadRequest.With("活动未在进行中")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityNotActive)
 	}
 	if !a.EndTime.IsZero() && a.EndTime.Before(now) {
-		return nil, errcode.ErrBadRequest.With("活动已结束")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityEnded)
 	}
 
 	progress, err := s.progress.FindByUserAndActivity(s.DB, userID, activityID)
@@ -520,13 +521,13 @@ func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*mod
 		return nil, err
 	}
 	if progress == nil {
-		return nil, errcode.ErrBadRequest.With("尚未参与该活动")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityNotJoined)
 	}
 	if progress.IsRewarded {
-		return nil, errcode.ErrBadRequest.With("奖励已领取")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityRewardGot)
 	}
 	if !claimableProgress(*a, *progress) {
-		return nil, errcode.ErrBadRequest.With("活动条件尚未达成")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityReqNotMet)
 	}
 
 	d, err := s.Get(a.DecorationID)

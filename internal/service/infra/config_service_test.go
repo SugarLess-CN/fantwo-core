@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
 // TestConfigIsSensitiveKey 覆盖白名单三项 + 命名兜底 + 非敏感项。
@@ -453,8 +455,11 @@ func TestIsStartupOnlyRejected(t *testing.T) {
 				if !strings.Contains(msg, tc.key) {
 					t.Fatalf("错误文案未点名 key %q（运维不知道改哪一项）: %s", tc.key, msg)
 				}
-				// 文案必须可执行：说清「改环境变量 + 重启」，否则运维会转头去 SQL 直改库
-				for _, want := range []string{"启动期配置", "环境变量", "重启", "写入数据库不会生效"} {
+				// 契约级断言：锁定 i18n key（文案润色不假红），并验证可执行要素仍在
+				if ec, ok := err.(*errcode.Err); !ok || ec.Key != i18n.ConfigStartupOnlyFix {
+					t.Fatalf("错误应绑定 i18n.ConfigStartupOnlyFix，实际 %v", err)
+				}
+				for _, want := range []string{"startup-only", "environment variable", "restart"} {
 					if !strings.Contains(msg, want) {
 						t.Fatalf("错误文案缺少可执行要素 %q: %s", want, msg)
 					}

@@ -11,6 +11,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
 )
@@ -371,7 +372,7 @@ func (s *UserService) Withdraw(ctx context.Context, userID string, in WithdrawIn
 			return gorm.ErrRecordNotFound
 		}
 		after = before - in.Amount
-		desc := "钱包提现"
+		desc := "Wallet withdrawal"
 		return tx.Create(&model.WalletTransaction{
 			UserID: userID, Type: model.WalletTxWithdraw, Amount: -in.Amount,
 			BalanceBefore: before, BalanceAfter: after, Description: &desc,
@@ -456,7 +457,7 @@ func (s *UserService) CalculateCommission(ctx context.Context, userID string, am
 	case "service":
 		rate = p.ServiceCommissionRate
 	default:
-		return nil, errcode.ErrInvalidParam.With("未知的抽成类型")
+		return nil, errcode.ErrInvalidParam.WithKey(i18n.UserCommissionTypeUnknown)
 	}
 	commission := amount * rate / 100
 	return map[string]interface{}{

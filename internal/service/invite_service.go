@@ -8,12 +8,14 @@ package service
 import (
 	"crypto/rand"
 	"encoding/base32"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -70,7 +72,8 @@ func (s *InviteService) Create(inviterID string, in model.InviteCreateInput) (*m
 		}
 	}
 	if code == "" {
-		return nil, errcode.ErrInternal.With("邀请码生成失败，请重试")
+		log.Printf("[ERROR] 邀请码连续 5 次碰撞未取到可用码 inviter=%s", inviterID)
+		return nil, errcode.ErrInternal.WithKey(i18n.InviteCodeGenerateFail)
 	}
 
 	inv := &model.Invite{
@@ -107,7 +110,7 @@ func (s *InviteService) Use(inviteeID, code string) (*model.Invite, error) {
 	}
 	if reject := inviteUseRejection(inv, inviteeID, time.Now()); reject != nil {
 		// 过期要落状态（幂等：置 EXPIRED 后再次使用走「无效」分支）
-		if inv != nil && reject.Msg == inviteRejectExpiredMsg && inv.Status == model.InviteStatusPending {
+		if inv != nil && reject.Key == inviteRejectExpiredKey && inv.Status == model.InviteStatusPending {
 			inv.Status = model.InviteStatusExpired
 			if err := s.invites.Save(s.DB, inv); err != nil {
 				return nil, err
@@ -135,8 +138,8 @@ func (s *InviteService) Use(inviteeID, code string) (*model.Invite, error) {
 	return inv, nil
 }
 
-// inviteRejectExpiredMsg 过期拒绝的固定文案（Use 依据它决定是否落 EXPIRED 状态）。
-const inviteRejectExpiredMsg = "邀请码已过期"
+// inviteRejectExpiredKey 过期拒绝的 i18n key（Use 依据它决定是否落 EXPIRED 状态）。
+const inviteRejectExpiredKey = i18n.InviteCodeExpired
 
 // inviteUseRejection 邀请码使用状态机判定：返回 nil 表示可用，否则返回拒绝原因。
 //
@@ -146,16 +149,16 @@ const inviteRejectExpiredMsg = "邀请码已过期"
 // 而不是只能靠真机点一遍。
 func inviteUseRejection(inv *model.Invite, inviteeID string, now time.Time) *errcode.Err {
 	if inv == nil {
-		return errcode.ErrNotFound.With("邀请码不存在")
+		return errcode.ErrNotFound.WithKey(i18n.InviteCodeInvalid)
 	}
 	if inv.Status != model.InviteStatusPending {
-		return errcode.ErrBadRequest.With("邀请码无效或已被使用")
+		return errcode.ErrBadRequest.WithKey(i18n.InviteCodeUsed)
 	}
 	if inv.ExpiredAt != nil && inv.ExpiredAt.Before(now) {
-		return errcode.ErrBadRequest.With(inviteRejectExpiredMsg)
+		return errcode.ErrBadRequest.WithKey(inviteRejectExpiredKey)
 	}
 	if inviteeID != "" && inv.InviterID == inviteeID {
-		return errcode.ErrBadRequest.With("不能使用自己的邀请码")
+		return errcode.ErrBadRequest.WithKey(i18n.InviteCodeInvalid)
 	}
 	return nil
 }
@@ -167,10 +170,10 @@ func (s *InviteService) Get(id, inviterID string) (*model.Invite, error) {
 		return nil, err
 	}
 	if inv == nil {
-		return nil, errcode.ErrNotFound.With("邀请不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.CommonNotFound)
 	}
 	if inviterID != "" && inv.InviterID != inviterID {
-		return nil, errcode.ErrForbidden.With("只能查看自己的邀请")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CommonForbidden)
 	}
 	return inv, nil
 }
@@ -271,7 +274,7 @@ func (s *InviteService) MarkCommissionPaid(commissionID string) (*model.InviteCo
 	var c model.InviteCommission
 	if err := s.DB.First(&c, "id = ?", commissionID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, errcode.ErrNotFound.With("分成记录不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.CommonNotFound)
 		}
 		return nil, err
 	}

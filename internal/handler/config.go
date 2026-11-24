@@ -34,6 +34,7 @@ package handler
 
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
@@ -311,7 +312,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "敏感词添加成功"})
+	response.SuccessMsg(c, i18n.ConfigSensitiveAdded, gin.H{"success": true})
 }
 
 // RemoveSensitiveWord DELETE /config/sensitive-words（body: {word}）。
@@ -335,7 +336,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "敏感词删除成功"})
+	response.SuccessMsg(c, i18n.ConfigSensitiveRemoved, gin.H{"success": true})
 }
 
 // BatchCreateSensitiveWords POST /config/sensitive-words/batch（body: {words:[...]}）。
@@ -362,7 +363,7 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	}
 	response.Success(c, gin.H{
 		"success": true,
-		"message": "批量添加 " + infraItoa64(int64(len(body.Words))) + " 个敏感词成功",
+		"message": i18n.Tf(i18n.ConfigSensitiveBatchAdded, len(body.Words)),
 		"added":   added,
 	})
 }
@@ -391,7 +392,7 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	}
 	response.Success(c, gin.H{
 		"success": true,
-		"message": "批量删除 " + infraItoa64(int64(len(body.Words))) + " 个敏感词成功",
+		"message": i18n.Tf(i18n.ConfigSensitiveBatchRemoved, len(body.Words)),
 		"removed": removed,
 	})
 }
@@ -406,9 +407,8 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 //	@Router		/config/sensitive-words/clear-cache [post]
 func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)
-	response.Success(c, gin.H{
+	response.SuccessMsg(c, i18n.ConfigCacheCleared, gin.H{
 		"success": true,
-		"message": "缓存清除成功",
 		"total":   h.svc.TrieSize(),
 	})
 }

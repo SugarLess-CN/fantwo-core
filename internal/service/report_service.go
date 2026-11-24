@@ -12,6 +12,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -34,39 +35,39 @@ func (s *ReportService) Create(reporterID string, in model.ReportCreateInput) (*
 	switch in.Type {
 	case model.ReportTypeUser:
 		if in.ReportedUserID == "" {
-			return nil, errcode.ErrBadRequest.With("请指定被举报用户")
+			return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "reportedUserId")
 		}
 		ok, err := existsByID(s.DB, &model.ReportTargetUserView{}, in.ReportedUserID)
 		if err != nil {
 			return nil, err
 		}
 		if !ok {
-			return nil, errcode.ErrNotFound.With("被举报用户不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 		}
 	case model.ReportTypeArticle:
 		if in.ReportedArticleID == "" {
-			return nil, errcode.ErrBadRequest.With("请指定被举报文章")
+			return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "reportedArticleId")
 		}
 		ok, err := existsByID(s.DB, &model.ReportTargetArticleView{}, in.ReportedArticleID)
 		if err != nil {
 			return nil, err
 		}
 		if !ok {
-			return nil, errcode.ErrNotFound.With("被举报文章不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
 		}
 	case model.ReportTypeComment:
 		if in.ReportedCommentID == "" {
-			return nil, errcode.ErrBadRequest.With("请指定被举报评论")
+			return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "reportedCommentId")
 		}
 		ok, err := existsByID(s.DB, &model.ReportTargetCommentView{}, in.ReportedCommentID)
 		if err != nil {
 			return nil, err
 		}
 		if !ok {
-			return nil, errcode.ErrNotFound.With("被举报评论不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.CommentNotFound)
 		}
 	default:
-		return nil, errcode.ErrBadRequest.With("举报类型不合法")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ReportTargetInvalid)
 	}
 
 	dup, err := s.reports.FindDuplicatePending(s.DB, reporterID, in)
@@ -74,7 +75,7 @@ func (s *ReportService) Create(reporterID string, in model.ReportCreateInput) (*
 		return nil, err
 	}
 	if dup != nil {
-		return nil, errcode.ErrBadRequest.With("您已举报过该内容，请等待处理")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ReportAlreadySubmitted)
 	}
 
 	r := &model.Report{
@@ -111,7 +112,7 @@ func (s *ReportService) Get(id string) (*model.Report, error) {
 		return nil, err
 	}
 	if r == nil {
-		return nil, errcode.ErrNotFound.With("举报不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.ReportNotFound)
 	}
 	return r, nil
 }
@@ -228,7 +229,7 @@ func (s *ReportService) Statistics() (*ReportStatistics, error) {
 // groupCount 分组计数（列名由本文件内常量传入，不接受外部拼接）。
 func (s *ReportService) groupCount(column string) ([]GroupCount, error) {
 	if column != "type" && column != "category" {
-		return nil, errcode.ErrInternal.With("非法统计列")
+		return nil, errcode.ErrInternal.WithKey(i18n.ReportInvalidColumn)
 	}
 	var out []GroupCount
 	err := s.DB.Model(&model.Report{}).

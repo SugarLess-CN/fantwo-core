@@ -2,6 +2,8 @@ package handler
 
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -27,7 +29,7 @@ type CollectionHandler struct {
 func (h *CollectionHandler) Create(c *gin.Context) {
 	var req service.CreateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Create(c.Request.Context(), actorOf(c), req)
@@ -96,7 +98,7 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 func (h *CollectionHandler) Update(c *gin.Context) {
 	var req service.UpdateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Update(c.Request.Context(), c.Param("id"), actorOf(c), req)
@@ -141,7 +143,14 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 		ctFail(c, e)
 		return
 	}
-	ctOK(c, out)
+	// message 提到顶层（原实现在 data 里带 message）；data 只留业务字段
+	msg := i18n.CollectionArticleAdded
+	if out != nil {
+		if added, _ := (*out)["added"].(bool); !added {
+			msg = i18n.CollectionArticleExists
+		}
+	}
+	response.SuccessMsg(c, msg, out)
 }
 
 // RemoveArticle 从合集移除文章 DELETE /collection/:id/article/:articleId。
@@ -198,7 +207,7 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 	var req service.ReorderCollectionItemsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	out, e := h.svc.ReorderItems(c.Request.Context(), c.Param("id"), actorOf(c), req.ArticleIDs)

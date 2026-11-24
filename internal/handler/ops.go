@@ -134,7 +134,7 @@ func okPage(c *gin.Context, lr *service.ListResult) {
 // bindingMsg 取绑定错误的首条消息（对齐原异常过滤器的 message[0] 语义）。
 func bindingMsg(err error) string {
 	if err == nil {
-		return errcode.ErrBadRequest.Msg
+		return errcode.ErrBadRequest.Msg()
 	}
 	msg := err.Error()
 	// validator 的报错形如 "Key: 'X.Field' Error:Field validation for 'Field' failed on the 'required' tag"

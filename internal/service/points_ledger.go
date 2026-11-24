@@ -8,10 +8,12 @@
 package service
 
 import (
+	"log"
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -51,7 +53,7 @@ type GormLedger struct {
 // Change 见 PointsLedger 契约。
 func (l GormLedger) Change(userID string, delta int, meta LedgerMeta) (int, *model.PointsTransaction, error) {
 	if delta == 0 {
-		return 0, nil, errcode.ErrBadRequest.With("积分变动数量不能为 0")
+		return 0, nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, "amount must not be zero")
 	}
 	var (
 		balance int
@@ -64,7 +66,7 @@ func (l GormLedger) Change(userID string, delta int, meta LedgerMeta) (int, *mod
 		}
 		if delta < 0 {
 			if !balanceSufficient(acc.Balance, -delta) {
-				return errcode.ErrBadRequest.With("积分不足")
+				return errcode.ErrBadRequest.WithKey(i18n.PointsInsufficient)
 			}
 		}
 
@@ -121,7 +123,8 @@ func ensurePointsAccount(tx *gorm.DB, userID string) (*model.PointsAccount, erro
 		return nil, err
 	}
 	if acc == nil {
-		return nil, errcode.ErrInternal.With("积分账户创建失败")
+		log.Printf("[ERROR] 积分账户创建后仍查不到 user=%s（唯一索引冲突或事务可见性问题）", userID)
+		return nil, errcode.ErrInternal.WithKey(i18n.PointsAccountCreateFail)
 	}
 	return acc, nil
 }

@@ -52,7 +52,7 @@ type MigrationFillResult struct {
 // MigrationStats 统计（GET /upload/migration/stats）。
 func (f *Infra) MigrationStats(ctx context.Context) (*MigrationStatsResult, error) {
 	if f.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	db := f.db.WithContext(ctx)
 	out := &MigrationStatsResult{}
@@ -90,7 +90,7 @@ func (f *Infra) MigrationStats(ctx context.Context) (*MigrationStatsResult, erro
 // dryRun=true 时只统计待处理数量，不触碰文件。
 func (f *Infra) MigrationProcess(ctx context.Context, limit int, dryRun bool) (*MigrationProcessResult, error) {
 	if f.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if limit <= 0 {
 		limit = 100
@@ -177,7 +177,7 @@ func (f *Infra) MigrationProcess(ctx context.Context, limit int, dryRun bool) (*
 // MigrationFillMetadata 补齐缺失原图元数据（POST /upload/migration/metadata）。
 func (f *Infra) MigrationFillMetadata(ctx context.Context, limit int) (*MigrationFillResult, error) {
 	if f.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if limit <= 0 {
 		limit = 100

@@ -8,6 +8,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"go.uber.org/zap"
@@ -114,7 +115,7 @@ func (s *ArticleService) SetFollowProvider(p FollowProvider) { s.follow = p }
 func (s *ArticleService) SetAuditor(a ArticleAuditor) { s.audit = a }
 
 // ErrArticleNotFound 文章不存在。
-var ErrArticleNotFound = errcode.ErrNotFound.With("文章不存在")
+var ErrArticleNotFound = errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
 
 // getArticle 取文章，不存在返回 404。
 func (s *ArticleService) getArticle(ctx context.Context, id string) (*model.Article, *errcode.Err) {
@@ -149,16 +150,16 @@ func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArti
 	}
 	// 对齐原校验：type=mixed 时 content 必填；type=video 时 videoUrl 必填
 	if articleType == model.ArticleTypeMixed && (req.Content == nil || strings.TrimSpace(*req.Content) == "") {
-		return nil, errcode.ErrBadRequest.With("当文章类型为 mixed 时，内容不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ArticleContentRequiredMixed)
 	}
 	if articleType == model.ArticleTypeVideo && (req.VideoURL == nil || strings.TrimSpace(*req.VideoURL) == "") {
-		return nil, errcode.ErrBadRequest.With("当文章类型为 video 时，视频链接不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ArticleVideoURLRequired)
 	}
 
 	// 分类存在性校验（分类可为空，与原 DTO 的 categoryId 必填语义放宽为可选更安全）
 	if req.CategoryID != nil && *req.CategoryID != "" {
 		if _, err := s.cats.FindByID(ctx, *req.CategoryID); err != nil {
-			return nil, errcode.ErrBadRequest.With("分类不存在")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryNotFound)
 		}
 	}
 
@@ -204,7 +205,7 @@ func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArti
 	// 设精仅管理员可写
 	if boolVal(req.IsFeatured) {
 		if !actor.IsManager() {
-			return nil, errcode.ErrForbidden.With("仅管理员可设置精华")
+			return nil, errcode.ErrForbidden.WithKey(i18n.ArticleFeaturedAdminOnly)
 		}
 		a.IsFeatured = true
 		now := time.Now()
@@ -264,7 +265,7 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 		return nil, e
 	}
 	if !s.canModify(a, actor) {
-		return nil, errcode.ErrForbidden.With("没有修改该文章的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.ArticleNoPermission)
 	}
 
 	fields := map[string]interface{}{}
@@ -297,7 +298,7 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 			fields["category_id"] = nil
 		} else {
 			if _, err := s.cats.FindByID(ctx, *req.CategoryID); err != nil {
-				return nil, errcode.ErrBadRequest.With("分类不存在")
+				return nil, errcode.ErrBadRequest.WithKey(i18n.CategoryNotFound)
 			}
 			fields["category_id"] = *req.CategoryID
 		}
@@ -347,7 +348,7 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 	// 设精：仅管理员
 	if req.IsFeatured != nil {
 		if !actor.IsManager() {
-			return nil, errcode.ErrForbidden.With("仅管理员可设置精华")
+			return nil, errcode.ErrForbidden.WithKey(i18n.ArticleFeaturedAdminOnly)
 		}
 		fields["is_featured"] = *req.IsFeatured
 		if *req.IsFeatured {
@@ -446,7 +447,7 @@ func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*m
 		return nil, e
 	}
 	if !s.canModify(a, actor) {
-		return nil, errcode.ErrForbidden.With("没有删除该文章的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.ArticleDeleteNoPermission)
 	}
 
 	tagIDs, _ := s.repo.ArticleTagIDs(ctx, id)
@@ -658,7 +659,7 @@ func (s *ArticleService) FindOne(ctx context.Context, id string, actor Actor) (*
 	}
 	isOwner := a.AuthorID != nil && *a.AuthorID == actor.UserID
 	if a.Status != model.ArticleStatusPublished && !isOwner && !actor.IsManager() {
-		return nil, errcode.ErrForbidden.With("该文章当前不可见")
+		return nil, errcode.ErrForbidden.WithKey(i18n.ArticleNotPublished)
 	}
 	// 阅读量自增（失败不影响主流程）
 	if err := s.repo.IncrCounter(ctx, id, "views", 1); err != nil {

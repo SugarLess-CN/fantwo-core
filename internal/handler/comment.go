@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -41,7 +42,7 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 func (h *CommentHandler) Create(c *gin.Context) {
 	var req service.CreateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Create(c.Request.Context(), actorOf(c), req)
@@ -123,7 +124,7 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 func (h *CommentHandler) Update(c *gin.Context) {
 	var req service.UpdateCommentRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Update(c.Request.Context(), c.Param("id"), actorOf(c), req)
@@ -148,7 +149,7 @@ func (h *CommentHandler) Update(c *gin.Context) {
 func (h *CommentHandler) SetPin(c *gin.Context) {
 	var req service.SetCommentPinRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.IsPinned == nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数 isPinned 必须为布尔值"))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, "isPinned must be a boolean"))
 		return
 	}
 	out, e := h.svc.SetPin(c.Request.Context(), c.Param("id"), actorOf(c), *req.IsPinned)

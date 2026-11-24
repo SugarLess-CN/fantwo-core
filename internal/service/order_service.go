@@ -12,6 +12,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"gorm.io/gorm"
 )
 
@@ -29,22 +30,22 @@ func GenerateOrderNo() string {
 }
 
 // ErrOrderNotPending 非 PENDING 状态不可取消。
-var ErrOrderNotPending = errcode.ErrBadRequest.With("订单不是待支付状态")
+var ErrOrderNotPending = errcode.ErrBadRequest.WithKey(i18n.OrderNotPending)
 
 // CreateArticleOrder 创建文章订单。
 func (s *OrderService) CreateArticleOrder(userID string, articleID, remark string) (*model.Order, error) {
 	var article model.ArticleOrderView
 	if err := s.DB.First(&article, "id = ?", articleID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("文章不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
 		}
 		return nil, err
 	}
 	if !article.RequirePayment {
-		return nil, errcode.ErrBadRequest.With("该文章无需付费")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ArticleNotPayable)
 	}
 	if article.ViewPrice <= 0 {
-		return nil, errcode.ErrBadRequest.With("文章价格无效")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ArticlePriceInvalid)
 	}
 	// 已购买检查
 	var cnt int64
@@ -54,7 +55,7 @@ func (s *OrderService) CreateArticleOrder(userID string, articleID, remark strin
 		return nil, err
 	}
 	if cnt > 0 {
-		return nil, errcode.ErrBadRequest.With("已购买过该文章")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.ArticleAlreadyPurchased)
 	}
 
 	order := &model.Order{
@@ -107,13 +108,13 @@ func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, 
 	var user model.UserPaymentView
 	if err := s.DB.First(&user, "id = ?", userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("用户不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 		}
 		return nil, err
 	}
 	// 永久会员不可再充
 	if user.MembershipStatus == "ACTIVE" && user.MembershipEndDate == nil {
-		return nil, errcode.ErrBadRequest.With("您已是永久会员")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MembershipLifetimeActive)
 	}
 
 	basePrice, _ := strconv.ParseFloat(s.getMembershipConfig("membership_price", "19.9"), 64)
@@ -126,7 +127,7 @@ func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, 
 	if plan != "" {
 		p, ok := membershipPlans[plan]
 		if !ok {
-			return nil, errcode.ErrBadRequest.With("无效的会员套餐")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.MembershipPlanInvalid)
 		}
 		title = fmt.Sprintf("充值%s %s", memberName, map[bool]string{true: "永久", false: fmt.Sprintf("%d个月", p.months)}[p.lifetime])
 		if pv := s.getMembershipConfig(p.priceKey, ""); pv != "" {
@@ -142,7 +143,7 @@ func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, 
 		}
 	} else {
 		if duration < 1 || duration > 120 {
-			return nil, errcode.ErrBadRequest.With("无效的会员时长（1-120 个月）")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.MembershipDurationInvalid)
 		}
 		title = fmt.Sprintf("充值%s %d个月", memberName, duration)
 		amount = basePrice * float64(duration)
@@ -177,7 +178,7 @@ func (s *OrderService) findByIDWithScope(id string, userID string, hasManage boo
 	}
 	if err := q.First(&order, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("订单不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.OrderNotFound)
 		}
 		return nil, err
 	}
@@ -198,7 +199,7 @@ func (s *OrderService) GetOrderByNo(orderNo, userID string, hasManage bool) (*mo
 	}
 	if err := q.First(&order, "order_no = ?", orderNo).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("订单不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.OrderNotFound)
 		}
 		return nil, err
 	}
@@ -275,7 +276,7 @@ func (s *OrderService) RequestRefund(id, userID, reason string, hasManage bool) 
 		}
 		if err := q.First(&order, "id = ?", id).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return errcode.ErrNotFound.With("订单不存在")
+				return errcode.ErrNotFound.WithKey(i18n.OrderNotFound)
 			}
 			return err
 		}
@@ -394,7 +395,7 @@ func (s *OrderService) GetWalletBalance(userID string) (float64, error) {
 	var user model.UserPaymentView
 	if err := s.DB.First(&user, "id = ?", userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, errcode.ErrNotFound.With("用户不存在")
+			return 0, errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 		}
 		return 0, err
 	}

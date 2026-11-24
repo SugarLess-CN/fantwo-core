@@ -4,6 +4,7 @@ package handler
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -66,20 +67,19 @@ func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 	}
 	file, err := c.FormFile("file")
 	if err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请选择要上传的表情文件")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadNoFile)
 		return
 	}
 	mime := file.Header.Get("Content-Type")
 	if !emojiAllowedMime[mime] {
-		response.FailWith(c, errcode.ErrBadRequest, "不支持的文件类型")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadTypeNotAllowed, mime)
 		return
 	}
 	if file.Size > emojiMaxSize {
-		response.FailWith(c, errcode.ErrBadRequest, "文件过大（上限 5MB）")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadFileTooLarge, float64(file.Size)/(1024*1024), 5)
 		return
 	}
-	response.FailWith(c, errcode.ErrInternal,
-		"表情上传落盘由上传域负责（尚未接入）；请先调用 POST /upload 上传，再用返回的 URL 调 POST /emoji")
+	response.FailKey(c, errcode.ErrInternal, i18n.EmojiUploadNotAvailable)
 }
 
 // EmojiList GET /emoji（公开；登录后可见自己的私有表情与收藏过滤）。

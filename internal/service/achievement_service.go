@@ -22,6 +22,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -52,17 +53,17 @@ func NewAchievementService(db *gorm.DB, points *PointsService, decorations *Deco
 // Create 创建成就（code 应用层唯一）。
 func (s *AchievementService) Create(in model.AchievementInput) (*model.Achievement, error) {
 	if in.Code == nil || *in.Code == "" {
-		return nil, errcode.ErrBadRequest.With("成就代码不能为空")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "code")
 	}
 	if in.Name == nil || *in.Name == "" {
-		return nil, errcode.ErrBadRequest.With("成就名称不能为空")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "name")
 	}
 	exists, err := s.achievements.FindByCode(s.DB, *in.Code)
 	if err != nil {
 		return nil, err
 	}
 	if exists != nil {
-		return nil, errcode.ErrBadRequest.With("成就代码已存在")
+		return nil, errcode.ErrBadRequest.WithKeyf(i18n.AchievementCodeExists, *in.Code)
 	}
 
 	a := &model.Achievement{
@@ -86,7 +87,7 @@ func (s *AchievementService) Update(id string, in model.AchievementInput) (*mode
 		return nil, err
 	}
 	if a == nil {
-		return nil, errcode.ErrNotFound.With("成就不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.AchievementNotFound)
 	}
 	if in.Code != nil && *in.Code != "" && *in.Code != a.Code {
 		other, err := s.achievements.FindByCode(s.DB, *in.Code)
@@ -94,7 +95,7 @@ func (s *AchievementService) Update(id string, in model.AchievementInput) (*mode
 			return nil, err
 		}
 		if other != nil {
-			return nil, errcode.ErrBadRequest.With("成就代码已存在")
+			return nil, errcode.ErrBadRequest.WithKeyf(i18n.AchievementCodeExists, *in.Code)
 		}
 	}
 	applyAchievementInput(a, in)
@@ -111,7 +112,7 @@ func (s *AchievementService) Delete(id string) error {
 		return err
 	}
 	if a == nil {
-		return errcode.ErrNotFound.With("成就不存在")
+		return errcode.ErrNotFound.WithKey(i18n.AchievementNotFound)
 	}
 	return s.achievements.Delete(s.DB, id)
 }
@@ -172,7 +173,7 @@ func (s *AchievementService) Get(id, userID string) (*model.AchievementView, err
 		return nil, err
 	}
 	if a == nil {
-		return nil, errcode.ErrNotFound.With("成就不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.AchievementNotFound)
 	}
 	view := &model.AchievementView{Achievement: *a}
 	if userID == "" {
@@ -254,7 +255,7 @@ func (s *AchievementService) UpdateProgressBatch(userID string, codes []string, 
 	}
 	if s.DB == nil {
 		// 降级启动 / 单测环境：不 panic，返回明确错误（调用方只记日志）
-		return errcode.ErrInternal.With("数据库不可用，成就进度未推进")
+		return errcode.ErrInternal.WithKey(i18n.CommonDependencyUnavailable)
 	}
 
 	defs, err := s.achievements.FindByCodes(s.DB, unique)
@@ -341,7 +342,7 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 		return nil, err
 	}
 	if def == nil {
-		return nil, errcode.ErrNotFound.With("成就不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.AchievementNotFound)
 	}
 
 	// 积分奖励：同域直接发放
@@ -349,7 +350,7 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 		if _, err := s.points.Add(userID, AddPointsInput{
 			Amount:      def.RewardPoints,
 			Source:      "ACHIEVEMENT",
-			Description: "完成成就：" + def.Name,
+			Description: "Achievement reward: " + def.Name,
 			RelatedType: "achievement",
 			RelatedID:   def.ID,
 		}); err != nil {
@@ -361,7 +362,7 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 		s.publish(event.EventUserGainExp, event.UserGainExpPayload{
 			UserID: userID,
 			Exp:    def.RewardExp,
-			Reason: "完成成就：" + def.Name,
+			Reason: "Achievement reward: " + def.Name,
 		})
 	}
 	// 装饰品奖励：交给装饰品域
@@ -392,13 +393,13 @@ func (s *AchievementService) ClaimReward(userID, achievementID string) (*ClaimRe
 // 已领取 → 拒绝（重复领取不会重复发积分/经验/装饰品）。
 func achievementClaimRejection(ua *model.UserAchievement) *errcode.Err {
 	if ua == nil {
-		return errcode.ErrNotFound.With("成就不存在或尚未开始")
+		return errcode.ErrNotFound.WithKey(i18n.AchievementNotAvailable)
 	}
 	if !ua.Completed {
-		return errcode.ErrBadRequest.With("成就尚未完成")
+		return errcode.ErrBadRequest.WithKey(i18n.AchievementNotCompleted)
 	}
 	if ua.Claimed {
-		return errcode.ErrBadRequest.With("奖励已领取")
+		return errcode.ErrBadRequest.WithKey(i18n.CommonRewardAlreadyClaimed)
 	}
 	return nil
 }

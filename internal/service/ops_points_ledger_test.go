@@ -16,6 +16,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
 // memoryLedger 内存账本：互斥锁串行化，语义严格按 PointsLedger 契约。
@@ -39,7 +40,7 @@ func newMemoryLedger() *memoryLedger {
 // Change 见 PointsLedger 契约。
 func (l *memoryLedger) Change(userID string, delta int, meta LedgerMeta) (int, *model.PointsTransaction, error) {
 	if delta == 0 {
-		return 0, nil, errcode.ErrBadRequest.With("积分变动数量不能为 0")
+		return 0, nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, "amount must not be zero")
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -47,7 +48,7 @@ func (l *memoryLedger) Change(userID string, delta int, meta LedgerMeta) (int, *
 
 	balance := l.balances[userID]
 	if delta < 0 && !balanceSufficient(balance, -delta) {
-		return balance, nil, errcode.ErrBadRequest.With("积分不足")
+		return balance, nil, errcode.ErrBadRequest.WithKey(i18n.PointsInsufficient)
 	}
 	balance += delta
 	l.balances[userID] = balance

@@ -4,6 +4,7 @@ package service
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"gorm.io/gorm"
 )
@@ -20,10 +21,10 @@ func NewBannerService(db *gorm.DB) *BannerService { return &BannerService{DB: db
 // Create 创建轮播。
 func (s *BannerService) Create(in model.BannerInput) (*model.Banner, error) {
 	if in.Title == nil || *in.Title == "" {
-		return nil, errcode.ErrBadRequest.With("轮播标题不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.BannerTitleRequired)
 	}
 	if in.ImageURL == nil || *in.ImageURL == "" {
-		return nil, errcode.ErrBadRequest.With("轮播图片不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.BannerImageRequired)
 	}
 	b := &model.Banner{Title: *in.Title, ImageURL: *in.ImageURL, Status: model.BannerStatusActive}
 	applyBannerInput(b, in)
@@ -61,7 +62,7 @@ func (s *BannerService) Get(id string) (*model.Banner, error) {
 		return nil, err
 	}
 	if b == nil {
-		return nil, errcode.ErrNotFound.With("轮播不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.BannerNotFound)
 	}
 	return b, nil
 }

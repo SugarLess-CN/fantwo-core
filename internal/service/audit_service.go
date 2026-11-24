@@ -19,6 +19,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
@@ -602,13 +603,13 @@ func (s *AuditService) ReviewArticle(articleID string, in ReviewArticleInput, op
 	var art model.Article
 	if err := s.DB.Select("id", "status").First(&art, "id = ?", articleID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("文章不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
 		}
 		return nil, err
 	}
 	status := art.Status
 	if status != "PENDING" {
-		return nil, errcode.ErrBadRequest.With("该文章不处于待审核状态")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.AuditNotPending)
 	}
 	to := "REJECTED"
 	if in.Result == "APPROVED" {

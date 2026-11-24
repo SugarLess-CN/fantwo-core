@@ -134,7 +134,7 @@ func (s *SearchLogService) TopKeywords(ctx context.Context, days, limit int, min
 // TopKeywordsByScene 按场景聚合（scene 为空表示全场景）。
 func (s *SearchLogService) TopKeywordsByScene(ctx context.Context, scene string, days, limit, minResults int) ([]model.HotKeyword, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if days <= 0 {
 		days = hotKeywordsDefaultDays
@@ -179,7 +179,7 @@ func (s *SearchLogService) TopKeywordsByScene(ctx context.Context, scene string,
 // Purge 清理 days 天前的搜索日志（运维用，可由定时任务调用）。
 func (s *SearchLogService) Purge(ctx context.Context, olderThanDays int) (int64, error) {
 	if s.db == nil {
-		return 0, svcUnavailable("数据库不可用")
+		return 0, svcUnavailable()
 	}
 	if olderThanDays <= 0 {
 		olderThanDays = 90

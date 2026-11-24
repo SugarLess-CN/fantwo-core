@@ -19,6 +19,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/ws"
 	"gorm.io/gorm"
@@ -171,10 +172,10 @@ func validatePrivate(in SendPrivateInput) error {
 	kind := normalizeKind(in.MessageKind)
 	content := strings.TrimSpace(in.Content)
 	if kind == PrivateKindText && content == "" {
-		return errcode.ErrBadRequest.With("文本消息内容不能为空")
+		return errcode.ErrBadRequest.WithKey(i18n.MessageTextRequired)
 	}
 	if kind != PrivateKindText && len(in.Payload) == 0 {
-		return errcode.ErrBadRequest.With("非文本消息必须提供 payload")
+		return errcode.ErrBadRequest.WithKey(i18n.MessagePayloadRequired)
 	}
 	has := func(fields ...string) bool {
 		for _, f := range fields {
@@ -194,19 +195,19 @@ func validatePrivate(in SendPrivateInput) error {
 	case PrivateKindImage:
 		if !has("url") {
 			if urls, ok := in.Payload["urls"].([]interface{}); !ok || len(urls) == 0 {
-				return errcode.ErrBadRequest.With("图片消息 payload 需包含 url 或 urls")
+				return errcode.ErrBadRequest.WithKey(i18n.MessagePayloadImage)
 			}
 		}
 	case PrivateKindFile:
 		if !has("url", "name") {
-			return errcode.ErrBadRequest.With("文件消息 payload 需包含 url 与 name")
+			return errcode.ErrBadRequest.WithKey(i18n.MessagePayloadFile)
 		}
 	case PrivateKindCard:
 		if !has("title", "description") {
-			return errcode.ErrBadRequest.With("卡片消息 payload 需包含 title 与 description")
+			return errcode.ErrBadRequest.WithKey(i18n.MessagePayloadCard)
 		}
 	default:
-		return errcode.ErrBadRequest.With("message_kind 仅允许 text/image/file/card")
+		return errcode.ErrBadRequest.WithKey(i18n.MessageKindInvalid)
 	}
 	return nil
 }
@@ -219,10 +220,10 @@ func (s *PrivateMessageService) Send(senderID, receiverID string, in SendPrivate
 		return nil, e
 	}
 	if receiverID == "" {
-		return nil, errcode.ErrBadRequest.With("接收者不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageReceiverRequired)
 	}
 	if senderID == receiverID {
-		return nil, errcode.ErrBadRequest.With("不能给自己发送私信")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageCannotSendSelf)
 	}
 	// 接收者必须存在
 	var cnt int64
@@ -230,14 +231,14 @@ func (s *PrivateMessageService) Send(senderID, receiverID string, in SendPrivate
 		return nil, err
 	}
 	if cnt == 0 {
-		return nil, errcode.ErrNotFound.With("用户不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 	}
 	blocked, err := s.Priv.HasAnyBlock(s.DB, senderID, receiverID)
 	if err != nil {
 		return nil, err
 	}
 	if blocked {
-		return nil, errcode.ErrForbidden.With("对方已拉黑你或你已拉黑对方，无法发送私信")
+		return nil, errcode.ErrForbidden.WithKey(i18n.MessageBlacklisted)
 	}
 	if err := validatePrivate(in); err != nil {
 		return nil, err
@@ -249,7 +250,7 @@ func (s *PrivateMessageService) Send(senderID, receiverID string, in SendPrivate
 		return nil, err
 	}
 	if conv == nil {
-		return nil, errcode.ErrInternal.With("会话创建失败")
+		return nil, errcode.ErrInternal.WithKey(i18n.MessageSessionFailed)
 	}
 
 	m := model.PrivateMessage{
@@ -618,12 +619,12 @@ func (s *PrivateMessageService) Recall(userID, messageID, reason string) (*Priva
 	m, err := s.Priv.FindMessageByID(s.DB, messageID)
 	if err != nil {
 		if repository.IsMessageNotFound(err) {
-			return nil, errcode.ErrNotFound.With("私信不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.MessageNotFound)
 		}
 		return nil, err
 	}
 	if m.SenderID != userID {
-		return nil, errcode.ErrForbidden.With("无权撤回该私信")
+		return nil, errcode.ErrForbidden.WithKey(i18n.MessageRecallForbidden)
 	}
 
 	blocked, _ := s.Priv.BlockedIDs(s.DB, userID, []string{m.SenderID, m.ReceiverID})
@@ -662,14 +663,14 @@ func (s *PrivateMessageService) Block(userID, targetID string, reason *string) (
 		return nil, e
 	}
 	if userID == targetID {
-		return nil, errcode.ErrBadRequest.With("不能拉黑自己")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageBlockSelf)
 	}
 	var cnt int64
 	if err := s.DB.Model(&model.User{}).Where("id = ?", targetID).Count(&cnt).Error; err != nil {
 		return nil, err
 	}
 	if cnt == 0 {
-		return nil, errcode.ErrNotFound.With("用户不存在")
+		return nil, errcode.ErrNotFound.WithKey(i18n.UserNotFound)
 	}
 	existing, err := s.Priv.FindBlock(s.DB, userID, targetID)
 	if err != nil {

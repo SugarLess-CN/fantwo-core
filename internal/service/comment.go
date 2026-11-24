@@ -7,6 +7,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -174,7 +175,7 @@ func (s *CommentService) submitAudit(c *model.Comment) {
 }
 
 // ErrCommentNotFound 评论不存在。
-var ErrCommentNotFound = errcode.ErrNotFound.With("评论不存在")
+var ErrCommentNotFound = errcode.ErrNotFound.WithKey(i18n.CommentNotFound)
 
 // getComment 取评论。
 func (s *CommentService) getComment(ctx context.Context, id string) (*model.Comment, *errcode.Err) {
@@ -264,7 +265,7 @@ func (s *CommentService) Update(ctx context.Context, id string, actor Actor, req
 		return nil, e
 	}
 	if c.AuthorID != actor.UserID && !actor.IsManager() {
-		return nil, errcode.ErrForbidden.With("没有修改该评论的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CommentNoPermission)
 	}
 	fields := map[string]interface{}{}
 	if req.Content != nil {
@@ -296,7 +297,7 @@ func (s *CommentService) SetPin(ctx context.Context, id string, actor Actor, isP
 	}
 	authorID, ok := s.owner.ArticleAuthorID(ctx, c.ArticleID)
 	if !ok || (authorID != actor.UserID && !actor.IsManager()) {
-		return nil, errcode.ErrForbidden.With("仅文章作者或管理员可置顶评论")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CommentPinAuthorOrAdmin)
 	}
 
 	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -334,7 +335,7 @@ func (s *CommentService) Remove(ctx context.Context, id string, actor Actor) (*m
 		return nil, e
 	}
 	if c.AuthorID != actor.UserID && !actor.IsManager() {
-		return nil, errcode.ErrForbidden.With("没有删除该评论的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.CommentNoPermission)
 	}
 
 	err := s.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {

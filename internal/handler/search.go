@@ -16,6 +16,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
@@ -27,7 +28,7 @@ import (
 var ErrServiceNotConfigured = &errcode.Err{
 	Code: 5030,
 	HTTP: http.StatusServiceUnavailable,
-	Msg:  "服务未配置",
+	Key:  i18n.SearchNotConfigured,
 }
 
 // SearchHandler 搜索端点。
@@ -71,7 +72,7 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 	}
 	response.Success(c, gin.H{
 		"success":     true,
-		"message":     "成功同步 " + infraItoa64(int64(total)) + " 篇文章到 Elasticsearch",
+		"message":     i18n.Tf(i18n.SearchSynced, total),
 		"data":        gin.H{"totalSynced": total},
 		"totalSynced": total,
 	})
@@ -107,7 +108,7 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "文章搜索索引已清空"})
+	response.SuccessMsg(c, i18n.SearchIndexCleared, gin.H{"success": true})
 }
 
 // SearchArticles GET /search（文章检索：keyword / categoryId / sortBy / page / limit）。

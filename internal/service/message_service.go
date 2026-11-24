@@ -17,6 +17,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/ws"
 	"gorm.io/gorm"
@@ -186,7 +187,7 @@ func (s *MessageService) Create(operatorID string, canManage bool, in CreateMess
 	}
 	content := strings.TrimSpace(in.Content)
 	if content == "" && !in.IsBroadcast {
-		return nil, errcode.ErrBadRequest.With("消息内容不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageContentEmpty)
 	}
 	msgType := in.Type
 	if msgType == "" {
@@ -195,12 +196,12 @@ func (s *MessageService) Create(operatorID string, canManage bool, in CreateMess
 	switch msgType {
 	case MsgTypePrivate, MsgTypeSystem, MsgTypeNotification:
 	default:
-		return nil, errcode.ErrBadRequest.With("type 仅允许 private/system/notification")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageKindInvalid)
 	}
 
 	// 源端要求 isBroadcast 时额外校验 message:create；此处以 message:manage 等价放行
 	if in.IsBroadcast && !canManage {
-		return nil, errcode.ErrForbidden.With("无权限发送广播消息")
+		return nil, errcode.ErrForbidden.WithKey(i18n.MessageBroadcastForbidden)
 	}
 
 	// 发送者：默认登录用户；持 message:manage 时允许代发
@@ -255,7 +256,7 @@ func (s *MessageService) Create(operatorID string, canManage bool, in CreateMess
 			})
 		}
 		if len(rows) == 0 {
-			return nil, errcode.ErrBadRequest.With("接收者列表为空")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.MessageReceiverRequired)
 		}
 		if err := s.Msgs.CreateBatch(s.DB, rows); err != nil {
 			return nil, err
@@ -276,7 +277,7 @@ func (s *MessageService) Create(operatorID string, canManage bool, in CreateMess
 
 	// 3) 单发
 	if in.ReceiverID == "" {
-		return nil, errcode.ErrBadRequest.With("receiver_id 不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageReceiverRequired)
 	}
 	rid := in.ReceiverID
 	m := model.Message{
@@ -371,12 +372,12 @@ func (s *MessageService) FindOne(userID, id string) (*MessageVO, error) {
 	m, err := s.Msgs.FindByID(s.DB, id)
 	if err != nil {
 		if repository.IsMessageNotFound(err) {
-			return nil, errcode.ErrNotFound.With("消息不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.MessageNotFound)
 		}
 		return nil, err
 	}
 	if !m.IsBroadcast && m.ReceiverID != nil && *m.ReceiverID != userID && m.SenderID != userID {
-		return nil, errcode.ErrForbidden.With("无权查看该消息")
+		return nil, errcode.ErrForbidden.WithKey(i18n.MessageViewForbidden)
 	}
 	readSet, err := s.Msgs.ReadMessageIDs(s.DB, userID, []string{m.ID})
 	if err != nil {
@@ -405,12 +406,12 @@ func (s *MessageService) Update(userID, id string, canManage bool, in UpdateMess
 	m, err := s.Msgs.FindByID(s.DB, id)
 	if err != nil {
 		if repository.IsMessageNotFound(err) {
-			return nil, errcode.ErrNotFound.With("消息不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.MessageNotFound)
 		}
 		return nil, err
 	}
 	if m.SenderID != userID && !canManage {
-		return nil, errcode.ErrForbidden.With("无权限修改该消息")
+		return nil, errcode.ErrForbidden.WithKey(i18n.MessageUpdateForbidden)
 	}
 
 	fields := map[string]interface{}{}
@@ -425,7 +426,7 @@ func (s *MessageService) Update(userID, id string, canManage bool, in UpdateMess
 		case MsgTypePrivate, MsgTypeSystem, MsgTypeNotification:
 			fields["type"] = *in.Type
 		default:
-			return nil, errcode.ErrBadRequest.With("type 仅允许 private/system/notification")
+			return nil, errcode.ErrBadRequest.WithKey(i18n.MessageKindInvalid)
 		}
 	}
 	if in.IsRead != nil {
@@ -451,12 +452,12 @@ func (s *MessageService) Remove(userID, id string, canManage bool) error {
 	m, err := s.Msgs.FindByID(s.DB, id)
 	if err != nil {
 		if repository.IsMessageNotFound(err) {
-			return errcode.ErrNotFound.With("消息不存在")
+			return errcode.ErrNotFound.WithKey(i18n.MessageNotFound)
 		}
 		return err
 	}
 	if m.SenderID != userID && !canManage {
-		return errcode.ErrForbidden.With("无权限删除该消息")
+		return errcode.ErrForbidden.WithKey(i18n.MessageDeleteForbidden)
 	}
 	return s.Msgs.Delete(s.DB, id)
 }
@@ -469,12 +470,12 @@ func (s *MessageService) MarkAsRead(userID, id string) error {
 	m, err := s.Msgs.FindByID(s.DB, id)
 	if err != nil {
 		if repository.IsMessageNotFound(err) {
-			return errcode.ErrNotFound.With("消息不存在")
+			return errcode.ErrNotFound.WithKey(i18n.MessageNotFound)
 		}
 		return err
 	}
 	if !m.IsBroadcast && m.ReceiverID != nil && *m.ReceiverID != userID {
-		return errcode.ErrForbidden.With("无权操作该消息")
+		return errcode.ErrForbidden.WithKey(i18n.MessageDeleteForbidden)
 	}
 	if m.IsBroadcast {
 		return s.Msgs.InsertReadRecords(s.DB, userID, []string{id})
@@ -521,7 +522,7 @@ func (s *MessageService) BatchOperation(userID string, canManage bool, in BatchM
 		return nil, e
 	}
 	if len(in.MessageIDs) == 0 {
-		return nil, errcode.ErrBadRequest.With("message_ids 不能为空")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageIDsRequired)
 	}
 	// 归属校验：非广播消息必须是我发或我收
 	rows := make([]model.Message, 0, len(in.MessageIDs))
@@ -531,7 +532,7 @@ func (s *MessageService) BatchOperation(userID string, canManage bool, in BatchM
 			continue // 不存在的跳过（源端 In() 查不到即忽略）
 		}
 		if !m.IsBroadcast && m.SenderID != userID && (m.ReceiverID == nil || *m.ReceiverID != userID) {
-			return nil, errcode.ErrForbidden.With("无权限操作部分消息")
+			return nil, errcode.ErrForbidden.WithKey(i18n.MessageBatchForbidden)
 		}
 		rows = append(rows, *m)
 	}
@@ -556,14 +557,14 @@ func (s *MessageService) BatchOperation(userID string, canManage bool, in BatchM
 	case BatchActionDelete:
 		for i := range rows {
 			if rows[i].SenderID != userID && !canManage {
-				return nil, errcode.ErrForbidden.With("无权限删除部分消息")
+				return nil, errcode.ErrForbidden.WithKey(i18n.MessageBatchForbidden)
 			}
 		}
 		if err := s.Msgs.DeleteBatch(s.DB, in.MessageIDs); err != nil {
 			return nil, err
 		}
 	default:
-		return nil, errcode.ErrBadRequest.With("action 仅允许 read/delete")
+		return nil, errcode.ErrBadRequest.WithKey(i18n.MessageActionInvalid)
 	}
 	s.publishUnreadCount(userID)
 	label := "批量标记已读"

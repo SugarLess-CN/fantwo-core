@@ -1,62 +1,131 @@
-// Package errcode 业务错误码体系。
+// Package errcode 业务错误码体系（国际化版）。
 //
-// 设计对齐原 NestJS 仓库（docs/01 §1.2 / business.exception.ts）：
-//   - code 直接复用 HTTP 状态码（400/401/403/404/409/429/500），
-//     响应体 {code, message, data:null, timestamp, path}；
-//   - BusinessException 默认 code=400（HTTP BAD_REQUEST）；
-//   - 预留 1000+ 段作为业务细分码（映射到对应 HTTP 状态），
-//     供后续批次（支付/审核）在需要前端区分细粒度错误时使用。
+// 响应契约（本次重构，2026-11-24）：
+//
+//	{
+//	  "data":        <object|null>,
+//	  "message":     "<英文提示>",
+//	  "status_code": <int>
+//	}
+//
+// 与原 NestJS 仓库的差异（有意为之，用户明确要求）：
+//   - 字段名 status_code（snake_case），不再是 code；
+//   - 去掉 timestamp / path（原异常过滤器带的，前端用不到）；
+//   - message 全英文，来自 i18n 文案表，不再硬编码中文；
+//   - 业务细分码（1000+）保留在内部 Err.Code 上，但对外只暴露 status_code
+//     （= HTTP 状态码），前端按 status_code 判断成败。
+//
+// 设计要点：
+//   - Err 持 Key + 参数，不持文案 → 换语言只换文案表；
+//   - Msg() 现场解析文案，避免在包级变量里固化语言；
+//   - With()/Withf() 仍可用：覆盖为一段自定义英文提示（少数需要拼业务数据的场景），
+//     此时 Key 置空、走 RawMsg。
 package errcode
 
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
 // Err 业务错误描述。
 type Err struct {
-	Code int    // 业务码（对齐原仓库：通常即 HTTP 状态码；1000+ 为业务细分码）
-	HTTP int    // 实际返回的 HTTP 状态码
-	Msg  string // 提示信息
+	Code int // 业务细分码（1000+；对外不暴露，仅日志/内部判断用）
+	HTTP int // 实际返回的 HTTP 状态码，也是对外 status_code
+	Key  i18n.Key
+	Args []interface{}
+	// RawMsg 非空时优先于 Key（With/Withf 覆盖的场景，含动态业务数据）。
+	RawMsg string
 }
 
-// Error 实现 error 接口。
-func (e *Err) Error() string { return e.Msg }
+// Error 实现 error 接口（供日志使用，取英文文案）。
+func (e *Err) Error() string { return e.Msg() }
 
-// 预定义错误码（消息沿用原仓库语义，中文提示对齐前端交互）。
+// Msg 取当前语言下的提示文案。
+//
+// 优先级：RawMsg > i18n 文案（带参数格式化）> key 原样返回（漏配时）。
+func (e *Err) Msg() string {
+	if e == nil {
+		return i18n.T(i18n.CommonInternal)
+	}
+	if e.RawMsg != "" {
+		return e.RawMsg
+	}
+	if e.Key != "" {
+		return i18n.Tf(e.Key, e.Args...)
+	}
+	return i18n.T(i18n.CommonInternal)
+}
+
+// StatusCode 对外暴露的 status_code（= HTTP 状态码）。
+func (e *Err) StatusCode() int {
+	if e == nil {
+		return http.StatusInternalServerError
+	}
+	return e.HTTP
+}
+
+// 预定义错误码。
+//
+// 注意：这里只声明 Key，不声明文案 —— 文案在 i18n/en.go，全英文。
 var (
-	// Success 成功（原仓库 TransformInterceptor 成功 code=200）。
-	Success = &Err{Code: http.StatusOK, HTTP: http.StatusOK, Msg: "操作成功"}
+	// Success 成功。
+	Success = &Err{Code: http.StatusOK, HTTP: http.StatusOK, Key: i18n.CommonOK}
 
-	// ErrBadRequest 参数错误（原 BusinessException 默认）。
-	ErrBadRequest = &Err{Code: http.StatusBadRequest, HTTP: http.StatusBadRequest, Msg: "请求参数错误"}
+	// ErrBadRequest 参数错误。
+	ErrBadRequest = &Err{Code: http.StatusBadRequest, HTTP: http.StatusBadRequest, Key: i18n.CommonBadRequest}
 	// ErrUnauthorized 未登录 / token 失效。
-	ErrUnauthorized = &Err{Code: http.StatusUnauthorized, HTTP: http.StatusUnauthorized, Msg: "未登录或登录已过期"}
+	ErrUnauthorized = &Err{Code: http.StatusUnauthorized, HTTP: http.StatusUnauthorized, Key: i18n.CommonUnauthorized}
 	// ErrForbidden 无权限（RBAC 校验失败）。
-	ErrForbidden = &Err{Code: http.StatusForbidden, HTTP: http.StatusForbidden, Msg: "没有操作权限"}
+	ErrForbidden = &Err{Code: http.StatusForbidden, HTTP: http.StatusForbidden, Key: i18n.CommonForbidden}
 	// ErrNotFound 资源不存在。
-	ErrNotFound = &Err{Code: http.StatusNotFound, HTTP: http.StatusNotFound, Msg: "资源不存在"}
-	// ErrConflict 资源冲突（用户名/邮箱重复等）。
-	ErrConflict = &Err{Code: http.StatusConflict, HTTP: http.StatusConflict, Msg: "资源冲突"}
-	// ErrTooManyRequests 限流（原 too-many-request.exception.ts）。
-	ErrTooManyRequests = &Err{Code: http.StatusTooManyRequests, HTTP: http.StatusTooManyRequests, Msg: "请求过于频繁"}
+	ErrNotFound = &Err{Code: http.StatusNotFound, HTTP: http.StatusNotFound, Key: i18n.CommonNotFound}
+	// ErrConflict 资源冲突。
+	ErrConflict = &Err{Code: http.StatusConflict, HTTP: http.StatusConflict, Key: i18n.CommonConflict}
+	// ErrTooManyRequests 限流。
+	ErrTooManyRequests = &Err{Code: http.StatusTooManyRequests, HTTP: http.StatusTooManyRequests, Key: i18n.CommonTooManyRequests}
 	// ErrInternal 服务内部错误。
-	ErrInternal = &Err{Code: http.StatusInternalServerError, HTTP: http.StatusInternalServerError, Msg: "服务器内部错误"}
+	ErrInternal = &Err{Code: http.StatusInternalServerError, HTTP: http.StatusInternalServerError, Key: i18n.CommonInternal}
 
-	// 业务细分码段（1000+，映射到 HTTP 状态码；按需扩充）。
-	ErrUserAlreadyExists  = &Err{Code: 1001, HTTP: http.StatusConflict, Msg: "用户已存在"}
-	ErrBadCredentials     = &Err{Code: 1002, HTTP: http.StatusUnauthorized, Msg: "用户名或密码错误"}
-	ErrAccountBanned      = &Err{Code: 1003, HTTP: http.StatusForbidden, Msg: "账号已被封禁"}
-	ErrTokenExpired       = &Err{Code: 1004, HTTP: http.StatusUnauthorized, Msg: "token 已过期"}
-	ErrInsufficientWallet = &Err{Code: 1005, HTTP: http.StatusBadRequest, Msg: "余额不足"}
+	// 业务细分码段（1000+）。
+	ErrUserAlreadyExists  = &Err{Code: 1001, HTTP: http.StatusConflict, Key: i18n.UserAlreadyExists}
+	ErrBadCredentials     = &Err{Code: 1002, HTTP: http.StatusUnauthorized, Key: i18n.AuthBadCredentials}
+	ErrAccountBanned      = &Err{Code: 1003, HTTP: http.StatusForbidden, Key: i18n.AuthAccountBanned}
+	ErrTokenExpired       = &Err{Code: 1004, HTTP: http.StatusUnauthorized, Key: i18n.AuthTokenExpired}
+	ErrInsufficientWallet = &Err{Code: 1005, HTTP: http.StatusBadRequest, Key: i18n.PointsInsufficient}
+
+	// 认证相关：ErrNeedAuth / ErrNoPermission 见 errcode_user.go（含细分码）。
+	ErrTokenInvalid = &Err{Code: 1008, HTTP: http.StatusUnauthorized, Key: i18n.AuthTokenInvalid}
 )
 
-// With 覆盖默认提示信息，返回新错误（不修改预定义值）。
+// With 用一段自定义英文提示覆盖（用于需要拼接业务数据的场景）。
+//
+// 优先推荐新增 i18n key + WithKeyf；With 留给确实无法预置文案的少数情况。
 func (e *Err) With(msg string) *Err {
-	return &Err{Code: e.Code, HTTP: e.HTTP, Msg: msg}
+	if e == nil {
+		e = ErrInternal
+	}
+	return &Err{Code: e.Code, HTTP: e.HTTP, RawMsg: msg}
 }
 
-// Withf 格式化覆盖提示信息。
+// Withf 格式化覆盖。
 func (e *Err) Withf(format string, args ...interface{}) *Err {
 	return e.With(fmt.Sprintf(format, args...))
+}
+
+// WithKey 换成另一个 i18n key（保留原 Code/HTTP）。
+func (e *Err) WithKey(k i18n.Key) *Err {
+	if e == nil {
+		e = ErrInternal
+	}
+	return &Err{Code: e.Code, HTTP: e.HTTP, Key: k}
+}
+
+// WithKeyf 换成 i18n key + 参数。
+func (e *Err) WithKeyf(k i18n.Key, args ...interface{}) *Err {
+	if e == nil {
+		e = ErrInternal
+	}
+	return &Err{Code: e.Code, HTTP: e.HTTP, Key: k, Args: args}
 }

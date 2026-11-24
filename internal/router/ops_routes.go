@@ -15,10 +15,10 @@ package router
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -183,10 +183,9 @@ func optAuth(opt Option) []gin.HandlerFunc {
 func degraded() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, response.Body{
-			Code:      http.StatusServiceUnavailable,
-			Message:   "数据库不可用，运营域端点降级",
-			Data:      nil,
-			Timestamp: time.Now().UnixMilli(),
+			Data:       nil,
+			Message:    i18n.T(i18n.CommonDependencyUnavailable),
+			StatusCode: http.StatusServiceUnavailable,
 		})
 	}
 }

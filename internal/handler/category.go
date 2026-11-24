@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,7 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req service.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Create(c.Request.Context(), req)
@@ -106,7 +107,7 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 func (h *CategoryHandler) Update(c *gin.Context) {
 	var req service.UpdateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		ctFail(c, errcode.ErrBadRequest.With("参数校验失败："+err.Error()))
+		ctFail(c, errcode.ErrBadRequest.WithKeyf(i18n.CommonInvalidParam, err.Error()))
 		return
 	}
 	view, e := h.svc.Update(c.Request.Context(), c.Param("id"), req)

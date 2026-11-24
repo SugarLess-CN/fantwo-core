@@ -9,6 +9,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -143,7 +144,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "已退出登录"})
+	response.SuccessMsg(c, i18n.AuthLogoutSuccess, gin.H{"success": true})
 }
 
 // LogoutAll POST /user/logout-all（另挂 POST /auth/logout-all）：全端登出。
@@ -160,7 +161,7 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "已从所有设备退出登录"})
+	response.SuccessMsg(c, i18n.AuthLogoutAllSuccess, gin.H{"success": true})
 }
 
 // SendSmsCode POST /auth/sms/send：发送短信验证码。
@@ -186,7 +187,7 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "验证码已发送"})
+	response.SuccessMsg(c, i18n.AuthCaptchaSent, gin.H{"success": true})
 }
 
 // SmsLogin POST /auth/sms/login：手机号 + 验证码登录（未注册自动建号）。
@@ -240,7 +241,7 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "验证码已发送"})
+	response.SuccessMsg(c, i18n.AuthCaptchaSent, gin.H{"success": true})
 }
 
 // ResetPassword POST /user/password/reset：邮箱验证码重置密码。
@@ -264,7 +265,7 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "密码重置成功"})
+	response.SuccessMsg(c, i18n.AuthPasswordReset, gin.H{"success": true})
 }
 
 // ChangePassword POST /user/password/change：原密码校验后改密。
@@ -289,14 +290,14 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "密码修改成功"})
+	response.SuccessMsg(c, i18n.AuthPasswordChanged, gin.H{"success": true})
 }
 
 // bindJSON 绑定并校验 JSON 体；失败时直接写 400 响应并返回 false。
 // 对齐原 filter 的「只取第一条校验消息」语义。
 func bindJSON(c *gin.Context, out interface{}) bool {
 	if err := c.ShouldBindJSON(out); err != nil {
-		response.Fail(c, errcode.ErrInvalidParam.With("请求体格式错误"))
+		response.Fail(c, errcode.ErrInvalidParam.WithKey(i18n.CommonBadRequest))
 		return false
 	}
 	return true

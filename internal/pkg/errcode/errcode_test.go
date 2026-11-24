@@ -38,7 +38,7 @@ func TestPredefined_HTTPAndCodeMatch(t *testing.T) {
 			if c.e.HTTP != c.want {
 				t.Errorf("HTTP：得到 %d，期望 %d（Code 与 HTTP 必须一致）", c.e.HTTP, c.want)
 			}
-			if c.e.Msg == "" {
+			if c.e.Msg() == "" {
 				t.Error("Msg 为空：前端会显示空白提示")
 			}
 		})
@@ -92,7 +92,7 @@ func TestAllPredefined_HaveValidHTTP(t *testing.T) {
 		if e.HTTP < 100 || e.HTTP > 599 {
 			t.Errorf("code=%d 的 HTTP=%d 非法", e.Code, e.HTTP)
 		}
-		if e.Msg == "" {
+		if e.Msg() == "" {
 			t.Errorf("code=%d 的 Msg 为空", e.Code)
 		}
 	}
@@ -100,18 +100,18 @@ func TestAllPredefined_HaveValidHTTP(t *testing.T) {
 
 // TestWith_DoesNotMutateOriginal 覆盖提示语不得污染预定义值。
 //
-// 这是最容易被忽略的坑：Err 是包级共享指针，若 With 直接改 e.Msg，
+// 这是最容易被忽略的坑：Err 是包级共享指针，若 With 直接改 e.Msg()，
 // 一次调用之后全仓所有该错误的提示语都变了（并发下还会 data race）。
 func TestWith_DoesNotMutateOriginal(t *testing.T) {
-	original := ErrBadRequest.Msg
-	custom := ErrBadRequest.With("自定义提示")
+	original := ErrBadRequest.Msg()
+	custom := ErrBadRequest.With("Custom message")
 
-	if custom.Msg != "自定义提示" {
-		t.Errorf("With 未生效：得到 %q", custom.Msg)
+	if custom.Msg() != "Custom message" {
+		t.Errorf("With 未生效：得到 %q", custom.Msg())
 	}
-	if ErrBadRequest.Msg != original {
+	if ErrBadRequest.Msg() != original {
 		t.Errorf("With 污染了预定义值：%q → %q（全仓提示语会串味）",
-			original, ErrBadRequest.Msg)
+			original, ErrBadRequest.Msg())
 	}
 	if custom == ErrBadRequest {
 		t.Error("With 返回了同一个指针（应为新对象）")
@@ -124,12 +124,12 @@ func TestWith_DoesNotMutateOriginal(t *testing.T) {
 
 // TestWithf_Formatting 格式化覆盖。
 func TestWithf_Formatting(t *testing.T) {
-	e := ErrNotFound.Withf("文章 %s 不存在", "a-1")
-	if e.Msg != "文章 a-1 不存在" {
-		t.Errorf("Withf 格式化失败：得到 %q", e.Msg)
+	e := ErrNotFound.Withf("Article %s not found", "a-1")
+	if e.Msg() != "Article a-1 not found" {
+		t.Errorf("Withf 格式化失败：得到 %q", e.Msg())
 	}
-	if ErrNotFound.Msg != "资源不存在" {
-		t.Errorf("Withf 污染了预定义值：%q", ErrNotFound.Msg)
+	if ErrNotFound.Msg() != "Resource not found" {
+		t.Errorf("Withf 污染了预定义值：%q", ErrNotFound.Msg())
 	}
 }
 
@@ -137,8 +137,8 @@ func TestWithf_Formatting(t *testing.T) {
 func TestWith_ChainIndependent(t *testing.T) {
 	a := ErrBadRequest.With("A")
 	b := ErrBadRequest.With("B")
-	if a.Msg != "A" || b.Msg != "B" {
-		t.Errorf("连续 With 互相干扰：a=%q b=%q", a.Msg, b.Msg)
+	if a.Msg() != "A" || b.Msg() != "B" {
+		t.Errorf("连续 With 互相干扰：a=%q b=%q", a.Msg(), b.Msg())
 	}
 	if a == b {
 		t.Error("两次 With 返回同一指针")
@@ -148,13 +148,13 @@ func TestWith_ChainIndependent(t *testing.T) {
 // TestError_ImplementsError interface 实现（多处用于 err.(*errcode.Err) 断言）。
 func TestError_ImplementsError(t *testing.T) {
 	var err error = ErrNotFound
-	if err.Error() != ErrNotFound.Msg {
-		t.Errorf("Error() 应返回 Msg：得到 %q，期望 %q", err.Error(), ErrNotFound.Msg)
+	if err.Error() != ErrNotFound.Msg() {
+		t.Errorf("Error() 应返回 Msg：得到 %q，期望 %q", err.Error(), ErrNotFound.Msg())
 	}
 
-	e := ErrNotFound.With("自定义")
+	e := ErrNotFound.With("Custom message")
 	err = e
-	if err.Error() != "自定义" {
+	if err.Error() != "Custom message" {
 		t.Errorf("覆盖后 Error() 应返回新提示：得到 %q", err.Error())
 	}
 }

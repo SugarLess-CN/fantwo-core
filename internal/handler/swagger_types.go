@@ -5,21 +5,25 @@
 // （article/comment 等文件并未 import response，且跨包解析依赖 parseDependency 也不稳定）。
 // 因此在 handler 包内声明一个与统一响应结构同形的类型，注解统一用它。
 //
-// 运行时响应仍是 response.Body（{code,message,data}），二者字段完全一致。
+// 契约（2026-11-24 i18n 重构后）：
+//
+//	{"data": <object|null>, "message": "<英文>", "status_code": <int>}
+//
+// 运行时响应是 response.Body，字段与本类型完全一致。
 package handler
 
-// ResponseBody 统一响应包装（{code,message,data}）的文档展示类型。
+// ResponseBody 统一响应包装（{data,message,status_code}）的文档展示类型。
 type ResponseBody struct {
-	Code    int         `json:"code" example:"200"`
-	Message string      `json:"message" example:"操作成功"`
-	Data    interface{} `json:"data"`
+	Data       interface{} `json:"data"`
+	Message    string      `json:"message" example:"Success"`
+	StatusCode int         `json:"status_code" example:"200"`
 }
 
 // ResponsePageBody 分页响应的文档展示类型（data = {list, meta}）。
 type ResponsePageBody struct {
-	Code    int               `json:"code" example:"200"`
-	Message string            `json:"message" example:"操作成功"`
-	Data    ResponsePageInner `json:"data"`
+	Data       ResponsePageInner `json:"data"`
+	Message    string            `json:"message" example:"Success"`
+	StatusCode int               `json:"status_code" example:"200"`
 }
 
 // ResponsePageInner 分页载荷（对齐 response.PageData）。

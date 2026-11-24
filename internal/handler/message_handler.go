@@ -29,6 +29,7 @@ package handler
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -246,7 +247,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 		msgFail(c, err)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "删除成功"})
+	response.SuccessMsg(c, i18n.MessageDeleted, gin.H{"success": true})
 }
 
 // MarkRead POST /message/:id/read：单条已读。
@@ -267,7 +268,7 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 		msgFail(c, err)
 		return
 	}
-	response.Success(c, gin.H{"success": true, "message": "已标记为已读"})
+	response.SuccessMsg(c, i18n.MessageMarkedRead, gin.H{"success": true})
 }
 
 // MarkAllRead POST /message/read-all：全部已读。

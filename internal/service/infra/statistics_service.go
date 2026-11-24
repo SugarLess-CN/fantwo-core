@@ -93,7 +93,7 @@ type EngagementStat struct {
 // 与原实现（Promise.all 整体失败）相比更适配并行落地期；真正的 SQL 错误仍会返回。
 func (s *Statistics) Overview(ctx context.Context) (*OverviewResult, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	db := s.db.WithContext(ctx)
 	out := &OverviewResult{}
@@ -294,7 +294,7 @@ type TrendsResult struct {
 // Trends 近 days 天趋势（1..30，默认 7），按天补零。
 func (s *Statistics) Trends(ctx context.Context, days int) (*TrendsResult, error) {
 	if s.db == nil {
-		return nil, svcUnavailable("数据库不可用")
+		return nil, svcUnavailable()
 	}
 	if days <= 0 {
 		days = 7

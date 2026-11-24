@@ -4,6 +4,7 @@ package handler
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -36,7 +37,7 @@ func (h *AuditHandler) Config(c *gin.Context) {
 //	@Router		/content-audit/config/reload [post]
 func (h *AuditHandler) Reload(c *gin.Context) {
 	cfg := h.Svc.GetAuditConfig() // 每次调用现读 config 表，等价于重载
-	response.Success(c, gin.H{"message": "配置已重新加载", "provider": cfg.Provider})
+	response.SuccessMsg(c, i18n.AuditConfigReloaded, gin.H{"provider": cfg.Provider})
 }
 
 // PendingArticles GET /content-audit/pending-articles（待审核文章列表）。

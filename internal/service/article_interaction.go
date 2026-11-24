@@ -8,6 +8,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -303,7 +304,7 @@ func (s *ArticleService) SetFeatured(ctx context.Context, articleID string, acto
 		return nil, e
 	}
 	if !actor.IsManager() {
-		return nil, errcode.ErrForbidden.With("仅管理员可设置精华")
+		return nil, errcode.ErrForbidden.WithKey(i18n.ArticleFeaturedAdminOnly)
 	}
 	fields := map[string]interface{}{"is_featured": isFeatured}
 	if isFeatured {
@@ -330,7 +331,7 @@ func (s *ArticleService) SetProfilePin(ctx context.Context, articleID string, ac
 		return nil, e
 	}
 	if !s.canModify(a, actor) {
-		return nil, errcode.ErrForbidden.With("没有操作该文章的权限")
+		return nil, errcode.ErrForbidden.WithKey(i18n.ArticleNoPermission)
 	}
 	fields := map[string]interface{}{"is_pinned_on_profile": isPinned}
 	if isPinned {
@@ -499,7 +500,7 @@ func (s *ArticleService) GetBrowseHistory(ctx context.Context, articleID string,
 	b, err := s.repo.FindBrowse(ctx, actor.UserID, articleID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errcode.ErrNotFound.With("浏览记录不存在")
+			return nil, errcode.ErrNotFound.WithKey(i18n.InteractionViewNotFound)
 		}
 		s.log.Error("查询浏览记录失败", zap.Error(err))
 		return nil, errcode.ErrInternal

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/gin-gonic/gin"
 )
@@ -142,8 +143,11 @@ func TestJWTAuthV2RejectsNoToken(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("期望 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), "2001") {
-		t.Errorf("期望错误码 2001，body=%s", w.Body.String())
+	if !bodyHas(w.Body.String(), `"status_code":401`) {
+		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
+	}
+	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthNeedLogin)) {
+		t.Errorf("期望 message=%q，body=%s", i18n.T(i18n.AuthNeedLogin), w.Body.String())
 	}
 }
 
@@ -235,8 +239,11 @@ func TestJWTAuthV2PermVersionMismatch(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("版本不一致应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), "2002") {
-		t.Errorf("期望错误码 2002（权限已变更），body=%s", w.Body.String())
+	if !bodyHas(w.Body.String(), `"status_code":401`) {
+		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
+	}
+	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthPermVersionStale)) {
+		t.Errorf("期望 message=%q，body=%s", i18n.T(i18n.AuthPermVersionStale), w.Body.String())
 	}
 }
 
@@ -279,8 +286,8 @@ func TestRequireAnyPermission(t *testing.T) {
 	}{
 		{"命中第一个权限", []string{"user:read"}, http.StatusOK, ""},
 		{"命中第二个权限", []string{"user:manage"}, http.StatusOK, ""},
-		{"无相关权限", []string{"article:read"}, http.StatusForbidden, "2003"},
-		{"空权限集", nil, http.StatusForbidden, "2003"},
+		{"无相关权限", []string{"article:read"}, http.StatusForbidden, "403"},
+		{"空权限集", nil, http.StatusForbidden, "403"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -308,8 +315,8 @@ func TestRequireAnyPermissionWithoutLogin(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("未登录应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), "2001") {
-		t.Errorf("期望 2001，body=%s", w.Body.String())
+	if !bodyHas(w.Body.String(), `"status_code":401`) {
+		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
 	}
 }
 

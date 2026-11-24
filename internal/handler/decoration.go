@@ -4,6 +4,7 @@ package handler
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -221,7 +222,8 @@ func (h *OpsHandler) DecorationUse(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, ud)
+	// 成功提示提到顶层 message（统一响应契约：data 只放业务数据）
+	response.SuccessMsg(c, i18n.DecorationEquipped, ud)
 }
 
 // DecorationUnuse POST /decoration/unuse/:decorationId。
@@ -243,7 +245,8 @@ func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, ud)
+	// 成功提示提到顶层 message（统一响应契约：data 只放业务数据）
+	response.SuccessMsg(c, i18n.DecorationUnequipped, ud)
 }
 
 // DecorationPurchase POST /decoration/purchase。

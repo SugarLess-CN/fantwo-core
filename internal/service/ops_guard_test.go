@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 )
 
 // TestPointsAddRejectsNonPositiveAmount 发放积分拒绝 0 / 负数金额。
@@ -233,8 +234,8 @@ func TestPointsRuleBlockReasonNilActivity(t *testing.T) {
 	if err != nil {
 		t.Errorf("不应返回 error: %v", err)
 	}
-	if reason == "" {
-		t.Error("nil 活动应给出拦截原因")
+	if reason != i18n.PointsActivityNotFound {
+		t.Errorf("nil 活动应给出拦截 key %q，实际 %q", i18n.PointsActivityNotFound, reason)
 	}
 }
 

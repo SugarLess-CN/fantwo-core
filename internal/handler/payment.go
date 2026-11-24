@@ -76,11 +76,14 @@ func (h *PaymentHandler) NotifyAlipay(c *gin.Context) {
 //	@Success		200	{object}	map[string]string
 //	@Router			/payment/notify/wechat [post]
 func (h *PaymentHandler) NotifyWechat(c *gin.Context) {
+	// 注意：这是微信回调契约（微信 v3 规范要求 {"code":"SUCCESS"/"FAIL","message":...}），
+	// 不用项目的统一响应体（{data,message,status_code}），不能走 response.Success/Fail。
 	ok, msg := h.Svc.HandleWechatNotify(c.Request)
 	if ok {
-		c.JSON(http.StatusOK, gin.H{"code": "SUCCESS", "message": "成功"})
+		c.JSON(http.StatusOK, gin.H{"code": "SUCCESS", "message": "OK"})
 		return
 	}
+	// msg 为英文短句（见 HandleWechatNotify），作为失败原因透传给微信服务器
 	c.JSON(http.StatusInternalServerError, gin.H{"code": "FAIL", "message": msg})
 }
 
