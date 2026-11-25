@@ -42,7 +42,8 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	optAuth := middleware.OptionalAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	canUserRead := middleware.RequireAnyPermission("user:read", "user:manage")
-	canUserWrite := middleware.RequireAnyPermission("user:update", "user:manage")
+	// 注意：`user:update` 只是「改自己资料」的权限点（PATCH /user/profile 用它），
+	// 不可用于任何「改他人」的路由 —— 2026-11-25 的 P0 越权写就是这么来的。
 	canUserCreate := middleware.RequireAnyPermission("user:create")
 	canUserDelete := middleware.RequireAnyPermission("user:delete", "user:manage")
 	canUserManage := middleware.RequireAnyPermission("user:manage")
@@ -185,7 +186,15 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		// 原项目此处是 @NoAuth() 公开列表（会泄露全部用户），我方按安全加固处理；
 		// 普通用户查看他人主页仍可走 GET /user/:id（user:read）。
 		admin.GET("", canUserManage, userH.FindAll)
-		admin.PATCH("/:id", canUserWrite, userH.Update)
+		// 修改他人资料属管理能力：必须 user:manage。
+		//
+		// P0 教训（2026-11-25 接口测试发现）：这里原用 canUserWrite（`user:update`），
+		// 而 `user:update` 是「改自己资料」的权限点（`PATCH /user/profile` 就用它），
+		// 普通用户人人都有 → 任何登录用户都能改任意人的资料。
+		// 而 UserService.UpdateUser 支持 status / wallet / roleIds，危害是：
+		// 封禁任何人、直接改钱包余额、给自己加管理员角色（提权）。
+		// 与同组 DELETE /user/:id（user:delete）保持同一收紧口径。
+		admin.PATCH("/:id", canUserManage, userH.Update)
 		admin.DELETE("/:id", canUserDelete, userH.Remove)
 		admin.GET("/:id", canUserRead, userH.FindOne)
 		admin.GET("/:id/membership/check", canUserManage, userH.CheckMembership)
