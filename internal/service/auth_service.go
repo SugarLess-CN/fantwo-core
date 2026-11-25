@@ -28,7 +28,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -554,7 +554,7 @@ func (s *AuthService) SmsLogin(ctx context.Context, phone, code, deviceID string
 }
 
 // ---------------------------------------------------------------------------
-// 第三方登录编排（T-37c：全部走 internal/pkg/oauthkit）
+// 第三方登录编排（T-37c：全部走 pkg/oauthkit）
 //
 // 分工：协议交互在 oauthkit（拼 URL / 换 token / 拉 userinfo / 校验 token），
 // 账号归属在 OAuthService.FindOrCreateByOAuth，本段只做「state + 流程串联 + 双 token」。

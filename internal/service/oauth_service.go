@@ -3,7 +3,7 @@
 // 职责边界：
 //   - 本文件只做「把 (provider, openid / unionid) 映射到本站 user」这件事，
 //     协议交互（拼 URL / 换 token / 拉 userinfo / 校验 token）全部在
-//     internal/pkg/oauthkit，不在这里重复实现。
+//     pkg/oauthkit，不在这里重复实现。
 //   - 本文件不签发 token、不碰 Redis、不碰 gin.Context。
 //
 // # 硬约束来源
@@ -36,7 +36,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )

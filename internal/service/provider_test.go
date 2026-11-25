@@ -10,7 +10,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 )
 
 // TestRenderTemplate 短信/邮件模板占位符替换。

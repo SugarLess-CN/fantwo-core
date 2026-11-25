@@ -25,7 +25,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 	"gorm.io/gorm"
 	"unicode/utf8"
 )

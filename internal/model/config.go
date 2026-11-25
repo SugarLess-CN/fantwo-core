@@ -8,7 +8,7 @@ package model
 import (
 	"strings"
 
-	"github.com/SugarLess-CN/fantwo-core/internal/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 )
 
 // 配置值类型（原 config.type，默认 string）。
@@ -314,7 +314,7 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{ConfigKeySensitiveWords, "[]", "敏感词列表（JSON 数组）", ConfigTypeJSON, ConfigGroupSystem, false},
 
 		// ---- 第三方登录（T-37 oauthkit）----
-		// 配置键口径：<provider>_<channel>_<field>（唯一定义源见 internal/pkg/oauthkit/config.go）。
+		// 配置键口径：<provider>_<channel>_<field>（唯一定义源见 pkg/oauthkit/config.go）。
 		// 微信 / QQ 各有 web（网站应用）与 app（移动应用）两套 appid —— 是两个独立应用，
 		// openid 不同、unionid 相同；登录查找必须先 unionid 后 openid，否则同一人 PC+App 会变两个账号。
 		// GitHub 只有一个渠道，沿用既有 github_* 键名（不破坏已有部署的 env）。

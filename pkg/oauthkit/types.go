@@ -1,30 +1,16 @@
-// Package oauthkit 第三方登录统一抽象（微信 / QQ / GitHub）。
+// 本文件定义 Provider 接口 + 归一化数据结构（Token / User）+ 全部哨兵错误。
 //
-// 设计依据：docs/14-第三方登录调研.md（§7.1 接口 + §7.1.1 多渠道修订）。
+// 包级说明、快速开始示例、渠道矩阵与安全约束见 doc.go。
 //
-// # 设计原则
-//
-//  1. **只抽象四件事**：拼授权 URL、code 换 token、token 换用户、刷新 token；
+// 设计原则（细节见 doc.go）：
+//  1. 只抽象四件事：拼授权 URL、code 换 token、token 换用户、刷新 token；
 //     平台差异（QQ 的裸 query string / JSONP / 直给 token）全部收敛在各自实现内。
-//  2. **不持有 Redis / DB / 日志**：纯协议层。state 存取、账号绑定、双 token 签发
-//     都属于 service 层职责，SDK 不碰。
-//  3. **按 (provider, channel) 实例化**：微信移动应用与网站应用是两个独立 appid，
+//  2. 不持有 Redis / DB / 日志：纯协议层。state 存取、账号绑定、双 token 签发
+//     都属于调用方职责，SDK 不碰。
+//  3. 按 (provider, channel) 实例化：微信移动应用与网站应用是两个独立 appid，
 //     但账号唯一键仍按平台算 —— 所以 Name() 给平台、Channel() 给渠道，两者分开。
-//  4. **安全约束做成运行时硬约束**：QQ 移动端的 token 由客户端上报、可伪造，
+//  4. 安全约束做成运行时硬约束：QQ 移动端的 token 由客户端上报、可伪造，
 //     UserInfo 对未经过 ValidateToken 的 app token 直接拒绝，不靠注释提醒。
-//
-// # 渠道差异（实测结论，见 docs/14 §8）
-//
-//	微信 web（网站应用扫码）  AuthURL(qrconnect) → Exchange(code) → UserInfo
-//	微信 app（移动应用）      AuthURL 不可用（走微信客户端 SDK）→ Exchange(code) → UserInfo
-//	QQ  web（网页）           AuthURL(authorize) → Exchange(code) → UserInfo
-//	QQ  app（移动应用）       AuthURL/Exchange 均不可用（QQ SDK 直接给 token）
-//	                          → ValidateToken(客户端上报的 token) → UserInfo
-//	GitHub web                AuthURL → Exchange(code) → UserInfo（email 可能为空）
-//
-// 两个不对称必须保留，不许为「接口好看」抹平：
-//   - 微信 App 交的是 code（后端自己换 token，可信）；
-//   - QQ App 交的是 access_token（客户端可信度为零，必须 ValidateToken 校验 openid 一致性）。
 package oauthkit
 
 import (
