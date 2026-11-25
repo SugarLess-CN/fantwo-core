@@ -103,7 +103,7 @@ func (h *RoleHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "roleRequest{name,description,isEnabled}"
+//	@Param		body body service.CreateRoleInput true "roleRequest{name,description,isEnabled}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				RoleController_create
 //	@Router		/role [post]
@@ -128,7 +128,7 @@ func (h *RoleHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "roleRequest"
+//	@Param		body body service.UpdateRoleInput true "roleRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				RoleController_update
 //	@Router		/role/{id} [patch]
@@ -197,14 +197,12 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "assignRequest{permissionIds}"
+//	@Param		body body RolePermissionsRequest true "assignRequest{permissionIds}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				RoleController_assignPermissions
 //	@Router		/role/{id}/permissions [post]
 func (h *RoleHandler) AssignPermissions(c *gin.Context) {
-	var in struct {
-		PermissionIDs []string `json:"permissionIds"`
-	}
+	var in RolePermissionsRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -224,14 +222,12 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "statusRequest{isEnabled}"
+//	@Param		body body RoleStatusRequest true "statusRequest{isEnabled}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				RoleController_toggleStatus
 //	@Router		/role/{id}/status [patch]
 func (h *RoleHandler) ToggleStatus(c *gin.Context) {
-	var in struct {
-		IsActive *bool `json:"isActive"`
-	}
+	var in RoleStatusRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -255,14 +251,12 @@ func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "menusRequest{menus}"
+//	@Param		body body RoleMenusRequest true "menusRequest{menus}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				RoleHandler_AssignMenus
 //	@Router		/role/{id}/menus [put]
 func (h *RoleHandler) AssignMenus(c *gin.Context) {
-	var in struct {
-		Menus []string `json:"menus"`
-	}
+	var in RoleMenusRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -388,7 +382,7 @@ func (h *PermissionHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "permissionRequest{name,description}"
+//	@Param		body body service.PermissionInput true "permissionRequest{name,description}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PermissionController_create
 //	@Router		/permission [post]
@@ -413,7 +407,7 @@ func (h *PermissionHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "权限 ID"
-//	@Param		body body object true "permissionRequest"
+//	@Param		body body service.PermissionInput true "permissionRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PermissionController_update
 //	@Router		/permission/{id} [patch]
@@ -446,4 +440,21 @@ func (h *PermissionHandler) Remove(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{"success": true})
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// RoleMenusRequest 角色分配菜单请求体。
+type RoleMenusRequest struct {
+	Menus []string `json:"menus"`
+}
+
+// RoleStatusRequest 角色启用/停用请求体。
+type RoleStatusRequest struct {
+	IsActive *bool `json:"isActive"`
+}
+
+// RolePermissionsRequest 角色分配权限点请求体。
+type RolePermissionsRequest struct {
+	PermissionIDs []string `json:"permissionIds"`
 }

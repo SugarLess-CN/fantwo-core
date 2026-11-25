@@ -85,6 +85,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 export PATH="$PATH:/c/Program Files/Go/bin:$HOME/go/bin"
 swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal
 
+# 1.5) 定义名归一化（把 github_com_..._internal_service.X 压成 service.X）
+python scripts/normalize-swagger.py
+
 # 2) 自检：操作数、operationId 覆盖、唯一性
 python -c "
 import json
@@ -109,12 +112,14 @@ print('dup',{k:v for k,v in Counter(ids).items() if v>1} or 'none')
 | `swag init` 报 `exec: "go": executable file not found` | swag 内部要 shell 出 `go list` | 把 Go 的 bin 目录加进 PATH（见 §6） |
 | operationId 重复，文档校验失败 | 同一函数挂两条路径，两条都写了同样 `@ID` | 主路径保留，其余加后缀或干脆不写注解（见 R7） |
 | 生成的接口名变成 `UserController_login_2` | 撞名自动加序号 | 说明起名逻辑有问题，回 §5 重挑 |
+| 定义名长成 `github_com_SugarLess-CN_fantwo-core_internal_service.CreateArticleRequest` | `--parseDependency` 会把包路径编进 definitions | 跑 `python scripts/normalize-swagger.py`（`dev.sh` 已内置）。**不要用 `// swagger:model`**——swag v1.16.6 源码里没有这个关键字，写了也不生效 |
 
 ## 8. 禁止事项
 
 - ❌ 不要为了让「文档更全」给别名路由补第二份注解块（会产生重复 operationId）。
 - ❌ 不要按路径字符串拼 operationId（`user_login_post` 这类），与既有 317 条风格不兼容。
 - ❌ 不要手改 `docs/swagger/*` 产物——它随时会被 `swag init` 覆盖，改注解才是源头。
+  （唯一例外是 `scripts/normalize-swagger.py` 的自动归一化，它跟着生成流程跑，可重复执行。）
 - ❌ 不要在 Dockerfile / 打包脚本里生成文档（容器内只需编译好的 `docs.go`）。
 - ❌ 不要把 `SWAGGER_ENABLED` 在生产打开（UI 暴露全部接口清单）。
 
@@ -126,5 +131,6 @@ print('dup',{k:v for k,v in Counter(ids).items() if v>1} or 'none')
 | `docs/swagger/{docs.go,swagger.json,swagger.yaml}` | swag 产物，入库但**不手改** |
 | `internal/router/swagger_routes.go` | UI 挂载 + `SWAGGER_ENABLED` 开关 |
 | `scripts/dev.sh` | 本地启动（先生成文档再起服务，`SKIP_SWAG=1` 可跳过） |
+| `scripts/normalize-swagger.py` | 定义名归一化（`github_com_..._service.X` → `service.X`），`dev.sh` 自动调用 |
 | `docs/02-API文档清单.md` | 原项目 275 操作的 path/operationId 对照 |
 | `picart_native_app/openapi.json` | 前端契约，operationId 的第一权威源 |

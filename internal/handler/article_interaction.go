@@ -282,7 +282,7 @@ func (h *ArticleHandler) Share(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.BrowseProgressRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ArticleController_updateBrowseProgress
 //	@Router		/article/{id}/browse/progress [post]
@@ -360,7 +360,7 @@ func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.BatchDeleteBrowseRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ArticleController_batchDeleteBrowseHistory
 //	@Router		/article/browse/batch-delete [post]

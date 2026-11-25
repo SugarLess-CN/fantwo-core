@@ -16,7 +16,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "addPointsRequest{userId,amount,reason}"
+//	@Param		body body service.AddPointsInput true "addPointsRequest{userId,amount,reason}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PointsController_addPoints
 //	@Router		/points/add [post]
@@ -45,7 +45,7 @@ func (h *OpsHandler) PointsAdd(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "spendPointsRequest{amount,reason}"
+//	@Param		body body service.SpendPointsInput true "spendPointsRequest{amount,reason}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PointsController_spendPoints
 //	@Router		/points/spend [post]
@@ -266,7 +266,7 @@ func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body model.PointsActivityInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PointsController_createActivity
 //	@Router		/points/activities [post]
@@ -327,7 +327,7 @@ func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.PointsActivityInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PointsController_updateActivity
 //	@Router		/points/activities/{id} [patch]

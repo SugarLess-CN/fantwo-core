@@ -17,7 +17,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "bannerRequest"
+//	@Param		body body model.BannerInput true "bannerRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				BannerController_create
 //	@Router		/banners [post]
@@ -105,7 +105,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "轮播 ID"
-//	@Param		body body object true "bannerRequest"
+//	@Param		body body model.BannerInput true "bannerRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				BannerController_update
 //	@Router		/banners/{id} [patch]

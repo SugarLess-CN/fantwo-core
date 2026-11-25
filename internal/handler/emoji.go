@@ -28,7 +28,7 @@ const emojiMaxSize = 5 * 1024 * 1024
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "emojiRequest"
+//	@Param		body body model.EmojiInput true "emojiRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				EmojiController_create
 //	@Router		/emoji [post]
@@ -56,10 +56,10 @@ func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 //
 //	@Summary	上传表情（走图片审核队列）
 //	@Tags		表情包
-//	@Accept		json
+//	@Accept		multipart/form-data
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "multipart 或 base64 载荷"
+//	@Param		file formData file true "表情图片文件"
 //	@Success	200	{object}	ResponseBody
 //	@ID				EmojiController_upload
 //	@Router		/emoji/upload [post]
@@ -145,7 +145,7 @@ func (h *OpsHandler) EmojiGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.EmojiInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				EmojiController_update
 //	@Router		/emoji/{id} [patch]
@@ -338,7 +338,7 @@ func (h *OpsHandler) EmojiUse(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "emojiPackRequest"
+//	@Param		body body model.EmojiPackInput true "emojiPackRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				OpsHandler_EmojiPackCreate
 //	@Router		/emoji/packs [post]
@@ -410,7 +410,7 @@ func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.EmojiPackInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				OpsHandler_EmojiPackUpdate
 //	@Router		/emoji/packs/{id} [patch]
@@ -462,7 +462,7 @@ func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body EmojiPackItemRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				OpsHandler_EmojiPackAddEmoji
 //	@Router		/emoji/packs/{id}/emojis [post]
@@ -471,9 +471,7 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 	if uid == "" {
 		return
 	}
-	var body struct {
-		EmojiID string `json:"emojiId" binding:"required"`
-	}
+	var body EmojiPackItemRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -495,7 +493,7 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		emojiId path string true "emojiId"
-//	@Param		body body object true "请求体"
+//	@Param		body body EmojiPackItemSortRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				OpsHandler_EmojiPackUpdateEmoji
 //	@Router		/emoji/packs/{id}/emojis/{emojiId} [patch]
@@ -504,9 +502,7 @@ func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 	if uid == "" {
 		return
 	}
-	var body struct {
-		Sort int `json:"sort"`
-	}
+	var body EmojiPackItemSortRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -540,4 +536,16 @@ func (h *OpsHandler) EmojiPackRemoveEmoji(c *gin.Context) {
 		return
 	}
 	ok(c, gin.H{"removed": true})
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// EmojiPackItemSortRequest 表情包内表情排序请求体。
+type EmojiPackItemSortRequest struct {
+	Sort int `json:"sort"`
+}
+
+// EmojiPackItemRequest 表情包添加表情请求体。
+type EmojiPackItemRequest struct {
+	EmojiID string `json:"emojiId" binding:"required"`
 }

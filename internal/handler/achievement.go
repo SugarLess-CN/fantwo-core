@@ -15,7 +15,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "achievementRequest"
+//	@Param		body body model.AchievementInput true "achievementRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AchievementController_create
 //	@Router		/achievement [post]
@@ -103,7 +103,7 @@ func (h *OpsHandler) AchievementGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.AchievementInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AchievementController_update
 //	@Router		/achievement/{id} [patch]

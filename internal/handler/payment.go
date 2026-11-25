@@ -30,7 +30,7 @@ type PaymentHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreatePaymentInput{orderId,method,...}"
+//	@Param			body	body		service.CreatePaymentInput	true	"CreatePaymentInput{orderId,method,...}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				PaymentController_createPayment
@@ -177,14 +177,12 @@ func (h *PaymentHandler) Mine(c *gin.Context) {
 //	@Tags		支付
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body EpaySignatureRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				PaymentController_testEpaySignature
 //	@Router		/payment/test/epay-signature [post]
 func (h *PaymentHandler) EpaySignature(c *gin.Context) {
-	var body struct {
-		Params map[string]string `json:"params"`
-	}
+	var body EpaySignatureRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -195,4 +193,11 @@ func (h *PaymentHandler) EpaySignature(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{"sign": sign, "sign_type": "MD5"})
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// EpaySignatureRequest 易支付签名调试请求体。
+type EpaySignatureRequest struct {
+	Params map[string]string `json:"params"`
 }

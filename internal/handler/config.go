@@ -77,7 +77,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "configRequest{key,value,group,remark}"
+//	@Param		body body infra.ConfigInput true "configRequest{key,value,group,remark}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_create
 //	@Router		/config [post]
@@ -101,7 +101,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body []infra.ConfigInput true "配置数组"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_updateAll
 //	@Router		/config [patch]
@@ -147,7 +147,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
-//	@Param		body body object true "kv 映射"
+//	@Param		body body []infra.ConfigInput true "kv 映射"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_updateGroup
 //	@Router		/config/group/{group} [patch]
@@ -245,7 +245,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body infra.ConfigInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_update
 //	@Router		/config/{id} [patch]
@@ -309,14 +309,12 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_createSensitiveWord
 //	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
-	var body struct {
-		Word string `json:"word"`
-	}
+	var body SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
 		return
@@ -334,14 +332,12 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_removeSensitiveWord
 //	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
-	var body struct {
-		Word string `json:"word"`
-	}
+	var body SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
 		return
@@ -359,14 +355,12 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body SensitiveWordsRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_batchCreateSensitiveWords
 //	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
-	var body struct {
-		Words []string `json:"words"`
-	}
+	var body SensitiveWordsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
 		return
@@ -389,14 +383,12 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body SensitiveWordsRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ConfigController_batchRemoveSensitiveWords
 //	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
-	var body struct {
-		Words []string `json:"words"`
-	}
+	var body SensitiveWordsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
 		return
@@ -428,4 +420,16 @@ func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 		"success": true,
 		"total":   h.svc.TrieSize(),
 	})
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// SensitiveWordsRequest 批量敏感词请求体。
+type SensitiveWordsRequest struct {
+	Words []string `json:"words"`
+}
+
+// SensitiveWordRequest 单个敏感词请求体。
+type SensitiveWordRequest struct {
+	Word string `json:"word"`
 }

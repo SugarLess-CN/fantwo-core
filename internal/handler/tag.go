@@ -21,7 +21,7 @@ type TagHandler struct {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "tagRequest{name,description}"
+//	@Param		body body service.CreateTagRequest true "tagRequest{name,description}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				TagController_create
 //	@Router		/tag [post]
@@ -137,7 +137,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
-//	@Param		body body object true "tagRequest"
+//	@Param		body body service.UpdateTagRequest true "tagRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				TagController_update
 //	@Router		/tag/{id} [patch]

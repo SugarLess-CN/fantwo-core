@@ -35,7 +35,7 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateCommentRequest{articleId,content,parentId}"
+//	@Param			body	body		service.CreateCommentRequest	true	"CreateCommentRequest{articleId,content,parentId}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				CommentController_create
@@ -122,7 +122,7 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateCommentRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				CommentController_update
 //	@Router		/comment/{id} [patch]
@@ -148,7 +148,7 @@ func (h *CommentHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.SetCommentPinRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				CommentController_setPin
 //	@Router		/comment/{id}/pin [patch]

@@ -62,7 +62,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.AchievementInput"
                         }
                     }
                 ],
@@ -217,7 +217,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.AchievementInput"
                         }
                     }
                 ],
@@ -354,7 +354,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateArticleRequest"
                         }
                     }
                 ],
@@ -461,7 +461,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.BatchDeleteBrowseRequest"
                         }
                     }
                 ],
@@ -992,7 +992,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateArticleRequest"
                         }
                     }
                 ],
@@ -1044,7 +1044,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.BrowseProgressRequest"
                         }
                     }
                 ],
@@ -1290,7 +1290,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SetFeaturedRequest"
                         }
                     }
                 ],
@@ -1428,7 +1428,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SetProfilePinRequest"
                         }
                     }
                 ],
@@ -1488,7 +1488,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SmsLoginRequest"
                         }
                     }
                 ],
@@ -1519,7 +1519,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SendSmsCodeRequest"
                         }
                     }
                 ],
@@ -1581,7 +1581,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.BannerInput"
                         }
                     }
                 ],
@@ -1706,7 +1706,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.BannerInput"
                         }
                     }
                 ],
@@ -1763,7 +1763,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateCategoryRequest"
                         }
                     }
                 ],
@@ -1868,7 +1868,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateCategoryRequest"
                         }
                     }
                 ],
@@ -1930,7 +1930,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateCollectionRequest"
                         }
                     }
                 ],
@@ -2108,7 +2108,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateCollectionRequest"
                         }
                     }
                 ],
@@ -2280,7 +2280,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.ReorderCollectionItemsRequest"
                         }
                     }
                 ],
@@ -2357,7 +2357,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateCommentRequest"
                         }
                     }
                 ],
@@ -2578,7 +2578,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateCommentRequest"
                         }
                     }
                 ],
@@ -2658,7 +2658,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SetCommentPinRequest"
                         }
                     }
                 ],
@@ -2734,7 +2734,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/infra.ConfigInput"
                         }
                     }
                 ],
@@ -2763,12 +2763,15 @@ const docTemplate = `{
                 "operationId": "ConfigController_updateAll",
                 "parameters": [
                     {
-                        "description": "请求体",
+                        "description": "配置数组",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/infra.ConfigInput"
+                            }
                         }
                     }
                 ],
@@ -2866,7 +2869,10 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/infra.ConfigInput"
+                            }
                         }
                     }
                 ],
@@ -2993,7 +2999,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SensitiveWordRequest"
                         }
                     }
                 ],
@@ -3027,7 +3033,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SensitiveWordRequest"
                         }
                     }
                 ],
@@ -3063,7 +3069,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SensitiveWordsRequest"
                         }
                     }
                 ],
@@ -3097,7 +3103,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SensitiveWordsRequest"
                         }
                     }
                 ],
@@ -3232,7 +3238,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/infra.ConfigInput"
                         }
                     }
                 ],
@@ -3278,7 +3284,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.ReviewArticleInput"
                         }
                     }
                 ],
@@ -3367,7 +3373,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.ContentAuditImageRequest"
                         }
                     }
                 ],
@@ -3445,7 +3451,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.ContentAuditTextRequest"
                         }
                     }
                 ],
@@ -3507,7 +3513,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.DecorationInput"
                         }
                     }
                 ],
@@ -3605,7 +3611,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.DecorationActivityInput"
                         }
                     }
                 ],
@@ -3774,7 +3780,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.DecorationActivityInput"
                         }
                     }
                 ],
@@ -3835,7 +3841,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.DecorationGiftRequest"
                         }
                     }
                 ],
@@ -3874,7 +3880,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.DecorationPurchaseRequest"
                         }
                     }
                 ],
@@ -4136,7 +4142,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.DecorationInput"
                         }
                     }
                 ],
@@ -4193,7 +4199,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.EmojiInput"
                         }
                     }
                 ],
@@ -4295,7 +4301,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.EmojiPackInput"
                         }
                     }
                 ],
@@ -4400,7 +4406,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.EmojiPackInput"
                         }
                     }
                 ],
@@ -4446,7 +4452,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.EmojiPackItemRequest"
                         }
                     }
                 ],
@@ -4538,7 +4544,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.EmojiPackItemSortRequest"
                         }
                     }
                 ],
@@ -4605,7 +4611,7 @@ const docTemplate = `{
                     }
                 ],
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -4617,13 +4623,11 @@ const docTemplate = `{
                 "operationId": "EmojiController_upload",
                 "parameters": [
                     {
-                        "description": "multipart 或 base64 载荷",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
+                        "type": "file",
+                        "description": "表情图片文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -4727,7 +4731,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.EmojiInput"
                         }
                     }
                 ],
@@ -4966,7 +4970,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.InviteUseInput"
                         }
                     }
                 ],
@@ -5077,7 +5081,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateMessageInput"
                         }
                     }
                 ],
@@ -5119,7 +5123,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.BatchMessageInput"
                         }
                     }
                 ],
@@ -5353,7 +5357,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.PrivateReadBatchRequest"
                         }
                     }
                 ],
@@ -5434,7 +5438,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SendPrivateInput"
                         }
                     }
                 ],
@@ -5639,7 +5643,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateMessageInput"
                         }
                     }
                 ],
@@ -5751,7 +5755,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.ArticleOrderRequest"
                         }
                     }
                 ],
@@ -5796,7 +5800,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.MembershipOrderRequest"
                         }
                     }
                 ],
@@ -6059,7 +6063,7 @@ const docTemplate = `{
                         "name": "body",
                         "in": "body",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.OrderRefundRequest"
                         }
                     }
                 ],
@@ -6105,7 +6109,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreatePaymentInput"
                         }
                     }
                 ],
@@ -6287,7 +6291,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.EpaySignatureRequest"
                         }
                     }
                 ],
@@ -6388,7 +6392,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.PermissionInput"
                         }
                     }
                 ],
@@ -6523,7 +6527,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.PermissionInput"
                         }
                     }
                 ],
@@ -6577,7 +6581,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.PointsActivityInput"
                         }
                     }
                 ],
@@ -6682,7 +6686,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.PointsActivityInput"
                         }
                     }
                 ],
@@ -6755,7 +6759,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.AddPointsInput"
                         }
                     }
                 ],
@@ -6819,7 +6823,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SpendPointsInput"
                         }
                     }
                 ],
@@ -7141,7 +7145,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.ReportCreateInput"
                         }
                     }
                 ],
@@ -7276,7 +7280,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/model.ReportUpdateInput"
                         }
                     }
                 ],
@@ -7338,7 +7342,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateRoleInput"
                         }
                     }
                 ],
@@ -7512,7 +7516,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateRoleInput"
                         }
                     }
                 ],
@@ -7624,7 +7628,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.RoleMenusRequest"
                         }
                     }
                 ],
@@ -7670,7 +7674,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.RolePermissionsRequest"
                         }
                     }
                 ],
@@ -7716,7 +7720,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.RoleStatusRequest"
                         }
                     }
                 ],
@@ -7972,7 +7976,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateTagRequest"
                         }
                     }
                 ],
@@ -8142,7 +8146,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateTagRequest"
                         }
                     }
                 ],
@@ -8331,7 +8335,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/infra.S3Confirm"
                         }
                     }
                 ],
@@ -8439,13 +8443,10 @@ const docTemplate = `{
                 "operationId": "UploadController_fillMissingMetadata",
                 "parameters": [
                     {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
+                        "type": "integer",
+                        "description": "单批处理条数，默认 100",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -8480,7 +8481,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.UploadMigrationRequest"
                         }
                     }
                 ],
@@ -8544,7 +8545,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.UploadPresignRequest"
                         }
                     }
                 ],
@@ -8661,7 +8662,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.CreateUserInput"
                         }
                     }
                 ],
@@ -8703,7 +8704,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.RequestDeletionInput"
                         }
                     }
                 ],
@@ -8844,7 +8845,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.AuditCertInput"
                         }
                     }
                 ],
@@ -8917,7 +8918,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.ApplyCertInput"
                         }
                     }
                 ],
@@ -9062,7 +9063,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.CommissionCalculateRequest"
                         }
                     }
                 ],
@@ -9121,7 +9122,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.SetCommissionInput"
                         }
                     }
                 ],
@@ -9183,7 +9184,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateConfigInput"
                         }
                     }
                 ],
@@ -9222,7 +9223,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateConfigInput"
                         }
                     }
                 ],
@@ -9261,7 +9262,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.NotificationInput"
                         }
                     }
                 ],
@@ -9292,7 +9293,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.SendEmailCodeRequest"
                         }
                     }
                 ],
@@ -9425,17 +9426,6 @@ const docTemplate = `{
                 ],
                 "summary": "批量会员状态检查",
                 "operationId": "UserController_batchCheckMembershipStatus",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -9481,7 +9471,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.OAuthCallbackRequest"
                         }
                     }
                 ],
@@ -9535,7 +9525,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.QQAppLoginRequest"
                         }
                     }
                 ],
@@ -9584,7 +9574,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.OAuthCallbackRequest"
                         }
                     }
                 ],
@@ -9638,7 +9628,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.WechatAppLoginRequest"
                         }
                     }
                 ],
@@ -9687,7 +9677,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.OAuthCallbackRequest"
                         }
                     }
                 ],
@@ -9743,7 +9733,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.ChangePasswordRequest"
                         }
                     }
                 ],
@@ -9774,7 +9764,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.ResetPasswordRequest"
                         }
                     }
                 ],
@@ -9843,7 +9833,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateProfileInput"
                         }
                     }
                 ],
@@ -9888,7 +9878,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateProfileInput"
                         }
                     }
                 ],
@@ -9997,7 +9987,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.BindPhoneInput"
                         }
                     }
                 ],
@@ -10033,7 +10023,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.BindPhoneCodeRequest"
                         }
                     }
                 ],
@@ -10075,7 +10065,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.RefreshTokenRequest"
                         }
                     }
                 ],
@@ -10116,7 +10106,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/internal_handler.RegisterRequest"
                         }
                     }
                 ],
@@ -10336,7 +10326,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.WithdrawInput"
                         }
                     }
                 ],
@@ -10458,7 +10448,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/service.UpdateUserInput"
                         }
                     }
                 ],
@@ -10702,6 +10692,1663 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.AchievementCondition": {
+            "type": "object",
+            "properties": {
+                "extra": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "target": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AchievementInput": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "condition": {
+                    "$ref": "#/definitions/model.AchievementCondition"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rarity": {
+                    "type": "string"
+                },
+                "rewardDecorationId": {
+                    "type": "string"
+                },
+                "rewardExp": {
+                    "type": "integer"
+                },
+                "rewardPoints": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.BannerInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "linkUrl": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.DecorationActivityInput": {
+            "type": "object",
+            "properties": {
+                "articleId": {
+                    "type": "string"
+                },
+                "decorationId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "isPermanent": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "requiredComments": {
+                    "type": "integer"
+                },
+                "requiredLikes": {
+                    "type": "integer"
+                },
+                "requiredRecharge": {
+                    "type": "number"
+                },
+                "requiredShares": {
+                    "type": "integer"
+                },
+                "requiredSignInDays": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validDays": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.DecorationInput": {
+            "type": "object",
+            "properties": {
+                "bubbleColor": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "isPermanent": {
+                    "type": "boolean"
+                },
+                "isPurchasable": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "obtainMethod": {
+                    "type": "string"
+                },
+                "previewUrl": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "rarity": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validDays": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.EmojiInput": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.EmojiPackInput": {
+            "type": "object",
+            "properties": {
+                "coverUrl": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.InviteUseInput": {
+            "type": "object",
+            "required": [
+                "inviteCode"
+            ],
+            "properties": {
+                "inviteCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.PointsActivityInput": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "dailyLimit": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rewardPoints": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "targetCount": {
+                    "type": "integer"
+                },
+                "totalLimit": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validDays": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ReportCreateInput": {
+            "type": "object",
+            "required": [
+                "category",
+                "reason",
+                "type"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "reportedArticleId": {
+                    "type": "string"
+                },
+                "reportedCommentId": {
+                    "type": "string"
+                },
+                "reportedUserId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReportUpdateInput": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.AddPointsInput": {
+            "type": "object",
+            "required": [
+                "amount",
+                "source"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "relatedId": {
+                    "type": "string"
+                },
+                "relatedType": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "validDays": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.ApplyCertInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "materials": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organizationName": {
+                    "type": "string"
+                },
+                "realName": {
+                    "type": "string"
+                },
+                "slogan": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ArticleDownloadRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "size": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "type": {
+                    "type": "string",
+                    "maxLength": 32
+                },
+                "url": {
+                    "type": "string",
+                    "maxLength": 1000
+                }
+            }
+        },
+        "service.AuditCertInput": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.BatchDeleteBrowseRequest": {
+            "type": "object",
+            "required": [
+                "articleIds"
+            ],
+            "properties": {
+                "articleIds": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.BatchMessageInput": {
+            "type": "object",
+            "required": [
+                "action",
+                "messageIds"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "messageIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.BindPhoneInput": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.BrowseProgressRequest": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "progress": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
+                }
+            }
+        },
+        "service.CreateArticleRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "activityId": {
+                    "type": "string"
+                },
+                "allowReprint": {
+                    "type": "boolean"
+                },
+                "categoryId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ArticleDownloadRequest"
+                    }
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isFeatured": {
+                    "type": "boolean"
+                },
+                "isPinnedOnProfile": {
+                    "type": "boolean"
+                },
+                "listRequireLogin": {
+                    "type": "boolean"
+                },
+                "requireFollow": {
+                    "type": "boolean"
+                },
+                "requireLogin": {
+                    "type": "boolean"
+                },
+                "requireMembership": {
+                    "type": "boolean"
+                },
+                "requirePayment": {
+                    "type": "boolean"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "DRAFT",
+                        "PENDING",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                    ]
+                },
+                "summary": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tagNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "image",
+                        "mixed",
+                        "video"
+                    ]
+                },
+                "videoUrl": {
+                    "type": "string"
+                },
+                "viewPrice": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "service.CreateCategoryRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "link": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ]
+                }
+            }
+        },
+        "service.CreateCollectionRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.CreateCommentRequest": {
+            "type": "object",
+            "required": [
+                "articleId",
+                "content"
+            ],
+            "properties": {
+                "articleId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parentId": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateMessageInput": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "isBroadcast": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "receiverId": {
+                    "type": "string"
+                },
+                "receiverIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "senderId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreatePaymentInput": {
+            "type": "object",
+            "required": [
+                "orderId",
+                "paymentMethod"
+            ],
+            "properties": {
+                "orderId": {
+                    "type": "string"
+                },
+                "paymentMethod": {
+                    "type": "string",
+                    "enum": [
+                        "ALIPAY",
+                        "WECHAT",
+                        "EPAY",
+                        "BALANCE"
+                    ]
+                },
+                "returnUrl": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "epay 子类型：alipay/wxpay/usdt",
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateRoleInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "isSystem": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.CreateTagRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.CreateUserInput": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "inviteCode": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "roleIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "username": {
+                    "type": "string"
+                },
+                "wallet": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.NotificationInput": {
+            "type": "object",
+            "properties": {
+                "enableCommentNotification": {
+                    "type": "boolean"
+                },
+                "enableEmailNotification": {
+                    "type": "boolean"
+                },
+                "enableFollowNotification": {
+                    "type": "boolean"
+                },
+                "enableInviteNotification": {
+                    "type": "boolean"
+                },
+                "enableLikeNotification": {
+                    "type": "boolean"
+                },
+                "enableMessageNotification": {
+                    "type": "boolean"
+                },
+                "enableOrderNotification": {
+                    "type": "boolean"
+                },
+                "enablePaymentNotification": {
+                    "type": "boolean"
+                },
+                "enablePushNotification": {
+                    "type": "boolean"
+                },
+                "enableSmsNotification": {
+                    "type": "boolean"
+                },
+                "enableSystemNotification": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.PermissionInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ReorderCollectionItemsRequest": {
+            "type": "object",
+            "required": [
+                "articleIds"
+            ],
+            "properties": {
+                "articleIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.RequestDeletionInput": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ReviewArticleInput": {
+            "type": "object",
+            "required": [
+                "result"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string",
+                    "enum": [
+                        "APPROVED",
+                        "REJECTED"
+                    ]
+                }
+            }
+        },
+        "service.SendPrivateInput": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "messageKind": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "service.SetCommentPinRequest": {
+            "type": "object",
+            "required": [
+                "isPinned"
+            ],
+            "properties": {
+                "isPinned": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.SetCommissionInput": {
+            "type": "object",
+            "properties": {
+                "articleCommissionRate": {
+                    "type": "number"
+                },
+                "enableCustomCommission": {
+                    "type": "boolean"
+                },
+                "membershipCommissionRate": {
+                    "type": "number"
+                },
+                "productCommissionRate": {
+                    "type": "number"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "serviceCommissionRate": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.SetFeaturedRequest": {
+            "type": "object",
+            "required": [
+                "isFeatured"
+            ],
+            "properties": {
+                "isFeatured": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.SetProfilePinRequest": {
+            "type": "object",
+            "required": [
+                "isPinned"
+            ],
+            "properties": {
+                "isPinned": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.SpendPointsInput": {
+            "type": "object",
+            "required": [
+                "amount",
+                "source"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "relatedId": {
+                    "type": "string"
+                },
+                "relatedType": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateArticleRequest": {
+            "type": "object",
+            "properties": {
+                "activityId": {
+                    "type": "string"
+                },
+                "allowReprint": {
+                    "type": "boolean"
+                },
+                "categoryId": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/service.ArticleDownloadRequest"
+                    }
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isFeatured": {
+                    "type": "boolean"
+                },
+                "isPinnedOnProfile": {
+                    "type": "boolean"
+                },
+                "listRequireLogin": {
+                    "type": "boolean"
+                },
+                "requireFollow": {
+                    "type": "boolean"
+                },
+                "requireLogin": {
+                    "type": "boolean"
+                },
+                "requireMembership": {
+                    "type": "boolean"
+                },
+                "requirePayment": {
+                    "type": "boolean"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "DRAFT",
+                        "PENDING",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                    ]
+                },
+                "summary": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "tagIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tagNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "image",
+                        "mixed",
+                        "video"
+                    ]
+                },
+                "videoUrl": {
+                    "type": "string"
+                },
+                "viewPrice": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "service.UpdateCategoryRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "link": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ]
+                }
+            }
+        },
+        "service.UpdateCollectionRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.UpdateCommentRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "isPinned": {
+                    "description": "仅文章作者或管理员可设置",
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.UpdateConfigInput": {
+            "type": "object",
+            "properties": {
+                "articleCommissionRate": {
+                    "type": "number"
+                },
+                "enableCustomCommission": {
+                    "type": "boolean"
+                },
+                "membershipCommissionRate": {
+                    "type": "number"
+                },
+                "productCommissionRate": {
+                    "type": "number"
+                },
+                "serviceCommissionRate": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.UpdateMessageInput": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "isBroadcast": {
+                    "type": "boolean"
+                },
+                "isRead": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateProfileInput": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "birthDate": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateRoleInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "isSystem": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.UpdateTagRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.UpdateUserInput": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "roleIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "wallet": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.WithdrawInput": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "bankInfo": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "infra.ConfigInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "public": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "infra.S3Confirm": {
+            "type": "object",
+            "required": [
+                "key",
+                "mimeType",
+                "originalName",
+                "size",
+                "url"
+            ],
+            "properties": {
+                "hash": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "originalName": {
+                    "type": "string"
+                },
+                "scene": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.ArticleOrderRequest": {
+            "type": "object",
+            "required": [
+                "articleId"
+            ],
+            "properties": {
+                "articleId": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.BindPhoneCodeRequest": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.ChangePasswordRequest": {
+            "type": "object",
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.CommissionCalculateRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.ContentAuditImageRequest": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.ContentAuditTextRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.DecorationGiftRequest": {
+            "type": "object",
+            "required": [
+                "decorationId",
+                "toUserId"
+            ],
+            "properties": {
+                "decorationId": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "toUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.DecorationPurchaseRequest": {
+            "type": "object",
+            "required": [
+                "decorationId"
+            ],
+            "properties": {
+                "decorationId": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.EmojiPackItemRequest": {
+            "type": "object",
+            "required": [
+                "emojiId"
+            ],
+            "properties": {
+                "emojiId": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.EmojiPackItemSortRequest": {
+            "type": "object",
+            "properties": {
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler.EpaySignatureRequest": {
+            "type": "object",
+            "properties": {
+                "params": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.MembershipOrderRequest": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "plan": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.OAuthCallbackRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.OrderRefundRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.PrivateReadBatchRequest": {
+            "type": "object",
+            "properties": {
+                "messageIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.QQAppLoginRequest": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "openId": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "internal_handler.RefreshTokenRequest": {
+            "type": "object",
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.ResetPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handler.ResponseBody": {
             "type": "object",
             "properties": {
@@ -10775,6 +12422,126 @@ const docTemplate = `{
                 "totalPages": {
                     "type": "integer",
                     "example": 10
+                }
+            }
+        },
+        "internal_handler.RoleMenusRequest": {
+            "type": "object",
+            "properties": {
+                "menus": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.RolePermissionsRequest": {
+            "type": "object",
+            "properties": {
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.RoleStatusRequest": {
+            "type": "object",
+            "properties": {
+                "isActive": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "internal_handler.SendEmailCodeRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.SendSmsCodeRequest": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string"
+                },
+                "scene": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.SensitiveWordRequest": {
+            "type": "object",
+            "properties": {
+                "word": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.SensitiveWordsRequest": {
+            "type": "object",
+            "properties": {
+                "words": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_handler.SmsLoginRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handler.UploadMigrationRequest": {
+            "type": "object",
+            "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler.UploadPresignRequest": {
+            "type": "object",
+            "required": [
+                "contentType",
+                "filename",
+                "size"
+            ],
+            "properties": {
+                "contentType": {
+                    "type": "string"
+                },
+                "filename": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handler.WechatAppLoginRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
                 }
             }
         },

@@ -41,6 +41,10 @@ if [ "${SKIP_SWAG:-0}" != "1" ]; then
   # swag 内部会 shell 出 go list，所以 go 必须在 PATH 里（上面已处理）
   swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal
   echo "==> 完成，操作数：$(grep -oE '"(get|post|put|patch|delete)":' docs/swagger/swagger.json | wc -l | tr -d ' ')"
+
+  # 归一化跨包定义名（swag 会把 module 路径塞进 definitions，UI 里长到没法看；
+  # swag v1.16.6 不支持 swagger:model，只能生成后替换）
+  "${PYTHON:-python}" scripts/normalize-swagger.py
 fi
 
 echo "==> 启动服务（配置文件 config/config.yml，SWAGGER_ENABLED=true 时 UI 在 /swagger/index.html）"

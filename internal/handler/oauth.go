@@ -72,15 +72,12 @@ func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code, state}"
+//	@Param		body body OAuthCallbackRequest true "请求体 {code, state}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_WechatWebCallback
 //	@Router		/user/oauth/wechat/web/callback [post]
 func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req OAuthCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -116,14 +113,12 @@ func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code}"
+//	@Param		body body WechatAppLoginRequest true "请求体 {code}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_WechatAppLogin
 //	@Router		/user/oauth/wechat/app/login [post]
 func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
-	var req struct {
-		Code string `json:"code"`
-	}
+	var req WechatAppLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -162,15 +157,12 @@ func (h *AuthHandler) QQWebURL(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code, state}"
+//	@Param		body body OAuthCallbackRequest true "请求体 {code, state}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_QQWebCallback
 //	@Router		/user/oauth/qq/web/callback [post]
 func (h *AuthHandler) QQWebCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req OAuthCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -214,16 +206,12 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {accessToken, openId} 或 {payload}"
+//	@Param		body body QQAppLoginRequest true "请求体 {accessToken, openId} 或 {payload}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_QQAppLogin
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
-	var req struct {
-		AccessToken string                 `json:"accessToken"`
-		OpenID      string                 `json:"openId"`
-		Payload     map[string]interface{} `json:"payload"`
-	}
+	var req QQAppLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -236,4 +224,18 @@ func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 		return
 	}
 	response.Success(c, oauthLoginResult(user, token, refresh))
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// QQAppLoginRequest QQ App 登录请求体。
+type QQAppLoginRequest struct {
+	AccessToken string                 `json:"accessToken"`
+	OpenID      string                 `json:"openId"`
+	Payload     map[string]interface{} `json:"payload"`
+}
+
+// WechatAppLoginRequest 微信 App 授权码登录请求体。
+type WechatAppLoginRequest struct {
+	Code string `json:"code"`
 }

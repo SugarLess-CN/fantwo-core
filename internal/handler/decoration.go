@@ -16,7 +16,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "decorationRequest"
+//	@Param		body body model.DecorationInput true "decorationRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_create
 //	@Router		/decoration [post]
@@ -88,7 +88,7 @@ func (h *OpsHandler) DecorationGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.DecorationInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_update
 //	@Router		/decoration/{id} [patch]
@@ -267,7 +267,7 @@ func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "purchaseRequest{decorationId}"
+//	@Param		body body DecorationPurchaseRequest true "purchaseRequest{decorationId}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_purchase
 //	@Router		/decoration/purchase [post]
@@ -276,9 +276,7 @@ func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 	if uid == "" {
 		return
 	}
-	var body struct {
-		DecorationID string `json:"decorationId" binding:"required"`
-	}
+	var body DecorationPurchaseRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -297,7 +295,7 @@ func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body DecorationGiftRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_gift
 //	@Router		/decoration/gift [post]
@@ -306,11 +304,7 @@ func (h *OpsHandler) DecorationGift(c *gin.Context) {
 	if uid == "" {
 		return
 	}
-	var body struct {
-		ToUserID     string `json:"toUserId" binding:"required"`
-		DecorationID string `json:"decorationId" binding:"required"`
-		Message      string `json:"message"`
-	}
+	var body DecorationGiftRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -349,7 +343,7 @@ func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body model.DecorationActivityInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_createActivity
 //	@Router		/decoration/activity [post]
@@ -415,7 +409,7 @@ func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body model.DecorationActivityInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				DecorationController_updateActivity
 //	@Router		/decoration/activity/{id} [patch]
@@ -494,4 +488,18 @@ func (h *OpsHandler) DecorationActivityClaim(c *gin.Context) {
 		return
 	}
 	ok(c, ud)
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// DecorationGiftRequest 赠送装饰品请求体。
+type DecorationGiftRequest struct {
+	ToUserID     string `json:"toUserId" binding:"required"`
+	DecorationID string `json:"decorationId" binding:"required"`
+	Message      string `json:"message"`
+}
+
+// DecorationPurchaseRequest 购买装饰品请求体。
+type DecorationPurchaseRequest struct {
+	DecorationID string `json:"decorationId" binding:"required"`
 }

@@ -171,15 +171,13 @@ func (h *OrderHandler) Cancel(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			id		path		string	true	"订单 ID"
-//	@Param			body	body		object	false	"refundRequest{reason}"
+//	@Param			body	body		OrderRefundRequest	false	"refundRequest{reason}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				OrderController_requestRefund
 //	@Router			/order/{id}/refund [post]
 func (h *OrderHandler) Refund(c *gin.Context) {
-	var body struct {
-		Reason string `json:"reason"`
-	}
+	var body OrderRefundRequest
 	_ = c.ShouldBindJSON(&body)
 	order, err := h.Svc.RequestRefund(c.Param("id"), middleware.CurrentUserID(c), body.Reason, hasManage(c))
 	if err != nil {
@@ -196,16 +194,13 @@ func (h *OrderHandler) Refund(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"articleOrderRequest{articleId,remark}"
+//	@Param			body	body		ArticleOrderRequest	true	"articleOrderRequest{articleId,remark}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				OrderController_createArticleOrder
 //	@Router			/order/article [post]
 func (h *OrderHandler) CreateArticle(c *gin.Context) {
-	var body struct {
-		ArticleID string `json:"articleId" binding:"required"`
-		Remark    string `json:"remark"`
-	}
+	var body ArticleOrderRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -225,17 +220,13 @@ func (h *OrderHandler) CreateArticle(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"membershipOrderRequest{plan,duration,remark}"
+//	@Param			body	body		MembershipOrderRequest	true	"membershipOrderRequest{plan,duration,remark}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				OrderController_createMembershipOrder
 //	@Router			/order/membership [post]
 func (h *OrderHandler) CreateMembership(c *gin.Context) {
-	var body struct {
-		Plan     string `json:"plan"`
-		Duration int    `json:"duration"`
-		Remark   string `json:"remark"`
-	}
+	var body MembershipOrderRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -278,4 +269,24 @@ func hasManage(c *gin.Context) bool {
 		}
 	}
 	return false
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// MembershipOrderRequest 会员订单创建请求体。
+type MembershipOrderRequest struct {
+	Plan     string `json:"plan"`
+	Duration int    `json:"duration"`
+	Remark   string `json:"remark"`
+}
+
+// ArticleOrderRequest 文章订单创建请求体。
+type ArticleOrderRequest struct {
+	ArticleID string `json:"articleId" binding:"required"`
+	Remark    string `json:"remark"`
+}
+
+// OrderRefundRequest 订单退款请求体。
+type OrderRefundRequest struct {
+	Reason string `json:"reason"`
 }

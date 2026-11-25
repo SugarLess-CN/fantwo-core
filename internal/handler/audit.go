@@ -72,7 +72,7 @@ func (h *AuditHandler) PendingArticles(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "文章 ID"
-//	@Param		body body object true "reviewRequest{pass,reason}"
+//	@Param		body body service.ReviewArticleInput true "reviewRequest{pass,reason}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ContentAuditController_reviewArticle
 //	@Router		/content-audit/articles/{id}/review [post]
@@ -97,14 +97,12 @@ func (h *AuditHandler) ReviewArticle(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "textAuditRequest{content,scene}"
+//	@Param		body body ContentAuditTextRequest true "textAuditRequest{content,scene}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ContentAuditController_auditText
 //	@Router		/content-audit/text [post]
 func (h *AuditHandler) AuditText(c *gin.Context) {
-	var body struct {
-		Content string `json:"content" binding:"required"`
-	}
+	var body ContentAuditTextRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -119,17 +117,27 @@ func (h *AuditHandler) AuditText(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "imageAuditRequest{url,scene}"
+//	@Param		body body ContentAuditImageRequest true "imageAuditRequest{url,scene}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ContentAuditController_auditImage
 //	@Router		/content-audit/image [post]
 func (h *AuditHandler) AuditImage(c *gin.Context) {
-	var body struct {
-		URL string `json:"url" binding:"required"`
-	}
+	var body ContentAuditImageRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
 	}
 	response.Success(c, h.Svc.TestAuditImage(body.URL))
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// ContentAuditImageRequest 图片审核请求体。
+type ContentAuditImageRequest struct {
+	URL string `json:"url" binding:"required"`
+}
+
+// ContentAuditTextRequest 文本审核请求体。
+type ContentAuditTextRequest struct {
+	Content string `json:"content" binding:"required"`
 }

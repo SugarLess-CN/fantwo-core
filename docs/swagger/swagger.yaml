@@ -1,5 +1,1108 @@
 basePath: /api/v1
 definitions:
+  model.AchievementCondition:
+    properties:
+      extra:
+        additionalProperties: true
+        type: object
+      target:
+        type: integer
+      type:
+        type: string
+    type: object
+  model.AchievementInput:
+    properties:
+      code:
+        type: string
+      condition:
+        $ref: '#/definitions/model.AchievementCondition'
+      description:
+        type: string
+      enabled:
+        type: boolean
+      hidden:
+        type: boolean
+      icon:
+        type: string
+      name:
+        type: string
+      rarity:
+        type: string
+      rewardDecorationId:
+        type: string
+      rewardExp:
+        type: integer
+      rewardPoints:
+        type: integer
+      sort:
+        type: integer
+      type:
+        type: string
+    type: object
+  model.BannerInput:
+    properties:
+      description:
+        type: string
+      imageUrl:
+        type: string
+      linkUrl:
+        type: string
+      sortOrder:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  model.DecorationActivityInput:
+    properties:
+      articleId:
+        type: string
+      decorationId:
+        type: string
+      description:
+        type: string
+      endTime:
+        type: string
+      isPermanent:
+        type: boolean
+      name:
+        type: string
+      requiredComments:
+        type: integer
+      requiredLikes:
+        type: integer
+      requiredRecharge:
+        type: number
+      requiredShares:
+        type: integer
+      requiredSignInDays:
+        type: integer
+      startTime:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      validDays:
+        type: integer
+    type: object
+  model.DecorationInput:
+    properties:
+      bubbleColor:
+        type: string
+      description:
+        type: string
+      imageUrl:
+        type: string
+      isPermanent:
+        type: boolean
+      isPurchasable:
+        type: boolean
+      name:
+        type: string
+      obtainMethod:
+        type: string
+      previewUrl:
+        type: string
+      price:
+        type: number
+      rarity:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: string
+      type:
+        type: string
+      validDays:
+        type: integer
+    type: object
+  model.EmojiInput:
+    properties:
+      category:
+        type: string
+      code:
+        type: string
+      fileSize:
+        type: integer
+      height:
+        type: integer
+      isPublic:
+        type: boolean
+      mimeType:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      tags:
+        type: string
+      type:
+        type: string
+      url:
+        type: string
+      width:
+        type: integer
+    type: object
+  model.EmojiPackInput:
+    properties:
+      coverUrl:
+        type: string
+      description:
+        type: string
+      isPublic:
+        type: boolean
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  model.InviteUseInput:
+    properties:
+      inviteCode:
+        type: string
+    required:
+    - inviteCode
+    type: object
+  model.PointsActivityInput:
+    properties:
+      code:
+        type: string
+      dailyLimit:
+        type: integer
+      description:
+        type: string
+      icon:
+        type: string
+      isActive:
+        type: boolean
+      link:
+        type: string
+      name:
+        type: string
+      rewardPoints:
+        type: integer
+      sort:
+        type: integer
+      targetCount:
+        type: integer
+      totalLimit:
+        type: integer
+      type:
+        type: string
+      validDays:
+        type: integer
+    type: object
+  model.ReportCreateInput:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      reason:
+        type: string
+      reportedArticleId:
+        type: string
+      reportedCommentId:
+        type: string
+      reportedUserId:
+        type: string
+      type:
+        type: string
+    required:
+    - category
+    - reason
+    - type
+    type: object
+  model.ReportUpdateInput:
+    properties:
+      action:
+        type: string
+      result:
+        type: string
+      status:
+        type: string
+    type: object
+  service.AddPointsInput:
+    properties:
+      amount:
+        type: integer
+      description:
+        type: string
+      relatedId:
+        type: string
+      relatedType:
+        type: string
+      source:
+        type: string
+      validDays:
+        type: integer
+    required:
+    - amount
+    - source
+    type: object
+  service.ApplyCertInput:
+    properties:
+      description:
+        type: string
+      materials:
+        items:
+          type: string
+        type: array
+      organizationName:
+        type: string
+      realName:
+        type: string
+      slogan:
+        type: string
+      type:
+        type: string
+    type: object
+  service.ArticleDownloadRequest:
+    properties:
+      code:
+        maxLength: 64
+        type: string
+      name:
+        maxLength: 200
+        type: string
+      note:
+        maxLength: 500
+        type: string
+      size:
+        maxLength: 64
+        type: string
+      type:
+        maxLength: 32
+        type: string
+      url:
+        maxLength: 1000
+        type: string
+    type: object
+  service.AuditCertInput:
+    properties:
+      reason:
+        type: string
+      status:
+        type: string
+    type: object
+  service.BatchDeleteBrowseRequest:
+    properties:
+      articleIds:
+        items:
+          type: string
+        maxItems: 100
+        minItems: 1
+        type: array
+    required:
+    - articleIds
+    type: object
+  service.BatchMessageInput:
+    properties:
+      action:
+        type: string
+      messageIds:
+        items:
+          type: string
+        type: array
+    required:
+    - action
+    - messageIds
+    type: object
+  service.BindPhoneInput:
+    properties:
+      code:
+        type: string
+      phone:
+        type: string
+    type: object
+  service.BrowseProgressRequest:
+    properties:
+      duration:
+        minimum: 0
+        type: integer
+      progress:
+        maximum: 100
+        minimum: 0
+        type: integer
+    type: object
+  service.CreateArticleRequest:
+    properties:
+      activityId:
+        type: string
+      allowReprint:
+        type: boolean
+      categoryId:
+        type: string
+      content:
+        type: string
+      cover:
+        type: string
+      downloads:
+        items:
+          $ref: '#/definitions/service.ArticleDownloadRequest'
+        type: array
+      images:
+        items:
+          type: string
+        type: array
+      isFeatured:
+        type: boolean
+      isPinnedOnProfile:
+        type: boolean
+      listRequireLogin:
+        type: boolean
+      requireFollow:
+        type: boolean
+      requireLogin:
+        type: boolean
+      requireMembership:
+        type: boolean
+      requirePayment:
+        type: boolean
+      sort:
+        type: integer
+      status:
+        enum:
+        - DRAFT
+        - PENDING
+        - PUBLISHED
+        - ARCHIVED
+        type: string
+      summary:
+        maxLength: 500
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
+      tagNames:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 200
+        type: string
+      type:
+        enum:
+        - image
+        - mixed
+        - video
+        type: string
+      videoUrl:
+        type: string
+      viewPrice:
+        minimum: 0
+        type: number
+    required:
+    - title
+    type: object
+  service.CreateCategoryRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      link:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      parentId:
+        type: string
+      sort:
+        type: integer
+      status:
+        enum:
+        - ENABLED
+        - DISABLED
+        type: string
+    required:
+    - name
+    type: object
+  service.CreateCollectionRequest:
+    properties:
+      avatar:
+        type: string
+      cover:
+        type: string
+      description:
+        type: string
+      isPublic:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+      sort:
+        type: integer
+    required:
+    - name
+    type: object
+  service.CreateCommentRequest:
+    properties:
+      articleId:
+        type: string
+      content:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      parentId:
+        type: string
+    required:
+    - articleId
+    - content
+    type: object
+  service.CreateMessageInput:
+    properties:
+      content:
+        type: string
+      isBroadcast:
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      receiverId:
+        type: string
+      receiverIds:
+        items:
+          type: string
+        type: array
+      senderId:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  service.CreatePaymentInput:
+    properties:
+      orderId:
+        type: string
+      paymentMethod:
+        enum:
+        - ALIPAY
+        - WECHAT
+        - EPAY
+        - BALANCE
+        type: string
+      returnUrl:
+        type: string
+      type:
+        description: epay 子类型：alipay/wxpay/usdt
+        type: string
+    required:
+    - orderId
+    - paymentMethod
+    type: object
+  service.CreateRoleInput:
+    properties:
+      description:
+        type: string
+      displayName:
+        type: string
+      isActive:
+        type: boolean
+      isSystem:
+        type: boolean
+      name:
+        type: string
+      permissionIds:
+        items:
+          type: string
+        type: array
+    type: object
+  service.CreateTagRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sort:
+        type: integer
+    required:
+    - name
+    type: object
+  service.CreateUserInput:
+    properties:
+      email:
+        type: string
+      inviteCode:
+        type: string
+      nickname:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      roleIds:
+        items:
+          type: string
+        type: array
+      username:
+        type: string
+      wallet:
+        type: number
+    type: object
+  service.NotificationInput:
+    properties:
+      enableCommentNotification:
+        type: boolean
+      enableEmailNotification:
+        type: boolean
+      enableFollowNotification:
+        type: boolean
+      enableInviteNotification:
+        type: boolean
+      enableLikeNotification:
+        type: boolean
+      enableMessageNotification:
+        type: boolean
+      enableOrderNotification:
+        type: boolean
+      enablePaymentNotification:
+        type: boolean
+      enablePushNotification:
+        type: boolean
+      enableSmsNotification:
+        type: boolean
+      enableSystemNotification:
+        type: boolean
+    type: object
+  service.PermissionInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  service.ReorderCollectionItemsRequest:
+    properties:
+      articleIds:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - articleIds
+    type: object
+  service.RequestDeletionInput:
+    properties:
+      reason:
+        type: string
+    type: object
+  service.ReviewArticleInput:
+    properties:
+      reason:
+        type: string
+      result:
+        enum:
+        - APPROVED
+        - REJECTED
+        type: string
+    required:
+    - result
+    type: object
+  service.SendPrivateInput:
+    properties:
+      content:
+        type: string
+      messageKind:
+        type: string
+      payload:
+        additionalProperties: true
+        type: object
+    type: object
+  service.SetCommentPinRequest:
+    properties:
+      isPinned:
+        type: boolean
+    required:
+    - isPinned
+    type: object
+  service.SetCommissionInput:
+    properties:
+      articleCommissionRate:
+        type: number
+      enableCustomCommission:
+        type: boolean
+      membershipCommissionRate:
+        type: number
+      productCommissionRate:
+        type: number
+      remark:
+        type: string
+      serviceCommissionRate:
+        type: number
+    type: object
+  service.SetFeaturedRequest:
+    properties:
+      isFeatured:
+        type: boolean
+    required:
+    - isFeatured
+    type: object
+  service.SetProfilePinRequest:
+    properties:
+      isPinned:
+        type: boolean
+    required:
+    - isPinned
+    type: object
+  service.SpendPointsInput:
+    properties:
+      amount:
+        type: integer
+      description:
+        type: string
+      relatedId:
+        type: string
+      relatedType:
+        type: string
+      source:
+        type: string
+    required:
+    - amount
+    - source
+    type: object
+  service.UpdateArticleRequest:
+    properties:
+      activityId:
+        type: string
+      allowReprint:
+        type: boolean
+      categoryId:
+        type: string
+      content:
+        type: string
+      cover:
+        type: string
+      downloads:
+        items:
+          $ref: '#/definitions/service.ArticleDownloadRequest'
+        type: array
+      images:
+        items:
+          type: string
+        type: array
+      isFeatured:
+        type: boolean
+      isPinnedOnProfile:
+        type: boolean
+      listRequireLogin:
+        type: boolean
+      requireFollow:
+        type: boolean
+      requireLogin:
+        type: boolean
+      requireMembership:
+        type: boolean
+      requirePayment:
+        type: boolean
+      sort:
+        type: integer
+      status:
+        enum:
+        - DRAFT
+        - PENDING
+        - PUBLISHED
+        - ARCHIVED
+        type: string
+      summary:
+        maxLength: 500
+        type: string
+      tagIds:
+        items:
+          type: string
+        type: array
+      tagNames:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 200
+        type: string
+      type:
+        enum:
+        - image
+        - mixed
+        - video
+        type: string
+      videoUrl:
+        type: string
+      viewPrice:
+        minimum: 0
+        type: number
+    type: object
+  service.UpdateCategoryRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      link:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      parentId:
+        type: string
+      sort:
+        type: integer
+      status:
+        enum:
+        - ENABLED
+        - DISABLED
+        type: string
+    type: object
+  service.UpdateCollectionRequest:
+    properties:
+      avatar:
+        type: string
+      cover:
+        type: string
+      description:
+        type: string
+      isPublic:
+        type: boolean
+      name:
+        maxLength: 100
+        type: string
+      sort:
+        type: integer
+    type: object
+  service.UpdateCommentRequest:
+    properties:
+      content:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      isPinned:
+        description: 仅文章作者或管理员可设置
+        type: boolean
+    type: object
+  service.UpdateConfigInput:
+    properties:
+      articleCommissionRate:
+        type: number
+      enableCustomCommission:
+        type: boolean
+      membershipCommissionRate:
+        type: number
+      productCommissionRate:
+        type: number
+      serviceCommissionRate:
+        type: number
+    type: object
+  service.UpdateMessageInput:
+    properties:
+      content:
+        type: string
+      isBroadcast:
+        type: boolean
+      isRead:
+        type: boolean
+      metadata:
+        additionalProperties: true
+        type: object
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  service.UpdateProfileInput:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      background:
+        type: string
+      birthDate:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      gender:
+        type: string
+      nickname:
+        type: string
+      phone:
+        type: string
+    type: object
+  service.UpdateRoleInput:
+    properties:
+      description:
+        type: string
+      displayName:
+        type: string
+      isActive:
+        type: boolean
+      isSystem:
+        type: boolean
+      name:
+        type: string
+      permissionIds:
+        items:
+          type: string
+        type: array
+    type: object
+  service.UpdateTagRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sort:
+        type: integer
+    type: object
+  service.UpdateUserInput:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      background:
+        type: string
+      description:
+        type: string
+      gender:
+        type: string
+      nickname:
+        type: string
+      roleIds:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      wallet:
+        type: number
+    type: object
+  service.WithdrawInput:
+    properties:
+      amount:
+        type: number
+      bankInfo:
+        additionalProperties: true
+        type: object
+    type: object
+  infra.ConfigInput:
+    properties:
+      description:
+        type: string
+      group:
+        type: string
+      key:
+        type: string
+      public:
+        type: boolean
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  infra.S3Confirm:
+    properties:
+      hash:
+        type: string
+      key:
+        type: string
+      mimeType:
+        type: string
+      originalName:
+        type: string
+      scene:
+        type: string
+      size:
+        type: integer
+      url:
+        type: string
+    required:
+    - key
+    - mimeType
+    - originalName
+    - size
+    - url
+    type: object
+  internal_handler.ArticleOrderRequest:
+    properties:
+      articleId:
+        type: string
+      remark:
+        type: string
+    required:
+    - articleId
+    type: object
+  internal_handler.BindPhoneCodeRequest:
+    properties:
+      phone:
+        type: string
+    type: object
+  internal_handler.ChangePasswordRequest:
+    properties:
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    type: object
+  internal_handler.CommissionCalculateRequest:
+    properties:
+      amount:
+        type: number
+      type:
+        type: string
+    type: object
+  internal_handler.ContentAuditImageRequest:
+    properties:
+      url:
+        type: string
+    required:
+    - url
+    type: object
+  internal_handler.ContentAuditTextRequest:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
+  internal_handler.DecorationGiftRequest:
+    properties:
+      decorationId:
+        type: string
+      message:
+        type: string
+      toUserId:
+        type: string
+    required:
+    - decorationId
+    - toUserId
+    type: object
+  internal_handler.DecorationPurchaseRequest:
+    properties:
+      decorationId:
+        type: string
+    required:
+    - decorationId
+    type: object
+  internal_handler.EmojiPackItemRequest:
+    properties:
+      emojiId:
+        type: string
+    required:
+    - emojiId
+    type: object
+  internal_handler.EmojiPackItemSortRequest:
+    properties:
+      sort:
+        type: integer
+    type: object
+  internal_handler.EpaySignatureRequest:
+    properties:
+      params:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  internal_handler.MembershipOrderRequest:
+    properties:
+      duration:
+        type: integer
+      plan:
+        type: string
+      remark:
+        type: string
+    type: object
+  internal_handler.OAuthCallbackRequest:
+    properties:
+      code:
+        type: string
+      state:
+        type: string
+    type: object
+  internal_handler.OrderRefundRequest:
+    properties:
+      reason:
+        type: string
+    type: object
+  internal_handler.PrivateReadBatchRequest:
+    properties:
+      messageIds:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_handler.QQAppLoginRequest:
+    properties:
+      accessToken:
+        type: string
+      openId:
+        type: string
+      payload:
+        additionalProperties: true
+        type: object
+    type: object
+  internal_handler.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        type: string
+    type: object
+  internal_handler.RegisterRequest:
+    properties:
+      email:
+        type: string
+      nickname:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_handler.ResetPasswordRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      newPassword:
+        type: string
+    type: object
   internal_handler.ResponseBody:
     properties:
       data: {}
@@ -54,6 +1157,83 @@ definitions:
         example: 10
         type: integer
     type: object
+  internal_handler.RoleMenusRequest:
+    properties:
+      menus:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_handler.RolePermissionsRequest:
+    properties:
+      permissionIds:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_handler.RoleStatusRequest:
+    properties:
+      isActive:
+        type: boolean
+    type: object
+  internal_handler.SendEmailCodeRequest:
+    properties:
+      email:
+        type: string
+      type:
+        type: string
+    type: object
+  internal_handler.SendSmsCodeRequest:
+    properties:
+      phone:
+        type: string
+      scene:
+        type: string
+    type: object
+  internal_handler.SensitiveWordRequest:
+    properties:
+      word:
+        type: string
+    type: object
+  internal_handler.SensitiveWordsRequest:
+    properties:
+      words:
+        items:
+          type: string
+        type: array
+    type: object
+  internal_handler.SmsLoginRequest:
+    properties:
+      code:
+        type: string
+      phone:
+        type: string
+    type: object
+  internal_handler.UploadMigrationRequest:
+    properties:
+      dryRun:
+        type: boolean
+      limit:
+        type: integer
+    type: object
+  internal_handler.UploadPresignRequest:
+    properties:
+      contentType:
+        type: string
+      filename:
+        type: string
+      size:
+        type: integer
+    required:
+    - contentType
+    - filename
+    - size
+    type: object
+  internal_handler.WechatAppLoginRequest:
+    properties:
+      code:
+        type: string
+    type: object
   internal_handler.loginRequest:
     properties:
       account:
@@ -94,7 +1274,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.AchievementInput'
       produces:
       - application/json
       responses:
@@ -161,7 +1341,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.AchievementInput'
       produces:
       - application/json
       responses:
@@ -279,7 +1459,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateArticleRequest'
       produces:
       - application/json
       responses:
@@ -362,7 +1542,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateArticleRequest'
       produces:
       - application/json
       responses:
@@ -395,7 +1575,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.BrowseProgressRequest'
       produces:
       - application/json
       responses:
@@ -548,7 +1728,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SetFeaturedRequest'
       produces:
       - application/json
       responses:
@@ -636,7 +1816,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SetProfilePinRequest'
       produces:
       - application/json
       responses:
@@ -755,7 +1935,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.BatchDeleteBrowseRequest'
       produces:
       - application/json
       responses:
@@ -994,7 +2174,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SmsLoginRequest'
       produces:
       - application/json
       responses:
@@ -1014,7 +2194,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SendSmsCodeRequest'
       produces:
       - application/json
       responses:
@@ -1050,7 +2230,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.BannerInput'
       produces:
       - application/json
       responses:
@@ -1117,7 +2297,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.BannerInput'
       produces:
       - application/json
       responses:
@@ -1166,7 +2346,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateCategoryRequest'
       produces:
       - application/json
       responses:
@@ -1233,7 +2413,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateCategoryRequest'
       produces:
       - application/json
       responses:
@@ -1271,7 +2451,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateCollectionRequest'
       produces:
       - application/json
       responses:
@@ -1340,7 +2520,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateCollectionRequest'
       produces:
       - application/json
       responses:
@@ -1449,7 +2629,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.ReorderCollectionItemsRequest'
       produces:
       - application/json
       responses:
@@ -1539,7 +2719,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateCommentRequest'
       produces:
       - application/json
       responses:
@@ -1614,7 +2794,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateCommentRequest'
       produces:
       - application/json
       responses:
@@ -1664,7 +2844,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SetCommentPinRequest'
       produces:
       - application/json
       responses:
@@ -1772,12 +2952,14 @@ paths:
     patch:
       operationId: ConfigController_updateAll
       parameters:
-      - description: 请求体
+      - description: 配置数组
         in: body
         name: body
         required: true
         schema:
-          type: object
+          items:
+            $ref: '#/definitions/infra.ConfigInput'
+          type: array
       produces:
       - application/json
       responses:
@@ -1800,7 +2982,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/infra.ConfigInput'
       produces:
       - application/json
       responses:
@@ -1869,7 +3051,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/infra.ConfigInput'
       produces:
       - application/json
       responses:
@@ -1931,7 +3113,9 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          items:
+            $ref: '#/definitions/infra.ConfigInput'
+          type: array
       produces:
       - application/json
       responses:
@@ -1987,7 +3171,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SensitiveWordRequest'
       produces:
       - application/json
       responses:
@@ -2031,7 +3215,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SensitiveWordRequest'
       produces:
       - application/json
       responses:
@@ -2053,7 +3237,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SensitiveWordsRequest'
       produces:
       - application/json
       responses:
@@ -2074,7 +3258,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SensitiveWordsRequest'
       produces:
       - application/json
       responses:
@@ -2118,7 +3302,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.ReviewArticleInput'
       produces:
       - application/json
       responses:
@@ -2172,7 +3356,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.ContentAuditImageRequest'
       produces:
       - application/json
       responses:
@@ -2220,7 +3404,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.ContentAuditTextRequest'
       produces:
       - application/json
       responses:
@@ -2258,7 +3442,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.DecorationInput'
       produces:
       - application/json
       responses:
@@ -2327,7 +3511,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.DecorationInput'
       produces:
       - application/json
       responses:
@@ -2387,7 +3571,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.DecorationActivityInput'
       produces:
       - application/json
       responses:
@@ -2456,7 +3640,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.DecorationActivityInput'
       produces:
       - application/json
       responses:
@@ -2529,7 +3713,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.DecorationGiftRequest'
       produces:
       - application/json
       responses:
@@ -2553,7 +3737,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.DecorationPurchaseRequest'
       produces:
       - application/json
       responses:
@@ -2682,7 +3866,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.EmojiInput'
       produces:
       - application/json
       responses:
@@ -2749,7 +3933,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.EmojiInput'
       produces:
       - application/json
       responses:
@@ -2875,7 +4059,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.EmojiPackInput'
       produces:
       - application/json
       responses:
@@ -2942,7 +4126,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.EmojiPackInput'
       produces:
       - application/json
       responses:
@@ -2971,7 +4155,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.EmojiPackItemRequest'
       produces:
       - application/json
       responses:
@@ -3030,7 +4214,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.EmojiPackItemSortRequest'
       produces:
       - application/json
       responses:
@@ -3074,15 +4258,14 @@ paths:
   /emoji/upload:
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       operationId: EmojiController_upload
       parameters:
-      - description: multipart 或 base64 载荷
-        in: body
-        name: body
+      - description: 表情图片文件
+        in: formData
+        name: file
         required: true
-        schema:
-          type: object
+        type: file
       produces:
       - application/json
       responses:
@@ -3187,7 +4370,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.InviteUseInput'
       produces:
       - application/json
       responses:
@@ -3235,7 +4418,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateMessageInput'
       produces:
       - application/json
       responses:
@@ -3308,7 +4491,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateMessageInput'
       produces:
       - application/json
       responses:
@@ -3351,7 +4534,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.BatchMessageInput'
       produces:
       - application/json
       responses:
@@ -3381,7 +4564,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SendPrivateInput'
       produces:
       - application/json
       responses:
@@ -3529,7 +4712,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.PrivateReadBatchRequest'
       produces:
       - application/json
       responses:
@@ -3703,7 +4886,7 @@ paths:
         in: body
         name: body
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.OrderRefundRequest'
       produces:
       - application/json
       responses:
@@ -3731,7 +4914,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.ArticleOrderRequest'
       produces:
       - application/json
       responses:
@@ -3759,7 +4942,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.MembershipOrderRequest'
       produces:
       - application/json
       responses:
@@ -3872,7 +5055,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreatePaymentInput'
       produces:
       - application/json
       responses:
@@ -3988,7 +5171,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.EpaySignatureRequest'
       produces:
       - application/json
       responses:
@@ -4050,7 +5233,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.PermissionInput'
       produces:
       - application/json
       responses:
@@ -4119,7 +5302,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.PermissionInput'
       produces:
       - application/json
       responses:
@@ -4168,7 +5351,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.PointsActivityInput'
       produces:
       - application/json
       responses:
@@ -4235,7 +5418,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.PointsActivityInput'
       produces:
       - application/json
       responses:
@@ -4280,7 +5463,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.AddPointsInput'
       produces:
       - application/json
       responses:
@@ -4319,7 +5502,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SpendPointsInput'
       produces:
       - application/json
       responses:
@@ -4516,7 +5699,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.ReportCreateInput'
       produces:
       - application/json
       responses:
@@ -4585,7 +5768,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/model.ReportUpdateInput'
       produces:
       - application/json
       responses:
@@ -4638,7 +5821,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateRoleInput'
       produces:
       - application/json
       responses:
@@ -4707,7 +5890,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateRoleInput'
       produces:
       - application/json
       responses:
@@ -4777,7 +5960,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.RoleMenusRequest'
       produces:
       - application/json
       responses:
@@ -4806,7 +5989,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.RolePermissionsRequest'
       produces:
       - application/json
       responses:
@@ -4835,7 +6018,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.RoleStatusRequest'
       produces:
       - application/json
       responses:
@@ -5033,7 +6216,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateTagRequest'
       produces:
       - application/json
       responses:
@@ -5100,7 +6283,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateTagRequest'
       produces:
       - application/json
       responses:
@@ -5279,7 +6462,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/infra.S3Confirm'
       produces:
       - application/json
       responses:
@@ -5344,12 +6527,10 @@ paths:
     post:
       operationId: UploadController_fillMissingMetadata
       parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
+      - description: 单批处理条数，默认 100
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -5371,7 +6552,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.UploadMigrationRequest'
       produces:
       - application/json
       responses:
@@ -5410,7 +6591,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.UploadPresignRequest'
       produces:
       - application/json
       responses:
@@ -5462,7 +6643,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.CreateUserInput'
       produces:
       - application/json
       responses:
@@ -5543,7 +6724,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateUserInput'
       produces:
       - application/json
       responses:
@@ -5710,7 +6891,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.RequestDeletionInput'
       produces:
       - application/json
       responses:
@@ -5797,7 +6978,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.AuditCertInput'
       produces:
       - application/json
       responses:
@@ -5842,7 +7023,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.ApplyCertInput'
       produces:
       - application/json
       responses:
@@ -5930,7 +7111,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.CommissionCalculateRequest'
       produces:
       - application/json
       responses:
@@ -5966,7 +7147,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.SetCommissionInput'
       produces:
       - application/json
       responses:
@@ -6004,7 +7185,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateConfigInput'
       produces:
       - application/json
       responses:
@@ -6028,7 +7209,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateConfigInput'
       produces:
       - application/json
       responses:
@@ -6052,7 +7233,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.NotificationInput'
       produces:
       - application/json
       responses:
@@ -6074,7 +7255,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.SendEmailCodeRequest'
       produces:
       - application/json
       responses:
@@ -6154,13 +7335,6 @@ paths:
   /user/membership/batch-check:
     post:
       operationId: UserController_batchCheckMembershipStatus
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -6194,7 +7368,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.OAuthCallbackRequest'
       produces:
       - application/json
       responses:
@@ -6229,7 +7403,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.QQAppLoginRequest'
       produces:
       - application/json
       responses:
@@ -6261,7 +7435,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.OAuthCallbackRequest'
       produces:
       - application/json
       responses:
@@ -6296,7 +7470,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.WechatAppLoginRequest'
       produces:
       - application/json
       responses:
@@ -6328,7 +7502,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.OAuthCallbackRequest'
       produces:
       - application/json
       responses:
@@ -6361,7 +7535,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.ChangePasswordRequest'
       produces:
       - application/json
       responses:
@@ -6383,7 +7557,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.ResetPasswordRequest'
       produces:
       - application/json
       responses:
@@ -6424,7 +7598,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateProfileInput'
       produces:
       - application/json
       responses:
@@ -6452,7 +7626,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.UpdateProfileInput'
       produces:
       - application/json
       responses:
@@ -6519,7 +7693,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.BindPhoneInput'
       produces:
       - application/json
       responses:
@@ -6541,7 +7715,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.BindPhoneCodeRequest'
       produces:
       - application/json
       responses:
@@ -6571,7 +7745,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.RefreshTokenRequest'
       produces:
       - application/json
       responses:
@@ -6598,7 +7772,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/internal_handler.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -6730,7 +7904,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/service.WithdrawInput'
       produces:
       - application/json
       responses:

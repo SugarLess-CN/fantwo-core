@@ -23,7 +23,7 @@ type CollectionHandler struct {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "collectionRequest{name,description,isPublic}"
+//	@Param		body body service.CreateCollectionRequest true "collectionRequest{name,description,isPublic}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				CollectionController_create
 //	@Router		/collection [post]
@@ -95,7 +95,7 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
-//	@Param		body body object true "collectionRequest"
+//	@Param		body body service.UpdateCollectionRequest true "collectionRequest"
 //	@Success	200	{object}	ResponseBody
 //	@ID				CollectionController_update
 //	@Router		/collection/{id} [patch]
@@ -209,7 +209,7 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.ReorderCollectionItemsRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				CollectionHandler_ReorderItems
 //	@Router		/collection/{id}/items/order [put]

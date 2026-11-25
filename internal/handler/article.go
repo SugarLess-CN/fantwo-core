@@ -23,7 +23,7 @@ type ArticleHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateArticleRequest"
+//	@Param			body	body		service.CreateArticleRequest	true	"CreateArticleRequest"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
@@ -233,7 +233,7 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id		path		string	true	"文章 ID"
-//	@Param		body	body		object	true	"UpdateArticleRequest"
+//	@Param		body	body		service.UpdateArticleRequest	true	"UpdateArticleRequest"
 //	@Success	200		{object}	ResponseBody
 //	@Failure	403		{object}	ResponseBody
 //	@ID				ArticleController_update
@@ -280,7 +280,7 @@ func (h *ArticleHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.SetFeaturedRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ArticleController_setFeatured
 //	@Router		/article/{id}/featured [patch]
@@ -306,7 +306,7 @@ func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.SetProfilePinRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ArticleController_setProfilePin
 //	@Router		/article/{id}/profile-pin [patch]

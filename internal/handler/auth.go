@@ -68,19 +68,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@Tags			用户认证
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		object	true	"registerRequest{username,nickname,password,email,phone}"
+//	@Param			body	body		RegisterRequest	true	"registerRequest{username,nickname,password,email,phone}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		409		{object}	ResponseBody
 //	@ID				UserController_registerUser
 //	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
-	var req struct {
-		Username string `json:"username"`
-		Nickname string `json:"nickname"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-		Phone    string `json:"phone"`
-	}
+	var req RegisterRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -103,15 +97,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			Device-Id	header		string	true	"设备标识"
-//	@Param			body		body		object	true	"refreshRequest{refreshToken}"
+//	@Param			body		body		RefreshTokenRequest	true	"refreshRequest{refreshToken}"
 //	@Success		200			{object}	ResponseBody
 //	@Failure		401			{object}	ResponseBody
 //	@ID				UserController_refreshToken
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refreshToken"`
-	}
+	var req RefreshTokenRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -174,15 +166,12 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 //	@Summary	发送短信验证码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body SendSmsCodeRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_SendSmsCode
 //	@Router		/auth/sms/send [post]
 func (h *AuthHandler) SendSmsCode(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-		Scene string `json:"scene"`
-	}
+	var req SendSmsCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -201,15 +190,12 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 //	@Summary	手机验证码登录
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body SmsLoginRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				AuthHandler_SmsLogin
 //	@Router		/auth/sms/login [post]
 func (h *AuthHandler) SmsLogin(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-		Code  string `json:"code"`
-	}
+	var req SmsLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -229,15 +215,12 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 //	@Summary	发送邮箱验证码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body SendEmailCodeRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_sendVerificationCode
 //	@Router		/user/email/verification [post]
 func (h *AuthHandler) SendEmailCode(c *gin.Context) {
-	var req struct {
-		Email string `json:"email"`
-		Type  string `json:"type"`
-	}
+	var req SendEmailCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -257,16 +240,12 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 //	@Summary	邮箱验证码重置密码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body ResetPasswordRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_resetPassword
 //	@Router		/user/password/reset [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
-	var req struct {
-		Email       string `json:"email"`
-		Code        string `json:"code"`
-		NewPassword string `json:"newPassword"`
-	}
+	var req ResetPasswordRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -283,15 +262,12 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body ChangePasswordRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_changePassword
 //	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
-	var req struct {
-		OldPassword string `json:"oldPassword"`
-		NewPassword string `json:"newPassword"`
-	}
+	var req ChangePasswordRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -344,15 +320,12 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 //	@Summary	GitHub 回调（SPA 模式换本站 token）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body OAuthCallbackRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_githubOAuthCallback
 //	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req OAuthCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -379,4 +352,57 @@ func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 	loc := h.svc.GithubRedirectURL(c.Request.Context(),
 		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))
 	c.Redirect(http.StatusFound, loc)
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// OAuthCallbackRequest OAuth 网页回调请求体（GitHub / 微信 / QQ 共用 code+state 语义）。
+type OAuthCallbackRequest struct {
+	Code  string `json:"code"`
+	State string `json:"state"`
+}
+
+// ChangePasswordRequest 修改密码请求体。
+type ChangePasswordRequest struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
+// ResetPasswordRequest 邮箱验证码重置密码请求体。
+type ResetPasswordRequest struct {
+	Email       string `json:"email"`
+	Code        string `json:"code"`
+	NewPassword string `json:"newPassword"`
+}
+
+// SendEmailCodeRequest 发送邮箱验证码请求体。
+type SendEmailCodeRequest struct {
+	Email string `json:"email"`
+	Type  string `json:"type"`
+}
+
+// SmsLoginRequest 短信验证码登录请求体。
+type SmsLoginRequest struct {
+	Phone string `json:"phone"`
+	Code  string `json:"code"`
+}
+
+// SendSmsCodeRequest 发送短信验证码请求体。
+type SendSmsCodeRequest struct {
+	Phone string `json:"phone"`
+	Scene string `json:"scene"`
+}
+
+// RefreshTokenRequest 刷新令牌请求体。
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+// RegisterRequest 注册请求体。
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 }

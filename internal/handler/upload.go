@@ -197,16 +197,12 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "presignRequest{filename,contentType,size}"
+//	@Param		body body UploadPresignRequest true "presignRequest{filename,contentType,size}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UploadController_generatePresignedUrl
 //	@Router		/upload/presign [post]
 func (h *UploadHandler) Presign(c *gin.Context) {
-	var req struct {
-		Filename    string `json:"filename" binding:"required"`
-		ContentType string `json:"contentType" binding:"required"`
-		Size        int64  `json:"size" binding:"required"`
-	}
+	var req UploadPresignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "filename、contentType、size 均为必填")
 		return
@@ -226,7 +222,7 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "confirmRequest{objectKey,...}"
+//	@Param		body body infra.S3Confirm true "confirmRequest{objectKey,...}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UploadController_confirmUpload
 //	@Router		/upload/confirm [post]
@@ -273,7 +269,7 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body UploadMigrationRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UploadController_processUncompressedImages
 //	@Router		/upload/migration/process [post]
@@ -281,10 +277,7 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	dryRun := c.Query("dryRun") == "true"
 	// body 覆盖 query（原 controller 只读 query，但 swagger 声明了 body，取并集更宽容）
-	var body struct {
-		Limit  *int  `json:"limit"`
-		DryRun *bool `json:"dryRun"`
-	}
+	var body UploadMigrationRequest
 	if err := c.ShouldBindJSON(&body); err == nil {
 		if body.Limit != nil && *body.Limit > 0 {
 			limit = *body.Limit
@@ -307,7 +300,7 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		limit query int false "单批处理条数，默认 100"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UploadController_fillMissingMetadata
 //	@Router		/upload/migration/metadata [post]
@@ -469,4 +462,19 @@ func infraHasPermission(c *gin.Context, perm string) bool {
 		}
 	}
 	return false
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// UploadMigrationRequest 上传文件迁移请求体。
+type UploadMigrationRequest struct {
+	Limit  *int  `json:"limit"`
+	DryRun *bool `json:"dryRun"`
+}
+
+// UploadPresignRequest 预签名直传请求体。
+type UploadPresignRequest struct {
+	Filename    string `json:"filename" binding:"required"`
+	ContentType string `json:"contentType" binding:"required"`
+	Size        int64  `json:"size" binding:"required"`
 }

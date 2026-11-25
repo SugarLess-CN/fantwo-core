@@ -261,7 +261,7 @@ func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.WithdrawInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_withdrawWallet
 //	@Router		/user/wallet/withdraw [post]
@@ -285,7 +285,7 @@ func (h *UserActionHandler) WalletWithdraw(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "certApplyRequest{type,realName,idCard,attachments}"
+//	@Param		body body service.ApplyCertInput true "certApplyRequest{type,realName,idCard,attachments}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserCertificationController_apply
 //	@Router		/user/certification/apply [post]
@@ -406,7 +406,7 @@ func (h *UserActionHandler) CertApplications(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "申请 ID"
-//	@Param		body body object true "auditRequest{pass,reason}"
+//	@Param		body body service.AuditCertInput true "auditRequest{pass,reason}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserCertificationController_audit
 //	@Router		/user/certification/admin/applications/{id}/audit [patch]

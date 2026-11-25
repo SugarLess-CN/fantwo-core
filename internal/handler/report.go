@@ -15,7 +15,7 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "reportRequest{targetType,targetId,reason}"
+//	@Param		body body model.ReportCreateInput true "reportRequest{targetType,targetId,reason}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ReportController_create
 //	@Router		/report [post]
@@ -111,7 +111,7 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
-//	@Param		body body object true "handleRequest{status,remark}"
+//	@Param		body body model.ReportUpdateInput true "handleRequest{status,remark}"
 //	@Success	200	{object}	ResponseBody
 //	@ID				ReportController_update
 //	@Router		/report/{id} [patch]

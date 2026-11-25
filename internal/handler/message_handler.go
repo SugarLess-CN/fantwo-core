@@ -91,7 +91,7 @@ func currentUID(c *gin.Context) (string, bool) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateMessageInput"
+//	@Param			body	body		service.CreateMessageInput	true	"CreateMessageInput"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
 //	@ID				MessageController_create
@@ -212,7 +212,7 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateMessageInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				MessageController_update
 //	@Router		/message/{id} [patch]
@@ -308,7 +308,7 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.BatchMessageInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				MessageController_batchOperation
 //	@Router		/message/batch [post]
@@ -363,7 +363,7 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			userId	path		string	true	"接收者用户 ID"
-//	@Param			body	body		object	true	"SendPrivateInput{content,type}"
+//	@Param			body	body		service.SendPrivateInput	true	"SendPrivateInput{content,type}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
 //	@ID				MessageController_sendPrivateMessage
@@ -462,7 +462,7 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body PrivateReadBatchRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				MessageController_markPrivateMessagesRead
 //	@Router		/message/private/read-batch [post]
@@ -471,9 +471,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var in struct {
-		MessageIDs []string `json:"messageIds"`
-	}
+	var in PrivateReadBatchRequest
 	if err := c.ShouldBindJSON(&in); err != nil {
 		response.Fail(c, errcode.ErrBadRequest)
 		return
@@ -621,4 +619,11 @@ func queryInt(c *gin.Context, key string, def int) int {
 		return def
 	}
 	return n
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// PrivateReadBatchRequest 私信批量已读请求体。
+type PrivateReadBatchRequest struct {
+	MessageIDs []string `json:"messageIds"`
 }

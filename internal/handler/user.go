@@ -48,7 +48,7 @@ func (h *UserHandler) Profile(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"待更新字段（部分更新）"
+//	@Param			body	body		service.UpdateProfileInput	true	"待更新字段（部分更新）"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
 //	@ID				UserHandler_UpdateProfile
@@ -73,7 +73,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateProfileInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				userController_updateProfileContact
 //	@Router		/user/profile/contact [patch]
@@ -96,14 +96,12 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body BindPhoneCodeRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserHandler_SendBindPhoneCode
 //	@Router		/user/profile/phone/code [post]
 func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-	}
+	var req BindPhoneCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -121,7 +119,7 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.BindPhoneInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserHandler_BindPhone
 //	@Router		/user/profile/phone [post]
@@ -143,7 +141,7 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.RequestDeletionInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserHandler_DeletionRequest
 //	@Router		/user/account/deletion [post]
@@ -270,7 +268,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body	body		object	true	"CreateUserInput"
+//	@Param		body	body		service.CreateUserInput	true	"CreateUserInput"
 //	@Success	200		{object}	ResponseBody
 //	@Failure	403		{object}	ResponseBody
 //	@ID				UserController_create
@@ -316,7 +314,7 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateUserInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_update
 //	@Router		/user/{id} [patch]
@@ -377,7 +375,7 @@ func (h *UserHandler) GetConfig(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateConfigInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_updateUserConfig
 //	@Router		/user/config [patch]
@@ -400,7 +398,7 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.NotificationInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_updateNotificationSettings
 //	@Router		/user/config/notifications [patch]
@@ -423,7 +421,7 @@ func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.UpdateConfigInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_updateCommissionSettings
 //	@Router		/user/config/commission [patch]
@@ -463,7 +461,7 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body service.SetCommissionInput true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_setUserCommissionConfig
 //	@Router		/user/commission/config [post]
@@ -485,15 +483,12 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body CommissionCalculateRequest true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_calculateCommission
 //	@Router		/user/commission/calculate [post]
 func (h *UserHandler) CalculateCommission(c *gin.Context) {
-	var req struct {
-		Amount float64 `json:"amount"`
-		Type   string  `json:"type"`
-	}
+	var req CommissionCalculateRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -530,7 +525,6 @@ func (h *UserHandler) CheckMembership(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
 //	@ID				UserController_batchCheckMembershipStatus
 //	@Router		/user/membership/batch-check [post]
@@ -558,4 +552,17 @@ func queryBool(c *gin.Context, key string) *bool {
 	}
 	b := v == "true" || v == "1"
 	return &b
+}
+
+// ---- 请求体 DTO（注解引用，swag 按包内类型解析）----
+
+// CommissionCalculateRequest 佣金试算请求体。
+type CommissionCalculateRequest struct {
+	Amount float64 `json:"amount"`
+	Type   string  `json:"type"`
+}
+
+// BindPhoneCodeRequest 发送绑定手机验证码请求体。
+type BindPhoneCodeRequest struct {
+	Phone string `json:"phone"`
 }
