@@ -244,12 +244,43 @@ SDK 的 `UserInfo` 已硬拒绝（返回 `ErrTokenNotVerified`），但接线者
 
 ## 6. 已知限制
 
-### QQ 上游有频率限制（不是封锁）
+### QQ 的部分端点会被 WAF 拦（服务器侧直连）
 
-自动化测试连续快速请求 `graph.qq.com` 会被 WAF 返回 **HTTP 501**，
-**间隔 ≥ 3 秒即恢复**。真实浏览器跳转不受影响。
+2026-11-25 实测（从本机服务器侧直连 `graph.qq.com`）：
 
-写自动化测试时请节流：
+| 端点 | 结果 |
+|---|---|
+| `/oauth2.0/authorize` | **HTTP 501**，返回一段 `waf.tencent.com/501page.html` 跳转脚本（HTML） |
+| `/oauth2.0/token` | **HTTP 501**，同上 |
+| `/oauth2.0/me` | 正常：`callback( {"error":100013,"error_description":"access token is illegal"} );` |
+| `/user/get_user_info` | 正常：`{"ret":-22,"msg":"openid is invalid"}` |
+
+**⚠️ 这是间歇性的，不是固定行为。** 同一天两次独立实测得到相反结果：
+
+| 实测 | 时间 | `/token` | `/authorize` |
+|---|---|---|---|
+| 成员 A | 上午 | **501**（10 秒重试、加 Referer/Accept/换 UA 均无效） | **501** |
+| 成员 B（lead） | 下午 | **200** `callback({"error":100005,...})` | **302** |
+
+**结论：按出口 IP / 时段触发的间歇性风控。** 不要把它当稳定行为写进任何断言。
+
+**对测试的硬要求**：凡涉及 QQ `/token`、`/authorize` 的测试，
+**必须同时接受两种结果**（正常的业务错误 或 WAF 501），只有 `ErrCredentialBad` 判失败。
+把 501 当固定行为会让测试在另一个 IP 上假红。
+
+**不受影响**：`/oauth2.0/me` 与 `/user/get_user_info` 两次实测都正常；
+真实浏览器跳转始终不受影响（风控针对服务器 IP 直连）。
+
+对测试的影响：
+
+- 凭据有效性**仍可验证**：微信打两个 `/sns/oauth2/access_token`（假 code → `40029` 即凭据有效）、
+  QQ 打 `/oauth2.0/me`（假 token → `100013` 即上游可达）。两者都不受 WAF 影响。
+- QQ web 的 `/token` 凭据测试要**接受两种结果**：`ErrCodeInvalid`（未被拦）或
+  `ErrUpstream`（被 WAF 拦）。判失败只有一种情况：`ErrCredentialBad`。
+- 实现见 `credentials_test.go`（`//go:build credentials`）。
+
+历史观测里出现过「间隔 3 秒即恢复」的情况，可能与时段的出口 IP 有关；
+出于谨慎，**自动化测试仍建议对 QQ 调用做 ≥3 秒节流**：
 
 ```go
 var lastQQCall time.Time
