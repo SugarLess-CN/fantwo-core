@@ -228,7 +228,7 @@ func (s *PaymentService) getCommissionConfig() CommissionConfig {
 type CreatePaymentInput = dto.CreatePaymentRequest
 
 // CreatePayment 创建支付，返回支付凭据（paymentUrl / codeUrl）。
-func (s *PaymentService) CreatePayment(userID string, in CreatePaymentInput) (map[string]interface{}, error) {
+func (s *PaymentService) CreatePayment(userID string, in CreatePaymentInput) (*dto.CreatePaymentResultDto, error) {
 	var order model.Order
 	if err := s.DB.First(&order, "id = ? AND user_id = ?", in.OrderID, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -285,7 +285,7 @@ func (s *PaymentService) CreatePayment(userID string, in CreatePaymentInput) (ma
 }
 
 // createAlipayPayment 支付宝电脑网站支付（alipay.trade.page.pay）。
-func (s *PaymentService) createAlipayPayment(record *model.Payment, order *model.Order, cfg PayConfig, returnUrl string) (map[string]interface{}, error) {
+func (s *PaymentService) createAlipayPayment(record *model.Payment, order *model.Order, cfg PayConfig, returnUrl string) (*dto.CreatePaymentResultDto, error) {
 	client, err := s.getAlipayClient(cfg)
 	if err != nil {
 		return nil, err
@@ -308,13 +308,13 @@ func (s *PaymentService) createAlipayPayment(record *model.Payment, order *model
 	_ = s.DB.Model(record).Update("details", map[string]interface{}{
 		"alipayUrl": payURL.String(), "orderNo": order.OrderNo, "amount": order.Amount,
 	}).Error
-	return map[string]interface{}{
-		"paymentId": record.ID, "paymentUrl": payURL.String(), "paymentMethod": "ALIPAY",
+	return &dto.CreatePaymentResultDto{
+		PaymentID: record.ID, PaymentURL: payURL.String(), PaymentMethod: "ALIPAY",
 	}, nil
 }
 
 // createWechatPayment 微信 Native 下单（v3；SDK 证书管理与验签自带）。
-func (s *PaymentService) createWechatPayment(record *model.Payment, order *model.Order, cfg PayConfig) (map[string]interface{}, error) {
+func (s *PaymentService) createWechatPayment(record *model.Payment, order *model.Order, cfg PayConfig) (*dto.CreatePaymentResultDto, error) {
 	w := cfg.Wechat
 	if w.AppID == "" || w.MchID == "" || w.PrivateKey == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
@@ -330,8 +330,8 @@ func (s *PaymentService) createWechatPayment(record *model.Payment, order *model
 		"wechatCodeUrl": codeURL, "orderNo": order.OrderNo, "amount": order.Amount,
 		"appId": w.AppID, "mchId": w.MchID, "prepayId": prepayID,
 	}).Error
-	return map[string]interface{}{
-		"paymentId": record.ID, "codeUrl": codeURL, "paymentMethod": "WECHAT",
+	return &dto.CreatePaymentResultDto{
+		PaymentID: record.ID, CodeURL: codeURL, PaymentMethod: "WECHAT",
 	}, nil
 }
 
@@ -401,7 +401,7 @@ func (s *PaymentService) wechatNativeOrder(w *WechatCfg, order *model.Order, not
 }
 
 // createEpayPayment 易支付（MD5 签名跳转）。
-func (s *PaymentService) createEpayPayment(record *model.Payment, order *model.Order, cfg PayConfig, returnUrl, payType string) (map[string]interface{}, error) {
+func (s *PaymentService) createEpayPayment(record *model.Payment, order *model.Order, cfg PayConfig, returnUrl, payType string) (*dto.CreatePaymentResultDto, error) {
 	e := cfg.Epay
 	if e.AppID == "" || e.AppKey == "" || e.Gateway == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
@@ -432,8 +432,8 @@ func (s *PaymentService) createEpayPayment(record *model.Payment, order *model.O
 	_ = s.DB.Model(record).Update("details", map[string]interface{}{
 		"epayUrl": payURL, "orderNo": order.OrderNo, "amount": order.Amount, "appId": e.AppID,
 	}).Error
-	return map[string]interface{}{
-		"paymentId": record.ID, "paymentUrl": payURL, "paymentMethod": "EPAY",
+	return &dto.CreatePaymentResultDto{
+		PaymentID: record.ID, PaymentURL: payURL, PaymentMethod: "EPAY",
 	}, nil
 }
 
@@ -457,7 +457,7 @@ func epaySign(params map[string]string, appKey string) string {
 
 // createBalancePayment 余额支付：单事务（扣余额→支付记录 SUCCESS→订单 PAID→佣金流水），
 // 事务提交成功后才发布 order.paid 事件（订阅方读得到已提交数据）。
-func (s *PaymentService) createBalancePayment(record *model.Payment, order *model.Order) (map[string]interface{}, error) {
+func (s *PaymentService) createBalancePayment(record *model.Payment, order *model.Order) (*dto.CreatePaymentResultDto, error) {
 	var balance float64
 	var paidOrder *model.Order
 	var commission *event.CommissionInfo
@@ -503,8 +503,8 @@ func (s *PaymentService) createBalancePayment(record *model.Payment, order *mode
 	if paidOrder != nil {
 		publishOrderPaid(paidOrder, commission)
 	}
-	return map[string]interface{}{
-		"paymentId": record.ID, "status": "SUCCESS", "paymentMethod": "BALANCE", "balance": balance,
+	return &dto.CreatePaymentResultDto{
+		PaymentID: record.ID, Status: "SUCCESS", PaymentMethod: "BALANCE", Balance: balance,
 	}, nil
 }
 

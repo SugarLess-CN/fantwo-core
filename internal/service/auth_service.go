@@ -23,6 +23,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -690,7 +691,7 @@ func (s *AuthService) verifyOAuthState(ctx context.Context, provider, channel, s
 }
 
 // oauthAuthURL 取授权链接 + 签发 state（web 渠道通用）。
-func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel string) (map[string]interface{}, *errcode.Err) {
+func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel string) (*dto.OAuthURLDto, *errcode.Err) {
 	p, e := s.oauthProvider(provider, channel)
 	if e != nil {
 		return nil, e
@@ -710,7 +711,7 @@ func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel string
 		}
 		return nil, oauthFailed()
 	}
-	return map[string]interface{}{"url": u, "state": state}, nil
+	return &dto.OAuthURLDto{URL: u, State: state}, nil
 }
 
 // oauthWebCallback web 渠道回调（微信 / QQ / GitHub 共用）。
@@ -845,7 +846,7 @@ func (s *AuthService) finishOAuthLogin(ctx context.Context, tok *oauthkit.Token,
 }
 
 // GithubAuthURL 生成 GitHub 授权链接（state 随机生成并存入 Redis）。
-func (s *AuthService) GithubAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+func (s *AuthService) GithubAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
 	return s.oauthAuthURL(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb)
 }
 
@@ -881,7 +882,7 @@ func (s *AuthService) oauthRedirectURL(ctx context.Context, provider, channel, c
 // ---- 微信 ----
 
 // WechatWebAuthURL 微信网站应用（PC 扫码）授权链接。
-func (s *AuthService) WechatWebAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+func (s *AuthService) WechatWebAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
 	return s.oauthAuthURL(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb)
 }
 
@@ -905,7 +906,7 @@ func (s *AuthService) WechatAppLogin(ctx context.Context, code, deviceID string)
 // ---- QQ ----
 
 // QQWebAuthURL QQ 网站应用授权链接。
-func (s *AuthService) QQWebAuthURL(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+func (s *AuthService) QQWebAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
 	return s.oauthAuthURL(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb)
 }
 

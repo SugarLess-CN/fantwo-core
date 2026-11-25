@@ -508,16 +508,19 @@ type RequestDeletionRequest struct {
 }
 
 // DeletionRequestResultDto 注销申请结果（4 字段）。
+// Status 是 int 枚举（0=无 1=待注销 2=已撤销），与 model.DeletionStatus* 同源 ——
+// 不是字符串。改前这里写成 string，导致 service 无法直接赋值，是 dto 定义与真实契约不符。
 type DeletionRequestResultDto struct {
-	Status          string `json:"status" example:"1"`
+	Status          int    `json:"status" example:"1"`
 	ScheduledAt     string `json:"scheduledAt" format:"date-time"`
 	CoolingDays     int    `json:"coolingDays" example:"7"`
 	DeletionPending bool   `json:"deletionPending" example:"true"`
 }
 
 // DeletionStatusDto 注销状态（reason 仅在有待注销记录且填写过时出现）。
+// Status 是 int 枚举（0=无 1=待注销 2=已撤销），与 model.DeletionStatus* 同源。
 type DeletionStatusDto struct {
-	Status          string `json:"status" example:"0"`
+	Status          int    `json:"status" example:"0"`
 	DeletionPending bool   `json:"deletionPending" example:"false"`
 	ScheduledAt     string `json:"scheduledAt,omitempty" format:"date-time"`
 	Reason          string `json:"reason,omitempty"`
@@ -566,12 +569,13 @@ type IdentityDto struct {
 
 // FavoriteItemDto 收藏项（service.FavoriteItem，6 字段）。
 type FavoriteItemDto struct {
-	ArticleID   string  `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Title       string  `json:"title" example:"我的第一篇作品"`
-	Cover       *string `json:"cover" example:"https://cdn.example.com/c.png"`
-	Summary     *string `json:"summary"`
-	AuthorID    *string `json:"authorId"`
-	FavoritedAt string  `json:"favoritedAt" format:"date-time"`
+	ArticleID string `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	Title     string `json:"title" example:"我的第一篇作品"`
+	// 字符串值类型：空时 ""（docs/21）；指针会让空值输出 null。
+	Cover       string `json:"cover" example:"https://cdn.example.com/c.png"`
+	Summary     string `json:"summary"`
+	AuthorID    string `json:"authorId"`
+	FavoritedAt string `json:"favoritedAt" format:"date-time"`
 }
 
 // FavoriteDetailDto 收藏详情（3 字段；未收藏时 article 省略）。

@@ -627,7 +627,7 @@ func (s *UserService) UpdateNotifications(ctx context.Context, userID string, in
 }
 
 // CheckMembership 检查并更新单用户会员状态（到期自动转 INACTIVE）。
-func (s *UserService) CheckMembership(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) CheckMembership(ctx context.Context, userID string) (*dto.MembershipCheckDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -646,11 +646,11 @@ func (s *UserService) CheckMembership(ctx context.Context, userID string) (map[s
 			"membership_level_name": "普通用户",
 		})
 	}
-	return map[string]interface{}{"userId": userID, "isMember": active}, nil
+	return &dto.MembershipCheckDto{UserID: userID, IsMember: active}, nil
 }
 
 // BatchCheckMembership 批量检查会员状态。
-func (s *UserService) BatchCheckMembership(ctx context.Context) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) BatchCheckMembership(ctx context.Context) (*dto.BatchMembershipCheckDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -666,7 +666,7 @@ func (s *UserService) BatchCheckMembership(ctx context.Context) (map[string]inte
 	if tx.Error != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"updated": tx.RowsAffected}, nil
+	return &dto.BatchMembershipCheckDto{Updated: tx.RowsAffected}, nil
 }
 
 // FavoriteItem 收藏项（文章简要）。
@@ -724,14 +724,14 @@ func (s *UserService) ListFavorites(ctx context.Context, userID string, page, li
 }
 
 // FavoriteDetail 单条收藏详情（不存在返回 nil）。
-func (s *UserService) FavoriteDetail(ctx context.Context, userID, articleID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) FavoriteDetail(ctx context.Context, userID, articleID string) (*dto.FavoriteDetailDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
 	var fav model.ArticleFavorite
 	err := s.d.DB.Where("user_id = ? AND article_id = ?", userID, articleID).First(&fav).Error
 	if IsNotFound(err) {
-		return map[string]interface{}{"favorited": false}, nil
+		return &dto.FavoriteDetailDto{Favorited: false}, nil
 	}
 	if err != nil {
 		return nil, errcode.ErrInternal
@@ -740,12 +740,12 @@ func (s *UserService) FavoriteDetail(ctx context.Context, userID, articleID stri
 	if err := s.d.DB.Where("id = ?", articleID).First(&article).Error; err != nil && !IsNotFound(err) {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{
-		"favorited":   true,
-		"favoritedAt": fav.CreatedAt,
-		"article": FavoriteItem{
-			ArticleID: articleID, Title: article.Title, Cover: article.Cover,
-			Summary: article.Summary, AuthorID: article.AuthorID, FavoritedAt: fav.CreatedAt,
+	return &dto.FavoriteDetailDto{
+		Favorited: true, FavoritedAt: fav.CreatedAt.Format(time.RFC3339),
+		Article: &dto.FavoriteItemDto{
+			ArticleID: articleID, Title: article.Title,
+			Cover: strOrEmpty(article.Cover), Summary: strOrEmpty(article.Summary),
+			AuthorID: strOrEmpty(article.AuthorID), FavoritedAt: fav.CreatedAt.Format(time.RFC3339),
 		},
 	}, nil
 }

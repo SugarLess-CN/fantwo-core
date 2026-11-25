@@ -118,13 +118,13 @@ func TestGithubAuthorizeURL(t *testing.T) {
 	if e != nil {
 		t.Fatalf("生成授权链接失败: %v", e)
 	}
-	u, _ := out["url"].(string)
+	u := out.URL
 	for _, want := range []string{"client_id=cid", "state=", "redirect_uri=", "scope="} {
 		if !strings.Contains(u, want) {
 			t.Errorf("授权链接缺少 %s: %s", want, u)
 		}
 	}
-	state, _ := out["state"].(string)
+	state := out.State
 	if state == "" || !kv.has(oauthStatePrefix(oauthkit.ProviderGitHub, oauthkit.ChannelWeb)+state) {
 		t.Errorf("state 应写入 Redis 键前缀 %s", oauthStatePrefix(oauthkit.ProviderGitHub, oauthkit.ChannelWeb))
 	}

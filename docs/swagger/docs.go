@@ -17735,8 +17735,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "status": {
-                    "type": "string",
-                    "example": "1"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -17755,8 +17755,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "status": {
-                    "type": "string",
-                    "example": "0"
+                    "type": "integer",
+                    "example": 0
                 }
             }
         },
@@ -18113,6 +18113,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cover": {
+                    "description": "字符串值类型：空时 \"\"（docs/21）；指针会让空值输出 null。",
                     "type": "string",
                     "example": "https://cdn.example.com/c.png"
                 },

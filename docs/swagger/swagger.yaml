@@ -1927,8 +1927,8 @@ definitions:
         format: date-time
         type: string
       status:
-        example: "1"
-        type: string
+        example: 1
+        type: integer
     type: object
   dto.DeletionStatusDto:
     properties:
@@ -1941,8 +1941,8 @@ definitions:
         format: date-time
         type: string
       status:
-        example: "0"
-        type: string
+        example: 0
+        type: integer
     type: object
   dto.DislikeResultDto:
     properties:
@@ -2198,6 +2198,7 @@ definitions:
       authorId:
         type: string
       cover:
+        description: 字符串值类型：空时 ""（docs/21）；指针会让空值输出 null。
         example: https://cdn.example.com/c.png
         type: string
       favoritedAt:

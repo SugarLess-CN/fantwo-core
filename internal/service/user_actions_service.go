@@ -20,7 +20,7 @@ import (
 // ---------- 关注关系 ----------
 
 // Follow 关注用户（自关注禁止；关系幂等）。
-func (s *UserService) Follow(ctx context.Context, currentID, targetID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) Follow(ctx context.Context, currentID, targetID string) (*dto.FollowResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -50,11 +50,11 @@ func (s *UserService) Follow(ctx context.Context, currentID, targetID string) (m
 	if created {
 		publishFollowed(currentID, targetID)
 	}
-	return map[string]interface{}{"following": true, "changed": created}, nil
+	return &dto.FollowResultDto{Following: true, Changed: created}, nil
 }
 
 // Unfollow 取关。
-func (s *UserService) Unfollow(ctx context.Context, currentID, targetID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) Unfollow(ctx context.Context, currentID, targetID string) (*dto.FollowResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -72,11 +72,11 @@ func (s *UserService) Unfollow(ctx context.Context, currentID, targetID string) 
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"following": false, "changed": removed}, nil
+	return &dto.FollowResultDto{Following: false, Changed: removed}, nil
 }
 
 // FollowStats 粉丝/关注数。
-func (s *UserService) FollowStats(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) FollowStats(ctx context.Context, userID string) (*dto.FollowStatsDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -88,11 +88,11 @@ func (s *UserService) FollowStats(ctx context.Context, userID string) (map[strin
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"followerCount": followers, "followingCount": following}, nil
+	return &dto.FollowStatsDto{FollowerCount: followers, FollowingCount: following}, nil
 }
 
 // FollowerCount 粉丝数量。
-func (s *UserService) FollowerCount(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) FollowerCount(ctx context.Context, userID string) (*dto.FollowCountDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -100,11 +100,11 @@ func (s *UserService) FollowerCount(ctx context.Context, userID string) (map[str
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"count": n}, nil
+	return &dto.FollowCountDto{Count: n}, nil
 }
 
 // FollowingCount 关注数量。
-func (s *UserService) FollowingCount(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) FollowingCount(ctx context.Context, userID string) (*dto.FollowCountDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -112,7 +112,7 @@ func (s *UserService) FollowingCount(ctx context.Context, userID string) (map[st
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"count": n}, nil
+	return &dto.FollowCountDto{Count: n}, nil
 }
 
 // FollowListInput 关注/粉丝列表入参。
@@ -160,7 +160,7 @@ func (s *UserService) listRelatedUsers(ctx context.Context, ids []string, in Fol
 }
 
 // IsFollowing 是否已关注。
-func (s *UserService) IsFollowing(ctx context.Context, currentID, targetID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) IsFollowing(ctx context.Context, currentID, targetID string) (*dto.IsFollowingDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -168,20 +168,20 @@ func (s *UserService) IsFollowing(ctx context.Context, currentID, targetID strin
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"following": ok}, nil
+	return &dto.IsFollowingDto{Following: ok}, nil
 }
 
 // ---------- 签到 ----------
 
 // Sign 签到（manual=true 手动；auto=true 为 getProfile 自动签到，已签到不报错）。
-func (s *UserService) Sign(ctx context.Context, userID string, auto bool) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) Sign(ctx context.Context, userID string, auto bool) (*dto.SignInResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
 	today := dayStart(time.Now())
 	if _, err := s.d.Users.FindSignInByDate(s.d.DB, userID, today); err == nil {
 		if auto {
-			return map[string]interface{}{"signed": true, "already": true}, nil
+			return &dto.SignInResultDto{Signed: true, Already: true}, nil
 		}
 		return nil, errcode.ErrSignInAlready
 	} else if !IsNotFound(err) {
@@ -228,10 +228,10 @@ func (s *UserService) Sign(ctx context.Context, userID string, auto bool) (map[s
 	if e != nil {
 		s.d.Logger.Warn("签到加经验失败 user=" + userID)
 	}
-	return map[string]interface{}{
-		"signed": true, "already": false,
-		"consecutiveDays": consecutive, "signInDate": today.Format("2006-01-02"),
-		"pointsGranted": grant, "level": newLevel, "leveledUp": leveledUp,
+	return &dto.SignInResultDto{
+		Signed: true, Already: false,
+		ConsecutiveDays: consecutive, SignInDate: today.Format("2006-01-02"),
+		PointsGranted: grant, Level: newLevel, LeveledUp: leveledUp,
 	}, nil
 }
 
@@ -260,7 +260,7 @@ func (s *UserService) SignRecords(ctx context.Context, userID string, days int) 
 }
 
 // SignStats 签到统计。
-func (s *UserService) SignStats(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) SignStats(ctx context.Context, userID string) (*dto.SignInStatsDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -268,11 +268,11 @@ func (s *UserService) SignStats(ctx context.Context, userID string) (map[string]
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"totalDays": total, "consecutiveDays": 0, "signedToday": false}
+	out := &dto.SignInStatsDto{TotalDays: total}
 	if latest, err := s.d.Users.LatestSignIn(s.d.DB, userID); err == nil {
-		out["consecutiveDays"] = latest.ConsecutiveDays
-		out["lastSignInDate"] = latest.SignInDate.Format("2006-01-02")
-		out["signedToday"] = dayStart(latest.SignInDate).Equal(dayStart(time.Now()))
+		out.ConsecutiveDays = latest.ConsecutiveDays
+		out.LastSignInDate = latest.SignInDate.Format("2006-01-02")
+		out.SignedToday = dayStart(latest.SignInDate).Equal(dayStart(time.Now()))
 	}
 	return out, nil
 }
@@ -280,7 +280,7 @@ func (s *UserService) SignStats(ctx context.Context, userID string) (map[string]
 // ---------- 钱包 ----------
 
 // WalletBalance 余额。
-func (s *UserService) WalletBalance(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) WalletBalance(ctx context.Context, userID string) (*dto.WalletBalanceDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -291,7 +291,7 @@ func (s *UserService) WalletBalance(ctx context.Context, userID string) (map[str
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"balance": u.Wallet}, nil
+	return &dto.WalletBalanceDto{Balance: u.Wallet}, nil
 }
 
 // WalletTransactions 交易记录分页（type 过滤）。
@@ -316,7 +316,7 @@ func (s *UserService) WalletTransactions(ctx context.Context, userID, txType str
 }
 
 // WalletStatistics 收支统计。
-func (s *UserService) WalletStatistics(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) WalletStatistics(ctx context.Context, userID string) (*dto.WalletStatisticsDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -331,12 +331,16 @@ func (s *UserService) WalletStatistics(ctx context.Context, userID string) (map[
 		Where("user_id = ?", userID).Group("type").Scan(&rows).Error; err != nil {
 		return nil, errcode.ErrInternal
 	}
-	byType := make(map[string]map[string]interface{}, len(rows))
+	byType := make(map[string]dto.WalletTxSummaryDto, len(rows))
 	for _, r := range rows {
-		byType[r.Type] = map[string]interface{}{"total": r.Total, "count": r.Count}
+		byType[r.Type] = dto.WalletTxSummaryDto{Total: r.Total, Count: r.Count}
 	}
 	balance, _ := s.WalletBalance(ctx, userID)
-	return map[string]interface{}{"byType": byType, "balance": balance["balance"]}, nil
+	res := &dto.WalletStatisticsDto{ByType: byType}
+	if balance != nil {
+		res.Balance = balance.Balance
+	}
+	return res, nil
 }
 
 // WithdrawInput 提现入参。
@@ -346,7 +350,7 @@ type WithdrawInput struct {
 }
 
 // Withdraw 钱包提现：扣款 + 流水（事务）。
-func (s *UserService) Withdraw(ctx context.Context, userID string, in WithdrawInput) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) Withdraw(ctx context.Context, userID string, in WithdrawInput) (*dto.WithdrawResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -384,23 +388,23 @@ func (s *UserService) Withdraw(ctx context.Context, userID string, in WithdrawIn
 		}
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"success": true, "balance": after, "amount": in.Amount}, nil
+	return &dto.WithdrawResultDto{Success: true, Balance: after, Amount: in.Amount}, nil
 }
 
 // ---------- 抽成 ----------
 
 // CommissionConfig 当前用户抽成配置。
-func (s *UserService) CommissionConfig(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) CommissionConfig(ctx context.Context, userID string) (*dto.CommissionConfigDto, *errcode.Err) {
 	p, e := s.GetConfig(ctx, userID)
 	if e != nil {
 		return nil, e
 	}
-	return map[string]interface{}{
-		"articleCommissionRate":    p.ArticleCommissionRate,
-		"membershipCommissionRate": p.MembershipCommissionRate,
-		"productCommissionRate":    p.ProductCommissionRate,
-		"serviceCommissionRate":    p.ServiceCommissionRate,
-		"enableCustomCommission":   p.EnableCustomCommission,
+	return &dto.CommissionConfigDto{
+		ArticleCommissionRate:    p.ArticleCommissionRate,
+		MembershipCommissionRate: p.MembershipCommissionRate,
+		ProductCommissionRate:    p.ProductCommissionRate,
+		ServiceCommissionRate:    p.ServiceCommissionRate,
+		EnableCustomCommission:   p.EnableCustomCommission,
 	}, nil
 }
 
@@ -436,7 +440,7 @@ func (s *UserService) SetCommission(ctx context.Context, userID string, in SetCo
 }
 
 // CalculateCommission 抽成金额计算（amount × 对应费率）。
-func (s *UserService) CalculateCommission(ctx context.Context, userID string, amount float64, bizType string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) CalculateCommission(ctx context.Context, userID string, amount float64, bizType string) (*dto.CommissionResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -461,9 +465,9 @@ func (s *UserService) CalculateCommission(ctx context.Context, userID string, am
 		return nil, errcode.ErrInvalidParam.WithKey(i18n.UserCommissionTypeUnknown)
 	}
 	commission := amount * rate / 100
-	return map[string]interface{}{
-		"amount": amount, "rate": rate, "type": bizType,
-		"commission": commission, "income": amount - commission,
+	return &dto.CommissionResultDto{
+		Amount: amount, Rate: rate, Type: bizType,
+		Commission: commission, Income: amount - commission,
 	}, nil
 }
 
@@ -475,7 +479,7 @@ type RequestDeletionInput struct {
 }
 
 // RequestDeletion 提交账号注销申请。
-func (s *UserService) RequestDeletion(ctx context.Context, userID string, in RequestDeletionInput) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) RequestDeletion(ctx context.Context, userID string, in RequestDeletionInput) (*dto.DeletionRequestResultDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -499,39 +503,39 @@ func (s *UserService) RequestDeletion(ctx context.Context, userID string, in Req
 			s.d.Logger.Warn("account deletion enqueue failed")
 		}
 	}
-	return map[string]interface{}{
-		"status":          model.DeletionStatusPending,
-		"scheduledAt":     scheduled,
-		"coolingDays":     AccountDeletionCoolingDays,
-		"deletionPending": true,
+	return &dto.DeletionRequestResultDto{
+		Status:          model.DeletionStatusPending,
+		ScheduledAt:     scheduled.Format(time.RFC3339),
+		CoolingDays:     AccountDeletionCoolingDays,
+		DeletionPending: true,
 	}, nil
 }
 
 // DeletionStatus 查询注销状态。
-func (s *UserService) DeletionStatus(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) DeletionStatus(ctx context.Context, userID string) (*dto.DeletionStatusDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
 	rec, err := s.d.Users.FindDeletion(s.d.DB, userID)
 	if IsNotFound(err) || err == nil && rec.Status == model.DeletionStatusCanceled {
-		return map[string]interface{}{"status": model.DeletionStatusNone, "deletionPending": false}, nil
+		return &dto.DeletionStatusDto{Status: model.DeletionStatusNone, DeletionPending: false}, nil
 	}
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{
-		"status":          rec.Status,
-		"deletionPending": rec.Status == model.DeletionStatusPending,
-		"scheduledAt":     rec.ScheduledAt,
+	out := &dto.DeletionStatusDto{
+		Status:          rec.Status,
+		DeletionPending: rec.Status == model.DeletionStatusPending,
+		ScheduledAt:     rec.ScheduledAt.Format(time.RFC3339),
 	}
 	if rec.Reason != nil {
-		out["reason"] = *rec.Reason
+		out.Reason = *rec.Reason
 	}
 	return out, nil
 }
 
 // CancelDeletion 撤销注销（status→0 语义：清除待注销）。
-func (s *UserService) CancelDeletion(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) CancelDeletion(ctx context.Context, userID string) (*dto.DeletionStatusDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -552,7 +556,7 @@ func (s *UserService) CancelDeletion(ctx context.Context, userID string) (map[st
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"status": model.DeletionStatusNone, "deletionPending": false}, nil
+	return &dto.DeletionStatusDto{Status: model.DeletionStatusNone, DeletionPending: false}, nil
 }
 
 // ---------- 认证（官方/创作者） ----------
@@ -649,7 +653,7 @@ func (s *UserService) MyCertifications(ctx context.Context, userID string) ([]*d
 }
 
 // Identity 当前用户认证身份（official / creator / user）。
-func (s *UserService) Identity(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) Identity(ctx context.Context, userID string) (*dto.IdentityDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -657,7 +661,7 @@ func (s *UserService) Identity(ctx context.Context, userID string) (map[string]i
 }
 
 // IdentityOf 指定用户认证身份。
-func (s *UserService) IdentityOf(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) IdentityOf(ctx context.Context, userID string) (*dto.IdentityDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -665,20 +669,20 @@ func (s *UserService) IdentityOf(ctx context.Context, userID string) (map[string
 }
 
 // identityOf 身份判定（已通过认证的官方优先于创作者）。
-func (s *UserService) identityOf(userID string) map[string]interface{} {
+func (s *UserService) identityOf(userID string) *dto.IdentityDto {
 	cert, err := s.d.Users.FindApprovedCert(s.d.DB, userID)
 	if err != nil || cert == nil {
-		return map[string]interface{}{"userId": userID, "identity": "user", "isOfficial": false, "isCreator": false}
+		return &dto.IdentityDto{UserID: userID, Identity: "user", IsOfficial: false, IsCreator: false}
 	}
 	identity := "creator"
 	isOfficial := cert.Type == model.CertTypeOfficial
 	if isOfficial {
 		identity = "official"
 	}
-	return map[string]interface{}{
-		"userId": userID, "identity": identity,
-		"isOfficial": isOfficial, "isCreator": !isOfficial,
-		"type": cert.Type, "slogan": cert.Slogan,
+	return &dto.IdentityDto{
+		UserID: userID, Identity: identity,
+		IsOfficial: isOfficial, IsCreator: !isOfficial,
+		Type: cert.Type, Slogan: strOrEmpty(cert.Slogan),
 	}
 }
 
