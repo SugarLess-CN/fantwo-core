@@ -24,6 +24,27 @@ status_code：业务语义（0 / 10001 / 20001 / 20003 …），给客户端决�
 
 ---
 
+## 一之二、契约落地的九条硬规则
+
+> 从 AGENTS.md 下分（2026-11-25，AGENTS 尺寸治理）。这是实现的约束，不是建议。
+
+1. **所有接口响应一律英文**，格式 `{"message":"<英文>","status_code":<业务码>,"data":<object>}`；
+   `data`/`message` 为空时**整个字段省略**（`MarshalJSON` 自定义序列化），`status_code` 恒在。
+2. **status_code 与 HTTP 状态码无关**（分段见第三节）。
+3. **message 一律走 i18n key**（`internal/pkg/i18n/`，332 个 key），**禁止在 handler/service 里硬编码**响应文案。
+   加新文案流程：`keys*.go` 加 Key 常量 → `en.go` 加英文 → 业务代码引用，严禁绕过。
+   （守卫测试 `TestEveryKeyConstantHasText` / `TestNoOrphanCatalogEntry` 会抓漏）
+4. **原塞在 data 里的 message 一律提顶层**：用 `response.SuccessMsg(c, i18n.XXX, data)`，data 只放业务数据。
+5. **错误码**：`errcode.Err` 持 `BizCode`+`Key`+`Args`；`WithKey/WithKeyf` 是推荐入口，
+   `With/Withf` 只接受英文；`WithBizCode` 覆盖域细分码。
+6. **测试断言按 `Err.BizCode` / `Err.Key` 契约**（`assertRejectKey` helper），
+   **不锁文案字面量** —— 文案润色不该造成假红。
+7. **例外（不用统一响应体）**：微信支付回调 `{"code":"SUCCESS"/"FAIL"}`（微信服务器契约）；
+   `/health` 只返回 `{"status_code":0}`。
+8. **存库业务数据保留中文**：`AuditResult.Reason`、订单标题、积分流水 `Description`、
+   emoji「未分类」分组值 —— 这些是 **data 内容不是 message**，别翻译。
+9. **内部错误细节进日志不进响应**（`svcInternal` 对外统一 `"Internal server error"`）。
+
 ## 二、响应体形状
 
 ```json

@@ -8,6 +8,9 @@
 package service
 
 import (
+	"time"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -28,8 +31,9 @@ type EmojiService struct {
 // NewEmojiService 构造。
 func NewEmojiService(db *gorm.DB) *EmojiService { return &EmojiService{DB: db} }
 
-// Create 创建表情。
-func (s *EmojiService) Create(userID string, in model.EmojiInput, isAdmin bool) (*model.Emoji, error) {
+// Create 创建表情。返回对外的 dto.EmojiDto（service 不把 *model.Emoji 当对外类型，
+// 否则给表加一列就自动泄漏到 API —— AGENTS「JSON 空值序列化口径」）。
+func (s *EmojiService) Create(userID string, in model.EmojiInput, isAdmin bool) (*dto.EmojiDto, error) {
 	if in.Name == nil || *in.Name == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiNameRequired)
 	}
@@ -63,12 +67,12 @@ func (s *EmojiService) Create(userID string, in model.EmojiInput, isAdmin bool) 
 	if err := s.emojis.Create(s.DB, e); err != nil {
 		return nil, err
 	}
-	return e, nil
+	return emojiViewPtr(e), nil
 }
 
 // Update 更新表情。
-func (s *EmojiService) Update(userID, id string, in model.EmojiInput, isAdmin bool) (*model.Emoji, error) {
-	e, err := s.Get(id, userID)
+func (s *EmojiService) Update(userID, id string, in model.EmojiInput, isAdmin bool) (*dto.EmojiDto, error) {
+	e, err := s.getModel(id, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,12 +92,12 @@ func (s *EmojiService) Update(userID, id string, in model.EmojiInput, isAdmin bo
 	if err := s.emojis.Save(s.DB, e); err != nil {
 		return nil, err
 	}
-	return e, nil
+	return emojiViewPtr(e), nil
 }
 
 // Delete 删除表情。
 func (s *EmojiService) Delete(userID, id string, isAdmin bool) error {
-	e, err := s.Get(id, userID)
+	e, err := s.getModel(id, userID)
 	if err != nil {
 		return err
 	}
@@ -133,8 +137,17 @@ func emojiEditRejection(e *model.Emoji, userID string, isAdmin bool) *errcode.Er
 	return nil
 }
 
-// Get 表情详情（非公开表情仅本人可见）。
-func (s *EmojiService) Get(id, viewerID string) (*model.Emoji, error) {
+// Get 表情详情（非公开表情仅本人可见）。对外返回 dto。
+func (s *EmojiService) Get(id, viewerID string) (*dto.EmojiDto, error) {
+	e, err := s.getModel(id, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	return emojiViewPtr(e), nil
+}
+
+// getModel 表情详情（内部：归属校验、关联查询需要 model 本体）。
+func (s *EmojiService) getModel(id, viewerID string) (*model.Emoji, error) {
 	e, err := s.emojis.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -158,12 +171,12 @@ func (s *EmojiService) List(q model.EmojiQuery, viewerID string) (*ListResult, e
 	if q.Grouped != nil && *q.Grouped {
 		return &ListResult{PageData: groupByCategory(list)}, nil
 	}
-	return &ListResult{PageData: pageData(list, total, q.Page, q.Limit)}, nil
+	return &ListResult{PageData: pageData(emojiViews(list), total, q.Page, q.Limit)}, nil
 }
 
 // groupByCategory 按分类聚合成 {分类: [表情]}（对齐原 grouped 语义）。
-func groupByCategory(list []model.Emoji) map[string][]model.Emoji {
-	out := make(map[string][]model.Emoji)
+func groupByCategory(list []model.Emoji) map[string][]dto.EmojiDto {
+	out := make(map[string][]dto.EmojiDto)
 	for _, e := range list {
 		key := e.Category
 		if key == "" {
@@ -172,7 +185,7 @@ func groupByCategory(list []model.Emoji) map[string][]model.Emoji {
 			// 与新产生的分组对不上，前端归并结果分裂。不要 i18n 化。
 			key = "未分类"
 		}
-		out[key] = append(out[key], e)
+		out[key] = append(out[key], emojiView(e))
 	}
 	return out
 }
@@ -183,25 +196,33 @@ func (s *EmojiService) Categories() ([]string, error) {
 }
 
 // Popular 热门表情。
-func (s *EmojiService) Popular(limit int) ([]model.Emoji, error) {
+func (s *EmojiService) Popular(limit int) ([]dto.EmojiDto, error) {
 	if limit <= 0 {
 		limit = 20
 	}
 	if limit > MaxPageSize {
 		limit = MaxPageSize
 	}
-	return s.emojis.ListPopular(s.DB, limit)
+	list, err := s.emojis.ListPopular(s.DB, limit)
+	if err != nil {
+		return nil, err
+	}
+	return emojiViews(list), nil
 }
 
 // Recent 最近添加（含本人私有）。
-func (s *EmojiService) Recent(userID string, limit int) ([]model.Emoji, error) {
+func (s *EmojiService) Recent(userID string, limit int) ([]dto.EmojiDto, error) {
 	if limit <= 0 {
 		limit = 20
 	}
 	if limit > MaxPageSize {
 		limit = MaxPageSize
 	}
-	return s.emojis.ListRecent(s.DB, userID, limit)
+	list, err := s.emojis.ListRecent(s.DB, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	return emojiViews(list), nil
 }
 
 // Use 增加使用次数。
@@ -220,7 +241,7 @@ func (s *EmojiService) Use(id string) error {
 
 // FavoriteAdd 收藏（幂等：已收藏直接成功）。
 func (s *EmojiService) FavoriteAdd(userID, emojiID string) error {
-	if _, err := s.Get(emojiID, userID); err != nil {
+	if _, err := s.getModel(emojiID, userID); err != nil {
 		return err
 	}
 	exists, err := s.favorites.Exists(s.DB, userID, emojiID)
@@ -255,13 +276,13 @@ func (s *EmojiService) Favorites(userID string, page, limit int) (*ListResult, e
 			return nil, err
 		}
 	}
-	return &ListResult{PageData: pageData(list, total, page, limit)}, nil
+	return &ListResult{PageData: pageData(emojiViews(list), total, page, limit)}, nil
 }
 
 // ---- 表情包 ----
 
 // PackCreate 创建表情包。
-func (s *EmojiService) PackCreate(userID string, in model.EmojiPackInput) (*model.EmojiPack, error) {
+func (s *EmojiService) PackCreate(userID string, in model.EmojiPackInput) (*dto.EmojiPackDto, error) {
 	if in.Name == nil || *in.Name == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.EmojiPackNameRequired)
 	}
@@ -274,12 +295,12 @@ func (s *EmojiService) PackCreate(userID string, in model.EmojiPackInput) (*mode
 	if err := s.packs.Create(s.DB, p); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return emojiPackViewPtr(p), nil
 }
 
 // PackUpdate 更新表情包。
-func (s *EmojiService) PackUpdate(userID, id string, in model.EmojiPackInput) (*model.EmojiPack, error) {
-	p, err := s.PackGet(id, userID)
+func (s *EmojiService) PackUpdate(userID, id string, in model.EmojiPackInput) (*dto.EmojiPackDto, error) {
+	p, err := s.getPackModel(id, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -290,12 +311,12 @@ func (s *EmojiService) PackUpdate(userID, id string, in model.EmojiPackInput) (*
 	if err := s.packs.Save(s.DB, p); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return emojiPackViewPtr(p), nil
 }
 
 // PackDelete 删除表情包（连带清除包内条目）。
 func (s *EmojiService) PackDelete(userID, id string) error {
-	p, err := s.PackGet(id, userID)
+	p, err := s.getPackModel(id, userID)
 	if err != nil {
 		return err
 	}
@@ -310,8 +331,17 @@ func (s *EmojiService) PackDelete(userID, id string) error {
 	})
 }
 
-// PackGet 表情包详情（非公开仅本人可见）。
-func (s *EmojiService) PackGet(id, viewerID string) (*model.EmojiPack, error) {
+// PackGet 表情包详情（非公开仅本人可见）。对外返回 dto。
+func (s *EmojiService) PackGet(id, viewerID string) (*dto.EmojiPackDto, error) {
+	p, err := s.getPackModel(id, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	return emojiPackViewPtr(p), nil
+}
+
+// getPackModel 表情包详情（内部：归属校验需要 model 本体）。
+func (s *EmojiService) getPackModel(id, viewerID string) (*model.EmojiPack, error) {
 	p, err := s.packs.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -325,15 +355,9 @@ func (s *EmojiService) PackGet(id, viewerID string) (*model.EmojiPack, error) {
 	return p, nil
 }
 
-// EmojiPackDetail 表情包详情（含条目内表情）。
-type EmojiPackDetail struct {
-	Pack   model.EmojiPack `json:"pack"`
-	Emojis []model.Emoji   `json:"emojis"`
-}
-
-// PackDetail 表情包详情 + 内容。
-func (s *EmojiService) PackDetail(id, viewerID string) (*EmojiPackDetail, error) {
-	p, err := s.PackGet(id, viewerID)
+// PackDetail 表情包详情 + 内容（对齐 dto.EmojiPackDetailDto）。
+func (s *EmojiService) PackDetail(id, viewerID string) (*dto.EmojiPackDetailDto, error) {
+	p, err := s.getPackModel(id, viewerID)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +395,7 @@ func (s *EmojiService) PackDetail(id, viewerID string) (*EmojiPackDetail, error)
 		}
 		emojis = compact
 	}
-	return &EmojiPackDetail{Pack: *p, Emojis: emojis}, nil
+	return &dto.EmojiPackDetailDto{Pack: emojiPackView(*p), Emojis: emojiViews(emojis)}, nil
 }
 
 // PackList 表情包列表（公开 ∪ 自己的）。
@@ -381,19 +405,19 @@ func (s *EmojiService) PackList(q model.EmojiPackQuery, viewerID string) (*ListR
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(list, total, q.Page, q.Limit)}, nil
+	return &ListResult{PageData: pageData(emojiPackViews(list), total, q.Page, q.Limit)}, nil
 }
 
 // PackAddEmoji 向表情包添加表情（幂等：已在包内直接成功）。
-func (s *EmojiService) PackAddEmoji(userID, packID, emojiID string) (*model.EmojiPackItem, error) {
-	p, err := s.PackGet(packID, userID)
+func (s *EmojiService) PackAddEmoji(userID, packID, emojiID string) (*dto.EmojiPackItemDto, error) {
+	p, err := s.getPackModel(packID, userID)
 	if err != nil {
 		return nil, err
 	}
 	if p.UserID != userID {
 		return nil, errcode.ErrForbidden.WithKey(i18n.EmojiPackNoPermission)
 	}
-	if _, err := s.Get(emojiID, userID); err != nil {
+	if _, err := s.getModel(emojiID, userID); err != nil {
 		return nil, err
 	}
 	exists, err := s.items.Exists(s.DB, packID, emojiID)
@@ -401,7 +425,11 @@ func (s *EmojiService) PackAddEmoji(userID, packID, emojiID string) (*model.Emoj
 		return nil, err
 	}
 	if exists {
-		return s.items.FindItem(s.DB, packID, emojiID)
+		item, err := s.items.FindItem(s.DB, packID, emojiID)
+		if err != nil || item == nil {
+			return nil, err
+		}
+		return emojiPackItemViewPtr(item), nil
 	}
 	sort, err := s.items.NextSort(s.DB, packID)
 	if err != nil {
@@ -411,12 +439,12 @@ func (s *EmojiService) PackAddEmoji(userID, packID, emojiID string) (*model.Emoj
 	if err := s.items.Create(s.DB, item); err != nil {
 		return nil, err
 	}
-	return item, nil
+	return emojiPackItemViewPtr(item), nil
 }
 
 // PackUpdateEmojiSort 调整包内排序。
-func (s *EmojiService) PackUpdateEmojiSort(userID, packID, emojiID string, sort int) (*model.EmojiPackItem, error) {
-	p, err := s.PackGet(packID, userID)
+func (s *EmojiService) PackUpdateEmojiSort(userID, packID, emojiID string, sort int) (*dto.EmojiPackItemDto, error) {
+	p, err := s.getPackModel(packID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -434,12 +462,12 @@ func (s *EmojiService) PackUpdateEmojiSort(userID, packID, emojiID string, sort 
 	if err := s.DB.Save(item).Error; err != nil {
 		return nil, err
 	}
-	return item, nil
+	return emojiPackItemViewPtr(item), nil
 }
 
 // PackRemoveEmoji 从表情包移除表情。
 func (s *EmojiService) PackRemoveEmoji(userID, packID, emojiID string) error {
-	p, err := s.PackGet(packID, userID)
+	p, err := s.getPackModel(packID, userID)
 	if err != nil {
 		return err
 	}
@@ -506,4 +534,113 @@ func applyEmojiPackInput(p *model.EmojiPack, in model.EmojiPackInput) {
 	if in.Status != nil {
 		p.Status = *in.Status
 	}
+}
+
+// ---------- model → dto 转换（对外契约组装层） ----------
+//
+// 为什么不在 model 上加 json tag 后直接用：service 层不许把 *model.Xxx 当对外
+// 返回类型（AGENTS「JSON 空值序列化口径」），否则给表加一列就自动泄漏到 API。
+// 所有对外字段都在这里显式列出，加列不会自动出圈。
+
+// emojiView 表情 model → dto。
+func emojiView(e model.Emoji) dto.EmojiDto {
+	return dto.EmojiDto{
+		ID:        e.ID,
+		CreatedAt: emojiTimeText(e.CreatedAt),
+		UpdatedAt: emojiTimeText(e.UpdatedAt),
+		Name:      e.Name,
+		URL:       e.URL,
+		Code:      e.Code,
+		Type:      e.Type,
+		UserID:    e.UserID,
+		Category:  e.Category,
+		Tags:      e.Tags,
+		UseCount:  e.UseCount,
+		IsPublic:  e.IsPublic,
+		Status:    e.Status,
+		Width:     e.Width,
+		Height:    e.Height,
+		FileSize:  e.FileSize,
+		MimeType:  e.MimeType,
+	}
+}
+
+// emojiViewPtr 单个表情 → dto 指针（Create / Update / Get 用）。
+func emojiViewPtr(e *model.Emoji) *dto.EmojiDto {
+	if e == nil {
+		return nil
+	}
+	v := emojiView(*e)
+	return &v
+}
+
+// emojiViews 表情切片 → dto 切片。恒返回非 nil 切片（空时 [] 而不是 null）。
+func emojiViews(list []model.Emoji) []dto.EmojiDto {
+	out := make([]dto.EmojiDto, 0, len(list))
+	for _, e := range list {
+		out = append(out, emojiView(e))
+	}
+	return out
+}
+
+// emojiPackView 表情包 model → dto。
+func emojiPackView(p model.EmojiPack) dto.EmojiPackDto {
+	return dto.EmojiPackDto{
+		ID:          p.ID,
+		CreatedAt:   emojiTimeText(p.CreatedAt),
+		UpdatedAt:   emojiTimeText(p.UpdatedAt),
+		Name:        p.Name,
+		Description: p.Description,
+		CoverURL:    p.CoverURL,
+		UserID:      p.UserID,
+		IsPublic:    p.IsPublic,
+		Status:      p.Status,
+	}
+}
+
+// emojiPackViewPtr 单个表情包 → dto 指针。
+func emojiPackViewPtr(p *model.EmojiPack) *dto.EmojiPackDto {
+	if p == nil {
+		return nil
+	}
+	v := emojiPackView(*p)
+	return &v
+}
+
+// emojiPackViews 表情包切片 → dto 切片（空时 []）。
+func emojiPackViews(list []model.EmojiPack) []dto.EmojiPackDto {
+	out := make([]dto.EmojiPackDto, 0, len(list))
+	for _, p := range list {
+		out = append(out, emojiPackView(p))
+	}
+	return out
+}
+
+// emojiPackItemView 包内条目 model → dto。
+func emojiPackItemView(it model.EmojiPackItem) dto.EmojiPackItemDto {
+	return dto.EmojiPackItemDto{
+		ID:        it.ID,
+		CreatedAt: emojiTimeText(it.CreatedAt),
+		UpdatedAt: emojiTimeText(it.UpdatedAt),
+		PackID:    it.PackID,
+		EmojiID:   it.EmojiID,
+		Sort:      it.Sort,
+	}
+}
+
+// emojiPackItemViewPtr 单个包内条目 → dto 指针。
+func emojiPackItemViewPtr(it *model.EmojiPackItem) *dto.EmojiPackItemDto {
+	if it == nil {
+		return nil
+	}
+	v := emojiPackItemView(*it)
+	return &v
+}
+
+// emojiTimeText 时间 → RFC3339 文本（与 dto 其余域的对外时间口径一致）。
+func emojiTimeText(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
 }

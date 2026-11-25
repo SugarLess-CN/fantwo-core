@@ -20,7 +20,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -46,7 +48,7 @@ func NewUploadHandler(svc *infra.Infra) *UploadHandler { return &UploadHandler{s
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UploadDto}}
 //	@Router		/upload [get]
 func (h *UploadHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -73,7 +75,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	out := make([]gin.H, 0, len(list))
+	out := make([]dto.UploadDto, 0, len(list))
 	for _, up := range list {
 		out = append(out, infraFormatUpload(up))
 	}
@@ -87,7 +89,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UploadDto}
 //	@Router		/upload/info/{id} [get]
 func (h *UploadHandler) Info(c *gin.Context) {
 	up, err := h.svc.GetFileInfo(c.Param("id"))
@@ -107,7 +109,7 @@ func (h *UploadHandler) Info(c *gin.Context) {
 //	@Summary	上传限制配置
 //	@Tags		上传
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UploadConfigDto}
 //	@Router		/upload/config [get]
 func (h *UploadHandler) Config(c *gin.Context) {
 	response.Success(c, h.svc.GetUploadConfig(c))
@@ -122,7 +124,7 @@ func (h *UploadHandler) Config(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		file formData file true "文件本体"
 //	@Param		scene formData string false "场景：article/avatar/comment"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.UploadDto}
 //	@Router		/upload/file [post]
 func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 
@@ -132,7 +134,7 @@ func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.UploadDto}
 //	@Router		/upload/avatar [post]
 func (h *UploadHandler) UploadAvatar(c *gin.Context) { h.upload(c, infra.SceneAvatar) }
 
@@ -178,7 +180,7 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	out := make([]gin.H, 0, len(uploads))
+	out := make([]dto.UploadDto, 0, len(uploads))
 	for _, up := range uploads {
 		out = append(out, infraFormatUpload(up))
 	}
@@ -192,15 +194,13 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "presignRequest{filename,contentType,size}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.PresignRequest true "filename/contentType/size 均必填"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PresignResultDto}
 //	@Router		/upload/presign [post]
 func (h *UploadHandler) Presign(c *gin.Context) {
-	var req struct {
-		Filename    string `json:"filename" binding:"required"`
-		ContentType string `json:"contentType" binding:"required"`
-		Size        int64  `json:"size" binding:"required"`
-	}
+	// 绑定 dto 的请求结构（而不是 handler 私有匿名结构）：文档声明的字段
+	// 与实际解析的字段必须同源，否则改一处漏一处（docs/18-DTO复用规范.md）。
+	var req dto.PresignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "filename、contentType、size 均为必填")
 		return
@@ -220,18 +220,23 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "confirmRequest{objectKey,...}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ConfirmUploadRequest true "key/url/originalName/mimeType/size 必填"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UploadDto}
 //	@Router		/upload/confirm [post]
 func (h *UploadHandler) Confirm(c *gin.Context) {
-	var req infra.S3Confirm
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var body dto.ConfirmUploadRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "key、url、originalName、mimeType、size 均为必填")
 		return
 	}
-	if req.Scene != "" && req.Scene != infra.SceneAvatar && req.Scene != infra.SceneImage && req.Scene != infra.SceneOther {
+	if body.Scene != "" && body.Scene != infra.SceneAvatar && body.Scene != infra.SceneImage && body.Scene != infra.SceneOther {
 		response.FailWith(c, errcode.ErrBadRequest, "scene 必须是 avatar、image 或 other")
 		return
+	}
+	// dto 请求结构 → service 入参（service 签名保持不动，转换只发生在 handler 边界）
+	req := infra.S3Confirm{
+		Key: body.Key, URL: body.URL, OriginalName: body.OriginalName,
+		MimeType: body.MimeType, Size: body.Size, Hash: body.Hash, Scene: body.Scene,
 	}
 	up, err := h.svc.ConfirmS3Upload(req, infraCurrentUserID(c))
 	if err != nil {
@@ -247,7 +252,7 @@ func (h *UploadHandler) Confirm(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationStatsDto}
 //	@Router		/upload/migration/stats [get]
 func (h *UploadHandler) MigrationStats(c *gin.Context) {
 	stats, err := h.svc.MigrationStats(c.Request.Context())
@@ -265,17 +270,14 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.MigrationProcessRequest false "limit/dryRun（query 同名参数并存，body 优先）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationProcessResultDto}
 //	@Router		/upload/migration/process [post]
 func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	dryRun := c.Query("dryRun") == "true"
 	// body 覆盖 query（原 controller 只读 query，但 swagger 声明了 body，取并集更宽容）
-	var body struct {
-		Limit  *int  `json:"limit"`
-		DryRun *bool `json:"dryRun"`
-	}
+	var body dto.MigrationProcessRequest
 	if err := c.ShouldBindJSON(&body); err == nil {
 		if body.Limit != nil && *body.Limit > 0 {
 			limit = *body.Limit
@@ -298,8 +300,8 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		limit query int false "本批上限（默认 100）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationFillResultDto}
 //	@Router		/upload/migration/metadata [post]
 func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
@@ -318,77 +320,112 @@ func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@Router		/upload/{id} [delete]
 func (h *UploadHandler) Remove(c *gin.Context) {
 	if err := h.svc.RemoveUpload(c.Param("id")); err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"deleted": true})
+	response.Success(c, dto.DeletedDto{Deleted: true})
 }
 
 // ---------- 工具 ----------
 
 // infraFormatUpload 组装上传文件响应体（jsonb 列还原为结构化字段，对齐原实体序列化）。
-func infraFormatUpload(up model.Upload) gin.H {
-	out := gin.H{
-		"id":                     up.ID,
-		"hash":                   up.Hash,
-		"originalName":           up.OriginalName,
-		"storage":                up.Storage,
-		"filename":               up.Filename,
-		"path":                   up.Path,
-		"url":                    up.URL,
-		"size":                   up.Size,
-		"mimeType":               up.MimeType,
-		"referenceCount":         up.ReferenceCount,
-		"processed":              up.Processed,
-		"watermarked":            up.Watermarked,
-		"videoCompressionStatus": up.VideoCompressionStatus,
-		"auditStatus":            up.AuditStatus,
-		"scene":                  up.Scene,
-		"userId":                 up.UserID,
-		"createdAt":              up.CreatedAt,
-		"updatedAt":              up.UpdatedAt,
-	}
-	out["original"] = infraJSONOrNil(up.OriginalJSON)
-	// thumbnails 是对外契约里的「集合」字段：没有缩略图必须是 []，不能是 null
-	//（压缩关闭时 jsonb 列是 'null'，见 model.Upload.BeforeCreate），否则前端遍历直接抛错。
-	out["thumbnails"] = infraThumbnailsOrEmpty(up.ThumbsJSON)
-	out["videoCompressionJob"] = infraJSONOrNil(up.VideoJobJSON)
-	out["auditResult"] = infraJSONOrNil(up.AuditResultJS)
-	return out
-}
-
-// infraThumbnailsOrEmpty 缩略图字段的对外契约：恒为数组，无缩略图 = 空数组 []。
 //
-// 为什么单独一个函数而不是改 infraJSONOrNil：后者是通用工具，original /
-// videoCompressionJob / auditResult 三个字段沿用 nullable 语义（无值就该是 null），
-// 只有 thumbnails 是集合类型，集合的空值语义是「空数组」而非「null」。
-// 输入为空串、'null'、非法 JSON、JSON 非数组时一律返回 []。
-func infraThumbnailsOrEmpty(raw string) []interface{} {
-	empty := []interface{}{}
-	if s := strings.TrimSpace(raw); s == "" || s == "null" {
-		return empty
+// 返回具名 dto.UploadDto 而非 gin.H：
+//   - swagger 的 data 才有字段定义（docs/18-DTO复用规范.md）；
+//   - 空值口径由 dto 的 json tag 统一表达（docs/21-JSON序列化规范.md）：
+//     字符串空 → ""、thumbnails 空 → []、original/job/auditResult 空 → 整个字段不传。
+//     改前 userId 直接塞 *string，游客上传会输出 null；现在是 ""。
+func infraFormatUpload(up model.Upload) dto.UploadDto {
+	return dto.UploadDto{
+		ID:                     up.ID,
+		Hash:                   up.Hash,
+		OriginalName:           up.OriginalName,
+		Storage:                up.Storage,
+		Filename:               up.Filename,
+		Path:                   up.Path,
+		URL:                    up.URL,
+		Size:                   up.Size,
+		MimeType:               up.MimeType,
+		ReferenceCount:         up.ReferenceCount,
+		Processed:              up.Processed,
+		Watermarked:            up.Watermarked,
+		VideoCompressionStatus: up.VideoCompressionStatus,
+		AuditStatus:            up.AuditStatus,
+		Scene:                  up.Scene,
+		UserID:                 infraStrOrEmpty(up.UserID),
+		CreatedAt:              infraTimeText(up.CreatedAt),
+		UpdatedAt:              infraTimeText(up.UpdatedAt),
+		Thumbnails: infraDecodeSlice(up.ThumbsJSON, func(t model.UploadThumbnail) dto.UploadThumbnailDto {
+			return dto.UploadThumbnailDto{
+				Name: t.Name, URL: t.URL, Path: t.Path,
+				Size: t.Size, Width: t.Width, Height: t.Height,
+			}
+		}),
+		Original:            infraUnmarshalPtr[dto.UploadOriginalDto](up.OriginalJSON),
+		VideoCompressionJob: infraUnmarshalPtr[dto.UploadVideoJobDto](up.VideoJobJSON),
+		AuditResult:         infraUnmarshalPtr[dto.UploadAuditResultDto](up.AuditResultJS),
 	}
-	var list []interface{}
-	if err := json.Unmarshal([]byte(raw), &list); err != nil || list == nil {
-		return empty
-	}
-	return list
 }
 
-// infraJSONOrNil 把 jsonb 文本解析成对象；空/非法返回 nil（对齐 nullable json 列序列化为 null）。
-func infraJSONOrNil(raw string) interface{} {
-	if strings.TrimSpace(raw) == "" {
+// infraStrOrEmpty 指针字符串 → 值类型；nil 时返回 ""。
+//
+// 对外 JSON 规范要求字符串空时是 ""，不是 null（docs/21 §一）。model.Upload.UserID
+// 保持 *string（数据库要区分「游客上传」的 SQL NULL），转换只发生在这里。
+func infraStrOrEmpty(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
+
+// infraTimeText 时间 → RFC3339 文本（对外时间字段统一用字符串，与 dto.UserDto 同口径）。
+func infraTimeText(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
+}
+
+// infraUnmarshalPtr 把 jsonb 文本解析成具名结构指针；空 / 'null' / 非法 JSON 一律 nil。
+//
+// nil + `json:",omitempty"` 的效果是**整个字段不传** —— 这是 docs/21 对
+// 「对象 / 嵌套结构空值」的唯一正确表示。改前用 interface{} 装 nil，序列化结果是 null。
+func infraUnmarshalPtr[T any](raw string) *T {
+	s := strings.TrimSpace(raw)
+	if s == "" || s == "null" {
 		return nil
 	}
-	var v interface{}
-	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+	var v T
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
 		return nil
 	}
-	return v
+	return &v
+}
+
+// infraDecodeSlice 把 jsonb 数组文本解析成具名 dto 切片；任何异常输入返回空切片 []。
+//
+// 集合的空值语义是「空数组」而非「null」（docs/21 §一）：json.Marshal 对 nil 切片
+// 输出 null、对空切片输出 []，这是语言特性不是配置能改的，只能在这里保证非 nil。
+// 输入为空串 / 'null'（压缩关闭时 model.Upload.BeforeCreate 写入的字面量）/
+// 非法 JSON / JSON 非数组时一律返回 make 出来的空切片（T-34b5 的契约延续）。
+func infraDecodeSlice[M, D any](raw string, conv func(M) D) []D {
+	out := make([]D, 0)
+	s := strings.TrimSpace(raw)
+	if s == "" || s == "null" {
+		return out
+	}
+	var list []M
+	if err := json.Unmarshal([]byte(s), &list); err != nil || list == nil {
+		return out
+	}
+	for _, item := range list {
+		out = append(out, conv(item))
+	}
+	return out
 }
 
 // infraParseUploadMetadata 解析 metadata JSON（兼容单个对象与数组）。
@@ -459,3 +496,7 @@ func infraHasPermission(c *gin.Context, perm string) bool {
 	}
 	return false
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}

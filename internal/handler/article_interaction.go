@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -16,7 +17,8 @@ import (
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ArticleReactionRequest false "表情类型，缺省按 like"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ArticleLikeResultDto}
 //	@Router		/article/{id}/like [post]
 func (h *ArticleHandler) Like(c *gin.Context) {
 	var req service.ArticleReactionRequest
@@ -36,7 +38,7 @@ func (h *ArticleHandler) Like(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ArticleLikeStatusDto}
 //	@Router		/article/{id}/like/status [get]
 func (h *ArticleHandler) LikeStatus(c *gin.Context) {
 	out, e := h.svc.GetLikeStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -53,7 +55,7 @@ func (h *ArticleHandler) LikeStatus(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CountDto}
 //	@Router		/article/{id}/like/count [get]
 func (h *ArticleHandler) LikeCount(c *gin.Context) {
 	out, e := h.svc.GetLikeCount(c.Request.Context(), c.Param("id"))
@@ -72,7 +74,7 @@ func (h *ArticleHandler) LikeCount(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/liked [get]
 func (h *ArticleHandler) Liked(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -93,7 +95,7 @@ func (h *ArticleHandler) Liked(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.FavoriteResultDto}
 //	@Router		/article/{id}/favorite [post]
 func (h *ArticleHandler) Favorite(c *gin.Context) {
 	out, e := h.svc.Favorite(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -111,7 +113,7 @@ func (h *ArticleHandler) Favorite(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.FavoriteResultDto}
 //	@Router		/article/{id}/favorite [delete]
 func (h *ArticleHandler) Unfavorite(c *gin.Context) {
 	out, e := h.svc.Unfavorite(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -129,7 +131,7 @@ func (h *ArticleHandler) Unfavorite(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.FavoriteStatusDto}
 //	@Router		/article/{id}/favorite/status [get]
 func (h *ArticleHandler) FavoriteStatus(c *gin.Context) {
 	out, e := h.svc.FavoriteStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -148,7 +150,7 @@ func (h *ArticleHandler) FavoriteStatus(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/favorited/list [get]
 func (h *ArticleHandler) FavoritedList(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -169,7 +171,8 @@ func (h *ArticleHandler) FavoritedList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ArticleDislikeRequest false "不喜欢原因"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DislikeResultDto}
 //	@Router		/article/{id}/dislike [post]
 func (h *ArticleHandler) Dislike(c *gin.Context) {
 	var req service.ArticleDislikeRequest
@@ -189,7 +192,7 @@ func (h *ArticleHandler) Dislike(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DislikeResultDto}
 //	@Router		/article/{id}/dislike [delete]
 func (h *ArticleHandler) CancelDislike(c *gin.Context) {
 	out, e := h.svc.CancelDislike(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -207,7 +210,7 @@ func (h *ArticleHandler) CancelDislike(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DislikeResultDto}
 //	@Router		/article/{id}/dislike/status [get]
 func (h *ArticleHandler) DislikeStatus(c *gin.Context) {
 	out, e := h.svc.DislikeStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -226,7 +229,7 @@ func (h *ArticleHandler) DislikeStatus(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/disliked/list [get]
 func (h *ArticleHandler) DislikedList(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -246,7 +249,8 @@ func (h *ArticleHandler) DislikedList(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ArticleShareRequest false "分享渠道，缺省 link"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ShareResultDto}
 //	@Router		/article/{id}/share [post]
 func (h *ArticleHandler) Share(c *gin.Context) {
 	var req service.ArticleShareRequest
@@ -269,8 +273,8 @@ func (h *ArticleHandler) Share(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.BrowseProgressRequest false "阅读进度与停留时长"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BrowseProgressDto}
 //	@Router		/article/{id}/browse/progress [post]
 func (h *ArticleHandler) BrowseProgress(c *gin.Context) {
 	var req service.BrowseProgressRequest
@@ -291,7 +295,7 @@ func (h *ArticleHandler) BrowseProgress(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.BrowseHistoryDto}}
 //	@Router		/article/browse/history [get]
 func (h *ArticleHandler) BrowseHistory(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -309,7 +313,7 @@ func (h *ArticleHandler) BrowseHistory(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BrowseStatsDto}
 //	@Router		/article/browse/stats [get]
 func (h *ArticleHandler) BrowseStats(c *gin.Context) {
 	out, e := h.svc.GetBrowseStats(c.Request.Context(), actorOf(c))
@@ -326,7 +330,7 @@ func (h *ArticleHandler) BrowseStats(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.ArticleDto}
 //	@Router		/article/browse/recent [get]
 func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 	list, e := h.svc.RecentBrowsed(c.Request.Context(), actorOf(c), intQuery(c, "limit", 10))
@@ -343,8 +347,8 @@ func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.BatchDeleteBrowseRequest true "待删除的文章 ID 列表"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BatchDeleteResultDto}
 //	@Router		/article/browse/batch-delete [post]
 func (h *ArticleHandler) BrowseBatchDelete(c *gin.Context) {
 	var req service.BatchDeleteBrowseRequest
@@ -367,7 +371,7 @@ func (h *ArticleHandler) BrowseBatchDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BrowseHistoryDto}
 //	@Router		/article/browse/{articleId} [get]
 func (h *ArticleHandler) BrowseOne(c *gin.Context) {
 	out, e := h.svc.GetBrowseHistory(c.Request.Context(), c.Param("articleId"), actorOf(c))
@@ -385,7 +389,7 @@ func (h *ArticleHandler) BrowseOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedFlagDto}
 //	@Router		/article/browse/{articleId} [delete]
 func (h *ArticleHandler) BrowseDelete(c *gin.Context) {
 	out, e := h.svc.DeleteBrowseHistory(c.Request.Context(), c.Param("articleId"), actorOf(c))
@@ -402,7 +406,7 @@ func (h *ArticleHandler) BrowseDelete(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ClearedResultDto}
 //	@Router		/article/browse [delete]
 func (h *ArticleHandler) BrowseClear(c *gin.Context) {
 	out, e := h.svc.ClearBrowseHistory(c.Request.Context(), actorOf(c))
@@ -412,3 +416,6 @@ func (h *ArticleHandler) BrowseClear(c *gin.Context) {
 	}
 	ctOK(c, out)
 }
+
+// var _ 保证 dto 的 import 不被判为未使用（swag 只看注解所在文件的 import，docs/18 §三之一 B）。
+var _ = dto.ResponseBody{}

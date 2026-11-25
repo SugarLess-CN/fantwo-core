@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -28,20 +29,21 @@ const emojiMaxSize = 5 * 1024 * 1024
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "emojiRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiInputRequest true "表情字段（全部可选，不传=不改）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@Router		/emoji [post]
 func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var in model.EmojiInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	// 绑定 dto 请求结构：文档声明与实际解析必须同源（docs/18-DTO复用规范.md）。
+	var body dto.EmojiInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	e, err := h.Emoji.Create(uid, in, isAdmin(c))
+	e, err := h.Emoji.Create(uid, emojiInputOf(body), isAdmin(c))
 	if err != nil {
 		fail(c, err)
 		return
@@ -58,8 +60,8 @@ func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "multipart 或 base64 载荷"
-//	@Success	200	{object}	ResponseBody
+//	@Param		file formData file true "表情图片（png/jpeg/gif/webp/svg，≤5MB）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@Router		/emoji/upload [post]
 func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 	if requireUser(c) == "" {
@@ -87,7 +89,7 @@ func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 //	@Summary	表情列表
 //	@Tags		表情包
 //	@Produce	json
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiDto}}
 //	@Router		/emoji [get]
 func (h *OpsHandler) EmojiList(c *gin.Context) {
 	q := model.EmojiQuery{
@@ -122,7 +124,7 @@ func (h *OpsHandler) EmojiList(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Param		id path string true "表情 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@Router		/emoji/{id} [get]
 func (h *OpsHandler) EmojiGet(c *gin.Context) {
 	e, err := h.Emoji.Get(c.Param("id"), currentUserID(c))
@@ -141,20 +143,20 @@ func (h *OpsHandler) EmojiGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiInputRequest true "要改的字段（全部可选）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@Router		/emoji/{id} [patch]
 func (h *OpsHandler) EmojiUpdate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var in model.EmojiInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.EmojiInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	e, err := h.Emoji.Update(uid, c.Param("id"), in, isAdmin(c))
+	e, err := h.Emoji.Update(uid, c.Param("id"), emojiInputOf(body), isAdmin(c))
 	if err != nil {
 		fail(c, err)
 		return
@@ -169,7 +171,7 @@ func (h *OpsHandler) EmojiUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@Router		/emoji/{id} [delete]
 func (h *OpsHandler) EmojiDelete(c *gin.Context) {
 	uid := requireUser(c)
@@ -180,7 +182,7 @@ func (h *OpsHandler) EmojiDelete(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"deleted": true})
+	ok(c, dto.DeletedDto{Deleted: true})
 }
 
 // EmojiCategories GET /emoji/categories/list（公开）。
@@ -188,7 +190,7 @@ func (h *OpsHandler) EmojiDelete(c *gin.Context) {
 //	@Summary	表情分类
 //	@Tags		表情包
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]string} "分类名数组（空时 []）"
 //	@Router		/emoji/categories/list [get]
 func (h *OpsHandler) EmojiCategories(c *gin.Context) {
 	cats, err := h.Emoji.Categories()
@@ -204,7 +206,7 @@ func (h *OpsHandler) EmojiCategories(c *gin.Context) {
 //	@Summary	热门表情
 //	@Tags		表情包
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.EmojiDto}
 //	@Router		/emoji/popular/list [get]
 func (h *OpsHandler) EmojiPopular(c *gin.Context) {
 	list, err := h.Emoji.Popular(atoiDefault(c.Query("limit"), 20))
@@ -221,7 +223,7 @@ func (h *OpsHandler) EmojiPopular(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.EmojiDto}
 //	@Router		/emoji/recent/list [get]
 func (h *OpsHandler) EmojiRecent(c *gin.Context) {
 	uid := requireUser(c)
@@ -242,7 +244,7 @@ func (h *OpsHandler) EmojiRecent(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiDto}}
 //	@Router		/emoji/favorites/list [get]
 func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 	uid := requireUser(c)
@@ -264,7 +266,7 @@ func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "表情 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
 //	@Router		/emoji/{id}/favorite [post]
 func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 	uid := requireUser(c)
@@ -275,7 +277,7 @@ func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"favorited": true})
+	ok(c, dto.EmojiFavoriteDto{Favorited: true})
 }
 
 // EmojiFavoriteRemove DELETE /emoji/:id/favorite。
@@ -285,7 +287,7 @@ func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
 //	@Router		/emoji/{id}/favorite [delete]
 func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 	uid := requireUser(c)
@@ -296,7 +298,7 @@ func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"favorited": false})
+	ok(c, dto.EmojiFavoriteDto{Favorited: false})
 }
 
 // EmojiUse POST /emoji/:id/use。
@@ -306,14 +308,14 @@ func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiUseDto}
 //	@Router		/emoji/{id}/use [post]
 func (h *OpsHandler) EmojiUse(c *gin.Context) {
 	if err := h.Emoji.Use(c.Param("id")); err != nil {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"incremented": true})
+	ok(c, dto.EmojiUseDto{Incremented: true})
 }
 
 // ---- 表情包 ----
@@ -325,20 +327,20 @@ func (h *OpsHandler) EmojiUse(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "emojiPackRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiPackInputRequest true "表情包字段（全部可选，不传=不改）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDto}
 //	@Router		/emoji/packs [post]
 func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var in model.EmojiPackInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.EmojiPackInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	p, err := h.Emoji.PackCreate(uid, in)
+	p, err := h.Emoji.PackCreate(uid, emojiPackInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -351,7 +353,7 @@ func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 //	@Summary	表情包列表
 //	@Tags		表情包
 //	@Produce	json
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiPackDto}}
 //	@Router		/emoji/packs [get]
 func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 	q := model.EmojiPackQuery{
@@ -375,7 +377,7 @@ func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Param		id path string true "表情包 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDetailDto}
 //	@Router		/emoji/packs/{id} [get]
 func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 	detail, err := h.Emoji.PackDetail(c.Param("id"), currentUserID(c))
@@ -394,20 +396,20 @@ func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiPackInputRequest true "要改的字段（全部可选）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDto}
 //	@Router		/emoji/packs/{id} [patch]
 func (h *OpsHandler) EmojiPackUpdate(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var in model.EmojiPackInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.EmojiPackInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	p, err := h.Emoji.PackUpdate(uid, c.Param("id"), in)
+	p, err := h.Emoji.PackUpdate(uid, c.Param("id"), emojiPackInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -422,7 +424,7 @@ func (h *OpsHandler) EmojiPackUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@Router		/emoji/packs/{id} [delete]
 func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 	uid := requireUser(c)
@@ -433,7 +435,7 @@ func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"deleted": true})
+	ok(c, dto.DeletedDto{Deleted: true})
 }
 
 // EmojiPackAddEmoji POST /emoji/packs/:id/emojis。
@@ -444,17 +446,15 @@ func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiPackAddEmojiRequest true "emojiId"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
 //	@Router		/emoji/packs/{id}/emojis [post]
 func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var body struct {
-		EmojiID string `json:"emojiId" binding:"required"`
-	}
+	var body dto.EmojiPackAddEmojiRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -476,17 +476,15 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		emojiId path string true "emojiId"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EmojiPackUpdateEmojiRequest true "sort"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
 //	@Router		/emoji/packs/{id}/emojis/{emojiId} [patch]
 func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var body struct {
-		Sort int `json:"sort"`
-	}
+	var body dto.EmojiPackUpdateEmojiRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -507,7 +505,7 @@ func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		emojiId path string true "emojiId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackRemoveEmojiDto}
 //	@Router		/emoji/packs/{id}/emojis/{emojiId} [delete]
 func (h *OpsHandler) EmojiPackRemoveEmoji(c *gin.Context) {
 	uid := requireUser(c)
@@ -518,5 +516,44 @@ func (h *OpsHandler) EmojiPackRemoveEmoji(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"removed": true})
+	ok(c, dto.EmojiPackRemoveEmojiDto{Removed: true})
+}
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}
+
+// ---------- dto 请求体 → service 入参 ----------
+
+// emojiInputOf dto 表情入参 → service 入参。
+//
+// 为什么不直接把 service 入参改成 dto 类型：applyEmojiInput 等内部逻辑按 model
+// 字段写，改类型会牵扯一大片与本次任务无关的代码。这一层转换的意义是
+// **字段一旦对不上就在编译期报错**（而不是等到运行期发现请求字段被静默丢弃）。
+func emojiInputOf(in dto.EmojiInputRequest) model.EmojiInput {
+	return model.EmojiInput{
+		Name:     in.Name,
+		URL:      in.URL,
+		Code:     in.Code,
+		Type:     in.Type,
+		Category: in.Category,
+		Tags:     in.Tags,
+		IsPublic: in.IsPublic,
+		Width:    in.Width,
+		Height:   in.Height,
+		FileSize: in.FileSize,
+		MimeType: in.MimeType,
+		Status:   in.Status,
+	}
+}
+
+// emojiPackInputOf dto 表情包入参 → service 入参。
+func emojiPackInputOf(in dto.EmojiPackInputRequest) model.EmojiPackInput {
+	return model.EmojiPackInput{
+		Name:        in.Name,
+		Description: in.Description,
+		CoverURL:    in.CoverURL,
+		IsPublic:    in.IsPublic,
+		Status:      in.Status,
+	}
 }

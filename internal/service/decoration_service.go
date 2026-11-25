@@ -9,6 +9,7 @@ package service
 import (
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -46,7 +47,7 @@ func (s *DecorationService) SetWallet(w WalletDebitor) { s.wallet = w }
 // ---- 装饰品定义 ----
 
 // Create 创建装饰品。
-func (s *DecorationService) Create(in model.DecorationInput) (*model.Decoration, error) {
+func (s *DecorationService) Create(in model.DecorationInput) (*dto.DecorationDto, error) {
 	if in.Name == nil || *in.Name == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationNameRequired)
 	}
@@ -64,12 +65,12 @@ func (s *DecorationService) Create(in model.DecorationInput) (*model.Decoration,
 	if err := s.decorations.Create(s.DB, d); err != nil {
 		return nil, err
 	}
-	return d, nil
+	return decoViewPtr(d), nil
 }
 
 // Update 更新装饰品。
-func (s *DecorationService) Update(id string, in model.DecorationInput) (*model.Decoration, error) {
-	d, err := s.Get(id)
+func (s *DecorationService) Update(id string, in model.DecorationInput) (*dto.DecorationDto, error) {
+	d, err := s.getModel(id)
 	if err != nil {
 		return nil, err
 	}
@@ -77,19 +78,28 @@ func (s *DecorationService) Update(id string, in model.DecorationInput) (*model.
 	if err := s.decorations.Save(s.DB, d); err != nil {
 		return nil, err
 	}
-	return d, nil
+	return decoViewPtr(d), nil
 }
 
 // Delete 删除装饰品。
 func (s *DecorationService) Delete(id string) error {
-	if _, err := s.Get(id); err != nil {
+	if _, err := s.getModel(id); err != nil {
 		return err
 	}
 	return s.decorations.Delete(s.DB, id)
 }
 
-// Get 装饰品详情。
-func (s *DecorationService) Get(id string) (*model.Decoration, error) {
+// Get 装饰品详情。对外返回 dto。
+func (s *DecorationService) Get(id string) (*dto.DecorationDto, error) {
+	d, err := s.getModel(id)
+	if err != nil {
+		return nil, err
+	}
+	return decoViewPtr(d), nil
+}
+
+// getModel 装饰品详情（内部：改删与归属校验需要 model 本体）。
+func (s *DecorationService) getModel(id string) (*model.Decoration, error) {
 	d, err := s.decorations.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -107,7 +117,7 @@ func (s *DecorationService) List(q model.DecorationQuery) (*ListResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(list, total, q.Page, q.Limit)}, nil
+	return &ListResult{PageData: pageData(decoViews(list), total, q.Page, q.Limit)}, nil
 }
 
 // ListResult 分页结果包装（handler 直接塞进统一响应）。
@@ -124,7 +134,7 @@ func (s *DecorationService) MyDecorations(userID, decoType string, page, limit i
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(list, total, page, limit)}, nil
+	return &ListResult{PageData: pageData(s.userDecoViews(list), total, page, limit)}, nil
 }
 
 // UserDecorations 指定用户的装饰品（公开查看）。
@@ -137,15 +147,9 @@ func (s *DecorationService) MyAchievementBadges(userID string, page, limit int) 
 	return s.MyDecorations(userID, model.DecorationTypeAchievementBadge, page, limit)
 }
 
-// CurrentDecorations 当前佩戴（头像框 / 评论气泡）。
-type CurrentDecorations struct {
-	AvatarFrame   *model.UserDecoration `json:"avatarFrame"`
-	CommentBubble *model.UserDecoration `json:"commentBubble"`
-}
-
-// MyCurrent 当前佩戴。
-func (s *DecorationService) MyCurrent(userID string) (*CurrentDecorations, error) {
-	out := &CurrentDecorations{}
+// MyCurrent 当前佩戴。未佩戴的类型整个字段不传（不是 null）。
+func (s *DecorationService) MyCurrent(userID string) (*dto.CurrentDecorationsDto, error) {
+	out := &dto.CurrentDecorationsDto{}
 	frame, err := s.userDeco.FindUsingByType(s.DB, userID, model.DecorationTypeAvatarFrame)
 	if err != nil {
 		return nil, err
@@ -154,14 +158,14 @@ func (s *DecorationService) MyCurrent(userID string) (*CurrentDecorations, error
 	if err != nil {
 		return nil, err
 	}
-	out.AvatarFrame = frame
-	out.CommentBubble = bubble
+	out.AvatarFrame = s.userDecoView(frame)
+	out.CommentBubble = s.userDecoView(bubble)
 	return out, nil
 }
 
 // Use 佩戴装饰品（同类型只保留一个佩戴中）。
-func (s *DecorationService) Use(userID, decorationID string) (*model.UserDecoration, error) {
-	d, err := s.Get(decorationID)
+func (s *DecorationService) Use(userID, decorationID string) (*dto.UserDecorationDto, error) {
+	d, err := s.getModel(decorationID)
 	if err != nil {
 		return nil, err
 	}
@@ -200,11 +204,11 @@ func (s *DecorationService) Use(userID, decorationID string) (*model.UserDecorat
 	if err := s.userDeco.Save(s.DB, ud); err != nil {
 		return nil, err
 	}
-	return ud, nil
+	return s.userDecoView(ud), nil
 }
 
 // Unuse 取消佩戴。
-func (s *DecorationService) Unuse(userID, decorationID string) (*model.UserDecoration, error) {
+func (s *DecorationService) Unuse(userID, decorationID string) (*dto.UserDecorationDto, error) {
 	ud, err := s.userDeco.FindByUserAndDecoration(s.DB, userID, decorationID)
 	if err != nil {
 		return nil, err
@@ -216,12 +220,12 @@ func (s *DecorationService) Unuse(userID, decorationID string) (*model.UserDecor
 	if err := s.userDeco.Save(s.DB, ud); err != nil {
 		return nil, err
 	}
-	return ud, nil
+	return s.userDecoView(ud), nil
 }
 
 // Purchase 购买装饰品（扣钱包余额 → 授予）。
-func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDecoration, error) {
-	d, err := s.Get(decorationID)
+func (s *DecorationService) Purchase(userID, decorationID string) (*dto.UserDecorationDto, error) {
+	d, err := s.getModel(decorationID)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +242,11 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*model.UserDe
 	if err := s.wallet.DeductBalance(userID, d.Price, "DECORATION", "购买装饰品："+d.Name); err != nil {
 		return nil, err
 	}
-	return s.grant(userID, d, model.DecorationObtainPurchase, "", "")
+	ud, err := s.grantModel(userID, d, model.DecorationObtainPurchase, "", "")
+	if err != nil {
+		return nil, err
+	}
+	return s.userDecoView(ud), nil
 }
 
 // decorationPurchaseRejection 购买前置校验：返回 nil 表示可买。
@@ -277,11 +285,11 @@ func ownsUnexpired(ud *model.UserDecoration, now time.Time) bool {
 }
 
 // Gift 赠送装饰品。
-func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message string) (*model.UserDecoration, error) {
+func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message string) (*dto.UserDecorationDto, error) {
 	if fromUserID == toUserID {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationCannotGiftSelf)
 	}
-	d, err := s.Get(decorationID)
+	d, err := s.getModel(decorationID)
 	if err != nil {
 		return nil, err
 	}
@@ -302,11 +310,18 @@ func (s *DecorationService) Gift(fromUserID, toUserID, decorationID, message str
 	if ownsUnexpired(to, time.Now()) {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationRecipientOwned)
 	}
-	return s.grant(toUserID, d, model.DecorationObtainGift, fromUserID, message)
+	ud, err := s.grantModel(toUserID, d, model.DecorationObtainGift, fromUserID, message)
+	if err != nil {
+		return nil, err
+	}
+	return s.userDecoView(ud), nil
 }
 
-// grant 授予装饰品（已存在过期记录则复用该行）。
-func (s *DecorationService) grant(userID string, d *model.Decoration, method, giftFrom, remark string) (*model.UserDecoration, error) {
+// grantModel 授予装饰品（已存在过期记录则复用该行）。
+//
+// 返回 model 而不是 dto：内部还有「授予后继续改行再落库」的调用方
+// （ClaimActivityReward 要回写 ActivityID），对外转换由调用方做。
+func (s *DecorationService) grantModel(userID string, d *model.Decoration, method, giftFrom, remark string) (*model.UserDecoration, error) {
 	var expiresAt *time.Time
 	if !d.IsPermanent && d.ValidDays > 0 {
 		t := time.Now().AddDate(0, 0, d.ValidDays)
@@ -391,7 +406,7 @@ func (s *DecorationService) GrantAchievementBadge(userID string, achievement mod
 		return nil, err
 	}
 	if existing == nil {
-		if _, err := s.grant(userID, badge, model.DecorationObtainAchievement, "", "完成成就："+achievement.Name); err != nil {
+		if _, err := s.grantModel(userID, badge, model.DecorationObtainAchievement, "", "完成成就："+achievement.Name); err != nil {
 			return nil, err
 		}
 	}
@@ -406,14 +421,14 @@ func (s *DecorationService) CleanExpired() (int64, error) {
 // ---- 装饰品活动 ----
 
 // CreateActivity 创建活动。
-func (s *DecorationService) CreateActivity(in model.DecorationActivityInput) (*model.DecorationActivity, error) {
+func (s *DecorationService) CreateActivity(in model.DecorationActivityInput) (*dto.DecorationActivityDto, error) {
 	if in.Name == nil || *in.Name == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityNameReq)
 	}
 	if in.DecorationID == nil || *in.DecorationID == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityRewardReq)
 	}
-	if _, err := s.Get(*in.DecorationID); err != nil {
+	if _, err := s.getModel(*in.DecorationID); err != nil {
 		return nil, err
 	}
 	a := &model.DecorationActivity{
@@ -428,12 +443,12 @@ func (s *DecorationService) CreateActivity(in model.DecorationActivityInput) (*m
 	if err := s.activities.Create(s.DB, a); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return decoActivityViewPtr(a), nil
 }
 
 // UpdateActivity 更新活动。
-func (s *DecorationService) UpdateActivity(id string, in model.DecorationActivityInput) (*model.DecorationActivity, error) {
-	a, err := s.GetActivity(id)
+func (s *DecorationService) UpdateActivity(id string, in model.DecorationActivityInput) (*dto.DecorationActivityDto, error) {
+	a, err := s.getActivityModel(id)
 	if err != nil {
 		return nil, err
 	}
@@ -441,19 +456,28 @@ func (s *DecorationService) UpdateActivity(id string, in model.DecorationActivit
 	if err := s.activities.Save(s.DB, a); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return decoActivityViewPtr(a), nil
 }
 
 // DeleteActivity 删除活动。
 func (s *DecorationService) DeleteActivity(id string) error {
-	if _, err := s.GetActivity(id); err != nil {
+	if _, err := s.getActivityModel(id); err != nil {
 		return err
 	}
 	return s.activities.Delete(s.DB, id)
 }
 
-// GetActivity 活动详情。
-func (s *DecorationService) GetActivity(id string) (*model.DecorationActivity, error) {
+// GetActivity 活动详情。对外返回 dto。
+func (s *DecorationService) GetActivity(id string) (*dto.DecorationActivityDto, error) {
+	a, err := s.getActivityModel(id)
+	if err != nil {
+		return nil, err
+	}
+	return decoActivityViewPtr(a), nil
+}
+
+// getActivityModel 活动详情（内部：改删与领奖校验需要 model 本体）。
+func (s *DecorationService) getActivityModel(id string) (*model.DecorationActivity, error) {
 	a, err := s.activities.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -471,12 +495,16 @@ func (s *DecorationService) Activities(status, actType string, page, limit int) 
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(list, total, page, limit)}, nil
+	return &ListResult{PageData: pageData(decoActivityViews(list), total, page, limit)}, nil
 }
 
 // MyActivityProgress 我的活动进度。
-func (s *DecorationService) MyActivityProgress(userID string) ([]model.UserActivityProgress, error) {
-	return s.progress.ListByUser(s.DB, userID)
+func (s *DecorationService) MyActivityProgress(userID string) ([]dto.UserActivityProgressDto, error) {
+	list, err := s.progress.ListByUser(s.DB, userID)
+	if err != nil {
+		return nil, err
+	}
+	return progressViews(list), nil
 }
 
 // claimableProgress 判断进度是否满足活动要求。
@@ -503,8 +531,8 @@ func claimableProgress(a model.DecorationActivity, p model.UserActivityProgress)
 }
 
 // ClaimActivityReward 领取活动奖励。
-func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*model.UserDecoration, error) {
-	a, err := s.GetActivity(activityID)
+func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*dto.UserDecorationDto, error) {
+	a, err := s.getActivityModel(activityID)
 	if err != nil {
 		return nil, err
 	}
@@ -530,11 +558,11 @@ func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*mod
 		return nil, errcode.ErrBadRequest.WithKey(i18n.DecorationActivityReqNotMet)
 	}
 
-	d, err := s.Get(a.DecorationID)
+	d, err := s.getModel(a.DecorationID)
 	if err != nil {
 		return nil, err
 	}
-	ud, err := s.grant(userID, d, model.DecorationObtainActivity, "", "完成活动："+a.Name)
+	ud, err := s.grantModel(userID, d, model.DecorationObtainActivity, "", "完成活动："+a.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -554,7 +582,7 @@ func (s *DecorationService) ClaimActivityReward(userID, activityID string) (*mod
 	if err := s.userDeco.Save(s.DB, ud); err != nil {
 		return nil, err
 	}
-	return ud, nil
+	return s.userDecoView(ud), nil
 }
 
 // UpdateActivityProgress 推进活动进度（事件驱动入口；不存在则建）。
@@ -676,4 +704,217 @@ func applyDecorationActivityInput(a *model.DecorationActivity, in model.Decorati
 	if in.Status != nil {
 		a.Status = *in.Status
 	}
+}
+
+// ---------- model → dto 转换（对外契约组装层） ----------
+//
+// service 层不许把 *model.Xxx 当对外返回类型（AGENTS「JSON 空值序列化口径」），
+// 否则给表加一列就自动泄漏到 API。所有对外字段在这里显式列出。
+//
+// 时间字段一律转 *string + omitempty：expiresAt / completedAt / rewardedAt 在库里
+// 可为 NULL，传 null 违反 docs/21；传 "" 会让前端 new Date("") 得到 Invalid Date；
+// 传 time.Time 零值会输出 0001-01-01 —— 不传是唯一诚实的表示。
+
+// decoView 装饰品 model → dto。
+func decoView(d model.Decoration) dto.DecorationDto {
+	return dto.DecorationDto{
+		ID:            d.ID,
+		CreatedAt:     decoTimeText(d.CreatedAt),
+		UpdatedAt:     decoTimeText(d.UpdatedAt),
+		Name:          d.Name,
+		Type:          d.Type,
+		Description:   d.Description,
+		ImageURL:      d.ImageURL,
+		PreviewURL:    d.PreviewURL,
+		Rarity:        d.Rarity,
+		BubbleColor:   d.BubbleColor,
+		ObtainMethod:  d.ObtainMethod,
+		IsPurchasable: d.IsPurchasable,
+		Price:         d.Price,
+		IsPermanent:   d.IsPermanent,
+		ValidDays:     d.ValidDays,
+		Sort:          d.Sort,
+		Status:        d.Status,
+		ActivityID:    d.ActivityID,
+		AchievementID: d.AchievementID,
+	}
+}
+
+// decoViewPtr 单个装饰品 → dto 指针。
+func decoViewPtr(d *model.Decoration) *dto.DecorationDto {
+	if d == nil {
+		return nil
+	}
+	v := decoView(*d)
+	return &v
+}
+
+// decoViews 装饰品切片 → dto 切片（空时 []）。
+func decoViews(list []model.Decoration) []dto.DecorationDto {
+	out := make([]dto.DecorationDto, 0, len(list))
+	for _, d := range list {
+		out = append(out, decoView(d))
+	}
+	return out
+}
+
+// userDecoView 持有记录 model → dto 指针（单条接口用）。
+//
+// 会按 decoration_id 查一次装饰品定义填入 decoration 嵌套 —— 单条场景（use/unuse/
+// purchase/gift/claim）额外一次查询可接受，换来前端不用二次请求画头像框。
+func (s *DecorationService) userDecoView(ud *model.UserDecoration) *dto.UserDecorationDto {
+	if ud == nil {
+		return nil
+	}
+	v := userDecoBase(ud)
+	if d, err := s.decorations.FindByID(s.DB, ud.DecorationID); err == nil && d != nil {
+		v.Decoration = decoViewPtr(d)
+	}
+	return &v
+}
+
+// userDecoViews 持有记录切片 → dto 切片（列表接口用）。
+//
+// 嵌套 decoration 用**一次 IN 查询**批量补填，不做 N+1：列表 100 条时是 1 次查询
+// 而不是 100 次。补不到的记录整个 decoration 字段不传（不是塞 null）。
+func (s *DecorationService) userDecoViews(list []model.UserDecoration) []dto.UserDecorationDto {
+	out := make([]dto.UserDecorationDto, 0, len(list))
+	if len(list) == 0 {
+		return out
+	}
+	ids := make([]string, 0, len(list))
+	seen := make(map[string]bool, len(list))
+	for _, ud := range list {
+		if ud.DecorationID == "" || seen[ud.DecorationID] {
+			continue
+		}
+		seen[ud.DecorationID] = true
+		ids = append(ids, ud.DecorationID)
+	}
+	decos := make(map[string]model.Decoration, len(ids))
+	if len(ids) > 0 && s.DB != nil {
+		var found []model.Decoration
+		if err := s.DB.Where("id IN ?", ids).Find(&found).Error; err == nil {
+			for _, d := range found {
+				decos[d.ID] = d
+			}
+		}
+	}
+	for _, ud := range list {
+		v := userDecoBase(&ud)
+		if d, ok := decos[ud.DecorationID]; ok {
+			v.Decoration = decoViewPtr(&d)
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+// userDecoBase 持有记录的基础字段转换（不含 decoration 嵌套，避免 N+1）。
+func userDecoBase(ud *model.UserDecoration) dto.UserDecorationDto {
+	return dto.UserDecorationDto{
+		ID:             ud.ID,
+		CreatedAt:      decoTimeText(ud.CreatedAt),
+		UpdatedAt:      decoTimeText(ud.UpdatedAt),
+		UserID:         ud.UserID,
+		DecorationID:   ud.DecorationID,
+		ObtainMethod:   ud.ObtainMethod,
+		IsPermanent:    ud.IsPermanent,
+		IsUsing:        ud.IsUsing,
+		GiftFromUserID: ud.GiftFromUserID,
+		OrderID:        ud.OrderID,
+		ActivityID:     ud.ActivityID,
+		Remark:         ud.Remark,
+		ExpiresAt:      decoTimePtr(ud.ExpiresAt),
+	}
+}
+
+// decoActivityView 活动 model → dto。
+func decoActivityView(a model.DecorationActivity) dto.DecorationActivityDto {
+	return dto.DecorationActivityDto{
+		ID:                 a.ID,
+		CreatedAt:          decoTimeText(a.CreatedAt),
+		UpdatedAt:          decoTimeText(a.UpdatedAt),
+		Name:               a.Name,
+		Description:        a.Description,
+		Type:               a.Type,
+		DecorationID:       a.DecorationID,
+		ArticleID:          a.ArticleID,
+		RequiredLikes:      a.RequiredLikes,
+		RequiredComments:   a.RequiredComments,
+		RequiredShares:     a.RequiredShares,
+		RequiredRecharge:   a.RequiredRecharge,
+		RequiredSignInDays: a.RequiredSignInDays,
+		IsPermanent:        a.IsPermanent,
+		ValidDays:          a.ValidDays,
+		StartTime:          decoTimeText(a.StartTime),
+		EndTime:            decoTimeText(a.EndTime),
+		Status:             a.Status,
+		ParticipantCount:   a.ParticipantCount,
+		CompletedCount:     a.CompletedCount,
+	}
+}
+
+// decoActivityViewPtr 单个活动 → dto 指针。
+func decoActivityViewPtr(a *model.DecorationActivity) *dto.DecorationActivityDto {
+	if a == nil {
+		return nil
+	}
+	v := decoActivityView(*a)
+	return &v
+}
+
+// decoActivityViews 活动切片 → dto 切片（空时 []）。
+func decoActivityViews(list []model.DecorationActivity) []dto.DecorationActivityDto {
+	out := make([]dto.DecorationActivityDto, 0, len(list))
+	for _, a := range list {
+		out = append(out, decoActivityView(a))
+	}
+	return out
+}
+
+// progressView 活动进度 model → dto。
+func progressView(p model.UserActivityProgress) dto.UserActivityProgressDto {
+	return dto.UserActivityProgressDto{
+		ID:                p.ID,
+		CreatedAt:         decoTimeText(p.CreatedAt),
+		UpdatedAt:         decoTimeText(p.UpdatedAt),
+		UserID:            p.UserID,
+		ActivityID:        p.ActivityID,
+		CurrentLikes:      p.CurrentLikes,
+		CurrentComments:   p.CurrentComments,
+		CurrentShares:     p.CurrentShares,
+		CurrentRecharge:   p.CurrentRecharge,
+		CurrentSignInDays: p.CurrentSignInDays,
+		IsCompleted:       p.IsCompleted,
+		IsRewarded:        p.IsRewarded,
+		CompletedAt:       decoTimePtr(p.CompletedAt),
+		RewardedAt:        decoTimePtr(p.RewardedAt),
+	}
+}
+
+// progressViews 活动进度切片 → dto 切片（空时 []）。
+func progressViews(list []model.UserActivityProgress) []dto.UserActivityProgressDto {
+	out := make([]dto.UserActivityProgressDto, 0, len(list))
+	for _, p := range list {
+		out = append(out, progressView(p))
+	}
+	return out
+}
+
+// decoTimeText 时间 → RFC3339 文本（零值回 ""，仅用于库里 NOT NULL 的列）。
+func decoTimeText(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(time.RFC3339)
+}
+
+// decoTimePtr 时间 → RFC3339 文本指针；nil / 零值保持 nil（配合 omitempty = 整个字段不传）。
+func decoTimePtr(t *time.Time) *string {
+	if t == nil || t.IsZero() {
+		return nil
+	}
+	s := t.Format(time.RFC3339)
+	return &s
 }

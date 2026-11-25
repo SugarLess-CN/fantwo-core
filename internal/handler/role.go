@@ -5,6 +5,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -283,11 +284,14 @@ func (h *RoleHandler) Menus(c *gin.Context) {
 
 // MyMenus GET /profile/menus：当前登录用户的菜单树。
 //
+// data 是 {menus:[{key,title}], total}（dto.MyMenusDto）。
+// 注意：当前实现是**平铺列表**，没有嵌套 children —— 详见 dto/profile.go 的说明。
+//
 //	@Summary	我的菜单树
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MyMenusDto}
 //	@Router		/profile/menus [get]
 func (h *RoleHandler) MyMenus(c *gin.Context) {
 	uid := middleware.CurrentUserID(c)
@@ -428,3 +432,8 @@ func (h *PermissionHandler) Remove(c *gin.Context) {
 	}
 	response.Success(c, gin.H{"success": true})
 }
+
+// 让 dto 包成为本文件的真实 import：swag 只按「注解所在文件的 import 列表」
+// 解析跨包类型（docs/18 §三之一 约束 B）。本文件的注解写了 dto.Xxx，这里引用一次。
+// 不参与运行逻辑。
+var _ = dto.ResponseBody{}

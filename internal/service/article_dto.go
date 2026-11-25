@@ -6,7 +6,8 @@ package service
 
 import (
 	"encoding/json"
-	"time"
+
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 )
 
 // ---------- 权限点常量（对齐原 @Permissions 装饰器取值） ----------
@@ -65,8 +66,15 @@ func (a Actor) IsManager() bool {
 }
 
 // ---------- 视图结构（camelCase，对齐原前端契约） ----------
+//
+// 对外结构统一收归 internal/dto（docs/18 §二）：下列类型都是 dto 的**别名**，
+// 因此「swagger 文档里的字段」与「运行期序列化的字段」是同一份定义，不会漂移。
+// 空值口径由 dto 保证（docs/21），组装层只负责把 model 的指针/可空值转成值类型。
 
 // AuthorBrief 作者简要信息（由 user 域 resolver 填充；未接入时为空）。
+//
+// 注意：本结构仍是 user 域 resolver（author_resolver.go）的返回类型，保留 *string
+// avatar（model.User.Avatar 是 *string）；对外输出前在组装层转成 dto.AuthorBriefDto。
 type AuthorBrief struct {
 	ID         string  `json:"id"`
 	Nickname   string  `json:"nickname,omitempty"`
@@ -75,73 +83,28 @@ type AuthorBrief struct {
 	IsFollowed bool    `json:"isFollowed"`
 }
 
-// TagBrief 标签简要。
-type TagBrief struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Cover *string `json:"cover,omitempty"`
+// authorBriefDto 作者简要 → 对外 DTO（avatar 空指针转 ""，绝不输出 null）。
+func authorBriefDto(a AuthorBrief) dto.AuthorBriefDto {
+	return dto.AuthorBriefDto{
+		ID:         a.ID,
+		Nickname:   a.Nickname,
+		Username:   a.Username,
+		Avatar:     strOrEmpty(a.Avatar),
+		IsFollowed: a.IsFollowed,
+	}
 }
 
-// CategoryBrief 分类简要。
-type CategoryBrief struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
-	Link   *string `json:"link,omitempty"`
-	Avatar *string `json:"avatar,omitempty"`
-	Status string  `json:"status,omitempty"`
-}
+// TagBrief 标签简要（dto.TagBriefDto 的别名）。
+type TagBrief = dto.TagBriefDto
 
-// ArticleView 文章视图（列表与详情共用；详情多填充 content/downloads）。
-type ArticleView struct {
-	ID string `json:"id"`
+// CategoryBrief 分类简要（dto.CategoryBriefDto 的别名）。
+type CategoryBrief = dto.CategoryBriefDto
 
-	Title             string  `json:"title"`
-	RequireLogin      bool    `json:"requireLogin"`
-	RequireFollow     bool    `json:"requireFollow"`
-	RequirePayment    bool    `json:"requirePayment"`
-	RequireMembership bool    `json:"requireMembership"`
-	ListRequireLogin  bool    `json:"listRequireLogin"`
-	ViewPrice         float64 `json:"viewPrice"`
+// ArticleView 文章视图（dto.ArticleDto 的别名；列表与详情共用）。
+type ArticleView = dto.ArticleDto
 
-	Type     string      `json:"type"`
-	Content  *string     `json:"content,omitempty"`
-	Images   interface{} `json:"images"`
-	VideoURL *string     `json:"videoUrl,omitempty"`
-	Cover    *string     `json:"cover,omitempty"`
-	Summary  *string     `json:"summary,omitempty"`
-
-	Sort          int `json:"sort"`
-	Views         int `json:"views"`
-	Likes         int `json:"likes"`
-	FavoriteCount int `json:"favoriteCount"`
-	CommentCount  int `json:"commentCount"`
-	Shares        int `json:"shares"`
-	DownloadCount int `json:"downloadCount"`
-
-	IsFeatured        bool       `json:"isFeatured"`
-	FeaturedAt        *time.Time `json:"featuredAt,omitempty"`
-	IsPinnedOnProfile bool       `json:"isPinnedOnProfile"`
-	PinnedAt          *time.Time `json:"pinnedAt,omitempty"`
-
-	Status string `json:"status"`
-
-	AuthorID   *string        `json:"authorId"`
-	Author     *AuthorBrief   `json:"author,omitempty"`
-	CategoryID *string        `json:"categoryId"`
-	Category   *CategoryBrief `json:"category,omitempty"`
-	Tags       []TagBrief     `json:"tags"`
-	ActivityID *string        `json:"activityId,omitempty"`
-
-	AllowReprint bool `json:"allowReprint"`
-
-	// 当前查看者的互动状态（未登录全为 false）
-	IsLiked     bool `json:"isLiked"`
-	IsFavorited bool `json:"isFavorited"`
-	IsDisliked  bool `json:"isDisliked"`
-
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
+// BrowseHistoryView 浏览历史条目视图（dto.BrowseHistoryDto 的别名）。
+type BrowseHistoryView = dto.BrowseHistoryDto
 
 // ---------- 文章请求 DTO ----------
 

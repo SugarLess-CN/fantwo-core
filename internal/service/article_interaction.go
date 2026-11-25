@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -19,7 +20,7 @@ import (
 //
 // 语义：同一用户同一文章仅一条记录；已存在则更新表情类型（不重复计数），
 // 不存在则插入并给文章 likes +1。reactionType 缺省 like。
-func (s *ArticleService) Like(ctx context.Context, articleID string, actor Actor, req ArticleReactionRequest) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Like(ctx context.Context, articleID string, actor Actor, req ArticleReactionRequest) (*dto.ArticleLikeResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -62,27 +63,26 @@ func (s *ArticleService) Like(ctx context.Context, articleID string, actor Actor
 	}
 
 	count, _ := s.repo.LikeCount(ctx, articleID, "")
-	out := map[string]interface{}{"isLiked": true, "reactionType": reaction, "likes": count}
-	return &out, nil
+	return &dto.ArticleLikeResultDto{IsLiked: true, ReactionType: reaction, Likes: count}, nil
 }
 
 // GetLikeStatus 点赞状态（对齐 GET /article/:id/like/status）。
-func (s *ArticleService) GetLikeStatus(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) GetLikeStatus(ctx context.Context, articleID string, actor Actor) (*dto.ArticleLikeStatusDto, *errcode.Err) {
 	if _, e := s.getArticle(ctx, articleID); e != nil {
 		return nil, e
 	}
-	out := map[string]interface{}{"isLiked": false, "reactionType": nil}
+	out := &dto.ArticleLikeStatusDto{IsLiked: false, ReactionType: ""}
 	if !actor.Anonymous() {
 		if l, err := s.repo.FindLike(ctx, articleID, actor.UserID); err == nil {
-			out["isLiked"] = true
-			out["reactionType"] = l.ReactionType
+			out.IsLiked = true
+			out.ReactionType = l.ReactionType
 		}
 	}
-	return &out, nil
+	return out, nil
 }
 
 // GetLikeCount 点赞数量（对齐 GET /article/:id/like/count）。
-func (s *ArticleService) GetLikeCount(ctx context.Context, articleID string) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) GetLikeCount(ctx context.Context, articleID string) (*dto.CountDto, *errcode.Err) {
 	if _, e := s.getArticle(ctx, articleID); e != nil {
 		return nil, e
 	}
@@ -91,8 +91,7 @@ func (s *ArticleService) GetLikeCount(ctx context.Context, articleID string) (*m
 		s.log.Error("统计点赞失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"count": count}
-	return &out, nil
+	return &dto.CountDto{Count: count}, nil
 }
 
 // LikedArticles 用户点赞的文章列表（对齐 GET /article/liked）。
@@ -112,7 +111,7 @@ func (s *ArticleService) LikedArticles(ctx context.Context, actor Actor, page, l
 
 // Favorite 收藏文章（加入轻量收藏，对齐 POST /article/:id/favorite）。
 // 与合集（Collection）互补；profile 域的「我的收藏」读取本表。
-func (s *ArticleService) Favorite(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Favorite(ctx context.Context, articleID string, actor Actor) (*dto.FavoriteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -121,8 +120,7 @@ func (s *ArticleService) Favorite(ctx context.Context, articleID string, actor A
 	}
 	if _, err := s.repo.FindFavorite(ctx, actor.UserID, articleID); err == nil {
 		count, _ := s.CountFavoriteByArticle(ctx, articleID)
-		out := map[string]interface{}{"isFavorited": true, "favoriteCount": count}
-		return &out, nil
+		return &dto.FavoriteResultDto{IsFavorited: true, FavoriteCount: count}, nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询收藏失败", zap.Error(err))
 		return nil, errcode.ErrInternal
@@ -135,12 +133,11 @@ func (s *ArticleService) Favorite(ctx context.Context, articleID string, actor A
 		s.log.Warn("收藏计数自增失败", zap.Error(err))
 	}
 	count, _ := s.CountFavoriteByArticle(ctx, articleID)
-	out := map[string]interface{}{"isFavorited": true, "favoriteCount": count}
-	return &out, nil
+	return &dto.FavoriteResultDto{IsFavorited: true, FavoriteCount: count}, nil
 }
 
 // Unfavorite 取消收藏（对齐 DELETE /article/:id/favorite）。
-func (s *ArticleService) Unfavorite(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Unfavorite(ctx context.Context, articleID string, actor Actor) (*dto.FavoriteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -155,12 +152,11 @@ func (s *ArticleService) Unfavorite(ctx context.Context, articleID string, actor
 		s.log.Warn("收藏计数自减失败", zap.Error(err))
 	}
 	count, _ := s.CountFavoriteByArticle(ctx, articleID)
-	out := map[string]interface{}{"isFavorited": false, "favoriteCount": count}
-	return &out, nil
+	return &dto.FavoriteResultDto{IsFavorited: false, FavoriteCount: count}, nil
 }
 
 // FavoriteStatus 收藏状态（对齐 GET /article/:id/favorite/status）。
-func (s *ArticleService) FavoriteStatus(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) FavoriteStatus(ctx context.Context, articleID string, actor Actor) (*dto.FavoriteStatusDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -168,8 +164,7 @@ func (s *ArticleService) FavoriteStatus(ctx context.Context, articleID string, a
 	if _, err := s.repo.FindFavorite(ctx, actor.UserID, articleID); err == nil {
 		isFav = true
 	}
-	out := map[string]interface{}{"isFavorited": isFav}
-	return &out, nil
+	return &dto.FavoriteStatusDto{IsFavorited: isFav}, nil
 }
 
 // FavoritedArticles 收藏文章列表（对齐 GET /article/favorited/list）。
@@ -196,7 +191,7 @@ func (s *ArticleService) FavoritedArticles(ctx context.Context, actor Actor, tar
 
 // Dislike 标记不喜欢（对齐 POST /article/:id/dislike）。
 // 快照作者/分类/标签，供推荐流按维度过滤。
-func (s *ArticleService) Dislike(ctx context.Context, articleID string, actor Actor, req ArticleDislikeRequest) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Dislike(ctx context.Context, articleID string, actor Actor, req ArticleDislikeRequest) (*dto.DislikeResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -205,8 +200,7 @@ func (s *ArticleService) Dislike(ctx context.Context, articleID string, actor Ac
 		return nil, e
 	}
 	if _, err := s.repo.FindDislike(ctx, actor.UserID, articleID); err == nil {
-		out := map[string]interface{}{"isDisliked": true}
-		return &out, nil
+		return &dto.DislikeResultDto{IsDisliked: true}, nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询不喜欢失败", zap.Error(err))
 		return nil, errcode.ErrInternal
@@ -230,12 +224,11 @@ func (s *ArticleService) Dislike(ctx context.Context, articleID string, actor Ac
 		s.log.Error("写入不喜欢失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"isDisliked": true}
-	return &out, nil
+	return &dto.DislikeResultDto{IsDisliked: true}, nil
 }
 
 // CancelDislike 取消不喜欢（对齐 DELETE /article/:id/dislike）。
-func (s *ArticleService) CancelDislike(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) CancelDislike(ctx context.Context, articleID string, actor Actor) (*dto.DislikeResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -243,12 +236,11 @@ func (s *ArticleService) CancelDislike(ctx context.Context, articleID string, ac
 		s.log.Error("取消不喜欢失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"isDisliked": false}
-	return &out, nil
+	return &dto.DislikeResultDto{IsDisliked: false}, nil
 }
 
 // DislikeStatus 不喜欢状态（对齐 GET /article/:id/dislike/status）。
-func (s *ArticleService) DislikeStatus(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) DislikeStatus(ctx context.Context, articleID string, actor Actor) (*dto.DislikeResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -256,8 +248,7 @@ func (s *ArticleService) DislikeStatus(ctx context.Context, articleID string, ac
 	if _, err := s.repo.FindDislike(ctx, actor.UserID, articleID); err == nil {
 		is = true
 	}
-	out := map[string]interface{}{"isDisliked": is}
-	return &out, nil
+	return &dto.DislikeResultDto{IsDisliked: is}, nil
 }
 
 // DislikedArticles 不喜欢的文章列表（对齐 GET /article/disliked/list）。
@@ -276,7 +267,7 @@ func (s *ArticleService) DislikedArticles(ctx context.Context, actor Actor, page
 // ---------- 分享 ----------
 
 // Share 上报分享（对齐 POST /article/:id/share），文章 shares +1。
-func (s *ArticleService) Share(ctx context.Context, articleID string, actor Actor, req ArticleShareRequest) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Share(ctx context.Context, articleID string, actor Actor, req ArticleShareRequest) (*dto.ShareResultDto, *errcode.Err) {
 	if _, e := s.getArticle(ctx, articleID); e != nil {
 		return nil, e
 	}
@@ -288,15 +279,14 @@ func (s *ArticleService) Share(ctx context.Context, articleID string, actor Acto
 		s.log.Error("分享计数自增失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"channel": channel, "shared": true}
-	return &out, nil
+	return &dto.ShareResultDto{Channel: channel, Shared: true}, nil
 }
 
 // ---------- 精华 / 个人主页置顶 ----------
 
 // SetFeatured 设置精华状态（对齐 PATCH /article/:id/featured）。
 // 仅管理员（对齐原实现：作者/管理员判断，实际上原实现要求 featured 权限才可达此分支）。
-func (s *ArticleService) SetFeatured(ctx context.Context, articleID string, actor Actor, isFeatured bool) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) SetFeatured(ctx context.Context, articleID string, actor Actor, isFeatured bool) (*dto.SetFeaturedResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -316,13 +306,12 @@ func (s *ArticleService) SetFeatured(ctx context.Context, articleID string, acto
 		s.log.Error("设置精华失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": articleID, "isFeatured": isFeatured}
-	return &out, nil
+	return &dto.SetFeaturedResultDto{ID: articleID, IsFeatured: isFeatured}, nil
 }
 
 // SetProfilePin 设置个人主页置顶（对齐 PATCH /article/:id/profile-pin）。
 // 作者本人或管理员可操作；置顶时会顺带校验文章归该作者。
-func (s *ArticleService) SetProfilePin(ctx context.Context, articleID string, actor Actor, isPinned bool) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) SetProfilePin(ctx context.Context, articleID string, actor Actor, isPinned bool) (*dto.ProfilePinResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -343,15 +332,14 @@ func (s *ArticleService) SetProfilePin(ctx context.Context, articleID string, ac
 		s.log.Error("设置主页置顶失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": articleID, "isPinnedOnProfile": isPinned}
-	return &out, nil
+	return &dto.ProfilePinResultDto{ID: articleID, IsPinnedOnProfile: isPinned}, nil
 }
 
 // ---------- 浏览历史 ----------
 
 // UpdateBrowseProgress 更新浏览进度（对齐 POST /article/:id/browse/progress）。
 // 首次浏览建记录并给文章 views +1；重复浏览累加次数与时长、更新进度最大值。
-func (s *ArticleService) UpdateBrowseProgress(ctx context.Context, articleID string, actor Actor, req BrowseProgressRequest) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) UpdateBrowseProgress(ctx context.Context, articleID string, actor Actor, req BrowseProgressRequest) (*dto.BrowseProgressDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -393,21 +381,12 @@ func (s *ArticleService) UpdateBrowseProgress(ctx context.Context, articleID str
 		return nil, errcode.ErrInternal
 	}
 
-	out := map[string]interface{}{"articleId": articleID, "progress": progress, "duration": duration}
-	return &out, nil
-}
-
-// BrowseHistoryView 浏览历史条目视图（附带文章概要）。
-type BrowseHistoryView struct {
-	ArticleID string       `json:"articleId"`
-	ViewCount int          `json:"viewCount"`
-	Progress  int          `json:"progress"`
-	Duration  int          `json:"duration"`
-	Article   *ArticleView `json:"article,omitempty"`
-	ViewedAt  time.Time    `json:"viewedAt"`
+	return &dto.BrowseProgressDto{ArticleID: articleID, Progress: progress, Duration: duration}, nil
 }
 
 // UserBrowseHistory 浏览历史列表（对齐 GET /article/browse/history）。
+//
+// 视图结构见 dto.BrowseHistoryDto（service.BrowseHistoryView 是它的别名）。
 func (s *ArticleService) UserBrowseHistory(ctx context.Context, actor Actor, page, limit int) ([]BrowseHistoryView, int64, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, 0, errcode.ErrUnauthorized
@@ -474,7 +453,7 @@ func (s *ArticleService) RecentBrowsed(ctx context.Context, actor Actor, limit i
 }
 
 // GetBrowseStats 浏览统计（对齐 GET /article/browse/stats）。
-func (s *ArticleService) GetBrowseStats(ctx context.Context, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) GetBrowseStats(ctx context.Context, actor Actor) (*dto.BrowseStatsDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -483,13 +462,12 @@ func (s *ArticleService) GetBrowseStats(ctx context.Context, actor Actor) (*map[
 		s.log.Error("浏览统计失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{
-		"totalArticles": records,
-		"totalViews":    views,
-		"avgProgress":   avgProgress,
-		"avgDuration":   avgDuration,
-	}
-	return &out, nil
+	return &dto.BrowseStatsDto{
+		TotalArticles: records,
+		TotalViews:    views,
+		AvgProgress:   avgProgress,
+		AvgDuration:   avgDuration,
+	}, nil
 }
 
 // GetBrowseHistory 单条浏览记录（对齐 GET /article/browse/:articleId）。
@@ -516,7 +494,7 @@ func (s *ArticleService) GetBrowseHistory(ctx context.Context, articleID string,
 }
 
 // DeleteBrowseHistory 删除单条浏览记录（对齐 DELETE /article/browse/:articleId）。
-func (s *ArticleService) DeleteBrowseHistory(ctx context.Context, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) DeleteBrowseHistory(ctx context.Context, articleID string, actor Actor) (*dto.DeletedFlagDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -524,12 +502,11 @@ func (s *ArticleService) DeleteBrowseHistory(ctx context.Context, articleID stri
 		s.log.Error("删除浏览记录失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"deleted": true}
-	return &out, nil
+	return &dto.DeletedFlagDto{Deleted: true}, nil
 }
 
 // BatchDeleteBrowseHistory 批量删除浏览记录（对齐 POST /article/browse/batch-delete）。
-func (s *ArticleService) BatchDeleteBrowseHistory(ctx context.Context, actor Actor, articleIDs []string) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) BatchDeleteBrowseHistory(ctx context.Context, actor Actor, articleIDs []string) (*dto.BatchDeleteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -537,12 +514,11 @@ func (s *ArticleService) BatchDeleteBrowseHistory(ctx context.Context, actor Act
 		s.log.Error("批量删除浏览记录失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"deleted": len(articleIDs)}
-	return &out, nil
+	return &dto.BatchDeleteResultDto{Deleted: len(articleIDs)}, nil
 }
 
 // ClearBrowseHistory 清空浏览历史（对齐 DELETE /article/browse）。
-func (s *ArticleService) ClearBrowseHistory(ctx context.Context, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) ClearBrowseHistory(ctx context.Context, actor Actor) (*dto.ClearedResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -550,8 +526,7 @@ func (s *ArticleService) ClearBrowseHistory(ctx context.Context, actor Actor) (*
 		s.log.Error("清空浏览历史失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"cleared": true}
-	return &out, nil
+	return &dto.ClearedResultDto{Cleared: true}, nil
 }
 
 // ---------- 内部工具 ----------

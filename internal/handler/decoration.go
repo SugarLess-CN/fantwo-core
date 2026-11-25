@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -16,16 +17,17 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "decorationRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.DecorationInputRequest true "装饰品字段（全部可选，不传=不改）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@Router		/decoration [post]
 func (h *OpsHandler) DecorationCreate(c *gin.Context) {
-	var in model.DecorationInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	// 绑定 dto 请求结构：文档声明与实际解析必须同源（docs/18-DTO复用规范.md）。
+	var body dto.DecorationInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	d, err := h.Decoration.Create(in)
+	d, err := h.Decoration.Create(decorationInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -39,7 +41,7 @@ func (h *OpsHandler) DecorationCreate(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.DecorationDto}}
 //	@Router		/decoration [get]
 func (h *OpsHandler) DecorationList(c *gin.Context) {
 	q := model.DecorationQuery{
@@ -66,7 +68,7 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "装饰品 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@Router		/decoration/{id} [get]
 func (h *OpsHandler) DecorationGet(c *gin.Context) {
 	d, err := h.Decoration.Get(c.Param("id"))
@@ -85,16 +87,16 @@ func (h *OpsHandler) DecorationGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.DecorationInputRequest true "要改的字段（全部可选）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@Router		/decoration/{id} [patch]
 func (h *OpsHandler) DecorationUpdate(c *gin.Context) {
-	var in model.DecorationInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.DecorationInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	d, err := h.Decoration.Update(c.Param("id"), in)
+	d, err := h.Decoration.Update(c.Param("id"), decorationInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -109,14 +111,14 @@ func (h *OpsHandler) DecorationUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "装饰品 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@Router		/decoration/{id} [delete]
 func (h *OpsHandler) DecorationDelete(c *gin.Context) {
 	if err := h.Decoration.Delete(c.Param("id")); err != nil {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"deleted": true})
+	ok(c, dto.DeletedDto{Deleted: true})
 }
 
 // DecorationMyList GET /decoration/user/my。
@@ -125,7 +127,7 @@ func (h *OpsHandler) DecorationDelete(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDecorationDto}}
 //	@Router		/decoration/user/my [get]
 func (h *OpsHandler) DecorationMyList(c *gin.Context) {
 	uid := requireUser(c)
@@ -148,7 +150,7 @@ func (h *OpsHandler) DecorationMyList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDecorationDto}}
 //	@Router		/decoration/user/{userId} [get]
 func (h *OpsHandler) DecorationUserList(c *gin.Context) {
 	lr, err := h.Decoration.UserDecorations(c.Param("userId"), c.Query("type"),
@@ -166,7 +168,7 @@ func (h *OpsHandler) DecorationUserList(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDecorationDto}}
 //	@Router		/decoration/achievement-badges/my [get]
 func (h *OpsHandler) DecorationMyBadges(c *gin.Context) {
 	uid := requireUser(c)
@@ -188,7 +190,7 @@ func (h *OpsHandler) DecorationMyBadges(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CurrentDecorationsDto}
 //	@Router		/decoration/user/current/decorations [get]
 func (h *OpsHandler) DecorationMyCurrent(c *gin.Context) {
 	uid := requireUser(c)
@@ -210,7 +212,7 @@ func (h *OpsHandler) DecorationMyCurrent(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		decorationId path string true "装饰品 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@Router		/decoration/use/{decorationId} [post]
 func (h *OpsHandler) DecorationUse(c *gin.Context) {
 	uid := requireUser(c)
@@ -233,7 +235,7 @@ func (h *OpsHandler) DecorationUse(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		decorationId path string true "decorationId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@Router		/decoration/unuse/{decorationId} [post]
 func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 	uid := requireUser(c)
@@ -256,17 +258,15 @@ func (h *OpsHandler) DecorationUnuse(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "purchaseRequest{decorationId}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.PurchaseDecorationRequest true "decorationId"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@Router		/decoration/purchase [post]
 func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var body struct {
-		DecorationID string `json:"decorationId" binding:"required"`
-	}
+	var body dto.PurchaseDecorationRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -285,19 +285,15 @@ func (h *OpsHandler) DecorationPurchase(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.GiftDecorationRequest true "toUserId/decorationId/message"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@Router		/decoration/gift [post]
 func (h *OpsHandler) DecorationGift(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	var body struct {
-		ToUserID     string `json:"toUserId" binding:"required"`
-		DecorationID string `json:"decorationId" binding:"required"`
-		Message      string `json:"message"`
-	}
+	var body dto.GiftDecorationRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
@@ -316,7 +312,7 @@ func (h *OpsHandler) DecorationGift(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CleanExpiredResultDto}
 //	@Router		/decoration/clean-expired [post]
 func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 	n, err := h.Decoration.CleanExpired()
@@ -324,7 +320,7 @@ func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"cleaned": n})
+	ok(c, dto.CleanExpiredResultDto{Cleaned: n})
 }
 
 // ---- 装饰品活动 ----
@@ -335,16 +331,16 @@ func (h *OpsHandler) DecorationCleanExpired(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.DecorationActivityInputRequest true "活动字段（name/decorationId 必填）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationActivityDto}
 //	@Router		/decoration/activity [post]
 func (h *OpsHandler) DecorationActivityCreate(c *gin.Context) {
-	var in model.DecorationActivityInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.DecorationActivityInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	a, err := h.Decoration.CreateActivity(in)
+	a, err := h.Decoration.CreateActivity(decorationActivityInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -360,7 +356,7 @@ func (h *OpsHandler) DecorationActivityCreate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.DecorationActivityDto}}
 //	@Router		/decoration/activity [get]
 func (h *OpsHandler) DecorationActivityList(c *gin.Context) {
 	lr, err := h.Decoration.Activities(c.Query("status"), c.Query("type"),
@@ -379,7 +375,7 @@ func (h *OpsHandler) DecorationActivityList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationActivityDto}
 //	@Router		/decoration/activity/{id} [get]
 func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 	a, err := h.Decoration.GetActivity(c.Param("id"))
@@ -398,16 +394,16 @@ func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.DecorationActivityInputRequest true "要改的字段（全部可选）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationActivityDto}
 //	@Router		/decoration/activity/{id} [patch]
 func (h *OpsHandler) DecorationActivityUpdate(c *gin.Context) {
-	var in model.DecorationActivityInput
-	if err := c.ShouldBindJSON(&in); err != nil {
+	var body dto.DecorationActivityInputRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	a, err := h.Decoration.UpdateActivity(c.Param("id"), in)
+	a, err := h.Decoration.UpdateActivity(c.Param("id"), decorationActivityInputOf(body))
 	if err != nil {
 		fail(c, err)
 		return
@@ -422,14 +418,14 @@ func (h *OpsHandler) DecorationActivityUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@Router		/decoration/activity/{id} [delete]
 func (h *OpsHandler) DecorationActivityDelete(c *gin.Context) {
 	if err := h.Decoration.DeleteActivity(c.Param("id")); err != nil {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"deleted": true})
+	ok(c, dto.DeletedDto{Deleted: true})
 }
 
 // DecorationMyActivityProgress GET /decoration/activity/progress/my。
@@ -438,7 +434,7 @@ func (h *OpsHandler) DecorationActivityDelete(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.UserActivityProgressDto}
 //	@Router		/decoration/activity/progress/my [get]
 func (h *OpsHandler) DecorationMyActivityProgress(c *gin.Context) {
 	uid := requireUser(c)
@@ -460,7 +456,7 @@ func (h *OpsHandler) DecorationMyActivityProgress(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		activityId path string true "activityId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@Router		/decoration/activity/claim/{activityId} [post]
 func (h *OpsHandler) DecorationActivityClaim(c *gin.Context) {
 	uid := requireUser(c)
@@ -473,4 +469,54 @@ func (h *OpsHandler) DecorationActivityClaim(c *gin.Context) {
 		return
 	}
 	ok(c, ud)
+}
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}
+
+// ---------- dto 请求体 → service 入参 ----------
+
+// decorationInputOf dto 装饰品入参 → service 入参。
+//
+// 这一层转换的意义是「字段一旦对不上就在编译期报错」，而不是等运行期
+// 发现某个请求字段被静默丢弃。
+func decorationInputOf(in dto.DecorationInputRequest) model.DecorationInput {
+	return model.DecorationInput{
+		Name:          in.Name,
+		Type:          in.Type,
+		Description:   in.Description,
+		ImageURL:      in.ImageURL,
+		PreviewURL:    in.PreviewURL,
+		Rarity:        in.Rarity,
+		BubbleColor:   in.BubbleColor,
+		ObtainMethod:  in.ObtainMethod,
+		IsPurchasable: in.IsPurchasable,
+		Price:         in.Price,
+		IsPermanent:   in.IsPermanent,
+		ValidDays:     in.ValidDays,
+		Sort:          in.Sort,
+		Status:        in.Status,
+	}
+}
+
+// decorationActivityInputOf dto 活动入参 → service 入参。
+func decorationActivityInputOf(in dto.DecorationActivityInputRequest) model.DecorationActivityInput {
+	return model.DecorationActivityInput{
+		Name:               in.Name,
+		Description:        in.Description,
+		Type:               in.Type,
+		DecorationID:       in.DecorationID,
+		ArticleID:          in.ArticleID,
+		RequiredLikes:      in.RequiredLikes,
+		RequiredComments:   in.RequiredComments,
+		RequiredShares:     in.RequiredShares,
+		RequiredRecharge:   in.RequiredRecharge,
+		RequiredSignInDays: in.RequiredSignInDays,
+		IsPermanent:        in.IsPermanent,
+		ValidDays:          in.ValidDays,
+		StartTime:          in.StartTime,
+		EndTime:            in.EndTime,
+		Status:             in.Status,
+	}
 }

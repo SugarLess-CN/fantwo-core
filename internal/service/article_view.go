@@ -86,6 +86,8 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 	disliked, _ := s.repo.DislikedSet(ctx, actor.UserID, ids)
 
 	for _, r := range rows {
+		// 空值口径（docs/21）：字符串指针 → 值（空即 ""）、数组初始化（空即 []）、
+		// 对象与时间保持指针 + omitempty（空即整个字段不传）。
 		v := ArticleView{
 			ID:                r.ID,
 			Title:             r.Title,
@@ -96,10 +98,10 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 			ListRequireLogin:  r.ListRequireLogin,
 			ViewPrice:         r.ViewPrice,
 			Type:              r.Type,
-			Images:            ParseImages(r.Images),
-			VideoURL:          r.VideoURL,
-			Cover:             r.Cover,
-			Summary:           r.Summary,
+			Images:            ParseImagesList(r.Images),
+			VideoURL:          strOrEmpty(r.VideoURL),
+			Cover:             strOrEmpty(r.Cover),
+			Summary:           strOrEmpty(r.Summary),
 			Sort:              r.Sort,
 			Views:             r.Views,
 			Likes:             r.Likes,
@@ -111,10 +113,10 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 			IsPinnedOnProfile: r.IsPinnedOnProfile,
 			PinnedAt:          r.PinnedAt,
 			Status:            r.Status,
-			AuthorID:          r.AuthorID,
-			CategoryID:        r.CategoryID,
-			Tags:              []TagBrief{},
-			ActivityID:        r.ActivityID,
+			AuthorID:          strOrEmpty(r.AuthorID),
+			CategoryID:        strOrEmpty(r.CategoryID),
+			Tags:              make([]TagBrief, 0, len(tagMap[r.ID])),
+			ActivityID:        strOrEmpty(r.ActivityID),
 			AllowReprint:      r.AllowReprint,
 			IsLiked:           liked[r.ID],
 			IsFavorited:       favorited[r.ID],
@@ -123,25 +125,31 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 			UpdatedAt:         r.UpdatedAt,
 		}
 		if withContent {
-			v.Content = r.Content
+			v.Content = strOrEmpty(r.Content)
 		}
 
 		// 标签
 		for _, tid := range tagMap[r.ID] {
 			if t, ok := tagEntity[tid]; ok {
-				v.Tags = append(v.Tags, TagBrief{ID: t.ID, Name: t.Name, Cover: t.Cover})
+				v.Tags = append(v.Tags, TagBrief{ID: t.ID, Name: t.Name, Cover: strOrEmpty(t.Cover)})
 			}
 		}
 		// 分类
 		if r.CategoryID != nil {
 			if c, ok := catEntity[*r.CategoryID]; ok {
-				v.Category = &CategoryBrief{ID: c.ID, Name: c.Name, Link: c.Link, Avatar: c.Avatar, Status: c.Status}
+				v.Category = &CategoryBrief{
+					ID:     c.ID,
+					Name:   c.Name,
+					Link:   strOrEmpty(c.Link),
+					Avatar: strOrEmpty(c.Avatar),
+					Status: c.Status,
+				}
 			}
 		}
 		// 作者
 		if r.AuthorID != nil {
 			if a, ok := authorMap[*r.AuthorID]; ok {
-				brief := a
+				brief := authorBriefDto(a)
 				v.Author = &brief
 			}
 		}

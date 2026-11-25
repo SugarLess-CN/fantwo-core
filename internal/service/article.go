@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -438,7 +439,7 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 //
 // 级联范围：文章标签关联、评论（软删）、点赞/收藏/不喜欢/浏览历史（保留记录但文章不可见，
 // 与原 onDelete CASCADE 语义相比更保守——原实现物理删除，这里保留审计痕迹）。
-func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*dto.DeleteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -485,8 +486,7 @@ func (s *ArticleService) Remove(ctx context.Context, id string, actor Actor) (*m
 		return nil, errcode.ErrInternal
 	}
 
-	out := map[string]interface{}{"id": id, "deleted": true}
-	return &out, nil
+	return &dto.DeleteResultDto{ID: id, Deleted: true}, nil
 }
 
 // ---------- 查询 ----------
@@ -749,7 +749,7 @@ func (s *ArticleService) FindRecommendations(ctx context.Context, id string, act
 // 数据源优先级：
 //  1. infra 域 search_logs 真实聚合（TopKeywordsByScene，近 7 天、过滤零结果词）；
 //  2. 回退：热门标签 + 热门分类合成（infra 未注入或日志为空时，保证端点不空返回）。
-func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword string) ([]map[string]interface{}, *errcode.Err) {
+func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword string) ([]dto.HotSearchItemDto, *errcode.Err) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -763,16 +763,12 @@ func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword strin
 		if err != nil {
 			s.log.Warn("热搜聚合查询失败，回退标签/分类合成", zap.Error(err))
 		} else if len(rows) > 0 {
-			out := make([]map[string]interface{}, 0, len(rows))
+			out := make([]dto.HotSearchItemDto, 0, len(rows))
 			for _, r := range rows {
 				if keyword != "" && !strings.Contains(strings.ToLower(r.Keyword), strings.ToLower(keyword)) {
 					continue
 				}
-				out = append(out, map[string]interface{}{
-					"keyword": r.Keyword,
-					"type":    "search",
-					"count":   r.Count,
-				})
+				out = append(out, dto.HotSearchItemDto{Keyword: r.Keyword, Type: "search", Count: r.Count})
 				if len(out) >= limit {
 					break
 				}
@@ -783,7 +779,7 @@ func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword strin
 		}
 	}
 
-	items := make([]map[string]interface{}, 0, limit)
+	items := make([]dto.HotSearchItemDto, 0, limit)
 
 	hotTags, err := s.tags.Hot(ctx, limit)
 	if err != nil {
@@ -793,11 +789,7 @@ func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword strin
 		if keyword != "" && !strings.Contains(strings.ToLower(t.Name), strings.ToLower(keyword)) {
 			continue
 		}
-		items = append(items, map[string]interface{}{
-			"keyword": t.Name,
-			"type":    "tag",
-			"count":   t.ArticleCount,
-		})
+		items = append(items, dto.HotSearchItemDto{Keyword: t.Name, Type: "tag", Count: int64(t.ArticleCount)})
 		if len(items) >= limit {
 			return items, nil
 		}
@@ -815,11 +807,7 @@ func (s *ArticleService) HotSearch(ctx context.Context, limit int, keyword strin
 		if c.ArticleCount == 0 {
 			continue
 		}
-		items = append(items, map[string]interface{}{
-			"keyword": c.Name,
-			"type":    "category",
-			"count":   c.ArticleCount,
-		})
+		items = append(items, dto.HotSearchItemDto{Keyword: c.Name, Type: "category", Count: int64(c.ArticleCount)})
 	}
 	return items, nil
 }

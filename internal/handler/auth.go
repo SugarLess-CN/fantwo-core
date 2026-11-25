@@ -334,7 +334,7 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 //	@Summary	GitHub 回调（SPA 模式换本站 token）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.GithubCallbackRequest true "code + state"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
@@ -358,10 +358,14 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 
 // GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。
 //
+// 302 重定向，**响应体为空**（不是统一响应体）：token 走 Location 的 query。
+// 因此不声明 data 的 $ref —— 硬编一个 200 的 data 会让前端/生成器以为这里有 JSON。
+//
 //	@Summary	GitHub 回调（重定向模式）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
+//	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
 //	@Router		/user/oauth/github/callback [get]
 func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 	loc := h.svc.GithubRedirectURL(c.Request.Context(),

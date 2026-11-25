@@ -5,11 +5,16 @@
 //	POST /payment/notify/alipay  → 返回 "success"/"failure" 纯文本（支付宝规范）
 //	POST /payment/notify/wechat  → 返回 {code,message}（微信 v3 规范）
 //	GET  /payment/notify/epay    → 返回 "success"（易支付规范）
+//
+// 注解口径（docs/18）：非回调端点一律 `{data=dto.Xxx}` 具名；回调端点**故意不具名**——
+// 它们不走统一响应体（AGENTS「响应契约与 i18n」第 7 条的例外），套 ResponseBody 会让
+// 支付平台验签/解析失败。
 package handler
 
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -30,9 +35,9 @@ type PaymentHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreatePaymentInput{orderId,method,...}"
-//	@Success		200		{object}	ResponseBody
-//	@Failure		400		{object}	ResponseBody
+//	@Param			body	body		dto.CreatePaymentRequest	true	"支付入参"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.CreatePaymentResultDto}
+//	@Failure		400		{object}	dto.ResponseBody
 //	@Router			/payment/create [post]
 func (h *PaymentHandler) Create(c *gin.Context) {
 	var in service.CreatePaymentInput
@@ -115,7 +120,7 @@ func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PaymentDto}
 //	@Router		/payment/record/{id} [get]
 func (h *PaymentHandler) Record(c *gin.Context) {
 	p, err := h.Svc.GetPaymentRecord(c.Param("id"), middleware.CurrentUserID(c))
@@ -128,13 +133,14 @@ func (h *PaymentHandler) Record(c *gin.Context) {
 
 // ByOrder GET /payment/order/:orderId（查询订单支付记录）。
 //
-//	@Summary	按订单查支付记录
-//	@Tags		支付
-//	@Produce	json
-//	@Security	BearerAuth
-//	@Param		orderId path string true "orderId"
-//	@Success	200	{object}	ResponseBody
-//	@Router		/payment/order/{orderId} [get]
+//	@Summary		按订单查支付记录
+//	@Description	该订单尚无支付记录时返回 200 且 data 省略（不是 null）
+//	@Tags			支付
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			orderId path string true "orderId"
+//	@Success		200	{object}	dto.ResponseBody{data=dto.PaymentDto}
+//	@Router			/payment/order/{orderId} [get]
 func (h *PaymentHandler) ByOrder(c *gin.Context) {
 	p, err := h.Svc.GetPaymentByOrder(c.Param("orderId"), middleware.CurrentUserID(c))
 	if err != nil {
@@ -152,7 +158,7 @@ func (h *PaymentHandler) ByOrder(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PaymentDto}}
 //	@Router		/payment/user [get]
 func (h *PaymentHandler) Mine(c *gin.Context) {
 	page, limit := pageTx(c)
@@ -168,15 +174,14 @@ func (h *PaymentHandler) Mine(c *gin.Context) {
 //
 //	@Summary	易支付签名调试
 //	@Tags		支付
+//	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.EpaySignatureRequest true "待签名的参数集合"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.EpaySignatureResultDto}
 //	@Router		/payment/test/epay-signature [post]
 func (h *PaymentHandler) EpaySignature(c *gin.Context) {
-	var body struct {
-		Params map[string]string `json:"params"`
-	}
+	var body dto.EpaySignatureRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -188,3 +193,7 @@ func (h *PaymentHandler) EpaySignature(c *gin.Context) {
 	}
 	response.Success(c, gin.H{"sign": sign, "sign_type": "MD5"})
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}

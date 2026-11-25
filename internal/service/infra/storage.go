@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/filecheck"
@@ -832,20 +833,26 @@ func (f *Infra) removeStored(storage, path string) error {
 //
 // 所有运行期可调项均为「env 兜底 + DB 优先」（key 见 internal/model/config.go），
 // 与真实校验/处理路径共用同一批辅助函数，保证「前端拿到的限制」= 「后端实际执行」。
-func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
+//
+// 返回具名结构 dto.UploadConfigDto 而非 gin.H：对外契约必须由 dto 声明
+// （docs/18-DTO复用规范.md），否则 swagger 里 data 是空 {}。
+// 同时这也是 /upload/config 的 data.storage.s3 从 null 变「不传」的修法：
+// s3 字段是 *dto.UploadS3ConfigDto + omitempty，driver 非 s3 时为 nil → 整个字段不传；
+// 而驱动 tri-state 的 gin.H 用 interface{} 装 nil 只会序列化成 null（docs/21）。
+func (f *Infra) GetUploadConfig(c *gin.Context) *dto.UploadConfigDto {
 	// mb 每个类型只算一次：mb 与 bytes 必须同源，避免两处独立读取在并发改配置时不一致。
 	imageMB := f.uploadLimitMB(model.ConfigKeyUploadMaxImageSize, f.cfg.Upload.MaxImageMB, DefaultMaxImageMB)
 	videoMB := f.uploadLimitMB(model.ConfigKeyUploadMaxVideoSize, f.cfg.Upload.MaxVideoMB, DefaultMaxVideoMB)
 	audioMB := f.uploadLimitMB(model.ConfigKeyUploadMaxAudioSize, f.cfg.Upload.MaxAudioMB, DefaultMaxAudioMB)
 	otherMB := f.uploadLimitMB(model.ConfigKeyUploadMaxOtherSize, f.cfg.Upload.MaxOtherMB, DefaultMaxOtherMB)
 	const mbBytes = int64(1024 * 1024)
-	limits := gin.H{
-		"image": gin.H{"mb": imageMB, "bytes": int64(imageMB) * mbBytes},
-		"video": gin.H{"mb": videoMB, "bytes": int64(videoMB) * mbBytes},
-		"audio": gin.H{"mb": audioMB, "bytes": int64(audioMB) * mbBytes},
-		"other": gin.H{"mb": otherMB, "bytes": int64(otherMB) * mbBytes},
+	limits := dto.UploadSizeLimitsDto{
+		Image: dto.UploadSizeLimitDto{MB: imageMB, Bytes: int64(imageMB) * mbBytes},
+		Video: dto.UploadSizeLimitDto{MB: videoMB, Bytes: int64(videoMB) * mbBytes},
+		Audio: dto.UploadSizeLimitDto{MB: audioMB, Bytes: int64(audioMB) * mbBytes},
+		Other: dto.UploadSizeLimitDto{MB: otherMB, Bytes: int64(otherMB) * mbBytes},
 	}
-	var s3Info interface{}
+	var s3Info *dto.UploadS3ConfigDto
 	// storage.driver 保持 env：minio client 启动期初始化，改了必须重启，不属于运行期可调项。
 	if f.cfg.Storage.Driver == "s3" {
 		// S3 五项（endpoint/bucket/region/use_ssl/force_path_style）**故意不读 DB**：
@@ -858,13 +865,13 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 		if !f.cfg.S3.UseSSL {
 			scheme = "http"
 		}
-		s3Info = gin.H{
-			"region":         f.cfg.S3.Region,
-			"bucket":         f.cfg.S3.Bucket,
-			"endpoint":       f.cfg.S3.Endpoint,
-			"cdnDomain":      f.cdnBaseURL(), // DB 优先（cdn_base_url）
-			"forcePathStyle": f.cfg.S3.ForcePathStyle,
-			"scheme":         scheme,
+		s3Info = &dto.UploadS3ConfigDto{
+			Region:         f.cfg.S3.Region,
+			Bucket:         f.cfg.S3.Bucket,
+			Endpoint:       f.cfg.S3.Endpoint,
+			CDNDomain:      f.cdnBaseURL(), // DB 优先（cdn_base_url）
+			ForcePathStyle: f.cfg.S3.ForcePathStyle,
+			Scheme:         scheme,
 		}
 	}
 	// 水印段与 watermark.go 的 watermarkOptions 同源（同 key 常量、同默认值），
@@ -881,55 +888,58 @@ func (f *Infra) GetUploadConfig(c *gin.Context) gin.H {
 			wmOpacity = float64(v) / 100
 		}
 	}
-	return gin.H{
-		"storage": gin.H{"type": f.cfg.Storage.Driver, "s3": s3Info},
-		"compression": gin.H{
-			"image": gin.H{
-				"maxWidth":                 1920,
-				"quality":                  75,
-				"format":                   "webp",
-				"preserveAnimation":        true,
-				"skipPrecompressMimeTypes": []string{"image/gif"},
+	return &dto.UploadConfigDto{
+		Storage: dto.UploadStorageDto{Type: f.cfg.Storage.Driver, S3: s3Info},
+		Compression: dto.UploadCompressionDto{
+			Image: dto.UploadCompressionImageDto{
+				MaxWidth:                 1920,
+				Quality:                  75,
+				Format:                   "webp",
+				PreserveAnimation:        true,
+				SkipPrecompressMimeTypes: []string{"image/gif"},
 			},
-			"video": gin.H{
-				"enabled":   true,
-				"maxWidth":  1920,
-				"maxHeight": 1080,
-				"crf":       23,
+			Video: dto.UploadCompressionVideoDto{
+				Enabled:   true,
+				MaxWidth:  1920,
+				MaxHeight: 1080,
+				CRF:       23,
 			},
 		},
-		"limits": gin.H{
-			"maxSize":      limits,
-			"maxFileCount": f.uploadMaxFileCount(),
+		Limits: dto.UploadLimitsDto{
+			MaxSize:      limits,
+			MaxFileCount: f.uploadMaxFileCount(),
 		},
-		"allowedMimeTypes": filecheck.AllMimeGroups(),
-		"imageProcessing": gin.H{
-			"compressionEnabled": f.compressionEnabled(),
-			"format":             "webp",
-			"quality":            85,
-			"maxWidth":           3840,
-			"maxHeight":          2160,
-			"keepOriginal":       true,
-			"animated":           gin.H{"staticThumb": true, "originalKeepsAnimation": true},
+		AllowedMimeTypes: filecheck.AllMimeGroups(),
+		ImageProcessing: dto.UploadImageProcessingDto{
+			CompressionEnabled: f.compressionEnabled(),
+			Format:             "webp",
+			Quality:            85,
+			MaxWidth:           3840,
+			MaxHeight:          2160,
+			KeepOriginal:       true,
+			Animated:           dto.UploadAnimatedOptsDto{StaticThumb: true, OriginalKeepsAnimation: true},
 		},
-		"watermark": gin.H{
-			"enabled":      wmEnabled,
-			"textTemplate": wmTemplate,
-			"position":     wmPosition,
-			"opacity":      wmOpacity,
-			"skipScenes":   []string{SceneAvatar},
+		Watermark: dto.UploadWatermarkDto{
+			Enabled:      wmEnabled,
+			TextTemplate: wmTemplate,
+			Position:     wmPosition,
+			Opacity:      wmOpacity,
+			SkipScenes:   []string{SceneAvatar},
 		},
-		"videoProcessing": gin.H{
-			"compressionEnabled": true,
-			"preset":             "medium",
-			"crf":                23,
-			"maxWidth":           1920,
-			"maxHeight":          1080,
-			"videoBitrate":       "5000k",
-			"audioBitrate":       "128k",
-			"minCompressSize":    10,
+		VideoProcessing: dto.UploadVideoProcessingDto{
+			CompressionEnabled: true,
+			Preset:             "medium",
+			CRF:                23,
+			MaxWidth:           1920,
+			MaxHeight:          1080,
+			VideoBitrate:       "5000k",
+			AudioBitrate:       "128k",
+			MinCompressSize:    10,
 		},
-		"queue": gin.H{"videoCompression": queue.QueueVideoCompression, "taskType": queue.TypeVideoCompression},
+		Queue: dto.UploadQueueDto{
+			VideoCompression: queue.QueueVideoCompression,
+			TaskType:         queue.TypeVideoCompression,
+		},
 	}
 }
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -23,9 +24,10 @@ type CollectionHandler struct {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "collectionRequest{name,description,isPublic}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.CreateCollectionRequest true "合集信息"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDto}
 //	@Router		/collection [post]
+//	@ID			CollectionController_create
 func (h *CollectionHandler) Create(c *gin.Context) {
 	var req service.CreateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -46,8 +48,15 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponsePageBody
+//	@Param		userId		query	string	false	"按作者过滤"
+//	@Param		keyword		query	string	false	"按名称搜索"
+//	@Param		sortBy		query	string	false	"排序字段"
+//	@Param		sortOrder	query	string	false	"排序方向 ASC / DESC（默认 DESC）"
+//	@Param		page		query	int		false	"页码"
+//	@Param		limit		query	int		false	"每页条数"
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CollectionDto}}
 //	@Router		/collection [get]
+//	@ID			CollectionController_findAll
 func (h *CollectionHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := repository.CollectionListQuery{
@@ -73,8 +82,9 @@ func (h *CollectionHandler) List(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDetailDto}
 //	@Router		/collection/{id} [get]
+//	@ID			CollectionController_findOne
 func (h *CollectionHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -92,9 +102,10 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
-//	@Param		body body object true "collectionRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.UpdateCollectionRequest true "要改的字段（不传 = 不改）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDto}
 //	@Router		/collection/{id} [patch]
+//	@ID			CollectionController_update
 func (h *CollectionHandler) Update(c *gin.Context) {
 	var req service.UpdateCollectionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -116,8 +127,9 @@ func (h *CollectionHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/collection/{id} [delete]
+//	@ID			CollectionController_remove
 func (h *CollectionHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
@@ -135,8 +147,9 @@ func (h *CollectionHandler) Remove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
 //	@Param		articleId path string true "文章 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionArticleAddResultDto}
 //	@Router		/collection/{id}/article/{articleId} [post]
+//	@ID			CollectionController_addArticle
 func (h *CollectionHandler) AddArticle(c *gin.Context) {
 	out, e := h.svc.AddArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c), nil)
 	if e != nil {
@@ -145,10 +158,8 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 	}
 	// message 提到顶层（原实现在 data 里带 message）；data 只留业务字段
 	msg := i18n.CollectionArticleAdded
-	if out != nil {
-		if added, _ := (*out)["added"].(bool); !added {
-			msg = i18n.CollectionArticleExists
-		}
+	if out != nil && !out.Added {
+		msg = i18n.CollectionArticleExists
 	}
 	response.SuccessMsg(c, msg, out)
 }
@@ -161,8 +172,9 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
 //	@Param		articleId path string true "文章 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionArticleRemoveResultDto}
 //	@Router		/collection/{id}/article/{articleId} [delete]
+//	@ID			CollectionController_removeArticle
 func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 	out, e := h.svc.RemoveArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c))
 	if e != nil {
@@ -181,8 +193,9 @@ func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 //	@Param		id path string true "合集 ID"
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CollectionItemDto}}
 //	@Router		/collection/{id}/items [get]
+//	@ID			CollectionController_findItems
 func (h *CollectionHandler) ListItems(c *gin.Context) {
 	page, limit := pageOf(c)
 	list, total, e := h.svc.ListItems(c.Request.Context(), c.Param("id"), actorOf(c), page, limit)
@@ -201,9 +214,10 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ReorderCollectionItemsRequest true "articleIds 的顺序即展示顺序"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionReorderResultDto}
 //	@Router		/collection/{id}/items/order [put]
+//	@ID			CollectionController_reorderItems
 func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 	var req service.ReorderCollectionItemsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -225,8 +239,9 @@ func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionCheckDto}
 //	@Router		/collection/check/{articleId} [get]
+//	@ID			CollectionController_checkArticle
 func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 	out, e := h.svc.CheckArticle(c.Request.Context(), actorOf(c), c.Param("articleId"))
 	if e != nil {
@@ -243,8 +258,9 @@ func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ArticleCollectionInfoDto}
 //	@Router		/collection/article/{articleId}/info [get]
+//	@ID			CollectionController_articleCollectionInfo
 func (h *CollectionHandler) ArticleCollectionInfo(c *gin.Context) {
 	out, e := h.svc.ArticleCollectionInfo(c.Request.Context(), actorOf(c), c.Param("articleId"))
 	if e != nil {
@@ -253,3 +269,8 @@ func (h *CollectionHandler) ArticleCollectionInfo(c *gin.Context) {
 	}
 	ctOK(c, out)
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注解所在文件的 import」解析跨包类型
+// （docs/18 §三之一 约束 B），本文件的注解写了 dto.Xxx，这里必须引用一次。
+// 不参与运行逻辑。
+var _ = dto.ResponseBody{}

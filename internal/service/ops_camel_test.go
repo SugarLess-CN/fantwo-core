@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 )
@@ -70,8 +71,22 @@ func TestOpsJSONKeysCamelCase(t *testing.T) {
 		"InviteStats":        service.InviteStats{},
 		"ReportStatistics":   service.ReportStatistics{},
 		"GroupCount":         service.GroupCount{},
-		"CurrentDecorations": service.CurrentDecorations{},
-		"EmojiPackDetail":    service.EmojiPackDetail{},
+		// 对外契约结构（已从 service 收归 internal/dto，docs/18）
+		"CurrentDecorations": dto.CurrentDecorationsDto{},
+		"EmojiPackDetail":    dto.EmojiPackDetailDto{},
+		// emoji 域 dto（本轮 upload/emoji/decoration 批次新增）
+		"EmojiDto":          dto.EmojiDto{},
+		"EmojiPackDto":      dto.EmojiPackDto{},
+		"EmojiPackItemDto":  dto.EmojiPackItemDto{},
+		"EmojiInputReq":     dto.EmojiInputRequest{},
+		"EmojiPackInputReq": dto.EmojiPackInputRequest{},
+		// decoration 域 dto
+		"DecorationDto":              dto.DecorationDto{},
+		"UserDecorationDto":          dto.UserDecorationDto{},
+		"DecorationActivityDto":      dto.DecorationActivityDto{},
+		"UserActivityProgressDto":    dto.UserActivityProgressDto{},
+		"DecorationInputReq":         dto.DecorationInputRequest{},
+		"DecorationActivityInputReq": dto.DecorationActivityInputRequest{},
 	}
 
 	for name, v := range samples {

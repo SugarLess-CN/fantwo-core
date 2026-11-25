@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -45,34 +46,11 @@ type CommentListQuery struct {
 	UserID     string // 管理端按用户过滤
 }
 
-// CommentView 评论视图。
-type CommentView struct {
-	ID string `json:"id"`
-
-	Content string      `json:"content"`
-	Images  interface{} `json:"images"`
-
-	Likes      int    `json:"likes"`
-	ReplyCount int    `json:"replyCount"`
-	Floor      int    `json:"floor"`
-	IsPinned   bool   `json:"isPinned"`
-	Status     string `json:"status"`
-
-	AuthorID  string       `json:"authorId"`
-	Author    *AuthorBrief `json:"author,omitempty"`
-	ArticleID string       `json:"articleId"`
-	ParentID  *string      `json:"parentId"`
-	RootID    *string      `json:"rootId"`
-
-	// 当前查看者是否已点赞
-	IsLiked bool `json:"isLiked"`
-
-	// 二级回复（树形组装；一级评论填充，二级评论为空）
-	Replies []CommentView `json:"replies,omitempty"`
-
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
+// CommentView 评论视图（dto.CommentDto 的别名；对外契约见 internal/dto/comment.go）。
+//
+// 字段空值口径由 dto 保证（docs/21）：content/images 空即 ""/[]，
+// parentId/rootId 一级评论为空串（不是 null），author 缺失时整个字段不传。
+type CommentView = dto.CommentDto
 
 // CommentAuditor 评论审核提交器：由审核域 AuditService 实现并注入。
 //
@@ -293,7 +271,7 @@ func (s *CommentService) Update(ctx context.Context, id string, actor Actor, req
 
 // SetPin 设置评论置顶（对齐 PATCH /comment/:id/pin）。
 // 仅文章作者或管理员；同一文章同时只保留一个置顶评论。
-func (s *CommentService) SetPin(ctx context.Context, id string, actor Actor, isPinned bool) (*map[string]interface{}, *errcode.Err) {
+func (s *CommentService) SetPin(ctx context.Context, id string, actor Actor, isPinned bool) (*dto.CommentPinResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -326,13 +304,12 @@ func (s *CommentService) SetPin(ctx context.Context, id string, actor Actor, isP
 		s.log.Error("设置评论置顶失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": id, "isPinned": isPinned}
-	return &out, nil
+	return &dto.CommentPinResultDto{ID: id, IsPinned: isPinned}, nil
 }
 
 // Remove 删除评论（作者本人或管理员；软删）。
 // 一级评论删除时同步回扣文章 comment_count；回复删除回扣父评论 reply_count。
-func (s *CommentService) Remove(ctx context.Context, id string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *CommentService) Remove(ctx context.Context, id string, actor Actor) (*dto.DeleteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -365,12 +342,11 @@ func (s *CommentService) Remove(ctx context.Context, id string, actor Actor) (*m
 		s.log.Error("删除评论失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": id, "deleted": true}
-	return &out, nil
+	return &dto.DeleteResultDto{ID: id, Deleted: true}, nil
 }
 
 // Like 点赞评论（对齐 POST /comment/:id/like；切换语义：已赞则取消）。
-func (s *CommentService) Like(ctx context.Context, id string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *CommentService) Like(ctx context.Context, id string, actor Actor) (*dto.CommentLikeResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -402,8 +378,7 @@ func (s *CommentService) Like(ctx context.Context, id string, actor Actor) (*map
 		s.log.Error("评论点赞失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"isLiked": liked}
-	return &out, nil
+	return &dto.CommentLikeResultDto{IsLiked: liked}, nil
 }
 
 // FindByArticle 文章评论列表（对齐 GET /comment/article/:id）。
@@ -513,14 +488,13 @@ func (s *CommentService) UserComments(ctx context.Context, userID string, actor 
 }
 
 // CommentCount 文章评论数（对齐 GET /comment/article/:id/count）。
-func (s *CommentService) CommentCount(ctx context.Context, articleID string) (*map[string]interface{}, *errcode.Err) {
+func (s *CommentService) CommentCount(ctx context.Context, articleID string) (*dto.CountDto, *errcode.Err) {
 	n, err := s.repo.CountByArticle(ctx, articleID)
 	if err != nil {
 		s.log.Error("统计评论数失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"count": n}
-	return &out, nil
+	return &dto.CountDto{Count: n}, nil
 }
 
 // ---------- 视图组装 ----------
@@ -606,7 +580,7 @@ func buildCommentView(c model.Comment, authorMap map[string]AuthorBrief, likedSe
 	v := CommentView{
 		ID:         c.ID,
 		Content:    c.Content,
-		Images:     ParseImages(c.Images),
+		Images:     ParseImagesList(c.Images),
 		Likes:      c.Likes,
 		ReplyCount: c.ReplyCount,
 		Floor:      c.Floor,
@@ -614,15 +588,15 @@ func buildCommentView(c model.Comment, authorMap map[string]AuthorBrief, likedSe
 		Status:     c.Status,
 		AuthorID:   c.AuthorID,
 		ArticleID:  c.ArticleID,
-		ParentID:   c.ParentID,
-		RootID:     c.RootID,
+		ParentID:   strOrEmpty(c.ParentID),
+		RootID:     strOrEmpty(c.RootID),
 		IsLiked:    likedSet[c.ID],
-		Replies:    nil,
+		Replies:    make([]CommentView, 0),
 		CreatedAt:  c.CreatedAt,
 		UpdatedAt:  c.UpdatedAt,
 	}
 	if a, ok := authorMap[c.AuthorID]; ok {
-		brief := a
+		brief := authorBriefDto(a)
 		v.Author = &brief
 	}
 	return v

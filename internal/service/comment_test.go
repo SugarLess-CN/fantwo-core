@@ -124,9 +124,15 @@ func TestBuildCommentView(t *testing.T) {
 	if v.IsLiked != true {
 		t.Error("likedSet 命中时 isLiked 应为 true")
 	}
-	imgs, ok := v.Images.([]string)
-	if !ok || len(imgs) != 1 || imgs[0] != "a.jpg" {
+	imgs := v.Images
+	if len(imgs) != 1 || imgs[0] != "a.jpg" {
 		t.Errorf("images 应为 []string{a.jpg}，实际 %#v", v.Images)
+	}
+	if v.Replies == nil {
+		t.Error("replies 必须是已初始化切片（空即 []，不能是 null）")
+	}
+	if v.ParentID != "" || v.RootID != "" {
+		t.Errorf("一级评论 parentId/rootId 应为空串，实际 %q/%q", v.ParentID, v.RootID)
 	}
 	if v.Author == nil || v.Author.Nickname != "小明" {
 		t.Errorf("作者信息未填充：%+v", v.Author)

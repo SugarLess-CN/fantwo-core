@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
@@ -23,8 +24,8 @@ type ArticleHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateArticleRequest"
-//	@Success		200		{object}	ResponseBody
+//	@Param			body	body		dto.CreateArticleRequest	true	"文章内容"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		400		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
 //	@Router			/article [post]
@@ -55,7 +56,7 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Param			tagId		query		string	false	"标签 ID"
 //	@Param			type		query		string	false	"image/mixed/video，默认 all"
 //	@Param			status		query		string	false	"状态筛选，逗号分隔"
-//	@Success		200			{object}	ResponseBody
+//	@Success		200			{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router			/article [get]
 func (h *ArticleHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -84,7 +85,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/drafts [get]
 func (h *ArticleHandler) Drafts(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -102,7 +103,7 @@ func (h *ArticleHandler) Drafts(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.ArticleDto}
 //	@Router		/article/recommend/{id} [get]
 func (h *ArticleHandler) Recommendations(c *gin.Context) {
 	list, e := h.svc.FindRecommendations(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -120,7 +121,7 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 //	@Produce	json
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/search [get]
 func (h *ArticleHandler) Search(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -144,7 +145,7 @@ func (h *ArticleHandler) Search(c *gin.Context) {
 //	@Summary	热搜词
 //	@Tags		文章
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.HotSearchItemDto}
 //	@Router		/article/hot-search [get]
 func (h *ArticleHandler) HotSearch(c *gin.Context) {
 	limit := intQuery(c, "limit", 10)
@@ -163,7 +164,7 @@ func (h *ArticleHandler) HotSearch(c *gin.Context) {
 //	@Produce	json
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@Router		/article/author/{id} [get]
 func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -187,7 +188,7 @@ func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 //	@Summary	已发布文章 ID 列表
 //	@Tags		文章
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]string}
 //	@Router		/article/published/ids [get]
 func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 	ids, e := h.svc.PublishedArticleIDs(c.Request.Context())
@@ -204,7 +205,7 @@ func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 //	@Tags			文章
 //	@Produce		json
 //	@Param			id	path		string	true	"文章 ID"
-//	@Success		200	{object}	ResponseBody
+//	@Success		200	{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		404	{object}	ResponseBody
 //	@Router			/article/{id} [get]
 func (h *ArticleHandler) FindOne(c *gin.Context) {
@@ -224,8 +225,8 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id		path		string	true	"文章 ID"
-//	@Param		body	body		object	true	"UpdateArticleRequest"
-//	@Success	200		{object}	ResponseBody
+//	@Param		body	body		dto.UpdateArticleRequest	true	"待更新字段（部分更新）"
+//	@Success	200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure	403		{object}	ResponseBody
 //	@Router		/article/{id} [patch]
 func (h *ArticleHandler) Update(c *gin.Context) {
@@ -249,7 +250,7 @@ func (h *ArticleHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"文章 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Failure	403	{object}	ResponseBody
 //	@Router		/article/{id} [delete]
 func (h *ArticleHandler) Remove(c *gin.Context) {
@@ -269,8 +270,8 @@ func (h *ArticleHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.SetFeaturedRequest true "是否设精"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SetFeaturedResultDto}
 //	@Router		/article/{id}/featured [patch]
 func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 	var req service.SetFeaturedRequest
@@ -294,8 +295,8 @@ func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.SetProfilePinRequest true "是否主页置顶"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ProfilePinResultDto}
 //	@Router		/article/{id}/profile-pin [patch]
 func (h *ArticleHandler) SetProfilePin(c *gin.Context) {
 	var req service.SetProfilePinRequest
@@ -341,3 +342,8 @@ func intQuery(c *gin.Context, key string, def int) int {
 	}
 	return n
 }
+
+// var _ 保证本文件对 dto 包的 import 不被判为未使用 —— swag 解析 @Success/@Param 的
+// dto.Xxx 时**只看注解所在文件的 import 列表**（docs/18 §三之一 约束 B），
+// 只在别的文件 import 无效，会报 "cannot find type definition"。
+var _ = dto.ResponseBody{}

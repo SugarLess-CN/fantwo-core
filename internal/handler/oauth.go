@@ -28,6 +28,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -55,8 +56,9 @@ func oauthLoginResult(user *model.User, token, refresh string) gin.H {
 //	@Summary	微信扫码登录（取授权链接）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
 //	@Router		/user/oauth/wechat/web/url [get]
+//	@ID			WechatOAuthController_webURL
 func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 	out, e := h.svc.WechatWebAuthURL(c.Request.Context())
 	if e != nil {
@@ -72,9 +74,10 @@ func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code, state}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.OAuthCallbackRequest true "code + state"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/wechat/web/callback [post]
+//	@ID			WechatOAuthController_webCallback
 func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 	var req struct {
 		Code  string `json:"code"`
@@ -96,8 +99,10 @@ func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 //	@Summary	微信扫码回调（重定向模式，302 回前端带 token）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	302
+//	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
+//	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
 //	@Router		/user/oauth/wechat/web/callback [get]
+//	@ID			WechatOAuthController_webRedirect
 func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 	loc := h.svc.WechatWebRedirectURL(c.Request.Context(),
 		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))
@@ -114,9 +119,10 @@ func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.OAuthCodeRequest true "微信 SDK 回调的 code"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/wechat/app/login [post]
+//	@ID			WechatOAuthController_appLogin
 func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 	var req struct {
 		Code string `json:"code"`
@@ -141,8 +147,9 @@ func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 //	@Summary	QQ 网页登录（取授权链接）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
 //	@Router		/user/oauth/qq/web/url [get]
+//	@ID			QqOAuthController_webURL
 func (h *AuthHandler) QQWebURL(c *gin.Context) {
 	out, e := h.svc.QQWebAuthURL(c.Request.Context())
 	if e != nil {
@@ -158,9 +165,10 @@ func (h *AuthHandler) QQWebURL(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {code, state}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.OAuthCallbackRequest true "code + state"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/qq/web/callback [post]
+//	@ID			QqOAuthController_webCallback
 func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 	var req struct {
 		Code  string `json:"code"`
@@ -182,8 +190,10 @@ func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 //	@Summary	QQ 网页回调（重定向模式，302 回前端带 token）
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	302
+//	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
+//	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
 //	@Router		/user/oauth/qq/web/callback [get]
+//	@ID			QqOAuthController_webRedirect
 func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 	loc := h.svc.QQWebRedirectURL(c.Request.Context(),
 		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))
@@ -208,8 +218,8 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body object true "请求体 {accessToken, openId} 或 {payload}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.QqAppLoginRequest true "{accessToken, openId} 或 {payload}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 	var req struct {
@@ -250,7 +260,7 @@ func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 //	@Summary	我的第三方绑定列表
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthBindingListDto}
 //	@Router		/user/oauth/bindings [get]
 //	@ID			OAuthBindingController_listBindings
 func (h *AuthHandler) OAuthBindingList(c *gin.Context) {
@@ -276,7 +286,7 @@ func (h *AuthHandler) OAuthBindingList(c *gin.Context) {
 //	@Produce	json
 //	@Param		provider	path	string	true	"平台 wechat / qq / github"
 //	@Param		channel	path	string	true	"渠道 web / app"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthBindingListDto}
 //	@Router		/user/oauth/bindings/{provider}/{channel} [delete]
 //	@ID			OAuthBindingController_unbind
 func (h *AuthHandler) OAuthBindingUnbind(c *gin.Context) {
@@ -308,8 +318,8 @@ func (h *AuthHandler) OAuthBindingUnbind(c *gin.Context) {
 //	@Tags		用户认证
 //	@Accept		json
 //	@Produce	json
-//	@Param		body body service.OAuthLinkInput true "请求体 {provider, channel, code, state} 或 {provider, channel, accessToken, openId}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.OAuthLinkRequest true "{provider, channel, code, state} 或 {provider, channel, accessToken, openId}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthBindingListDto}
 //	@Router		/user/oauth/bindings/link [post]
 //	@ID			OAuthBindingController_link
 func (h *AuthHandler) OAuthBindingLink(c *gin.Context) {
@@ -325,3 +335,8 @@ func (h *AuthHandler) OAuthBindingLink(c *gin.Context) {
 	}
 	response.Success(c, gin.H{"bindings": bindings})
 }
+
+// 让 dto 包成为本文件的真实 import：swag 只按「注解所在文件的 import 列表」
+// 解析跨包类型（docs/18 §三之一 约束 B）。本文件注解写了 dto.Xxx，这里引用一次。
+// 不参与运行逻辑。
+var _ = dto.ResponseBody{}

@@ -11,6 +11,7 @@ package service
 import (
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -39,31 +40,22 @@ func NewPointsService(db *gorm.DB) *PointsService {
 // SetLedger 替换账本实现（单测注入内存替身用；生产不调用）。
 func (s *PointsService) SetLedger(l PointsLedger) { s.ledger = l }
 
-// AddPointsInput 增加积分入参（对齐原 AddPointsDto）。
-type AddPointsInput struct {
-	Amount      int    `json:"amount" binding:"required"`
-	Source      string `json:"source" binding:"required"`
-	Description string `json:"description"`
-	RelatedType string `json:"relatedType"`
-	RelatedID   string `json:"relatedId"`
-	ValidDays   int    `json:"validDays"`
-}
+// AddPointsInput 增加积分入参。
+//
+// 别名到 dto.AddPointsRequest（2026-11-25 DTO 改造）：请求体的**唯一结构定义**在
+// internal/dto，service/handler 只引用不重新定义 —— 否则 swagger 里声明的请求体
+// 与真正绑定的类型会漂移成两份（改一处忘另一处，文档骗人）。
+// 字段与 binding tag 与原结构逐字一致，实际绑定行为零变化。
+type AddPointsInput = dto.AddPointsRequest
 
-// SpendPointsInput 消费积分入参（对齐原 SpendPointsDto）。
-type SpendPointsInput struct {
-	Amount      int    `json:"amount" binding:"required"`
-	Source      string `json:"source" binding:"required"`
-	Description string `json:"description"`
-	RelatedType string `json:"relatedType"`
-	RelatedID   string `json:"relatedId"`
-}
+// SpendPointsInput 消费积分入参（别名到 dto.SpendPointsRequest，理由同上）。
+type SpendPointsInput = dto.SpendPointsRequest
 
-// PointsChangeResult 积分变动结果（发放/消费共用）。
-type PointsChangeResult struct {
-	Amount        int                      `json:"amount"`
-	CurrentPoints int                      `json:"currentPoints"`
-	Transaction   *model.PointsTransaction `json:"transaction"`
-}
+// PointsChangeResult 积分变动结果（发放/消费/领取奖励共用）。
+//
+// 别名到 dto.PointsChangeResultDto：transaction 由 *model.PointsTransaction 收窄为
+// *dto.PointsTransactionDto，对外不再泄漏 model 指针字段（到期时间等会输出 null）。
+type PointsChangeResult = dto.PointsChangeResultDto
 
 // Add 发放积分（余额变动 + 流水走 PointsLedger）。
 func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResult, error) {
@@ -85,7 +77,7 @@ func (s *PointsService) Add(userID string, in AddPointsInput) (*PointsChangeResu
 	if err != nil {
 		return nil, err
 	}
-	return &PointsChangeResult{Amount: in.Amount, CurrentPoints: balance, Transaction: record}, nil
+	return toPointsChangeResult(in.Amount, balance, record), nil
 }
 
 // Spend 消费积分（余额不足直接失败，不会扣成负数）。
@@ -102,7 +94,7 @@ func (s *PointsService) Spend(userID string, in SpendPointsInput) (*PointsChange
 	if err != nil {
 		return nil, err
 	}
-	return &PointsChangeResult{Amount: in.Amount, CurrentPoints: balance, Transaction: record}, nil
+	return toPointsChangeResult(in.Amount, balance, record), nil
 }
 
 // AddByRule 按活动代码发放积分（校验每日/总限额，对齐原 addPointsByRule）。
@@ -192,15 +184,27 @@ func (s *PointsService) Account(userID string) (*model.PointsAccount, error) {
 }
 
 // Transactions 分页查流水（userID 为空 = 全量，管理端用）。
-func (s *PointsService) Transactions(q model.PointsTxQuery) ([]model.PointsTransaction, int64, error) {
+//
+// 返回 dto 切片而非 []model.PointsTransaction：service 层不许把 *model.Xxx 直接当对外
+// 返回类型（给表加一列就自动泄漏到 API），且 model 的 ExpiredAt 是 *time.Time，
+// 直接序列化会输出 null。空结果返回 `[]`（sliceOrEmpty），不是 null。
+func (s *PointsService) Transactions(q model.PointsTxQuery) ([]dto.PointsTransactionDto, int64, error) {
 	q.Page, q.Limit = normPage(q.Page, q.Limit)
-	return s.txs.List(s.DB, q)
+	rows, total, err := s.txs.List(s.DB, q)
+	if err != nil {
+		return nil, 0, err
+	}
+	out := make([]dto.PointsTransactionDto, 0, len(rows))
+	for i := range rows {
+		out = append(out, toPointsTransactionDto(&rows[i]))
+	}
+	return out, total, nil
 }
 
 // ---- 积分活动 ----
 
 // CreateActivity 创建活动（code 唯一，应用层校验）。
-func (s *PointsService) CreateActivity(in model.PointsActivityInput) (*model.PointsActivity, error) {
+func (s *PointsService) CreateActivity(in model.PointsActivityInput) (*dto.PointsActivityDto, error) {
 	if in.Code == nil || *in.Code == "" {
 		return nil, errcode.ErrBadRequest.WithKeyf(i18n.CommonMissingField, "code")
 	}
@@ -227,11 +231,11 @@ func (s *PointsService) CreateActivity(in model.PointsActivityInput) (*model.Poi
 	if err := s.activities.Create(s.DB, a); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return toPointsActivityDto(a), nil
 }
 
 // UpdateActivity 更新活动（code 变更需重查唯一）。
-func (s *PointsService) UpdateActivity(id string, in model.PointsActivityInput) (*model.PointsActivity, error) {
+func (s *PointsService) UpdateActivity(id string, in model.PointsActivityInput) (*dto.PointsActivityDto, error) {
 	a, err := s.activities.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -252,7 +256,7 @@ func (s *PointsService) UpdateActivity(id string, in model.PointsActivityInput) 
 	if err := s.activities.Save(s.DB, a); err != nil {
 		return nil, err
 	}
-	return a, nil
+	return toPointsActivityDto(a), nil
 }
 
 // DeleteActivity 删除活动（软删）。
@@ -268,7 +272,7 @@ func (s *PointsService) DeleteActivity(id string) error {
 }
 
 // Activity 活动详情。
-func (s *PointsService) Activity(id string) (*model.PointsActivity, error) {
+func (s *PointsService) Activity(id string) (*dto.PointsActivityDto, error) {
 	a, err := s.activities.FindByID(s.DB, id)
 	if err != nil {
 		return nil, err
@@ -276,12 +280,23 @@ func (s *PointsService) Activity(id string) (*model.PointsActivity, error) {
 	if a == nil {
 		return nil, errcode.ErrNotFound.WithKey(i18n.PointsActivityNotFound)
 	}
-	return a, nil
+	return toPointsActivityDto(a), nil
 }
 
 // Activities 公开活动列表。
-func (s *PointsService) Activities(actType, keyword string) ([]model.PointsActivity, error) {
-	return s.activities.ListPublic(s.DB, actType, keyword)
+//
+// 返回 dto 切片：空结果返回 `[]`（make 初始化），不是 null —— 本接口不走分页，
+// data 直接是数组，nil 切片会让前端拿到 `"data": null`。
+func (s *PointsService) Activities(actType, keyword string) ([]dto.PointsActivityDto, error) {
+	rows, err := s.activities.ListPublic(s.DB, actType, keyword)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]dto.PointsActivityDto, 0, len(rows))
+	for i := range rows {
+		out = append(out, *toPointsActivityDto(&rows[i]))
+	}
+	return out, nil
 }
 
 // ClaimTaskReward 领取任务奖励（幂等：已领取直接报错）。
@@ -337,12 +352,23 @@ func taskClaimRejection(record *model.PointsTaskRecord) *errcode.Err {
 }
 
 // MyTasks 我的任务记录。
-func (s *PointsService) MyTasks(userID string) ([]model.PointsTaskRecord, error) {
-	return s.tasks.ListByUser(s.DB, userID)
+//
+// 返回 dto 切片并在内部保证非 nil：本接口 data 直接是数组，
+// nil 切片序列化成 `"data": null`（docs/21 明令禁止）。
+func (s *PointsService) MyTasks(userID string) ([]dto.PointsTaskDto, error) {
+	rows, err := s.tasks.ListByUser(s.DB, userID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]dto.PointsTaskDto, 0, len(rows))
+	for i := range rows {
+		out = append(out, *toPointsTaskDto(&rows[i]))
+	}
+	return out, nil
 }
 
 // MyTaskProgress 指定活动进度。
-func (s *PointsService) MyTaskProgress(userID, activityID string) (*model.PointsTaskRecord, error) {
+func (s *PointsService) MyTaskProgress(userID, activityID string) (*dto.PointsTaskDto, error) {
 	r, err := s.tasks.FindByUserAndActivity(s.DB, userID, activityID)
 	if err != nil {
 		return nil, err
@@ -350,7 +376,7 @@ func (s *PointsService) MyTaskProgress(userID, activityID string) (*model.Points
 	if r == nil {
 		return nil, errcode.ErrNotFound.WithKey(i18n.PointsRecordNotFound)
 	}
-	return r, nil
+	return toPointsTaskDto(r), nil
 }
 
 // UpdateTaskProgress 推进任务进度（周期性任务；INSTANT 不跟踪）。
@@ -390,44 +416,18 @@ func (s *PointsService) UpdateTaskProgress(userID, activityCode string, incremen
 }
 
 // PointsStatistics 积分系统统计（管理端）。
-type PointsStatistics struct {
-	Transactions struct {
-		Total  int64 `json:"total"`
-		Earned int64 `json:"earned"`
-		Spent  int64 `json:"spent"`
-	} `json:"transactions"`
-	Points struct {
-		TotalEarned   int64 `json:"totalEarned"`
-		TotalSpent    int64 `json:"totalSpent"`
-		InCirculation int64 `json:"inCirculation"`
-	} `json:"points"`
-	Users struct {
-		ActiveUsers int64 `json:"activeUsers"`
-	} `json:"users"`
-	Activities struct {
-		Total  int64 `json:"total"`
-		Active int64 `json:"active"`
-	} `json:"activities"`
-	Tasks struct {
-		TotalRecords   int64  `json:"totalRecords"`
-		Completed      int64  `json:"completed"`
-		Claimed        int64  `json:"claimed"`
-		CompletionRate string `json:"completionRate"`
-		ClaimRate      string `json:"claimRate"`
-	} `json:"tasks"`
-	BySource []SourceStat `json:"bySource"`
-}
+//
+// 别名到 dto.PointsStatisticsDto：对外结构统一在 internal/dto，此处只保留类型名
+// 供既有调用方（含 ops_camel_test.go 的 camelCase 回归用例）继续引用，依赖方向是
+// service → dto（正常），不是为脚本/测试点缀的 Deprecated 别名。
+type PointsStatistics = dto.PointsStatisticsDto
 
-// SourceStat 按来源统计。
-type SourceStat struct {
-	Source string `json:"source"`
-	Count  int64  `json:"count"`
-	Total  int64  `json:"total"`
-}
+// SourceStat 按来源统计（别名到 dto.PointsSourceStatDto，理由同上）。
+type SourceStat = dto.PointsSourceStatDto
 
 // Statistics 统计。
-func (s *PointsService) Statistics() (*PointsStatistics, error) {
-	var st PointsStatistics
+func (s *PointsService) Statistics() (*dto.PointsStatisticsDto, error) {
+	var st dto.PointsStatisticsDto
 	db := s.DB
 
 	if err := db.Model(&model.PointsTransaction{}).Count(&st.Transactions.Total).Error; err != nil {
@@ -486,14 +486,15 @@ func (s *PointsService) Statistics() (*PointsStatistics, error) {
 	st.Tasks.CompletionRate = rate(st.Tasks.Completed, st.Tasks.TotalRecords)
 	st.Tasks.ClaimRate = rate(st.Tasks.Claimed, st.Tasks.Completed)
 
-	var bySource []SourceStat
+	var bySource []dto.PointsSourceStatDto
 	if err := db.Model(&model.PointsTransaction{}).
 		Select("source AS source, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total").
 		Where("type = ?", model.PointsTxEarn).
 		Group("source").Order("total DESC").Scan(&bySource).Error; err != nil {
 		return nil, err
 	}
-	st.BySource = bySource
+	// 空时输出 [] 而不是 null（无任何积分获取记录时 bySource 会是 nil）
+	st.BySource = sliceOrEmpty(bySource)
 
 	return &st, nil
 }

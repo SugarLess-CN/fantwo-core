@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -15,59 +16,34 @@ import (
 )
 
 // ---------- 合集 DTO ----------
+//
+// 结构与 json tag 的唯一定义源在 internal/dto/collection.go（swag schema 名 = dto.Xxx）。
+// 这里一律用**类型别名**而不是重复声明字段：
+// 重复声明就会「改了一处忘了另一处」，文档与运行时悄悄漂移 —— 这是 docs/18 要防的事。
+//
+// 请求体同名同形地别名到 dto：gin 的 binding tag 跟着类型走，dto 里已带全。
 
-// CreateCollectionRequest 创建合集。
-type CreateCollectionRequest struct {
-	Name        string  `json:"name" binding:"required,max=100"`
-	Description *string `json:"description"`
-	Avatar      *string `json:"avatar"`
-	Cover       *string `json:"cover"`
-	IsPublic    *bool   `json:"isPublic"`
-	Sort        *int    `json:"sort"`
-}
+// CreateCollectionRequest 创建合集（dto.CreateCollectionRequest 的别名）。
+type CreateCollectionRequest = dto.CreateCollectionRequest
 
-// UpdateCollectionRequest 更新合集（全字段可选）。
-type UpdateCollectionRequest struct {
-	Name        *string `json:"name" binding:"omitempty,max=100"`
-	Description *string `json:"description"`
-	Avatar      *string `json:"avatar"`
-	Cover       *string `json:"cover"`
-	IsPublic    *bool   `json:"isPublic"`
-	Sort        *int    `json:"sort"`
-}
+// UpdateCollectionRequest 更新合集（全字段可选，dto.UpdateCollectionRequest 的别名）。
+type UpdateCollectionRequest = dto.UpdateCollectionRequest
 
-// ReorderCollectionItemsRequest 合集内文章重排。
-type ReorderCollectionItemsRequest struct {
-	ArticleIDs []string `json:"articleIds" binding:"required,min=1"`
-}
+// ReorderCollectionItemsRequest 合集内文章重排（dto.ReorderCollectionItemsRequest 的别名）。
+type ReorderCollectionItemsRequest = dto.ReorderCollectionItemsRequest
 
-// CollectionView 合集视图。
-type CollectionView struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description *string   `json:"description,omitempty"`
-	Avatar      *string   `json:"avatar,omitempty"`
-	Cover       *string   `json:"cover,omitempty"`
-	IsPublic    bool      `json:"isPublic"`
-	Sort        int       `json:"sort"`
-	UserID      string    `json:"userId"`
-	ItemCount   int       `json:"itemCount"`
-	Views       int       `json:"views"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	// 详情视角：内嵌条目
-	Items []CollectionItemView `json:"items,omitempty"`
-}
+// CollectionView 合集基础视图（dto.CollectionDto 的别名）。
+//
+// 字符串字段在 dto 里是值类型（空时 ""），组装见 toCollectionView 的 strOrEmpty。
+type CollectionView = dto.CollectionDto
 
-// CollectionItemView 合集条目视图。
-type CollectionItemView struct {
-	ID        string       `json:"id"`
-	ArticleID string       `json:"articleId"`
-	Sort      int          `json:"sort"`
-	Note      *string      `json:"note,omitempty"`
-	Article   *ArticleView `json:"article,omitempty"`
-	CreatedAt time.Time    `json:"createdAt"`
-}
+// CollectionDetailView 合集详情视图（dto.CollectionDetailDto 的别名）。
+//
+// 与 CollectionView 的差别只有 items：详情的 items 无 omitempty，空时必须是 []。
+type CollectionDetailView = dto.CollectionDetailDto
+
+// CollectionItemView 合集条目视图（dto.CollectionItemDto 的别名）。
+type CollectionItemView = dto.CollectionItemDto
 
 // reorderSortValue 合集重排后的排序值：传入顺序即展示顺序，越靠前越大。
 //
@@ -180,7 +156,7 @@ func (s *CollectionService) List(ctx context.Context, actor Actor, q repository.
 }
 
 // FindOne 合集详情（对齐 GET /collection/:id），附带条目与文章概要。
-func (s *CollectionService) FindOne(ctx context.Context, id string, actor Actor) (*CollectionView, *errcode.Err) {
+func (s *CollectionService) FindOne(ctx context.Context, id string, actor Actor) (*CollectionDetailView, *errcode.Err) {
 	c, e := s.getCollection(ctx, id, actor, false)
 	if e != nil {
 		return nil, e
@@ -192,7 +168,12 @@ func (s *CollectionService) FindOne(ctx context.Context, id string, actor Actor)
 		c.Views++
 	}
 
-	v := toCollectionView(*c)
+	// Items 预置空切片：详情契约要求无条目时是 [] 而不是 null（docs/21 §一），
+	// 也不能因为下面 AllItems 出错就退化成 null。
+	v := CollectionDetailView{
+		CollectionDto: toCollectionView(*c),
+		Items:         make([]CollectionItemView, 0),
+	}
 	items, err := s.repo.AllItems(ctx, id)
 	if err != nil {
 		s.log.Warn("查询合集条目失败", zap.Error(err))
@@ -247,7 +228,10 @@ func (s *CollectionService) Update(ctx context.Context, id string, actor Actor, 
 }
 
 // Remove 删除合集并清空条目（仅本人）。
-func (s *CollectionService) Remove(ctx context.Context, id string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+//
+// 返回具名结构（dto.DeleteResultDto）而不是 map：手写 map 的键没有任何约束，
+// 改一个键名不会有任何编译错误，文档就会静默失真（docs/18 §一 的教训）。
+func (s *CollectionService) Remove(ctx context.Context, id string, actor Actor) (*dto.DeleteResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -265,13 +249,13 @@ func (s *CollectionService) Remove(ctx context.Context, id string, actor Actor) 
 		s.log.Error("删除合集失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": id, "deleted": true}
+	out := dto.DeleteResultDto{ID: id, Deleted: true}
 	return &out, nil
 }
 
 // AddArticle 添加文章到合集（对齐 POST /collection/:id/article/:articleId）。
 // 重复添加幂等返回（不报错，保留原排序）。
-func (s *CollectionService) AddArticle(ctx context.Context, id, articleID string, actor Actor, note *string) (*map[string]interface{}, *errcode.Err) {
+func (s *CollectionService) AddArticle(ctx context.Context, id, articleID string, actor Actor, note *string) (*dto.CollectionArticleAddResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -287,8 +271,9 @@ func (s *CollectionService) AddArticle(ctx context.Context, id, articleID string
 		return nil, errcode.ErrInternal
 	}
 	if _, err := s.repo.FindItem(ctx, id, articleID); err == nil {
-		// message 提到顶层：handler 按 added=false 用 SuccessMsg 提示已存在
-		out := map[string]interface{}{"added": false}
+		// message 提到顶层：handler 按 added=false 用 SuccessMsg 提示已存在。
+		// 不带 sort —— 没有新排序值可给（dto 里 Sort 是 *int + omitempty）。
+		out := dto.CollectionArticleAddResultDto{Added: false}
 		return &out, nil
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.log.Error("查询合集条目失败", zap.Error(err))
@@ -317,12 +302,12 @@ func (s *CollectionService) AddArticle(ctx context.Context, id, articleID string
 		s.log.Error("添加合集条目失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"added": true, "sort": sort}
+	out := dto.CollectionArticleAddResultDto{Added: true, Sort: &sort}
 	return &out, nil
 }
 
 // RemoveArticle 从合集移除文章（对齐 DELETE /collection/:id/article/:articleId）。
-func (s *CollectionService) RemoveArticle(ctx context.Context, id, articleID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *CollectionService) RemoveArticle(ctx context.Context, id, articleID string, actor Actor) (*dto.CollectionArticleRemoveResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -340,12 +325,12 @@ func (s *CollectionService) RemoveArticle(ctx context.Context, id, articleID str
 		s.log.Error("移除合集条目失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"removed": true}
+	out := dto.CollectionArticleRemoveResultDto{Removed: true}
 	return &out, nil
 }
 
 // ReorderItems 合集内文章重排（按下标顺序写入 sort，越大越靠前）。
-func (s *CollectionService) ReorderItems(ctx context.Context, id string, actor Actor, articleIDs []string) (*map[string]interface{}, *errcode.Err) {
+func (s *CollectionService) ReorderItems(ctx context.Context, id string, actor Actor, articleIDs []string) (*dto.CollectionReorderResultDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -374,7 +359,7 @@ func (s *CollectionService) ReorderItems(ctx context.Context, id string, actor A
 		s.log.Error("合集重排失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"reordered": len(articleIDs)}
+	out := dto.CollectionReorderResultDto{Reordered: len(articleIDs)}
 	return &out, nil
 }
 
@@ -404,7 +389,7 @@ func (s *CollectionService) ListItems(ctx context.Context, id string, actor Acto
 }
 
 // CheckArticle 检查文章是否在（我的）合集中（对齐 GET /collection/check/:articleId）。
-func (s *CollectionService) CheckArticle(ctx context.Context, actor Actor, articleID string) (*map[string]interface{}, *errcode.Err) {
+func (s *CollectionService) CheckArticle(ctx context.Context, actor Actor, articleID string) (*dto.CollectionCheckDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -413,22 +398,23 @@ func (s *CollectionService) CheckArticle(ctx context.Context, actor Actor, artic
 		s.log.Error("查询文章所属合集失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	list := make([]map[string]interface{}, 0, len(collections))
+	// 空列表必须是 [] 不是 null（docs/21 §一）
+	list := make([]dto.CollectionCheckBriefDto, 0, len(collections))
 	for _, c := range collections {
-		list = append(list, map[string]interface{}{
-			"id":        c.ID,
-			"name":      c.Name,
-			"isPublic":  c.IsPublic,
-			"itemCount": c.ItemCount,
+		list = append(list, dto.CollectionCheckBriefDto{
+			ID:        c.ID,
+			Name:      c.Name,
+			IsPublic:  c.IsPublic,
+			ItemCount: c.ItemCount,
 		})
 	}
-	out := map[string]interface{}{"inCollection": len(list) > 0, "collections": list}
+	out := dto.CollectionCheckDto{InCollection: len(list) > 0, Collections: list}
 	return &out, nil
 }
 
 // ArticleCollectionInfo 文章所在合集信息（对齐 GET /collection/article/:articleId/info）。
 // 返回该文章在「当前用户合集」与「公开合集」中的归属，供文章详情页跳转。
-func (s *CollectionService) ArticleCollectionInfo(ctx context.Context, actor Actor, articleID string) (*map[string]interface{}, *errcode.Err) {
+func (s *CollectionService) ArticleCollectionInfo(ctx context.Context, actor Actor, articleID string) (*dto.ArticleCollectionInfoDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -437,16 +423,17 @@ func (s *CollectionService) ArticleCollectionInfo(ctx context.Context, actor Act
 		s.log.Error("查询文章合集归属失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	list := make([]map[string]interface{}, 0, len(mine))
+	// 空列表必须是 [] 不是 null（docs/21 §一）
+	list := make([]dto.ArticleCollectionBriefDto, 0, len(mine))
 	for _, c := range mine {
-		list = append(list, map[string]interface{}{
-			"id":       c.ID,
-			"name":     c.Name,
-			"userId":   c.UserID,
-			"isPublic": c.IsPublic,
+		list = append(list, dto.ArticleCollectionBriefDto{
+			ID:       c.ID,
+			Name:     c.Name,
+			UserID:   c.UserID,
+			IsPublic: c.IsPublic,
 		})
 	}
-	out := map[string]interface{}{"articleId": articleID, "collections": list}
+	out := dto.ArticleCollectionInfoDto{ArticleID: articleID, Collections: list}
 	return &out, nil
 }
 
@@ -470,8 +457,9 @@ func (s *CollectionService) buildItemViews(ctx context.Context, items []model.Co
 			ID:        it.ID,
 			ArticleID: it.ArticleID,
 			Sort:      it.Sort,
-			Note:      it.Note,
-			CreatedAt: it.CreatedAt,
+			// 字符串值类型：note 空时 ""（docs/21 §一）
+			Note:      strOrEmpty(it.Note),
+			CreatedAt: it.CreatedAt.Format(time.RFC3339),
 		}
 		if a, ok := byID[it.ArticleID]; ok {
 			v.Article = a
@@ -498,19 +486,22 @@ func (s *CollectionService) buildArticleViewsFor(ctx context.Context, ids []stri
 }
 
 // toCollectionView 实体转视图。
+//
+// 三个可选字符串走 strOrEmpty（nil → ""），时间走 RFC3339：
+// dto 层是值类型 string，不能把 *string 直接塞进来（那是 nil 来源）。
 func toCollectionView(c model.Collection) CollectionView {
 	return CollectionView{
 		ID:          c.ID,
 		Name:        c.Name,
-		Description: c.Description,
-		Avatar:      c.Avatar,
-		Cover:       c.Cover,
+		Description: strOrEmpty(c.Description),
+		Avatar:      strOrEmpty(c.Avatar),
+		Cover:       strOrEmpty(c.Cover),
 		IsPublic:    c.IsPublic,
 		Sort:        c.Sort,
 		UserID:      c.UserID,
 		ItemCount:   c.ItemCount,
 		Views:       c.Views,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
+		CreatedAt:   c.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   c.UpdatedAt.Format(time.RFC3339),
 	}
 }

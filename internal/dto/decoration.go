@@ -1,0 +1,222 @@
+package dto
+
+// 本文件覆盖 decoration 域（装饰品、用户持有、当前佩戴、活动、活动进度）的全部
+// 对外请求与响应结构。
+//
+// 字段来源（不是想象，逐条可追）：
+//   - DecorationDto / DecorationActivityDto / UserActivityProgressDto
+//     ← internal/model/decoration.go 的 json tag
+//   - UserDecorationDto ← model.UserDecoration + service 组装时补的 decoration 嵌套
+//   - CurrentDecorationsDto ← internal/service/decoration_service.go 的 CurrentDecorations
+//   - 请求体 ← model.DecorationInput / DecorationActivityInput（指针 = PATCH 语义）
+//   - 动作类响应 ← internal/handler/decoration.go 里的 gin.H 字面量键
+//
+// 空值规则（docs/21-JSON序列化规范.md）：
+//   - 字符串 → 值类型 string，空时 ""
+//   - 数组   → 去掉 omitempty + 赋值时 make([]T, 0, n)，空时 []
+//   - 时间   → *string + omitempty，空时**整个字段不传**
+//     （expiresAt / completedAt / rewardedAt 在库里可为 NULL；传 null 或零值都不诚实）
+//   - 对象   → *T + omitempty，空时整个字段不传（avatarFrame / commentBubble / decoration）
+
+import "time"
+
+// ---------------------------------------------------------------------------
+// 装饰品定义（响应）
+// ---------------------------------------------------------------------------
+
+// DecorationDto 装饰品对外视图（model.Decoration，17 个业务字段 + id/时间）。
+//
+// 用于：GET /decoration（列表项）、GET /decoration/{id}、POST /decoration、
+// PATCH /decoration/{id}，以及 UserDecorationDto 里的 decoration 嵌套。
+type DecorationDto struct {
+	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+
+	Name          string  `json:"name" example:"金色边框"`
+	Type          string  `json:"type" example:"AVATAR_FRAME"` // AVATAR_FRAME / COMMENT_BUBBLE / ACHIEVEMENT_BADGE
+	Description   string  `json:"description" example:"限时活动的头像框"`
+	ImageURL      string  `json:"imageUrl" example:"https://cdn.example.com/deco/frame.png"`
+	PreviewURL    string  `json:"previewUrl" example:"https://cdn.example.com/deco/frame-preview.png"`
+	Rarity        string  `json:"rarity" example:"COMMON"`         // COMMON / RARE / EPIC / LEGENDARY
+	BubbleColor   string  `json:"bubbleColor" example:"#FFD700"`   // 仅评论气泡用
+	ObtainMethod  string  `json:"obtainMethod" example:"PURCHASE"` // PURCHASE / ACTIVITY / GIFT / ACHIEVEMENT / DEFAULT
+	IsPurchasable bool    `json:"isPurchasable" example:"true"`
+	Price         float64 `json:"price" example:"9.9"`
+	IsPermanent   bool    `json:"isPermanent" example:"false"`
+	ValidDays     int     `json:"validDays" example:"30"`
+	Sort          int     `json:"sort" example:"0"`
+	Status        string  `json:"status" example:"ACTIVE"` // ACTIVE / INACTIVE
+
+	// 归属来源（反查唯一来源；非来源方向时为空串，不是 null）
+	ActivityID    string `json:"activityId" example:""`
+	AchievementID string `json:"achievementId" example:""`
+}
+
+// ---------------------------------------------------------------------------
+// 用户持有 / 当前佩戴（响应）
+// ---------------------------------------------------------------------------
+
+// UserDecorationDto 用户持有的装饰品对外视图（model.UserDecoration + decoration 嵌套）。
+//
+// isUsing 即「是否正在佩戴」（库里列名 is_using）。
+//
+// Decoration 是**对象字段**：service 批量补填（列表接口一次 IN 查询），
+// 补不到时整个字段不传（不是在列表里塞 null）。这样前端画头像框不用二次请求。
+type UserDecorationDto struct {
+	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+
+	UserID         string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	DecorationID   string `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ObtainMethod   string `json:"obtainMethod" example:"PURCHASE"`
+	IsPermanent    bool   `json:"isPermanent" example:"false"`
+	IsUsing        bool   `json:"isUsing" example:"true"`
+	GiftFromUserID string `json:"giftFromUserId" example:""`
+	OrderID        string `json:"orderId" example:""`
+	ActivityID     string `json:"activityId" example:""`
+	Remark         string `json:"remark" example:""`
+
+	// 时间：空时整个字段不传（永久持有 / 未领奖时库里是 NULL）
+	ExpiresAt *string `json:"expiresAt,omitempty" format:"date-time" example:"2026-12-25T10:00:00Z"`
+
+	// 嵌套装饰品定义（service 批量补填；补不到时不传）
+	Decoration *DecorationDto `json:"decoration,omitempty"`
+}
+
+// CurrentDecorationsDto 当前佩戴（头像框 + 评论气泡）。
+//
+// 两个字段都是**对象 + omitempty**：没佩戴时整个字段不传，
+// 改前是 `*model.UserDecoration` 的 nil，序列化成 `"avatarFrame": null`。
+type CurrentDecorationsDto struct {
+	AvatarFrame   *UserDecorationDto `json:"avatarFrame,omitempty"`
+	CommentBubble *UserDecorationDto `json:"commentBubble,omitempty"`
+}
+
+// ---------------------------------------------------------------------------
+// 装饰品活动（响应）
+// ---------------------------------------------------------------------------
+
+// DecorationActivityDto 装饰品活动对外视图（model.DecorationActivity，17 业务字段 + id/时间）。
+//
+// 用于：GET /decoration/activity（列表项）、GET /decoration/activity/{id}、
+// POST /decoration/activity、PATCH /decoration/activity/{id}。
+type DecorationActivityDto struct {
+	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+
+	Name         string `json:"name" example:"双十一点赞活动"`
+	Description  string `json:"description" example:"累计 100 赞得限定头像框"`
+	Type         string `json:"type" example:"LIKE"` // LIKE / COMMENT / SHARE / RECHARGE / SIGN_IN / CUSTOM
+	DecorationID string `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ArticleID    string `json:"articleId" example:""`
+
+	RequiredLikes      int     `json:"requiredLikes" example:"100"`
+	RequiredComments   int     `json:"requiredComments" example:"0"`
+	RequiredShares     int     `json:"requiredShares" example:"0"`
+	RequiredRecharge   float64 `json:"requiredRecharge" example:"0"`
+	RequiredSignInDays int     `json:"requiredSignInDays" example:"0"`
+
+	IsPermanent bool `json:"isPermanent" example:"false"`
+	ValidDays   int  `json:"validDays" example:"30"`
+
+	// 活动起止时间：库里 NOT NULL（创建时必有值），故用 string 而非 omitempty 指针
+	StartTime string `json:"startTime" format:"date-time" example:"2026-11-01T00:00:00Z"`
+	EndTime   string `json:"endTime" format:"date-time" example:"2027-11-01T00:00:00Z"`
+
+	Status           string `json:"status" example:"ACTIVE"` // ACTIVE / INACTIVE / ENDED
+	ParticipantCount int64  `json:"participantCount" example:"128"`
+	CompletedCount   int64  `json:"completedCount" example:"36"`
+}
+
+// UserActivityProgressDto 用户活动进度对外视图（model.UserActivityProgress，14 业务字段 + id/时间）。
+//
+// 用于：GET /decoration/activity/progress/my（数组元素）。
+type UserActivityProgressDto struct {
+	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+
+	UserID     string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ActivityID string `json:"activityId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+
+	CurrentLikes      int     `json:"currentLikes" example:"88"`
+	CurrentComments   int     `json:"currentComments" example:"12"`
+	CurrentShares     int     `json:"currentShares" example:"0"`
+	CurrentRecharge   float64 `json:"currentRecharge" example:"0"`
+	CurrentSignInDays int     `json:"currentSignInDays" example:"0"`
+
+	IsCompleted bool `json:"isCompleted" example:"false"`
+	IsRewarded  bool `json:"isRewarded" example:"false"`
+
+	// 时间：空时整个字段不传（未完成 / 未领奖时库里是 NULL）
+	CompletedAt *string `json:"completedAt,omitempty" format:"date-time"`
+	RewardedAt  *string `json:"rewardedAt,omitempty" format:"date-time"`
+}
+
+// ---------------------------------------------------------------------------
+// 请求体
+// ---------------------------------------------------------------------------
+
+// DecorationInputRequest 装饰品创建 / 更新入参（model.DecorationInput，14 个可选字段）。
+//
+// POST /decoration 与 PATCH /decoration/{id} 共用；全指针 = PATCH 语义（不传 = 不改）。
+// 请求体的可选字段保留指针是 docs/21 §四 的明确例外（入参不是出参）。
+type DecorationInputRequest struct {
+	Name          *string  `json:"name" example:"金色边框"`
+	Type          *string  `json:"type" example:"AVATAR_FRAME"`
+	Description   *string  `json:"description" example:"限时活动的头像框"`
+	ImageURL      *string  `json:"imageUrl" example:"https://cdn.example.com/deco/frame.png"`
+	PreviewURL    *string  `json:"previewUrl" example:"https://cdn.example.com/deco/frame-preview.png"`
+	Rarity        *string  `json:"rarity" example:"COMMON"`
+	BubbleColor   *string  `json:"bubbleColor" example:"#FFD700"`
+	ObtainMethod  *string  `json:"obtainMethod" example:"PURCHASE"`
+	IsPurchasable *bool    `json:"isPurchasable" example:"true"`
+	Price         *float64 `json:"price" example:"9.9"`
+	IsPermanent   *bool    `json:"isPermanent" example:"false"`
+	ValidDays     *int     `json:"validDays" example:"30"`
+	Sort          *int     `json:"sort" example:"0"`
+	Status        *string  `json:"status" example:"ACTIVE"`
+}
+
+// DecorationActivityInputRequest 活动创建 / 更新入参（model.DecorationActivityInput，15 个可选字段）。
+type DecorationActivityInputRequest struct {
+	Name               *string    `json:"name" example:"双十一点赞活动"`
+	Description        *string    `json:"description" example:"累计 100 赞得限定头像框"`
+	Type               *string    `json:"type" example:"LIKE"`
+	DecorationID       *string    `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ArticleID          *string    `json:"articleId"`
+	RequiredLikes      *int       `json:"requiredLikes" example:"100"`
+	RequiredComments   *int       `json:"requiredComments" example:"0"`
+	RequiredShares     *int       `json:"requiredShares" example:"0"`
+	RequiredRecharge   *float64   `json:"requiredRecharge" example:"0"`
+	RequiredSignInDays *int       `json:"requiredSignInDays" example:"0"`
+	IsPermanent        *bool      `json:"isPermanent" example:"false"`
+	ValidDays          *int       `json:"validDays" example:"30"`
+	StartTime          *time.Time `json:"startTime" format:"date-time" example:"2026-11-01T00:00:00Z"`
+	EndTime            *time.Time `json:"endTime" format:"date-time" example:"2027-11-01T00:00:00Z"`
+	Status             *string    `json:"status" example:"ACTIVE"`
+}
+
+// PurchaseDecorationRequest 购买装饰品（decorationId 必填）。
+type PurchaseDecorationRequest struct {
+	DecorationID string `json:"decorationId" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+}
+
+// GiftDecorationRequest 赠送装饰品（toUserId + decorationId 必填，message 可选）。
+type GiftDecorationRequest struct {
+	ToUserID     string `json:"toUserId" binding:"required" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	DecorationID string `json:"decorationId" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	Message      string `json:"message" example:"生日快乐！"`
+}
+
+// ---------------------------------------------------------------------------
+// 动作类响应
+// ---------------------------------------------------------------------------
+
+// CleanExpiredResultDto 清理过期装饰品的结果（管理触发）。
+type CleanExpiredResultDto struct {
+	Cleaned int64 `json:"cleaned" example:"3"`
+}

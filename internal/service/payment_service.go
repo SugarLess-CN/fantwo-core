@@ -27,6 +27,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -220,12 +221,11 @@ func (s *PaymentService) getCommissionConfig() CommissionConfig {
 // ---------- 发起支付 ----------
 
 // CreatePaymentInput POST /payment/create 入参。
-type CreatePaymentInput struct {
-	OrderID       string `json:"orderId" binding:"required"`
-	PaymentMethod string `json:"paymentMethod" binding:"required,oneof=ALIPAY WECHAT EPAY BALANCE"`
-	ReturnURL     string `json:"returnUrl"`
-	Type          string `json:"type"` // epay 子类型：alipay/wxpay/usdt
-}
+//
+// 别名到 dto.CreatePaymentRequest（2026-11-25 DTO 改造）：请求体结构的唯一定义在
+// internal/dto —— 否则 swagger 里声明的 body 与真正绑定的类型是两份，迟早漂移。
+// 字段名与 binding tag 逐字一致（枚举校验 oneof 也一并搬过去），行为零变化。
+type CreatePaymentInput = dto.CreatePaymentRequest
 
 // CreatePayment 创建支付，返回支付凭据（paymentUrl / codeUrl）。
 func (s *PaymentService) CreatePayment(userID string, in CreatePaymentInput) (map[string]interface{}, error) {
@@ -793,7 +793,7 @@ func (s *PaymentService) TestEpaySignature(params map[string]string) (string, er
 }
 
 // GetPaymentRecord 支付记录详情。
-func (s *PaymentService) GetPaymentRecord(id, userID string) (*model.Payment, error) {
+func (s *PaymentService) GetPaymentRecord(id, userID string) (*dto.PaymentDto, error) {
 	var p model.Payment
 	if err := s.DB.First(&p, "id = ? AND user_id = ?", id, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -801,11 +801,14 @@ func (s *PaymentService) GetPaymentRecord(id, userID string) (*model.Payment, er
 		}
 		return nil, err
 	}
-	return &p, nil
+	return toPaymentDto(&p), nil
 }
 
 // GetPaymentByOrder 按订单查支付记录。
-func (s *PaymentService) GetPaymentByOrder(orderID, userID string) (*model.Payment, error) {
+//
+// 未找到时返回 (nil, nil)：handler 拿到 nil 交给 response.Success，
+// data 为 nil 时整个 data 字段省略（既有契约，不是 null）。
+func (s *PaymentService) GetPaymentByOrder(orderID, userID string) (*dto.PaymentDto, error) {
 	var p model.Payment
 	if err := s.DB.First(&p, "order_id = ? AND user_id = ?", orderID, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -813,11 +816,13 @@ func (s *PaymentService) GetPaymentByOrder(orderID, userID string) (*model.Payme
 		}
 		return nil, err
 	}
-	return &p, nil
+	return toPaymentDto(&p), nil
 }
 
 // ListUserPayments 用户支付记录分页。
-func (s *PaymentService) ListUserPayments(userID string, page, limit int) ([]model.Payment, int64, error) {
+//
+// 返回 dto 切片，空结果由 toPaymentDtos 保证是 `[]` 不是 null。
+func (s *PaymentService) ListUserPayments(userID string, page, limit int) ([]dto.PaymentDto, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -833,7 +838,7 @@ func (s *PaymentService) ListUserPayments(userID string, page, limit int) ([]mod
 	if err := db.Order("created_at DESC").Offset((page - 1) * limit).Limit(limit).Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
-	return list, total, nil
+	return toPaymentDtos(list), total, nil
 }
 
 // ---------- 辅助 ----------

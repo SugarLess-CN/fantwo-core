@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -35,8 +36,8 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateCommentRequest{articleId,content,parentId}"
-//	@Success		200		{object}	ResponseBody
+//	@Param			body	body		dto.CreateCommentRequest	true	"评论内容"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@Failure		400		{object}	ResponseBody
 //	@Router			/comment [post]
 func (h *CommentHandler) Create(c *gin.Context) {
@@ -61,7 +62,7 @@ func (h *CommentHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@Router		/comment [get]
 func (h *CommentHandler) FindAll(c *gin.Context) {
 	q := commentListQuery(c)
@@ -81,7 +82,7 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 //	@Param			id		path		string	true	"文章 ID"
 //	@Param			page	query		int		false	"页码"
 //	@Param			limit	query		int		false	"每页条数"
-//	@Success		200		{object}	ResponsePageBody
+//	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@Router			/comment/article/{id} [get]
 func (h *CommentHandler) FindByArticle(c *gin.Context) {
 	q := commentListQuery(c)
@@ -99,7 +100,7 @@ func (h *CommentHandler) FindByArticle(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@Router		/comment/{id} [get]
 func (h *CommentHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindCommentDetail(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -118,8 +119,8 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.UpdateCommentRequest true "待更新字段（部分更新）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@Router		/comment/{id} [patch]
 func (h *CommentHandler) Update(c *gin.Context) {
 	var req service.UpdateCommentRequest
@@ -143,8 +144,8 @@ func (h *CommentHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.SetCommentPinRequest true "是否置顶"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommentPinResultDto}
 //	@Router		/comment/{id}/pin [patch]
 func (h *CommentHandler) SetPin(c *gin.Context) {
 	var req service.SetCommentPinRequest
@@ -167,7 +168,7 @@ func (h *CommentHandler) SetPin(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"评论 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Failure	403	{object}	ResponseBody
 //	@Router		/comment/{id} [delete]
 func (h *CommentHandler) Remove(c *gin.Context) {
@@ -186,7 +187,7 @@ func (h *CommentHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommentLikeResultDto}
 //	@Router		/comment/{id}/like [post]
 func (h *CommentHandler) Like(c *gin.Context) {
 	out, e := h.svc.Like(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -204,7 +205,7 @@ func (h *CommentHandler) Like(c *gin.Context) {
 //	@Produce	json
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@Router		/comment/user/{userId} [get]
 func (h *CommentHandler) UserComments(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -222,7 +223,7 @@ func (h *CommentHandler) UserComments(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CountDto}
 //	@Router		/comment/article/{id}/count [get]
 func (h *CommentHandler) Count(c *gin.Context) {
 	out, e := h.svc.CommentCount(c.Request.Context(), c.Param("id"))
@@ -232,3 +233,6 @@ func (h *CommentHandler) Count(c *gin.Context) {
 	}
 	ctOK(c, out)
 }
+
+// var _ 保证 dto 的 import 不被判为未使用（swag 只看注解所在文件的 import，docs/18 §三之一 B）。
+var _ = dto.ResponseBody{}

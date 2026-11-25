@@ -1,7 +1,15 @@
 // 积分域 HTTP 层（原 PointsController 16 个操作）。
+//
+// 注解口径（docs/18）：每个 @Success 都用 `{data=dto.Xxx}` 嵌套覆盖指明 data 的具名类型；
+// 不写 `{data=...}` 就等于 `data: {}`，等于没定义。请求体一律具名（禁止 object 内联）。
+//
+// 数组型响应（/points/activities、/points/tasks/my）**不是分页**：这两个接口直接返回数组，
+// 所以注解用 `dto.ResponseBody{data=[]dto.XxxDto}` 而不是 ResponsePageBody ——
+// 原来写成 ResponsePageBody 与实现不符（实现返回的是裸数组，没有 meta）。
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -16,8 +24,8 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "addPointsRequest{userId,amount,reason}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.AddPointsRequest true "加分入参"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsChangeResultDto}
 //	@Router		/points/add [post]
 func (h *OpsHandler) PointsAdd(c *gin.Context) {
 	uid := requireUser(c)
@@ -44,8 +52,8 @@ func (h *OpsHandler) PointsAdd(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "spendPointsRequest{amount,reason}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.SpendPointsRequest true "消费入参"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsChangeResultDto}
 //	@Router		/points/spend [post]
 func (h *OpsHandler) PointsSpend(c *gin.Context) {
 	uid := requireUser(c)
@@ -71,7 +79,7 @@ func (h *OpsHandler) PointsSpend(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsBalanceDto}
 //	@Router		/points/balance [get]
 func (h *OpsHandler) PointsBalance(c *gin.Context) {
 	uid := requireUser(c)
@@ -83,7 +91,7 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"userId": uid, "points": balance})
+	ok(c, dto.PointsBalanceDto{UserID: uid, Points: balance})
 }
 
 // PointsTransactions GET /points/transactions（我的流水）。
@@ -94,7 +102,7 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@Router		/points/transactions [get]
 func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 	uid := requireUser(c)
@@ -125,7 +133,7 @@ func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@Router		/points/transactions/all [get]
 func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 	q := model.PointsTxQuery{
@@ -150,9 +158,10 @@ func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		userId path string true "userId"
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@Router		/points/users/{userId}/transactions [get]
 func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 	q := model.PointsTxQuery{
@@ -178,7 +187,7 @@ func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsBalanceDto}
 //	@Router		/points/users/{userId}/balance [get]
 func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 	uid := c.Param("userId")
@@ -187,7 +196,7 @@ func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"userId": uid, "points": balance})
+	ok(c, dto.PointsBalanceDto{UserID: uid, Points: balance})
 }
 
 // PointsStatistics GET /points/statistics（管理端）。
@@ -196,7 +205,7 @@ func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsStatisticsDto}
 //	@Router		/points/statistics [get]
 func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 	st, err := h.Points.Statistics()
@@ -207,13 +216,13 @@ func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 	ok(c, st)
 }
 
-// PointsMyTasks GET /points/tasks/my。
+// PointsMyTasks GET /points/tasks/my（数组，不是分页）。
 //
 //	@Summary	我的积分任务
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.PointsTaskDto}
 //	@Router		/points/tasks/my [get]
 func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 	uid := requireUser(c)
@@ -235,7 +244,7 @@ func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		activityId path string true "activityId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsTaskDto}
 //	@Router		/points/tasks/my/{activityId} [get]
 func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 	uid := requireUser(c)
@@ -254,10 +263,11 @@ func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 //
 //	@Summary	创建积分活动
 //	@Tags		积分
+//	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.CreatePointsActivityRequest true "活动入参（未传字段取默认值）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDto}
 //	@Router		/points/activities [post]
 func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 	var in model.PointsActivityInput
@@ -273,12 +283,14 @@ func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 	ok(c, a)
 }
 
-// PointsActivityList GET /points/activities（公开）。
+// PointsActivityList GET /points/activities（公开；数组，不是分页）。
 //
 //	@Summary	积分活动列表
 //	@Tags		积分
 //	@Produce	json
-//	@Success	200	{object}	ResponsePageBody
+//	@Param		type	query	string	false	"活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE"
+//	@Param		keyword	query	string	false	"名称关键字"
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.PointsActivityDto}
 //	@Router		/points/activities [get]
 func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 	list, err := h.Points.Activities(c.Query("type"), c.Query("keyword"))
@@ -295,7 +307,7 @@ func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Param		id path string true "活动 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDto}
 //	@Router		/points/activities/{id} [get]
 func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 	a, err := h.Points.Activity(c.Param("id"))
@@ -314,8 +326,8 @@ func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.UpdatePointsActivityRequest true "活动入参（未传字段保持不变）"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDto}
 //	@Router		/points/activities/{id} [patch]
 func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 	var in model.PointsActivityInput
@@ -338,14 +350,14 @@ func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDeleteResultDto}
 //	@Router		/points/activities/{id} [delete]
 func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 	if err := h.Points.DeleteActivity(c.Param("id")); err != nil {
 		fail(c, err)
 		return
 	}
-	ok(c, gin.H{"deleted": true})
+	ok(c, dto.PointsActivityDeleteResultDto{Deleted: true})
 }
 
 // PointsActivityClaim POST /points/activities/:id/claim。
@@ -355,7 +367,7 @@ func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "活动 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ClaimPointsResultDto}
 //	@Router		/points/activities/{id}/claim [post]
 func (h *OpsHandler) PointsActivityClaim(c *gin.Context) {
 	uid := requireUser(c)
@@ -369,3 +381,7 @@ func (h *OpsHandler) PointsActivityClaim(c *gin.Context) {
 	}
 	ok(c, res)
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}

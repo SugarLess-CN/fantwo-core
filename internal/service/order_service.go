@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -33,7 +34,7 @@ func GenerateOrderNo() string {
 var ErrOrderNotPending = errcode.ErrBadRequest.WithKey(i18n.OrderNotPending)
 
 // CreateArticleOrder 创建文章订单。
-func (s *OrderService) CreateArticleOrder(userID string, articleID, remark string) (*model.Order, error) {
+func (s *OrderService) CreateArticleOrder(userID string, articleID, remark string) (*dto.OrderDto, error) {
 	var article model.ArticleOrderView
 	if err := s.DB.First(&article, "id = ?", articleID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,7 +78,7 @@ func (s *OrderService) CreateArticleOrder(userID string, articleID, remark strin
 	if err := s.DB.Create(order).Error; err != nil {
 		return nil, err
 	}
-	return order, nil
+	return toOrderDto(order), nil
 }
 
 // membershipPlan 会员套餐定义（对齐原 createMembershipOrder planMap）。
@@ -104,7 +105,7 @@ func (s *OrderService) getMembershipConfig(key, def string) string {
 }
 
 // CreateMembershipOrder 创建会员充值订单。
-func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, remark string) (*model.Order, error) {
+func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, remark string) (*dto.OrderDto, error) {
 	var user model.UserPaymentView
 	if err := s.DB.First(&user, "id = ?", userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -166,7 +167,7 @@ func (s *OrderService) CreateMembershipOrder(userID, plan string, duration int, 
 	if err := s.DB.Create(order).Error; err != nil {
 		return nil, err
 	}
-	return order, nil
+	return toOrderDto(order), nil
 }
 
 // findByIDWithScope 按 id 查订单；非 order:manage 权限时限定本人。
@@ -186,12 +187,16 @@ func (s *OrderService) findByIDWithScope(id string, userID string, hasManage boo
 }
 
 // GetOrder 订单详情。
-func (s *OrderService) GetOrder(id, userID string, hasManage bool) (*model.Order, error) {
-	return s.findByIDWithScope(id, userID, hasManage)
+func (s *OrderService) GetOrder(id, userID string, hasManage bool) (*dto.OrderDto, error) {
+	order, err := s.findByIDWithScope(id, userID, hasManage)
+	if err != nil {
+		return nil, err
+	}
+	return toOrderDto(order), nil
 }
 
 // GetOrderByNo 按订单号查询。
-func (s *OrderService) GetOrderByNo(orderNo, userID string, hasManage bool) (*model.Order, error) {
+func (s *OrderService) GetOrderByNo(orderNo, userID string, hasManage bool) (*dto.OrderDto, error) {
 	var order model.Order
 	q := s.DB
 	if !hasManage {
@@ -203,11 +208,14 @@ func (s *OrderService) GetOrderByNo(orderNo, userID string, hasManage bool) (*mo
 		}
 		return nil, err
 	}
-	return &order, nil
+	return toOrderDto(&order), nil
 }
 
 // ListOrders 订单分页（管理员传全量范围；用户限定本人）。
-func (s *OrderService) ListOrders(q model.OrderQuery, userID string, hasManage bool) ([]model.Order, int64, error) {
+//
+// 返回 dto 切片：空结果必须是 `[]` 而不是 null（docs/21），所以显式 make 初始化，
+// 不直接返回 gorm 给的 nil 切片。
+func (s *OrderService) ListOrders(q model.OrderQuery, userID string, hasManage bool) ([]dto.OrderDto, int64, error) {
 	if q.Page <= 0 {
 		q.Page = 1
 	}
@@ -238,19 +246,25 @@ func (s *OrderService) ListOrders(q model.OrderQuery, userID string, hasManage b
 	if err := db.Order("created_at DESC").Offset((q.Page - 1) * q.Limit).Limit(q.Limit).Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
-	return list, total, nil
+	return toOrderDtos(list), total, nil
 }
 
 // ListPendingOrders 待支付订单。
-func (s *OrderService) ListPendingOrders(userID string) ([]model.Order, error) {
+//
+// 返回 dto 切片且保证非 nil：本接口 data 直接是数组（不走分页外壳），
+// nil 切片会序列化成 `"data": null`。
+func (s *OrderService) ListPendingOrders(userID string) ([]dto.OrderDto, error) {
 	var list []model.Order
 	err := s.DB.Where("user_id = ? AND status = ?", userID, model.OrderStatusPending).
 		Order("created_at DESC").Find(&list).Error
-	return list, err
+	if err != nil {
+		return nil, err
+	}
+	return toOrderDtos(list), nil
 }
 
 // CancelOrder 取消订单（PENDING→CANCELLED）。
-func (s *OrderService) CancelOrder(id, userID string, hasManage bool) (*model.Order, error) {
+func (s *OrderService) CancelOrder(id, userID string, hasManage bool) (*dto.OrderDto, error) {
 	order, err := s.findByIDWithScope(id, userID, hasManage)
 	if err != nil {
 		return nil, err
@@ -262,12 +276,12 @@ func (s *OrderService) CancelOrder(id, userID string, hasManage bool) (*model.Or
 		return nil, err
 	}
 	order.Status = model.OrderStatusCancelled
-	return order, nil
+	return toOrderDto(order), nil
 }
 
 // RequestRefund 申请退款（PAID→REFUNDED；余额支付原路退回钱包，其余仅改状态待人工处理）。
 // 事务边界：钱包更新 + 订单状态在同一事务，用户行悲观锁。
-func (s *OrderService) RequestRefund(id, userID, reason string, hasManage bool) (*model.Order, error) {
+func (s *OrderService) RequestRefund(id, userID, reason string, hasManage bool) (*dto.OrderDto, error) {
 	var order model.Order
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
 		q := tx.Clauses(dbLocking()).Where("status = ?", model.OrderStatusPaid)
@@ -321,7 +335,7 @@ func (s *OrderService) RequestRefund(id, userID, reason string, hasManage bool) 
 	if err != nil {
 		return nil, err
 	}
-	return &order, nil
+	return toOrderDto(&order), nil
 }
 
 // ---------- 订单状态机（可测性抽取；表驱动单测覆盖） ----------
