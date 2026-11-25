@@ -48,6 +48,12 @@ import (
 )
 
 func main() {
+	// 0. .env 加载（必须在 config.Load 之前：viper 的 AutomaticEnv 读的是 os.Environ）
+	//
+	// 优先级：内置默认值 < config.yaml < .env < .env.local < 真实进程环境变量
+	// 详见 internal/config/env.go 的包注释（含「为什么 .env 不覆盖、.env.local 覆盖」）。
+	envRes, envErr := config.LoadDotEnv()
+
 	// 1. 配置
 	cfg, err := config.Load()
 	if err != nil {
@@ -61,6 +67,18 @@ func main() {
 		logger, _ = zap.NewDevelopment()
 	}
 	zap.ReplaceGlobals(logger)
+
+	// .env 加载结果（放在 logger 之后打，才能进统一日志）
+	switch {
+	case envErr != nil:
+		logger.Warn("部分 .env 解析失败（已跳过，其余配置仍生效）",
+			zap.Strings("loaded", envRes.Loaded), zap.Error(envErr))
+	case envRes.Any():
+		logger.Info("已加载 .env", zap.Strings("files", envRes.Loaded))
+	default:
+		logger.Info("未发现 .env 文件，仅使用 environment / config.yaml / 默认值",
+			zap.Strings("looked_for", envRes.Missing))
+	}
 
 	// 3. 数据层（懒连接：失败降级，不 panic）
 	db := database.MustInitPostgres(&cfg.Postgres)
