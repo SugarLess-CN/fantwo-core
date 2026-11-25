@@ -94,6 +94,7 @@ func currentUID(c *gin.Context) (string, bool) {
 //	@Param			body	body		object	true	"CreateMessageInput"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
+//	@ID				MessageController_create
 //	@Router			/message [post]
 func (h *MessageHandler) Create(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -122,6 +123,7 @@ func (h *MessageHandler) Create(c *gin.Context) {
 //	@Param			page	query		int		false	"页码"
 //	@Param			limit	query		int		false	"每页条数"
 //	@Success		200		{object}	ResponsePageBody
+//	@ID				MessageController_findAll
 //	@Router			/message [get]
 func (h *MessageHandler) List(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -146,6 +148,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				MessageController_search
 //	@Router		/message/search [get]
 func (h *MessageHandler) Search(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -186,6 +189,7 @@ func (h *MessageHandler) Search(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_findOne
 //	@Router		/message/{id} [get]
 func (h *MessageHandler) Detail(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -210,6 +214,7 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_update
 //	@Router		/message/{id} [patch]
 func (h *MessageHandler) Update(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -237,6 +242,7 @@ func (h *MessageHandler) Update(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_remove
 //	@Router		/message/{id} [delete]
 func (h *MessageHandler) Remove(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -258,6 +264,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_markAsRead
 //	@Router		/message/{id}/read [post]
 func (h *MessageHandler) MarkRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -278,6 +285,7 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_markAllAsRead
 //	@Router		/message/read-all [post]
 func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -302,6 +310,7 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_batchOperation
 //	@Router		/message/batch [post]
 func (h *MessageHandler) Batch(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -328,6 +337,7 @@ func (h *MessageHandler) Batch(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_getUnreadCount
 //	@Router		/message/unread/count [get]
 func (h *MessageHandler) UnreadCount(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -356,6 +366,7 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Param			body	body		object	true	"SendPrivateInput{content,type}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
+//	@ID				MessageController_sendPrivateMessage
 //	@Router			/message/private/{userId} [post]
 func (h *MessageHandler) SendPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -384,6 +395,7 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 //	@Param			cursor	query		string	false	"游标（上一页最后一条的 cursor）"
 //	@Param			limit	query		int		false	"每页条数，默认 20"
 //	@Success		200		{object}	ResponseBody
+//	@ID				MessageController_getPrivateConversations
 //	@Router			/message/private/conversations [get]
 func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -406,6 +418,7 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_getPrivateConversation
 //	@Router		/message/private/conversations/{userId}/messages [get]
 func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -428,6 +441,7 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_markPrivateConversationRead
 //	@Router		/message/private/conversations/{userId}/read [post]
 func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -450,6 +464,7 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_markPrivateMessagesRead
 //	@Router		/message/private/read-batch [post]
 func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -479,6 +494,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_recallPrivateMessage
 //	@Router		/message/private/recall/{id} [post]
 func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -505,6 +521,7 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_blockPrivateUser
 //	@Router		/message/private/block/{userId} [post]
 func (h *MessageHandler) BlockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -535,6 +552,7 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_unblockPrivateUser
 //	@Router		/message/private/block/{userId} [delete]
 func (h *MessageHandler) UnblockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -556,6 +574,7 @@ func (h *MessageHandler) UnblockUser(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				MessageController_getBlockedUsers
 //	@Router		/message/private/blocks [get]
 func (h *MessageHandler) Blocks(c *gin.Context) {
 	uid, ok := currentUID(c)

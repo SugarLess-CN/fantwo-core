@@ -55,6 +55,7 @@ func oauthLoginResult(user *model.User, token, refresh string) gin.H {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_WechatWebURL
 //	@Router		/user/oauth/wechat/web/url [get]
 func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 	out, e := h.svc.WechatWebAuthURL(c.Request.Context())
@@ -73,6 +74,7 @@ func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体 {code, state}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_WechatWebCallback
 //	@Router		/user/oauth/wechat/web/callback [post]
 func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 	var req struct {
@@ -96,6 +98,7 @@ func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	302
+//	@ID				AuthHandler_WechatWebRedirect
 //	@Router		/user/oauth/wechat/web/callback [get]
 func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 	loc := h.svc.WechatWebRedirectURL(c.Request.Context(),
@@ -115,6 +118,7 @@ func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体 {code}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_WechatAppLogin
 //	@Router		/user/oauth/wechat/app/login [post]
 func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 	var req struct {
@@ -141,6 +145,7 @@ func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_QQWebURL
 //	@Router		/user/oauth/qq/web/url [get]
 func (h *AuthHandler) QQWebURL(c *gin.Context) {
 	out, e := h.svc.QQWebAuthURL(c.Request.Context())
@@ -159,6 +164,7 @@ func (h *AuthHandler) QQWebURL(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体 {code, state}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_QQWebCallback
 //	@Router		/user/oauth/qq/web/callback [post]
 func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 	var req struct {
@@ -182,6 +188,7 @@ func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	302
+//	@ID				AuthHandler_QQWebRedirect
 //	@Router		/user/oauth/qq/web/callback [get]
 func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 	loc := h.svc.QQWebRedirectURL(c.Request.Context(),
@@ -209,6 +216,7 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体 {accessToken, openId} 或 {payload}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_QQAppLogin
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 	var req struct {

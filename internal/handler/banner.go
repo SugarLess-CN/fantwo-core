@@ -19,6 +19,7 @@ import (
 //	@Security	BearerAuth
 //	@Param		body body object true "bannerRequest"
 //	@Success	200	{object}	ResponseBody
+//	@ID				BannerController_create
 //	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput
@@ -41,6 +42,7 @@ func (h *OpsHandler) BannerCreate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				BannerController_findAll
 //	@Router		/banners [get]
 func (h *OpsHandler) BannerList(c *gin.Context) {
 	q := model.BannerQuery{
@@ -66,6 +68,7 @@ func (h *OpsHandler) BannerList(c *gin.Context) {
 //	@Tags		轮播
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				BannerController_findActive
 //	@Router		/banners/active [get]
 func (h *OpsHandler) BannerActive(c *gin.Context) {
 	list, err := h.Banner.Active()
@@ -83,6 +86,7 @@ func (h *OpsHandler) BannerActive(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "轮播 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				BannerController_findOne
 //	@Router		/banners/{id} [get]
 func (h *OpsHandler) BannerGet(c *gin.Context) {
 	b, err := h.Banner.Get(c.Param("id"))
@@ -103,6 +107,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 //	@Param		id path string true "轮播 ID"
 //	@Param		body body object true "bannerRequest"
 //	@Success	200	{object}	ResponseBody
+//	@ID				BannerController_update
 //	@Router		/banners/{id} [patch]
 func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 	var in model.BannerInput
@@ -126,6 +131,7 @@ func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "轮播 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				BannerController_remove
 //	@Router		/banners/{id} [delete]
 func (h *OpsHandler) BannerDelete(c *gin.Context) {
 	if err := h.Banner.Delete(c.Param("id")); err != nil {

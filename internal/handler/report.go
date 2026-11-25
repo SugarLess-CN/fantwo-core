@@ -17,6 +17,7 @@ import (
 //	@Security	BearerAuth
 //	@Param		body body object true "reportRequest{targetType,targetId,reason}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ReportController_create
 //	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -43,6 +44,7 @@ func (h *OpsHandler) ReportCreate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ReportController_findAll
 //	@Router		/report [get]
 func (h *OpsHandler) ReportList(c *gin.Context) {
 	q := model.ReportQuery{
@@ -71,6 +73,7 @@ func (h *OpsHandler) ReportList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				ReportController_getStatistics
 //	@Router		/report/statistics [get]
 func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 	st, err := h.Report.Statistics()
@@ -89,6 +92,7 @@ func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ReportController_findOne
 //	@Router		/report/{id} [get]
 func (h *OpsHandler) ReportGet(c *gin.Context) {
 	r, err := h.Report.Get(c.Param("id"))
@@ -109,6 +113,7 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 //	@Param		id path string true "举报 ID"
 //	@Param		body body object true "handleRequest{status,remark}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ReportController_update
 //	@Router		/report/{id} [patch]
 func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 	uid := requireUser(c)
@@ -136,6 +141,7 @@ func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ReportController_remove
 //	@Router		/report/{id} [delete]
 func (h *OpsHandler) ReportDelete(c *gin.Context) {
 	if err := h.Report.Delete(c.Param("id")); err != nil {

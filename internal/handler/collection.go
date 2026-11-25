@@ -25,6 +25,7 @@ type CollectionHandler struct {
 //	@Security	BearerAuth
 //	@Param		body body object true "collectionRequest{name,description,isPublic}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_create
 //	@Router		/collection [post]
 func (h *CollectionHandler) Create(c *gin.Context) {
 	var req service.CreateCollectionRequest
@@ -47,6 +48,7 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				CollectionController_findAll
 //	@Router		/collection [get]
 func (h *CollectionHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -74,6 +76,7 @@ func (h *CollectionHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_findOne
 //	@Router		/collection/{id} [get]
 func (h *CollectionHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -94,6 +97,7 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 //	@Param		id path string true "合集 ID"
 //	@Param		body body object true "collectionRequest"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_update
 //	@Router		/collection/{id} [patch]
 func (h *CollectionHandler) Update(c *gin.Context) {
 	var req service.UpdateCollectionRequest
@@ -117,6 +121,7 @@ func (h *CollectionHandler) Update(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "合集 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_remove
 //	@Router		/collection/{id} [delete]
 func (h *CollectionHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -136,6 +141,7 @@ func (h *CollectionHandler) Remove(c *gin.Context) {
 //	@Param		id path string true "合集 ID"
 //	@Param		articleId path string true "文章 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_addToCollection
 //	@Router		/collection/{id}/article/{articleId} [post]
 func (h *CollectionHandler) AddArticle(c *gin.Context) {
 	out, e := h.svc.AddArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c), nil)
@@ -162,6 +168,7 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 //	@Param		id path string true "合集 ID"
 //	@Param		articleId path string true "文章 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_removeFromCollection
 //	@Router		/collection/{id}/article/{articleId} [delete]
 func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 	out, e := h.svc.RemoveArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c))
@@ -182,6 +189,7 @@ func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				CollectionController_getCollectionItems
 //	@Router		/collection/{id}/items [get]
 func (h *CollectionHandler) ListItems(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -203,6 +211,7 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionHandler_ReorderItems
 //	@Router		/collection/{id}/items/order [put]
 func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 	var req service.ReorderCollectionItemsRequest
@@ -226,6 +235,7 @@ func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_checkArticleInCollections
 //	@Router		/collection/check/{articleId} [get]
 func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 	out, e := h.svc.CheckArticle(c.Request.Context(), actorOf(c), c.Param("articleId"))
@@ -244,6 +254,7 @@ func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CollectionController_getArticleCollectionInfo
 //	@Router		/collection/article/{articleId}/info [get]
 func (h *CollectionHandler) ArticleCollectionInfo(c *gin.Context) {
 	out, e := h.svc.ArticleCollectionInfo(c.Request.Context(), actorOf(c), c.Param("articleId"))

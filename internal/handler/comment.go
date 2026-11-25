@@ -38,6 +38,7 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 //	@Param			body	body		object	true	"CreateCommentRequest{articleId,content,parentId}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
+//	@ID				CommentController_create
 //	@Router			/comment [post]
 func (h *CommentHandler) Create(c *gin.Context) {
 	var req service.CreateCommentRequest
@@ -62,6 +63,7 @@ func (h *CommentHandler) Create(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				CommentController_findAllComments
 //	@Router		/comment [get]
 func (h *CommentHandler) FindAll(c *gin.Context) {
 	q := commentListQuery(c)
@@ -82,6 +84,7 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 //	@Param			page	query		int		false	"页码"
 //	@Param			limit	query		int		false	"每页条数"
 //	@Success		200		{object}	ResponsePageBody
+//	@ID				CommentController_findAll
 //	@Router			/comment/article/{id} [get]
 func (h *CommentHandler) FindByArticle(c *gin.Context) {
 	q := commentListQuery(c)
@@ -100,6 +103,7 @@ func (h *CommentHandler) FindByArticle(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CommentController_findOne
 //	@Router		/comment/{id} [get]
 func (h *CommentHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindCommentDetail(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -120,6 +124,7 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CommentController_update
 //	@Router		/comment/{id} [patch]
 func (h *CommentHandler) Update(c *gin.Context) {
 	var req service.UpdateCommentRequest
@@ -145,6 +150,7 @@ func (h *CommentHandler) Update(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CommentController_setPin
 //	@Router		/comment/{id}/pin [patch]
 func (h *CommentHandler) SetPin(c *gin.Context) {
 	var req service.SetCommentPinRequest
@@ -169,6 +175,7 @@ func (h *CommentHandler) SetPin(c *gin.Context) {
 //	@Param		id	path		string	true	"评论 ID"
 //	@Success	200	{object}	ResponseBody
 //	@Failure	403	{object}	ResponseBody
+//	@ID				CommentController_remove
 //	@Router		/comment/{id} [delete]
 func (h *CommentHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -187,6 +194,7 @@ func (h *CommentHandler) Remove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CommentController_like
 //	@Router		/comment/{id}/like [post]
 func (h *CommentHandler) Like(c *gin.Context) {
 	out, e := h.svc.Like(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -205,6 +213,7 @@ func (h *CommentHandler) Like(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				CommentController_getUserComments
 //	@Router		/comment/user/{userId} [get]
 func (h *CommentHandler) UserComments(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -223,6 +232,7 @@ func (h *CommentHandler) UserComments(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				CommentController_getCommentCount
 //	@Router		/comment/article/{id}/count [get]
 func (h *CommentHandler) Count(c *gin.Context) {
 	out, e := h.svc.CommentCount(c.Request.Context(), c.Param("id"))

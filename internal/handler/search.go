@@ -56,6 +56,7 @@ func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogSer
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				SearchController_syncArticles
 //	@Router		/search/sync/articles [post]
 func (h *SearchHandler) SyncArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
@@ -89,6 +90,7 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				SearchController_getStatus
 //	@Router		/search/status [get]
 func (h *SearchHandler) Status(c *gin.Context) {
 	res := h.svc.Status(c.Request.Context())
@@ -102,6 +104,7 @@ func (h *SearchHandler) Status(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				SearchController_clearArticles
 //	@Router		/search/clear/articles [post]
 func (h *SearchHandler) ClearArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
@@ -126,6 +129,7 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				SearchHandler_SearchArticles
 //	@Router		/search [get]
 func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
@@ -216,6 +220,7 @@ func infraAtoi(s string, def int) int {
 //	@Tags		搜索
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				SearchHandler_HotKeywords
 //	@Router		/search/hot [get]
 func (h *SearchHandler) HotKeywords(c *gin.Context) {
 	days := infraAtoi(c.Query("days"), 7)

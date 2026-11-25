@@ -28,6 +28,7 @@ func NewUserActionHandler(svc *service.UserService) *UserActionHandler {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_follow
 //	@Router		/user/{id}/follow [post]
 func (h *UserActionHandler) Follow(c *gin.Context) {
 	out, e := h.svc.Follow(c.Request.Context(), middleware.CurrentUserID(c), c.Param("id"))
@@ -46,6 +47,7 @@ func (h *UserActionHandler) Follow(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_unfollow
 //	@Router		/user/{id}/unfollow [post]
 func (h *UserActionHandler) Unfollow(c *gin.Context) {
 	out, e := h.svc.Unfollow(c.Request.Context(), middleware.CurrentUserID(c), c.Param("id"))
@@ -63,6 +65,7 @@ func (h *UserActionHandler) Unfollow(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getFollowerCount
 //	@Router		/user/{id}/followers/count [get]
 func (h *UserActionHandler) FollowerCount(c *gin.Context) {
 	out, e := h.svc.FollowerCount(c.Request.Context(), c.Param("id"))
@@ -80,6 +83,7 @@ func (h *UserActionHandler) FollowerCount(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getFollowingCount
 //	@Router		/user/{id}/followings/count [get]
 func (h *UserActionHandler) FollowingCount(c *gin.Context) {
 	out, e := h.svc.FollowingCount(c.Request.Context(), c.Param("id"))
@@ -98,6 +102,7 @@ func (h *UserActionHandler) FollowingCount(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UserController_getFollowers
 //	@Router		/user/{id}/followers [get]
 func (h *UserActionHandler) Followers(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -120,6 +125,7 @@ func (h *UserActionHandler) Followers(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UserController_getFollowings
 //	@Router		/user/{id}/followings [get]
 func (h *UserActionHandler) Followings(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -141,6 +147,7 @@ func (h *UserActionHandler) Followings(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_signIn
 //	@Router		/user/sign-in [post]
 func (h *UserActionHandler) SignIn(c *gin.Context) {
 	out, e := h.svc.Sign(c.Request.Context(), middleware.CurrentUserID(c), false)
@@ -160,6 +167,7 @@ func (h *UserActionHandler) SignIn(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UserController_getSignInRecords
 //	@Router		/user/sign-in/records [get]
 func (h *UserActionHandler) SignInRecords(c *gin.Context) {
 	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
@@ -178,6 +186,7 @@ func (h *UserActionHandler) SignInRecords(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getSignInStats
 //	@Router		/user/sign-in/stats [get]
 func (h *UserActionHandler) SignInStats(c *gin.Context) {
 	out, e := h.svc.SignStats(c.Request.Context(), middleware.CurrentUserID(c))
@@ -195,6 +204,7 @@ func (h *UserActionHandler) SignInStats(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getWalletBalance
 //	@Router		/user/wallet/balance [get]
 func (h *UserActionHandler) WalletBalance(c *gin.Context) {
 	out, e := h.svc.WalletBalance(c.Request.Context(), middleware.CurrentUserID(c))
@@ -214,6 +224,7 @@ func (h *UserActionHandler) WalletBalance(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UserController_getWalletTransactions
 //	@Router		/user/wallet/transactions [get]
 func (h *UserActionHandler) WalletTransactions(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -233,6 +244,7 @@ func (h *UserActionHandler) WalletTransactions(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getWalletStatistics
 //	@Router		/user/wallet/statistics [get]
 func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 	out, e := h.svc.WalletStatistics(c.Request.Context(), middleware.CurrentUserID(c))
@@ -251,6 +263,7 @@ func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_withdrawWallet
 //	@Router		/user/wallet/withdraw [post]
 func (h *UserActionHandler) WalletWithdraw(c *gin.Context) {
 	var in service.WithdrawInput
@@ -274,6 +287,7 @@ func (h *UserActionHandler) WalletWithdraw(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "certApplyRequest{type,realName,idCard,attachments}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserCertificationController_apply
 //	@Router		/user/certification/apply [post]
 func (h *UserActionHandler) CertApply(c *gin.Context) {
 	var in service.ApplyCertInput
@@ -295,6 +309,7 @@ func (h *UserActionHandler) CertApply(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserCertificationController_getMyCertificationStatus
 //	@Router		/user/certification/status [get]
 func (h *UserActionHandler) CertStatus(c *gin.Context) {
 	out, e := h.svc.LatestCertification(c.Request.Context(), middleware.CurrentUserID(c))
@@ -312,6 +327,7 @@ func (h *UserActionHandler) CertStatus(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserCertificationController_getMyCertifications
 //	@Router		/user/certification/me [get]
 func (h *UserActionHandler) CertMe(c *gin.Context) {
 	out, e := h.svc.MyCertifications(c.Request.Context(), middleware.CurrentUserID(c))
@@ -329,6 +345,7 @@ func (h *UserActionHandler) CertMe(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserCertificationController_getMyIdentity
 //	@Router		/user/certification/identity [get]
 func (h *UserActionHandler) CertIdentity(c *gin.Context) {
 	out, e := h.svc.Identity(c.Request.Context(), middleware.CurrentUserID(c))
@@ -347,6 +364,7 @@ func (h *UserActionHandler) CertIdentity(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserCertificationController_getIdentityByUserId
 //	@Router		/user/certification/identity/{userId} [get]
 func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
 	out, e := h.svc.IdentityOf(c.Request.Context(), c.Param("userId"))
@@ -367,7 +385,8 @@ func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
 //	@Param		limit query int false "每页条数"
 //	@Param		status query string false "申请状态"
 //	@Success	200	{object}	ResponsePageBody
-//	@Router		/certification/admin/applications [get]
+//	@ID				UserCertificationController_findApplications
+//	@Router		/user/certification/admin/applications [get]
 func (h *UserActionHandler) CertApplications(c *gin.Context) {
 	page, limit := queryPage(c)
 	list, total, e := h.svc.AdminListCerts(c.Request.Context(), page, limit,
@@ -389,7 +408,8 @@ func (h *UserActionHandler) CertApplications(c *gin.Context) {
 //	@Param		id path string true "申请 ID"
 //	@Param		body body object true "auditRequest{pass,reason}"
 //	@Success	200	{object}	ResponseBody
-//	@Router		/certification/admin/applications/{id}/audit [patch]
+//	@ID				UserCertificationController_audit
+//	@Router		/user/certification/admin/applications/{id}/audit [patch]
 func (h *UserActionHandler) CertAudit(c *gin.Context) {
 	var in service.AuditCertInput
 	if !bindJSON(c, &in) {
@@ -412,7 +432,8 @@ func (h *UserActionHandler) CertAudit(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "申请 ID"
 //	@Success	200	{object}	ResponseBody
-//	@Router		/certification/admin/applications/{id}/revoke [post]
+//	@ID				UserCertificationController_revoke
+//	@Router		/user/certification/admin/applications/{id}/revoke [post]
 func (h *UserActionHandler) CertRevoke(c *gin.Context) {
 	var body struct {
 		Reason string `json:"reason"`

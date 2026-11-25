@@ -18,6 +18,7 @@ import (
 //	@Security	BearerAuth
 //	@Param		body body object true "addPointsRequest{userId,amount,reason}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_addPoints
 //	@Router		/points/add [post]
 func (h *OpsHandler) PointsAdd(c *gin.Context) {
 	uid := requireUser(c)
@@ -46,6 +47,7 @@ func (h *OpsHandler) PointsAdd(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "spendPointsRequest{amount,reason}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_spendPoints
 //	@Router		/points/spend [post]
 func (h *OpsHandler) PointsSpend(c *gin.Context) {
 	uid := requireUser(c)
@@ -72,6 +74,7 @@ func (h *OpsHandler) PointsSpend(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_getBalance
 //	@Router		/points/balance [get]
 func (h *OpsHandler) PointsBalance(c *gin.Context) {
 	uid := requireUser(c)
@@ -95,6 +98,7 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				PointsController_getTransactions
 //	@Router		/points/transactions [get]
 func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 	uid := requireUser(c)
@@ -126,6 +130,7 @@ func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				PointsController_getAllTransactions
 //	@Router		/points/transactions/all [get]
 func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 	q := model.PointsTxQuery{
@@ -153,6 +158,7 @@ func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				PointsController_getUserTransactions
 //	@Router		/points/users/{userId}/transactions [get]
 func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 	q := model.PointsTxQuery{
@@ -179,6 +185,7 @@ func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_getUserBalance
 //	@Router		/points/users/{userId}/balance [get]
 func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 	uid := c.Param("userId")
@@ -197,6 +204,7 @@ func (h *OpsHandler) PointsUserBalance(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_getStatistics
 //	@Router		/points/statistics [get]
 func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 	st, err := h.Points.Statistics()
@@ -214,6 +222,7 @@ func (h *OpsHandler) PointsStatistics(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_getMyTasks
 //	@Router		/points/tasks/my [get]
 func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 	uid := requireUser(c)
@@ -236,6 +245,7 @@ func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		activityId path string true "activityId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_getMyTaskProgress
 //	@Router		/points/tasks/my/{activityId} [get]
 func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 	uid := requireUser(c)
@@ -258,6 +268,7 @@ func (h *OpsHandler) PointsMyTaskProgress(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_createActivity
 //	@Router		/points/activities [post]
 func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 	var in model.PointsActivityInput
@@ -279,6 +290,7 @@ func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				PointsController_findAllActivities
 //	@Router		/points/activities [get]
 func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 	list, err := h.Points.Activities(c.Query("type"), c.Query("keyword"))
@@ -296,6 +308,7 @@ func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "活动 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_findOneActivity
 //	@Router		/points/activities/{id} [get]
 func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 	a, err := h.Points.Activity(c.Param("id"))
@@ -316,6 +329,7 @@ func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_updateActivity
 //	@Router		/points/activities/{id} [patch]
 func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 	var in model.PointsActivityInput
@@ -339,6 +353,7 @@ func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_removeActivity
 //	@Router		/points/activities/{id} [delete]
 func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 	if err := h.Points.DeleteActivity(c.Param("id")); err != nil {
@@ -356,6 +371,7 @@ func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "活动 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PointsController_claimTaskReward
 //	@Router		/points/activities/{id}/claim [post]
 func (h *OpsHandler) PointsActivityClaim(c *gin.Context) {
 	uid := requireUser(c)

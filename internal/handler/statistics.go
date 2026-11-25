@@ -29,6 +29,7 @@ func NewStatisticsHandler(svc *infra.Statistics) *StatisticsHandler {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				StatisticsController_getOverview
 //	@Router		/statistics/overview [get]
 func (h *StatisticsHandler) Overview(c *gin.Context) {
 	res, err := h.svc.Overview(c.Request.Context())
@@ -48,6 +49,7 @@ func (h *StatisticsHandler) Overview(c *gin.Context) {
 //	@Param		startDate query string false "起始日期 YYYY-MM-DD"
 //	@Param		endDate query string false "结束日期 YYYY-MM-DD"
 //	@Success	200	{object}	ResponseBody
+//	@ID				StatisticsController_getTrends
 //	@Router		/statistics/trends [get]
 func (h *StatisticsHandler) Trends(c *gin.Context) {
 	days := infraAtoi(c.Query("days"), 7)

@@ -41,6 +41,7 @@ type loginRequest struct {
 //	@Param			body		body		loginRequest	true	"登录参数"
 //	@Success		200			{object}	ResponseBody
 //	@Failure		401			{object}	ResponseBody
+//	@ID				UserController_login
 //	@Router			/user/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
@@ -70,6 +71,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@Param			body	body		object	true	"registerRequest{username,nickname,password,email,phone}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		409		{object}	ResponseBody
+//	@ID				UserController_registerUser
 //	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req struct {
@@ -104,6 +106,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Param			body		body		object	true	"refreshRequest{refreshToken}"
 //	@Success		200			{object}	ResponseBody
 //	@Failure		401			{object}	ResponseBody
+//	@ID				UserController_refreshToken
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
@@ -136,6 +139,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Success		200	{object}	ResponseBody
 //	@Failure		401	{object}	ResponseBody
+//	@ID				UserController_logout
 //	@Router			/user/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
@@ -154,6 +158,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_LogoutAll
 //	@Router		/user/logout-all [post]
 func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
@@ -171,6 +176,7 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_SendSmsCode
 //	@Router		/auth/sms/send [post]
 func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 	var req struct {
@@ -197,6 +203,7 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				AuthHandler_SmsLogin
 //	@Router		/auth/sms/login [post]
 func (h *AuthHandler) SmsLogin(c *gin.Context) {
 	var req struct {
@@ -224,6 +231,7 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_sendVerificationCode
 //	@Router		/user/email/verification [post]
 func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 	var req struct {
@@ -251,6 +259,7 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_resetPassword
 //	@Router		/user/password/reset [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req struct {
@@ -276,6 +285,7 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_changePassword
 //	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	var req struct {
@@ -318,6 +328,7 @@ func deviceIDOf(c *gin.Context) string {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getGithubOAuthUrl
 //	@Router		/user/oauth/github/url [get]
 func (h *AuthHandler) GithubURL(c *gin.Context) {
 	out, e := h.svc.GithubAuthURL(c.Request.Context())
@@ -335,6 +346,7 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_githubOAuthCallback
 //	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
 	var req struct {
@@ -361,6 +373,7 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_githubOAuthRedirectCallback
 //	@Router		/user/oauth/github/callback [get]
 func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 	loc := h.svc.GithubRedirectURL(c.Request.Context(),

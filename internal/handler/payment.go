@@ -33,6 +33,7 @@ type PaymentHandler struct {
 //	@Param			body	body		object	true	"CreatePaymentInput{orderId,method,...}"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
+//	@ID				PaymentController_createPayment
 //	@Router			/payment/create [post]
 func (h *PaymentHandler) Create(c *gin.Context) {
 	var in service.CreatePaymentInput
@@ -56,6 +57,7 @@ func (h *PaymentHandler) Create(c *gin.Context) {
 //	@Accept			application/x-www-form-urlencoded
 //	@Produce		plain
 //	@Success		200	{string}	string	"success"
+//	@ID				PaymentController_alipayNotify
 //	@Router			/payment/notify/alipay [post]
 func (h *PaymentHandler) NotifyAlipay(c *gin.Context) {
 	ok, msg := h.Svc.HandleAlipayNotify(c.Request)
@@ -74,6 +76,7 @@ func (h *PaymentHandler) NotifyAlipay(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	map[string]string
+//	@ID				PaymentController_wechatNotify
 //	@Router			/payment/notify/wechat [post]
 func (h *PaymentHandler) NotifyWechat(c *gin.Context) {
 	// 注意：这是微信回调契约（微信 v3 规范要求 {"code":"SUCCESS"/"FAIL","message":...}），
@@ -94,6 +97,7 @@ func (h *PaymentHandler) NotifyWechat(c *gin.Context) {
 //	@Tags			支付
 //	@Produce		plain
 //	@Success		200	{string}	string	"success"
+//	@ID				PaymentController_epayNotify
 //	@Router			/payment/notify/epay [get]
 func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 	query := map[string]string{}
@@ -116,6 +120,7 @@ func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PaymentController_findPaymentRecord
 //	@Router		/payment/record/{id} [get]
 func (h *PaymentHandler) Record(c *gin.Context) {
 	p, err := h.Svc.GetPaymentRecord(c.Param("id"), middleware.CurrentUserID(c))
@@ -134,6 +139,7 @@ func (h *PaymentHandler) Record(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		orderId path string true "orderId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PaymentController_findPaymentByOrderId
 //	@Router		/payment/order/{orderId} [get]
 func (h *PaymentHandler) ByOrder(c *gin.Context) {
 	p, err := h.Svc.GetPaymentByOrder(c.Param("orderId"), middleware.CurrentUserID(c))
@@ -153,6 +159,7 @@ func (h *PaymentHandler) ByOrder(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				PaymentController_findUserPayments
 //	@Router		/payment/user [get]
 func (h *PaymentHandler) Mine(c *gin.Context) {
 	page, limit := pageTx(c)
@@ -172,6 +179,7 @@ func (h *PaymentHandler) Mine(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				PaymentController_testEpaySignature
 //	@Router		/payment/test/epay-signature [post]
 func (h *PaymentHandler) EpaySignature(c *gin.Context) {
 	var body struct {

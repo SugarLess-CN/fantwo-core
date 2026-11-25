@@ -17,6 +17,7 @@ import (
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_like
 //	@Router		/article/{id}/like [post]
 func (h *ArticleHandler) Like(c *gin.Context) {
 	var req service.ArticleReactionRequest
@@ -37,6 +38,7 @@ func (h *ArticleHandler) Like(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getLikeStatus
 //	@Router		/article/{id}/like/status [get]
 func (h *ArticleHandler) LikeStatus(c *gin.Context) {
 	out, e := h.svc.GetLikeStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -54,6 +56,7 @@ func (h *ArticleHandler) LikeStatus(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getLikeCount
 //	@Router		/article/{id}/like/count [get]
 func (h *ArticleHandler) LikeCount(c *gin.Context) {
 	out, e := h.svc.GetLikeCount(c.Request.Context(), c.Param("id"))
@@ -73,6 +76,7 @@ func (h *ArticleHandler) LikeCount(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ArticleController_getLikedArticles
 //	@Router		/article/liked [get]
 func (h *ArticleHandler) Liked(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -94,6 +98,7 @@ func (h *ArticleHandler) Liked(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_favoriteArticle
 //	@Router		/article/{id}/favorite [post]
 func (h *ArticleHandler) Favorite(c *gin.Context) {
 	out, e := h.svc.Favorite(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -112,6 +117,7 @@ func (h *ArticleHandler) Favorite(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_unfavoriteArticle
 //	@Router		/article/{id}/favorite [delete]
 func (h *ArticleHandler) Unfavorite(c *gin.Context) {
 	out, e := h.svc.Unfavorite(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -130,6 +136,7 @@ func (h *ArticleHandler) Unfavorite(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_checkFavoriteStatus
 //	@Router		/article/{id}/favorite/status [get]
 func (h *ArticleHandler) FavoriteStatus(c *gin.Context) {
 	out, e := h.svc.FavoriteStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -149,6 +156,7 @@ func (h *ArticleHandler) FavoriteStatus(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ArticleController_getFavoritedArticles
 //	@Router		/article/favorited/list [get]
 func (h *ArticleHandler) FavoritedList(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -170,6 +178,7 @@ func (h *ArticleHandler) FavoritedList(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_dislikeArticle
 //	@Router		/article/{id}/dislike [post]
 func (h *ArticleHandler) Dislike(c *gin.Context) {
 	var req service.ArticleDislikeRequest
@@ -190,6 +199,7 @@ func (h *ArticleHandler) Dislike(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_cancelDislikeArticle
 //	@Router		/article/{id}/dislike [delete]
 func (h *ArticleHandler) CancelDislike(c *gin.Context) {
 	out, e := h.svc.CancelDislike(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -208,6 +218,7 @@ func (h *ArticleHandler) CancelDislike(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getDislikeStatus
 //	@Router		/article/{id}/dislike/status [get]
 func (h *ArticleHandler) DislikeStatus(c *gin.Context) {
 	out, e := h.svc.DislikeStatus(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -227,6 +238,7 @@ func (h *ArticleHandler) DislikeStatus(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ArticleController_getDislikedArticles
 //	@Router		/article/disliked/list [get]
 func (h *ArticleHandler) DislikedList(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -247,6 +259,7 @@ func (h *ArticleHandler) DislikedList(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleHandler_Share
 //	@Router		/article/{id}/share [post]
 func (h *ArticleHandler) Share(c *gin.Context) {
 	var req service.ArticleShareRequest
@@ -271,6 +284,7 @@ func (h *ArticleHandler) Share(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_updateBrowseProgress
 //	@Router		/article/{id}/browse/progress [post]
 func (h *ArticleHandler) BrowseProgress(c *gin.Context) {
 	var req service.BrowseProgressRequest
@@ -292,6 +306,7 @@ func (h *ArticleHandler) BrowseProgress(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ArticleController_getUserBrowseHistory
 //	@Router		/article/browse/history [get]
 func (h *ArticleHandler) BrowseHistory(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -310,6 +325,7 @@ func (h *ArticleHandler) BrowseHistory(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getBrowseStats
 //	@Router		/article/browse/stats [get]
 func (h *ArticleHandler) BrowseStats(c *gin.Context) {
 	out, e := h.svc.GetBrowseStats(c.Request.Context(), actorOf(c))
@@ -327,6 +343,7 @@ func (h *ArticleHandler) BrowseStats(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getRecentBrowsedArticles
 //	@Router		/article/browse/recent [get]
 func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 	list, e := h.svc.RecentBrowsed(c.Request.Context(), actorOf(c), intQuery(c, "limit", 10))
@@ -345,6 +362,7 @@ func (h *ArticleHandler) BrowseRecent(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_batchDeleteBrowseHistory
 //	@Router		/article/browse/batch-delete [post]
 func (h *ArticleHandler) BrowseBatchDelete(c *gin.Context) {
 	var req service.BatchDeleteBrowseRequest
@@ -368,6 +386,7 @@ func (h *ArticleHandler) BrowseBatchDelete(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_getBrowseHistory
 //	@Router		/article/browse/{articleId} [get]
 func (h *ArticleHandler) BrowseOne(c *gin.Context) {
 	out, e := h.svc.GetBrowseHistory(c.Request.Context(), c.Param("articleId"), actorOf(c))
@@ -386,6 +405,7 @@ func (h *ArticleHandler) BrowseOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		articleId path string true "articleId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_deleteBrowseHistory
 //	@Router		/article/browse/{articleId} [delete]
 func (h *ArticleHandler) BrowseDelete(c *gin.Context) {
 	out, e := h.svc.DeleteBrowseHistory(c.Request.Context(), c.Param("articleId"), actorOf(c))
@@ -403,6 +423,7 @@ func (h *ArticleHandler) BrowseDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				ArticleController_clearBrowseHistory
 //	@Router		/article/browse [delete]
 func (h *ArticleHandler) BrowseClear(c *gin.Context) {
 	out, e := h.svc.ClearBrowseHistory(c.Request.Context(), actorOf(c))

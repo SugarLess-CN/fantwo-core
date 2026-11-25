@@ -47,6 +47,7 @@ func NewUploadHandler(svc *infra.Infra) *UploadHandler { return &UploadHandler{s
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UploadController_findAll
 //	@Router		/upload [get]
 func (h *UploadHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -88,6 +89,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_getFileInfo
 //	@Router		/upload/info/{id} [get]
 func (h *UploadHandler) Info(c *gin.Context) {
 	up, err := h.svc.GetFileInfo(c.Param("id"))
@@ -108,6 +110,7 @@ func (h *UploadHandler) Info(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_getUploadConfig
 //	@Router		/upload/config [get]
 func (h *UploadHandler) Config(c *gin.Context) {
 	response.Success(c, h.svc.GetUploadConfig(c))
@@ -123,6 +126,7 @@ func (h *UploadHandler) Config(c *gin.Context) {
 //	@Param		file formData file true "文件本体"
 //	@Param		scene formData string false "场景：article/avatar/comment"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_uploadFile
 //	@Router		/upload/file [post]
 func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 
@@ -133,6 +137,7 @@ func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_uploadAvatar
 //	@Router		/upload/avatar [post]
 func (h *UploadHandler) UploadAvatar(c *gin.Context) { h.upload(c, infra.SceneAvatar) }
 
@@ -194,6 +199,7 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 //	@Security	BearerAuth
 //	@Param		body body object true "presignRequest{filename,contentType,size}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_generatePresignedUrl
 //	@Router		/upload/presign [post]
 func (h *UploadHandler) Presign(c *gin.Context) {
 	var req struct {
@@ -222,6 +228,7 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "confirmRequest{objectKey,...}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_confirmUpload
 //	@Router		/upload/confirm [post]
 func (h *UploadHandler) Confirm(c *gin.Context) {
 	var req infra.S3Confirm
@@ -248,6 +255,7 @@ func (h *UploadHandler) Confirm(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_getMigrationStats
 //	@Router		/upload/migration/stats [get]
 func (h *UploadHandler) MigrationStats(c *gin.Context) {
 	stats, err := h.svc.MigrationStats(c.Request.Context())
@@ -267,6 +275,7 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_processUncompressedImages
 //	@Router		/upload/migration/process [post]
 func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
@@ -300,6 +309,7 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_fillMissingMetadata
 //	@Router		/upload/migration/metadata [post]
 func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
@@ -319,6 +329,7 @@ func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UploadController_remove
 //	@Router		/upload/{id} [delete]
 func (h *UploadHandler) Remove(c *gin.Context) {
 	if err := h.svc.RemoveUpload(c.Param("id")); err != nil {

@@ -29,6 +29,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler { return &UserHandler
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
 //	@Failure	401	{object}	ResponseBody
+//	@ID				UserController_getProfile
 //	@Router		/user/profile [get]
 func (h *UserHandler) Profile(c *gin.Context) {
 	out, e := h.svc.Profile(c.Request.Context(), middleware.CurrentUserID(c))
@@ -50,6 +51,7 @@ func (h *UserHandler) Profile(c *gin.Context) {
 //	@Param			body	body		object	true	"待更新字段（部分更新）"
 //	@Success		200		{object}	ResponseBody
 //	@Failure		400		{object}	ResponseBody
+//	@ID				UserHandler_UpdateProfile
 //	@Router			/user/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var in service.UpdateProfileInput
@@ -73,6 +75,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				userController_updateProfileContact
 //	@Router		/user/profile/contact [patch]
 func (h *UserHandler) UpdateContact(c *gin.Context) {
 	var in service.UpdateProfileInput
@@ -95,6 +98,7 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_SendBindPhoneCode
 //	@Router		/user/profile/phone/code [post]
 func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 	var req struct {
@@ -119,6 +123,7 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_BindPhone
 //	@Router		/user/profile/phone [post]
 func (h *UserHandler) BindPhone(c *gin.Context) {
 	var in service.BindPhoneInput
@@ -140,6 +145,7 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_DeletionRequest
 //	@Router		/user/account/deletion [post]
 func (h *UserHandler) DeletionRequest(c *gin.Context) {
 	var in service.RequestDeletionInput
@@ -159,6 +165,7 @@ func (h *UserHandler) DeletionRequest(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_DeletionStatus
 //	@Router		/user/account/status [get]
 func (h *UserHandler) DeletionStatus(c *gin.Context) {
 	out, e := h.svc.DeletionStatus(c.Request.Context(), middleware.CurrentUserID(c))
@@ -176,6 +183,7 @@ func (h *UserHandler) DeletionStatus(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_DeletionCancel
 //	@Router		/user/account/deletion/cancel [post]
 func (h *UserHandler) DeletionCancel(c *gin.Context) {
 	out, e := h.svc.CancelDeletion(c.Request.Context(), middleware.CurrentUserID(c))
@@ -195,6 +203,7 @@ func (h *UserHandler) DeletionCancel(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				UserHandler_Favorites
 //	@Router		/user/profile/favorites [get]
 func (h *UserHandler) Favorites(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -214,6 +223,7 @@ func (h *UserHandler) Favorites(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		productId path string true "productId"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserHandler_FavoriteDetail
 //	@Router		/user/profile/favorites/{productId} [get]
 func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 	out, e := h.svc.FavoriteDetail(c.Request.Context(), middleware.CurrentUserID(c), c.Param("productId"))
@@ -235,6 +245,7 @@ func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 //	@Param			limit	query		int		false	"每页条数，默认 10"
 //	@Param			keyword	query		string	false	"用户名关键字"
 //	@Success		200		{object}	ResponseBody
+//	@ID				UserController_findAll
 //	@Router			/user [get]
 func (h *UserHandler) FindAll(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -262,6 +273,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Param		body	body		object	true	"CreateUserInput"
 //	@Success	200		{object}	ResponseBody
 //	@Failure	403		{object}	ResponseBody
+//	@ID				UserController_create
 //	@Router		/user [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var in service.CreateUserInput
@@ -285,6 +297,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Param		id	path		string	true	"用户 ID"
 //	@Success	200	{object}	ResponseBody
 //	@Failure	404	{object}	ResponseBody
+//	@ID				UserController_findOne
 //	@Router		/user/{id} [get]
 func (h *UserHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"))
@@ -305,6 +318,7 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_update
 //	@Router		/user/{id} [patch]
 func (h *UserHandler) Update(c *gin.Context) {
 	var in service.UpdateUserInput
@@ -328,6 +342,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 //	@Param		id	path		string	true	"用户 ID"
 //	@Success	200	{object}	ResponseBody
 //	@Failure	403	{object}	ResponseBody
+//	@ID				UserController_remove
 //	@Router		/user/{id} [delete]
 func (h *UserHandler) Remove(c *gin.Context) {
 	if e := h.svc.RemoveUser(c.Request.Context(), c.Param("id")); e != nil {
@@ -344,6 +359,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getUserConfig
 //	@Router		/user/config [get]
 func (h *UserHandler) GetConfig(c *gin.Context) {
 	p, e := h.svc.GetConfig(c.Request.Context(), middleware.CurrentUserID(c))
@@ -363,6 +379,7 @@ func (h *UserHandler) GetConfig(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_updateUserConfig
 //	@Router		/user/config [patch]
 func (h *UserHandler) UpdateConfig(c *gin.Context) {
 	var in service.UpdateConfigInput
@@ -385,6 +402,7 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_updateNotificationSettings
 //	@Router		/user/config/notifications [patch]
 func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 	var in service.NotificationInput
@@ -407,6 +425,7 @@ func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_updateCommissionSettings
 //	@Router		/user/config/commission [patch]
 func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 	var in service.UpdateConfigInput
@@ -427,6 +446,7 @@ func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_getUserCommissionConfig
 //	@Router		/user/commission/config [get]
 func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 	out, e := h.svc.CommissionConfig(c.Request.Context(), middleware.CurrentUserID(c))
@@ -445,6 +465,7 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_setUserCommissionConfig
 //	@Router		/user/commission/config [post]
 func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 	var in service.SetCommissionInput
@@ -466,6 +487,7 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_calculateCommission
 //	@Router		/user/commission/calculate [post]
 func (h *UserHandler) CalculateCommission(c *gin.Context) {
 	var req struct {
@@ -491,6 +513,7 @@ func (h *UserHandler) CalculateCommission(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_checkMembershipStatus
 //	@Router		/user/{id}/membership/check [get]
 func (h *UserHandler) CheckMembership(c *gin.Context) {
 	out, e := h.svc.CheckMembership(c.Request.Context(), c.Param("id"))
@@ -509,6 +532,7 @@ func (h *UserHandler) CheckMembership(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				UserController_batchCheckMembershipStatus
 //	@Router		/user/membership/batch-check [post]
 func (h *UserHandler) BatchCheckMembership(c *gin.Context) {
 	out, e := h.svc.BatchCheckMembership(c.Request.Context())

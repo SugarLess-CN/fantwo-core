@@ -59,6 +59,7 @@ func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ConfigController_findAll
 //	@Router		/config [get]
 func (h *ConfigHandler) List(c *gin.Context) {
 	list, err := h.svc.List()
@@ -78,6 +79,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "configRequest{key,value,group,remark}"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_create
 //	@Router		/config [post]
 func (h *ConfigHandler) Create(c *gin.Context) {
 	var in infra.ConfigInput
@@ -101,6 +103,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_updateAll
 //	@Router		/config [patch]
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -125,6 +128,7 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_findByGroup
 //	@Router		/config/group/{group} [get]
 func (h *ConfigHandler) ByGroup(c *gin.Context) {
 	list, err := h.svc.ByGroup(c.Param("group"))
@@ -145,6 +149,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Param		group path string true "分组名"
 //	@Param		body body object true "kv 映射"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_updateGroup
 //	@Router		/config/group/{group} [patch]
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -166,6 +171,7 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_getPublicConfigs
 //	@Router		/config/public [get]
 func (h *ConfigHandler) Public(c *gin.Context) {
 	res, err := h.svc.PublicConfigs()
@@ -182,6 +188,7 @@ func (h *ConfigHandler) Public(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_getAdvertisementConfig
 //	@Router		/config/advertisement [get]
 func (h *ConfigHandler) Advertisement(c *gin.Context) {
 	res, err := h.svc.AdvertisementConfig()
@@ -200,6 +207,7 @@ func (h *ConfigHandler) Advertisement(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		key path string true "配置键"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigHandler_ByKey
 //	@Router		/config/key/{key} [get]
 func (h *ConfigHandler) ByKey(c *gin.Context) {
 	cfg, err := h.svc.ByKey(c.Param("key"))
@@ -218,6 +226,7 @@ func (h *ConfigHandler) ByKey(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigHandler_ByID
 //	@Router		/config/{id} [get]
 func (h *ConfigHandler) ByID(c *gin.Context) {
 	cfg, err := h.svc.ByID(c.Param("id"))
@@ -238,6 +247,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_update
 //	@Router		/config/{id} [patch]
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 	var in infra.ConfigInput
@@ -261,6 +271,7 @@ func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_remove
 //	@Router		/config/{id} [delete]
 func (h *ConfigHandler) Remove(c *gin.Context) {
 	if err := h.svc.Remove(c.Param("id")); err != nil {
@@ -281,6 +292,7 @@ func (h *ConfigHandler) Remove(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	ResponsePageBody
+//	@ID				ConfigController_findAllSensitiveWords
 //	@Router		/config/sensitive-words [get]
 func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 	words, err := h.svc.SensitiveWords()
@@ -299,6 +311,7 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_createSensitiveWord
 //	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 	var body struct {
@@ -323,6 +336,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_removeSensitiveWord
 //	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 	var body struct {
@@ -347,6 +361,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_batchCreateSensitiveWords
 //	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	var body struct {
@@ -376,6 +391,7 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_batchRemoveSensitiveWords
 //	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	var body struct {
@@ -404,6 +420,7 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	ResponseBody
+//	@ID				ConfigController_clearSensitiveWordsCache
 //	@Router		/config/sensitive-words/clear-cache [post]
 func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)
