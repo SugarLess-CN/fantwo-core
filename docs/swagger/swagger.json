@@ -9166,6 +9166,96 @@
                 }
             }
         },
+        "/user/oauth/bindings": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "我的第三方绑定列表",
+                "operationId": "OAuthBindingController_listBindings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/bindings/link": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "绑定第三方账号到当前用户",
+                "operationId": "OAuthBindingController_link",
+                "parameters": [
+                    {
+                        "description": "请求体 {provider, channel, code, state} 或 {provider, channel, accessToken, openId}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_SugarLess-CN_fantwo-core_internal_service.OAuthLinkInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/bindings/{provider}/{channel}": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "解绑第三方账号",
+                "operationId": "OAuthBindingController_unbind",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "平台 wechat / qq / github",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "渠道 web / app",
+                        "name": "channel",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
         "/user/oauth/github/callback": {
             "get": {
                 "produces": [
@@ -10383,6 +10473,29 @@
         }
     },
     "definitions": {
+        "github_com_SugarLess-CN_fantwo-core_internal_service.OAuthLinkInput": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "openId": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handler.ResponseBody": {
             "type": "object",
             "properties": {

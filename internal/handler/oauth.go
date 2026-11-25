@@ -28,6 +28,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -228,4 +229,99 @@ func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 		return
 	}
 	response.Success(c, oauthLoginResult(user, token, refresh))
+}
+
+// ---------------------------------------------------------------------------
+// 账号绑定管理（T-37e）：三个端点全部需登录（路由挂 authGroup）。
+//
+// 与登录端点的本质区别：这里用户身份来自 JWT claims（middleware.CurrentUserID），
+// 第三方身份只是**新增一条绑定**，不查找 / 不建号。响应契约与登录端点一致
+// （{data, message, status_code, trace_id, timestamp}）。
+//
+// service 按请求现建（service.NewOAuthService(deps)）：OAuthService 无独立状态，
+// 复用 AuthHandler 的 Deps，与路由注册处构造 NewOAuthService(deps) 是同一形态。
+// ---------------------------------------------------------------------------
+
+// OAuthBindingList GET /user/oauth/bindings
+//
+// 响应 data：{"bindings": [...]}。绑定视图不含 openid / unionid（PII）；
+// 空列表是 [] 不是 null。
+//
+//	@Summary	我的第三方绑定列表
+//	@Tags		用户认证
+//	@Produce	json
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/bindings [get]
+//	@ID			OAuthBindingController_listBindings
+func (h *AuthHandler) OAuthBindingList(c *gin.Context) {
+	svc := service.NewOAuthService(h.svc.Deps())
+	bindings, e := svc.ListBindings(middleware.CurrentUserID(c))
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, gin.H{"bindings": bindings})
+}
+
+// OAuthBindingUnbind DELETE /user/oauth/bindings/:provider/:channel
+//
+// 解绑安全规则（service 层实现）：可用登录方式 = 手机号 OR 邮箱 OR 其它第三方绑定；
+// 全不剩 → 403（ErrOAuthUnbindLastMethod）。Password 不参与判定
+// （第三方建号写的是随机密码，用户不知道它）。
+// 绑定不存在（含别人的绑定）→ 404。
+// 成功后回传最新绑定列表，前端一次请求完成「删 + 刷」。
+//
+//	@Summary	解绑第三方账号
+//	@Tags		用户认证
+//	@Produce	json
+//	@Param		provider	path	string	true	"平台 wechat / qq / github"
+//	@Param		channel	path	string	true	"渠道 web / app"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/bindings/{provider}/{channel} [delete]
+//	@ID			OAuthBindingController_unbind
+func (h *AuthHandler) OAuthBindingUnbind(c *gin.Context) {
+	svc := service.NewOAuthService(h.svc.Deps())
+	uid := middleware.CurrentUserID(c)
+	if e := svc.Unbind(c.Request.Context(), uid, c.Param("provider"), c.Param("channel")); e != nil {
+		response.Fail(c, e)
+		return
+	}
+	bindings, e := svc.ListBindings(uid)
+	if e != nil {
+		// 列表刷新失败不影响解绑结果：解绑已生效，data 留空让前端自行重拉。
+		response.Success(c, nil)
+		return
+	}
+	response.Success(c, gin.H{"bindings": bindings})
+}
+
+// OAuthBindingLink POST /user/oauth/bindings/link
+//
+// 已登录状态下把第三方身份绑到当前用户。请求体与登录端点同构：
+//   - web（微信/QQ/GitHub）：{"provider":"wechat","channel":"web","code":"...","state":"..."}
+//   - QQ app：{"provider":"qq","channel":"app","accessToken":"...","openId":"..."}
+//   - 微信 app：{"provider":"wechat","channel":"app","code":"..."}
+//
+// 该 openid 已被任何用户绑定 → 409。绝不建号：只插绑定到当前 user。
+//
+//	@Summary	绑定第三方账号到当前用户
+//	@Tags		用户认证
+//	@Accept		json
+//	@Produce	json
+//	@Param		body body service.OAuthLinkInput true "请求体 {provider, channel, code, state} 或 {provider, channel, accessToken, openId}"
+//	@Success	200	{object}	ResponseBody
+//	@Router		/user/oauth/bindings/link [post]
+//	@ID			OAuthBindingController_link
+func (h *AuthHandler) OAuthBindingLink(c *gin.Context) {
+	var req service.OAuthLinkInput
+	if !bindJSON(c, &req) {
+		return
+	}
+	svc := service.NewOAuthService(h.svc.Deps())
+	bindings, e := svc.LinkToCurrentUser(c.Request.Context(), middleware.CurrentUserID(c), req)
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.Success(c, gin.H{"bindings": bindings})
 }

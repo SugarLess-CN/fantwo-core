@@ -31,6 +31,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -93,7 +94,17 @@ func NewOAuthService(d *Deps) *OAuthService { return &OAuthService{d: d} }
 // 方法面 = oauth_service.go 实际触达 DB 的全部查询（grep 核对，不增不减）：
 // 绑定按 unionid / openid 查、建绑定、刷快照、邮箱占用（含软删）、
 // 用户按 id 查、用户名 / 昵称占用检查。
+// T-37e 追加账号绑定管理三件套：按用户列绑定、按 (user, provider, channel) 查、
+// Unscoped 硬删绑定。
 type oauthDataAccess interface {
+	// ListBindingsByUser 列出某用户的全部绑定（按创建时间升序，展示顺序稳定）。
+	ListBindingsByUser(userID string) ([]*model.UserOAuthBinding, error)
+	// FindUserBinding 按 (userID, provider, channel) 查该用户自己的绑定；
+	// 不存在返回 (nil, nil)。
+	FindUserBinding(userID, provider, channel string) (*model.UserOAuthBinding, error)
+	// HardDeleteBinding Unscoped 硬删绑定（唯一索引 uk_oauth_provider_openid
+	// 不含 deleted_at，软删行会挡住同一 openid 重新绑定 —— 见 Unbind 注释）。
+	HardDeleteBinding(id string) error
 	// FindBindingByUnionID 按 provider + unionid 查绑定；不存在返回 (nil, nil)。
 	// 调用方已保证 unionID 非空（禁令 4）；实现可再挡一次空串。
 	FindBindingByUnionID(provider, unionID string) (*model.UserOAuthBinding, error)
@@ -142,6 +153,29 @@ func (g oauthGormAccess) FindBindingByOpenID(provider, openID string) (*model.Us
 
 func (g oauthGormAccess) CreateBinding(b *model.UserOAuthBinding) error {
 	return g.s.d.DB.Create(b).Error
+}
+
+func (g oauthGormAccess) ListBindingsByUser(userID string) ([]*model.UserOAuthBinding, error) {
+	var list []*model.UserOAuthBinding
+	err := g.s.d.DB.Where("user_id = ?", userID).Order("created_at ASC").Find(&list).Error
+	return list, err
+}
+
+func (g oauthGormAccess) FindUserBinding(userID, provider, channel string) (*model.UserOAuthBinding, error) {
+	var b model.UserOAuthBinding
+	err := g.s.d.DB.Where("user_id = ? AND provider = ? AND channel = ?", userID, provider, channel).First(&b).Error
+	if err != nil {
+		if IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &b, nil
+}
+
+// HardDeleteBinding Unscoped 硬删（绕过 gorm 软删作用域，物理 DELETE）。
+func (g oauthGormAccess) HardDeleteBinding(id string) error {
+	return g.s.d.DB.Unscoped().Delete(&model.UserOAuthBinding{}, "id = ?", id).Error
 }
 
 func (g oauthGormAccess) RefreshBindingSnapshot(b *model.UserOAuthBinding, fields map[string]interface{}) error {
@@ -701,4 +735,345 @@ func (s *OAuthService) uniqueOAuthNickname(provider, nickname string) *string {
 	}
 	// 5 次仍冲突：交给唯一索引兜底（宁可插入失败返回 500，也不死循环）。
 	return &nick
+}
+
+// ---------------------------------------------------------------------------
+// 账号绑定管理（T-37e）：查绑定列表 / 解绑 / 已登录绑定新平台。
+//
+// 三个方法都是「当前登录用户」视角，userID 由 handler 从 JWT claims 取
+// （路由挂在 authGroup，中间件保证非空）。与 FindOrCreateByOAuth 的本质区别：
+// 这里**不查找 / 不建号**，只动绑定表 —— 第三方身份永远落在已登录的 user 上。
+//
+// 日志纪律（禁令 1 / 禁令 2）：provider / channel / userId 可打；
+// openid 只打前 8 位（shortOAuthID，排错够用且不可反推完整标识）；
+// unionid / Token.Raw 一律不打。
+// ---------------------------------------------------------------------------
+
+// oauthBindingView 绑定列表对外视图。
+//
+// PII 边界：**不含 openid / unionid**（绑定主键是第三方平台标识，属于 PII；
+// 前端展示用不到它们，要排错看日志）。字段名 camelCase（AGENTS 全局决策）。
+type oauthBindingView struct {
+	Provider  string `json:"provider"`
+	Channel   string `json:"channel"`
+	Nickname  string `json:"nickname"`
+	AvatarURL string `json:"avatarUrl"`
+	BoundAt   string `json:"boundAt"` // RFC3339，取 CreatedAt
+}
+
+// ListBindings 当前用户的全部第三方绑定。
+//
+// 空列表返回 `bindings: []` 而不是 null（对齐 T-34b5 的 thumbnails 契约：
+// 前端 .length / .map 直接可用，不给它 null 判断的负担）。
+func (s *OAuthService) ListBindings(userID string) ([]*oauthBindingView, *errcode.Err) {
+	if strings.TrimSpace(userID) == "" {
+		return nil, errcode.ErrUnauthorized
+	}
+	acc := s.accessor()
+	list, err := acc.ListBindingsByUser(userID)
+	if err != nil {
+		s.d.Logger.Error("oauth list bindings", zap.String("userId", userID), zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	views := make([]*oauthBindingView, 0, len(list))
+	for _, b := range list {
+		views = append(views, &oauthBindingView{
+			Provider:  b.Provider,
+			Channel:   b.Channel,
+			Nickname:  b.Nickname,
+			AvatarURL: b.AvatarURL,
+			BoundAt:   b.CreatedAt.Format(time.RFC3339),
+		})
+	}
+	return views, nil
+}
+
+// Unbind 解绑一个第三方绑定（硬删）。
+//
+// # 安全规则（lead 裁定的硬约束）
+//
+// 可用登录方式 = 手机号非空 OR 邮箱非空 OR 除目标绑定外还有 ≥1 条第三方绑定。
+// 解绑后一种都不剩 → 403（ErrOAuthUnbindLastMethod）。
+//
+// **Password 不能作为判据**：第三方建号写的是随机密码
+// hashPassword(genCode()+genCode())，用户并不知道它 —— 若把 Password != ""
+// 当「还能密码登录」，第三方账号的这条校验恒真，防线整条失效。
+//
+// # 软删 vs 硬删（为什么 Unscoped）
+//
+// uk_oauth_provider_openid(provider, openid) 唯一索引**不含 deleted_at**：
+// PostgreSQL 唯一索引作用于全表行（含已软删行），软删后同一 openid 再绑定
+// 必撞 23505 —— 用户解绑后永远绑不回来，除非额外写「恢复软删记录」的复活路径。
+// 绑定的生命周期应该跟随用户操作（解绑 = 关系终止），不值得为审计引入
+// 一条复活分支 + 半死的索引行。审计由日志承担：provider / channel / userId /
+// openid 前 8 位（不落完整 openid，禁令 1）。
+func (s *OAuthService) Unbind(ctx context.Context, userID, provider, channel string) *errcode.Err {
+	_ = ctx // 预留：绑定管理链路暂无异步依赖；保留形参稳定 handler→service 签名
+	userID = strings.TrimSpace(userID)
+	provider = strings.ToLower(strings.TrimSpace(provider))
+	channel = strings.ToLower(strings.TrimSpace(channel))
+	if userID == "" {
+		return errcode.ErrUnauthorized
+	}
+	if provider == "" || channel == "" {
+		return errcode.ErrInvalidParam
+	}
+	acc := s.accessor()
+
+	b, err := acc.FindUserBinding(userID, provider, channel)
+	if err != nil {
+		s.d.Logger.Error("oauth unbind find binding",
+			zap.String("userId", userID), zap.String("provider", provider),
+			zap.String("channel", channel), zapErr(err))
+		return errcode.ErrInternal
+	}
+	if b == nil {
+		return errcode.ErrOAuthBindingNotFound
+	}
+
+	// 解绑安全性判定：数「除目标绑定外」还剩几种登录方式。
+	// 顺序：先查其余绑定（通常更便宜），不满足再看手机 / 邮箱。
+	// 判据刻意不含 Password（理由见函数注释）。
+	remaining, err := s.countOtherBindings(acc, userID, provider, channel)
+	if err != nil {
+		s.d.Logger.Error("oauth unbind count bindings", zap.String("userId", userID), zapErr(err))
+		return errcode.ErrInternal
+	}
+	hasOther := remaining > 0
+	if !hasOther {
+		user, uerr := acc.FindUserByID(userID)
+		if uerr != nil {
+			s.d.Logger.Error("oauth unbind find user", zap.String("userId", userID), zapErr(uerr))
+			return errcode.ErrInternal
+		}
+		hasPhone := user.Phone != nil && strings.TrimSpace(*user.Phone) != ""
+		hasEmail := user.Email != nil && strings.TrimSpace(*user.Email) != ""
+		if !hasPhone && !hasEmail {
+			return errcode.ErrOAuthUnbindLastMethod
+		}
+	}
+
+	if err := acc.HardDeleteBinding(b.ID); err != nil {
+		s.d.Logger.Error("oauth unbind delete binding",
+			zap.String("userId", userID), zap.String("provider", provider),
+			zap.String("channel", channel), zapErr(err))
+		return errcode.ErrInternal
+	}
+	// 审计日志：openid 只打前 8 位（禁令 1：完整 openid 是平台内 PII）。
+	s.d.Logger.Info("oauth unbind",
+		zap.String("userId", userID),
+		zap.String("provider", provider), zap.String("channel", channel),
+		zap.String("openidPrefix", shortOAuthID(b.OpenID)))
+	return nil
+}
+
+// countOtherBindings 数某用户除 (provider, channel) 之外的绑定条数。
+//
+// 用 ListBindingsByUser 再过滤而不是单独写 SQL：绑定数是个位数级，
+// 内存过滤足够，也免得往 oauthDataAccess 再塞一个 COUNT 方法。
+func (s *OAuthService) countOtherBindings(acc oauthDataAccess, userID, provider, channel string) (int, error) {
+	list, err := acc.ListBindingsByUser(userID)
+	if err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, b := range list {
+		if b.Provider == provider && b.Channel == channel {
+			continue
+		}
+		n++
+	}
+	return n, nil
+}
+
+// LinkToCurrentUser 把一个第三方身份绑定到当前登录用户（不查找 / 不建号）。
+//
+// 与登录链路（oauthWebCallback / oauthAppLoginByCode / oauthAppLoginByToken）
+// 的区别：登录是「拿第三方身份换本站账号」，这里用户已经登录，第三方身份
+// 只是**新增一条绑定** —— 永远落 userID，绝不触发 createOAuthUser。
+//
+// 流程：
+//  1. web 渠道：verifyOAuthState（fail-closed，与登录同源）→ Exchange → UserInfo
+//  2. app 渠道：QQ 必须 ValidateToken（禁令 5，token 由客户端上报）；微信交 code 走 Exchange
+//  3. 检查 (provider, openid) 是否已被绑定：是 → 409（ErrOAuthBindingConflict）；
+//     被当前用户绑过（同 provider+channel 重复绑定）同样 409（幂等由前端保证，
+//     后端拒绝重复插入，避免同一 openid 两行）
+//  4. 插入绑定到当前 user
+//
+// 返回绑定后的完整列表（前端绑定成功后直接刷新展示，不用再发一次 GET）。
+func (s *OAuthService) LinkToCurrentUser(ctx context.Context, userID string, in OAuthLinkInput) ([]*oauthBindingView, *errcode.Err) {
+	userID = strings.TrimSpace(userID)
+	if userID == "" {
+		return nil, errcode.ErrUnauthorized
+	}
+	in.Provider = strings.ToLower(strings.TrimSpace(in.Provider))
+	in.Channel = strings.ToLower(strings.TrimSpace(in.Channel))
+	if in.Provider == "" || in.Channel == "" {
+		return nil, errcode.ErrInvalidParam
+	}
+	// 渠道合法性提前挡（oauthProvider 不支持的组合在后面也会被挡，但这里
+	// 先给前端一个明确的参数错误而不是「未配置」）。
+	if e := s.d.ready(); e != nil {
+		return nil, e
+	}
+	authSvc := &AuthService{d: s.d} // 复用 state / provider 编排（同一 Deps，无新状态）
+	p, e := authSvc.oauthProvider(in.Provider, in.Channel)
+	if e != nil {
+		return nil, e
+	}
+
+	var (
+		tok *oauthkit.Token
+		u   *oauthkit.User
+	)
+	if in.Channel == oauthkit.ChannelApp {
+		if in.Provider == oauthkit.ProviderQQ {
+			// QQ app：access_token + openid 都来自客户端，必须 ValidateToken（禁令 5）。
+			accessToken := strings.TrimSpace(in.AccessToken)
+			openID := strings.TrimSpace(in.OpenID)
+			if accessToken == "" || openID == "" {
+				return nil, errcode.ErrInvalidParam
+			}
+			tok, err := p.ValidateToken(ctx, &oauthkit.Token{
+				AccessToken: accessToken, OpenID: openID,
+				Channel: in.Channel, Verified: false, // 必须由 ValidateToken 置 true
+			})
+			if err != nil {
+				s.d.Logger.Error("oauth link validate token",
+					zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+					zap.String("class", oauthErrClass(err)))
+				return nil, mapOAuthErr(err)
+			}
+			u, err = p.UserInfo(ctx, tok)
+			if err != nil {
+				s.d.Logger.Error("oauth link userinfo",
+					zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+					zap.String("class", oauthErrClass(err)))
+				return nil, mapOAuthErr(err)
+			}
+		} else {
+			// 微信 app：客户端 SDK 只回 code，后端自己换 token（可信，无需 ValidateToken）。
+			if strings.TrimSpace(in.Code) == "" {
+				return nil, errcode.ErrInvalidParam
+			}
+			var xerr error
+			tok, xerr = p.Exchange(ctx, in.Code)
+			if xerr != nil {
+				s.d.Logger.Error("oauth link exchange",
+					zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+					zap.String("class", oauthErrClass(xerr)))
+				return nil, mapOAuthErr(xerr)
+			}
+			u, xerr = p.UserInfo(ctx, tok)
+			if xerr != nil {
+				s.d.Logger.Error("oauth link userinfo",
+					zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+					zap.String("class", oauthErrClass(xerr)))
+				return nil, mapOAuthErr(xerr)
+			}
+		}
+	} else {
+		// web 渠道：state 校验（fail-closed，与登录共用同一套 Redis 键与一次性消费）。
+		if e := authSvc.verifyOAuthState(ctx, in.Provider, in.Channel, in.State); e != nil {
+			return nil, e
+		}
+		if strings.TrimSpace(in.Code) == "" {
+			return nil, errcode.ErrInvalidParam
+		}
+		var xerr error
+		tok, xerr = p.Exchange(ctx, in.Code)
+		if xerr != nil {
+			s.d.Logger.Error("oauth link exchange",
+				zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+				zap.String("class", oauthErrClass(xerr)))
+			return nil, mapOAuthErr(xerr)
+		}
+		u, xerr = p.UserInfo(ctx, tok)
+		if xerr != nil {
+			s.d.Logger.Error("oauth link userinfo",
+				zap.String("provider", in.Provider), zap.String("channel", in.Channel),
+				zap.String("class", oauthErrClass(xerr)))
+			return nil, mapOAuthErr(xerr)
+		}
+	}
+
+	openID := strings.TrimSpace(u.ID)
+	if openID == "" {
+		return nil, oauthFailed()
+	}
+	// 协议之后的落库段抽成 linkBindingTo（占用检查 → 插入 → 返回列表），
+	// 单测直打纯数据段，协议编排由真机验收覆盖（与登录链路同源）。
+	return s.linkBindingTo(userID, in.Provider, in.Channel, u, tok)
+}
+
+// linkBindingTo LinkToCurrentUser 拿到 oauthkit.User 之后的落库段。
+//
+// 占用检查（provider, openid）不带 channel：openid 是渠道内标识，但
+// uk_oauth_provider_openid 的唯一性在 (provider, openid) 级别 —— 同一 openid
+// 被任何人绑过都不允许再插。这正是「该账号已被其他用户绑定」409 的来源。
+func (s *OAuthService) linkBindingTo(userID, provider, channel string, u *oauthkit.User, tok *oauthkit.Token) ([]*oauthBindingView, *errcode.Err) {
+	openID := strings.TrimSpace(u.ID)
+	if openID == "" {
+		return nil, oauthFailed()
+	}
+	unionID := strings.TrimSpace(u.UnionID)
+	if unionID == "" && tok != nil {
+		unionID = strings.TrimSpace(tok.UnionID)
+	}
+
+	acc := s.accessor()
+	existing, err := acc.FindBindingByOpenID(provider, openID)
+	if err != nil {
+		s.d.Logger.Error("oauth link check binding",
+			zap.String("provider", provider), zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	if existing != nil {
+		return nil, errcode.ErrOAuthBindingConflict
+	}
+
+	// 列宽对齐 createOAuthUser：varchar 超长在 PostgreSQL 是报错不是截断。
+	binding := &model.UserOAuthBinding{
+		UserID:    userID,
+		Provider:  provider,
+		Channel:   channel,
+		OpenID:    openID,
+		Nickname:  truncateRunes(u.Nickname, 255),
+		AvatarURL: truncateRunes(u.AvatarURL, 512),
+	}
+	if unionID != "" {
+		uid := unionID
+		binding.UnionID = &uid
+	}
+	if err := acc.CreateBinding(binding); err != nil {
+		// 并发短窗口：另一请求刚插了同一 (provider, openid)。回查区分——
+		// 归属别人仍 409；归属同一 user（罕见竞态重复提交）也按冲突处理，
+		// 不给前端「成功但实际没插」的假象。
+		if again, ferr := acc.FindBindingByOpenID(provider, openID); ferr == nil && again != nil {
+			return nil, errcode.ErrOAuthBindingConflict
+		}
+		s.d.Logger.Error("oauth link create binding",
+			zap.String("provider", provider), zap.String("userId", userID), zapErr(err))
+		return nil, errcode.ErrInternal
+	}
+	s.d.Logger.Info("oauth link",
+		zap.String("userId", userID),
+		zap.String("provider", provider), zap.String("channel", channel),
+		zap.String("openidPrefix", shortOAuthID(openID)))
+	return s.ListBindings(userID)
+}
+
+// OAuthLinkInput 已登录绑定新平台的入参。
+//
+// 两类形态二选一：
+//   - web（微信/QQ/GitHub）：provider + channel + code + state
+//   - QQ app：provider + channel("app") + accessToken + openId
+//   - 微信 app：provider + channel("app") + code
+type OAuthLinkInput struct {
+	Provider    string `json:"provider"`
+	Channel     string `json:"channel"`
+	Code        string `json:"code"`
+	State       string `json:"state"`
+	AccessToken string `json:"accessToken"`
+	OpenID      string `json:"openId"`
 }

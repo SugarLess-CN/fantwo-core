@@ -96,6 +96,13 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		authGroup.POST("/auth/logout", authH.Logout)        // 任务书别名
 		authGroup.POST("/auth/logout-all", authH.LogoutAll) // 任务书别名
 		authGroup.POST("/user/password/change", authH.ChangePassword)
+
+		// 第三方账号绑定管理（T-37e，需登录）：查列表 / 解绑 / 绑定到当前用户。
+		// 不与上面 NoAuth 的登录端点冲突：登录路径带 /oauth/<平台>/<渠道>/xxx，
+		// 这里统一在 /user/oauth/bindings 子树下。
+		authGroup.GET("/user/oauth/bindings", authH.OAuthBindingList)
+		authGroup.DELETE("/user/oauth/bindings/:provider/:channel", authH.OAuthBindingUnbind)
+		authGroup.POST("/user/oauth/bindings/link", authH.OAuthBindingLink)
 	}
 
 	// ---------- 用户资料 / 账号 ----------

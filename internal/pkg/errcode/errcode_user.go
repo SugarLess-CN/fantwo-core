@@ -38,7 +38,11 @@ const (
 	BizCertNotFound        = 20024
 	BizCertNotPending      = 20025
 	BizOAuthNotConfigured  = 20026
-	BizAccountBanned       = 20027
+	// 第三方账号绑定管理（T-37e）
+	BizOAuthUnbindLastMethod = 20028 // 解绑后无任何登录方式
+	BizOAuthBindingNotFound  = 20029 // 绑定不存在
+	BizOAuthBindingConflict  = 20030 // openid 已被其他用户绑定
+	BizAccountBanned         = 20027
 )
 
 // RBAC 业务码（70000 段）。
@@ -116,6 +120,16 @@ var (
 	//
 	// Deprecated: 用 ErrOAuthNotConfigured。
 	ErrGithubOAuthNotConfigured = ErrOAuthNotConfigured
+
+	// ErrOAuthUnbindLastMethod 解绑会移除最后一种登录方式 → 403。
+	//
+	// 判定口径（oauth_service.go Unbind）：手机号 OR 邮箱 OR 其它第三方绑定，
+	// **不含 Password**（第三方建号是随机密码，用户不知道）。
+	ErrOAuthUnbindLastMethod = &Err{BizCode: BizOAuthUnbindLastMethod, HTTP: http.StatusForbidden, Key: i18n.AuthOAuthUnbindLastMethod}
+	// ErrOAuthBindingNotFound 绑定不存在 → 404。
+	ErrOAuthBindingNotFound = &Err{BizCode: BizOAuthBindingNotFound, HTTP: http.StatusNotFound, Key: i18n.AuthOAuthBindingNotFound}
+	// ErrOAuthBindingConflict 该 openid 已被其他用户绑定 → 409。
+	ErrOAuthBindingConflict = &Err{BizCode: BizOAuthBindingConflict, HTTP: http.StatusConflict, Key: i18n.AuthOAuthBindingConflict}
 
 	// ---- RBAC 细分 ----
 	// ErrRoleNameExists 角色名已存在。

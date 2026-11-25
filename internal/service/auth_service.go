@@ -42,6 +42,10 @@ func NewAuthService(d *Deps) *AuthService {
 	return &AuthService{d: d, Codes: NewVerifyCodeStore(d.Redis)}
 }
 
+// Deps 只读暴露依赖组（T-37e：绑定管理 handler 在 AuthHandler 上现建
+// OAuthService，需要拿到同一份 Deps —— 无状态共享，只读访问器足够）。
+func (s *AuthService) Deps() *Deps { return s.d }
+
 // hashPassword bcrypt 哈希（cost 10，对齐原 saltRounds=10）。
 // 注意：bcrypt 输入上限 72 字节，仅用于用户密码；token 哈希必须用 hashToken。
 func hashPassword(plain string) (string, error) {

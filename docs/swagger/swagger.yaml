@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  github_com_SugarLess-CN_fantwo-core_internal_service.OAuthLinkInput:
+    properties:
+      accessToken:
+        type: string
+      channel:
+        type: string
+      code:
+        type: string
+      openId:
+        type: string
+      provider:
+        type: string
+      state:
+        type: string
+    type: object
   internal_handler.ResponseBody:
     properties:
       data: {}
@@ -5934,6 +5949,66 @@ paths:
       summary: 批量会员状态检查
       tags:
       - 用户管理
+  /user/oauth/bindings:
+    get:
+      operationId: OAuthBindingController_listBindings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 我的第三方绑定列表
+      tags:
+      - 用户认证
+  /user/oauth/bindings/{provider}/{channel}:
+    delete:
+      operationId: OAuthBindingController_unbind
+      parameters:
+      - description: 平台 wechat / qq / github
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 渠道 web / app
+        in: path
+        name: channel
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 解绑第三方账号
+      tags:
+      - 用户认证
+  /user/oauth/bindings/link:
+    post:
+      consumes:
+      - application/json
+      operationId: OAuthBindingController_link
+      parameters:
+      - description: 请求体 {provider, channel, code, state} 或 {provider, channel, accessToken,
+          openId}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_SugarLess-CN_fantwo-core_internal_service.OAuthLinkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler.ResponseBody'
+      summary: 绑定第三方账号到当前用户
+      tags:
+      - 用户认证
   /user/oauth/github/callback:
     get:
       produces:

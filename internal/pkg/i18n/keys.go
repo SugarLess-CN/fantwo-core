@@ -81,7 +81,17 @@ const (
 	// AuthOAuthScopeMissing 用户未授予必需的作用域
 	// （对应 oauthkit.ErrScopeMissing，典型：GitHub 未授 user:email）。
 	AuthOAuthScopeMissing Key = "auth.oauth_scope_missing"
-	AuthDeviceLimit       Key = "auth.device_limit"
+	// AuthOAuthUnbindLastMethod 解绑会移除最后一种登录方式（T-37e）。
+	//
+	// 判定口径见 oauth_service.go 的 Unbind：可用方式 = 手机号 OR 邮箱 OR 其它第三方绑定。
+	// **不含 Password** —— 第三方建号写的是随机密码，用户不知道，按它判会让校验恒真失效。
+	// 文案必须可执行（告诉用户先去绑定什么），否则用户只会反复重试同一个操作。
+	AuthOAuthUnbindLastMethod Key = "auth.oauth_unbind_last_method"
+	// AuthOAuthBindingNotFound 要解绑的绑定不存在（T-37e）。
+	AuthOAuthBindingNotFound Key = "auth.oauth_binding_not_found"
+	// AuthOAuthBindingConflict 该第三方账号已被其他用户绑定（T-37e）。
+	AuthOAuthBindingConflict Key = "auth.oauth_binding_conflict"
+	AuthDeviceLimit          Key = "auth.device_limit"
 
 	// ---------- user ----------
 	UserNotFound            Key = "user.not_found"
