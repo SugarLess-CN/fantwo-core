@@ -223,6 +223,59 @@ type ArticleDto struct {
 
 ---
 
+## 五之二、覆盖率工具 `scripts/dto-coverage.py`
+
+DTO 全覆盖的量化标尺。**每批改完跑一次，看「data 未具名」的数量是否在降**。
+
+```bash
+python scripts/dto-coverage.py          # 总览：总数 / 未具名数 / 按域分布
+python scripts/dto-coverage.py --list   # 附明细：每个未具名接口的 METHOD + path
+```
+
+### 为什么不能只看「有没有 $ref」
+
+**这是本工具存在的唯一理由**，也是一个真实的判断陷阱：
+
+```bash
+# 天真检查（错）
+if '$ref' not in schema: print('无类型')
+```
+
+所有接口的 200 都 `$ref` 到 `internal_handler.ResponseBody` / `ResponsePageBody` ——
+**外层有 $ref，但 `data` 字段是空 `{}`**，业务字段零定义。用上面的检查会得出
+「317 个接口只有 2 个没类型」的结论，而真相是 **223 个（70%）没具名**。
+
+### 正确的判定逻辑
+
+| 情况 | 判定 |
+|---|---|
+| 空 schema / 无 `responses.200` | ❌ 无类型 |
+| 只有外层 `$ref`，且该目标的 `data == {}` | ❌ 无类型 |
+| `allOf` 里带 `data` 覆盖指向 `$ref` / `allOf` / 数组 | ✅ 有类型 |
+| `allOf` 里只有外层 `$ref` | 递归看外层目标的 `data` |
+
+脚本按这个实现，输出可信。
+
+### 基准数据（2026-11-25 起）
+
+| 时点 | 总操作 | data 未具名 | 具名率 |
+|---|---|---|---|
+| user 批次完成 | 317 | 223 | **29%** |
+| （目标）全部批次完成 | 317 | 0（回调/health 除外） | 100% |
+
+**排除项**：`/notify/*`（微信/支付宝回调返回 `{"code":"SUCCESS"}`，不走统一契约）、
+`/health`（只返回 `{"status_code":0}`）。
+
+### 每个成员的验收口径
+
+```bash
+# 只看自己负责的域
+python scripts/dto-coverage.py --list | grep -E "article|comment"
+# 期望：无输出
+```
+
+---
+
 ## 六、验证清单
 
 每批 DTO 抽取完成后逐条确认：
