@@ -69,7 +69,13 @@ func (f *Infra) MigrationStats(ctx context.Context) (*MigrationStatsResult, erro
 		{&out.Images, "mime_type LIKE ?", []interface{}{"image/%"}},
 		{&out.Processed, "mime_type LIKE ? AND processed = ?", []interface{}{"image/%", true}},
 		{&out.Unprocessed, "mime_type LIKE ? AND processed = ?", []interface{}{"image/%", false}},
-		{&out.WithThumbnails, "mime_type LIKE ? AND thumbnails IS NOT NULL", []interface{}{"image/%"}},
+		// T-36（2026-11-25）：thumbnails 是 jsonb 列，「压缩关闭时代码写入的字面量
+		// 'null'」（见 upload.go 的 infraThumbnailsOrEmpty 语义）**不是 SQL NULL**，
+		// 旧口径 `IS NOT NULL` 会把它算成「有缩略图」——压缩开关一旦关闭，
+		// 该数字立即虚高。修正为同时排除 SQL NULL 与 jsonb 'null' 字面量，
+		// 与 `infraThumbnailsOrEmpty` 的读取语义（null → []）保持同源。
+		{&out.WithThumbnails, "mime_type LIKE ? AND thumbnails IS NOT NULL AND thumbnails::text <> 'null'",
+			[]interface{}{"image/%"}},
 		{&out.WithOriginal, "mime_type LIKE ? AND original IS NOT NULL", []interface{}{"image/%"}},
 		{&out.Watermarked, "watermarked = ?", []interface{}{true}},
 	} {

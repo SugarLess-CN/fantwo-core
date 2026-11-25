@@ -41,6 +41,7 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -318,6 +319,9 @@ func (s *PaymentService) createWechatPayment(record *model.Payment, order *model
 	if w.AppID == "" || w.MchID == "" || w.PrivateKey == "" {
 		return nil, errcode.ErrBadRequest.WithKey(i18n.PaymentConfigMissing)
 	}
+	// T-25 预热：首单前确保平台证书已注册（AutoAuthCipher 本身会下载，
+	// 这里显式调用是为了让失败在**下单阶段**就暴露，而不是等回调才发现）。
+	s.wechatWarmupCertVisitor(&w)
 	codeURL, prepayID, err := s.wechatNativeOrder(&w, order, cfg.NotifyURL+"/wechat")
 	if err != nil {
 		return nil, errcode.ErrBadRequest.WithKeyf(i18n.PaymentWechatCreateFailed, err)
@@ -329,6 +333,39 @@ func (s *PaymentService) createWechatPayment(record *model.Payment, order *model
 	return map[string]interface{}{
 		"paymentId": record.ID, "codeUrl": codeURL, "paymentMethod": "WECHAT",
 	}, nil
+}
+
+// wechatWarmupCertVisitor 平台证书预热（T-25）。
+//
+// 问题背景：WithWechatPayAutoAuthCipher 只在**下单时**触发平台证书的自动下载与注册；
+// 而 HandleWechatNotify 回调验签用的 `downloader.MgrInstance().GetCertificateVisitor(mchID)`
+// 在「服务刚启动、尚无任何下单」时返回 nil visitor → 首次回调验签直接失败。
+// 微信回调并不等你先下一单才到来（用户可能在另一端扫了历史订单码）。
+//
+// 修复：配置齐全时主动触发一次「最小化下载」——构造短暂 client 走一次 AutoAuthCipher
+// （其内部会拉取平台证书并注册进 MgrInstance），失败只打日志不阻断（回调验签失败时
+// SDK 仍会走二次下载兜底；此处是**消除首次回调窗口**，不是唯一防线）。
+//
+// 幂等：MgrInstance 按 mchID 缓存 visitor，重复调用只会刷新不会堆积。
+// 调用点：loadPayConfig 后由 HandleWechatNotify / createWechatPayment 触发，
+// 无独立 goroutine —— 下载失败留给回调兜底，不拖慢主流程。
+func (s *PaymentService) wechatWarmupCertVisitor(w *WechatCfg) {
+	if w.MchID == "" || w.SerialNo == "" || w.PrivateKey == "" || w.APIv3Key == "" {
+		return
+	}
+	if downloader.MgrInstance().GetCertificateVisitor(w.MchID) != nil {
+		return // 已注册：无需重复下载
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	privKey, err := utils.LoadPrivateKey(w.PrivateKey)
+	if err != nil {
+		zap.L().Warn("wechat cert warmup: bad merchant private key",
+			zap.String("mchId", w.MchID), zapErr(err))
+		return
+	}
+	_, _ = core.NewClient(ctx,
+		option.WithWechatPayAutoAuthCipher(w.MchID, w.SerialNo, privKey, w.APIv3Key))
 }
 
 // wechatNativeOrder 调微信 v3 Native 下单（wechatpay-go 官方 SDK；
@@ -688,7 +725,14 @@ func (s *PaymentService) HandleWechatNotify(r *http.Request) (bool, string) {
 		return false, "WeChat pay is not configured"
 	}
 	ctx := context.Background()
+	// T-25 预热：服务刚启动、尚无下单时 visitor 可能未注册 → 先触发一次下载。
+	// 已注册时此调用是 no-op（幂等），不会拖慢回调路径。
+	s.wechatWarmupCertVisitor(&w)
 	certVisitor := downloader.MgrInstance().GetCertificateVisitor(w.MchID)
+	if certVisitor == nil {
+		// 预热失败（网络/凭据问题）→ 明确报错让微信重试，而不是用 nil visitor panic。
+		return false, "WeChat platform certificate not available yet, please retry later"
+	}
 	handler, err := notify.NewRSANotifyHandler(w.APIv3Key, verifiers.NewSHA256WithRSAVerifier(certVisitor))
 	if err != nil {
 		return false, "Failed to initialize notify handler: " + err.Error()
