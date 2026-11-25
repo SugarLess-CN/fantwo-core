@@ -42,6 +42,7 @@ const (
 	BizOAuthUnbindLastMethod = 20028 // 解绑后无任何登录方式
 	BizOAuthBindingNotFound  = 20029 // 绑定不存在
 	BizOAuthBindingConflict  = 20030 // openid 已被其他用户绑定
+	BizOAuthStateInvalid     = 20031 // OAuth state 无效 / 已用过（链接过期或被重放）
 	BizAccountBanned         = 20027
 )
 
@@ -130,6 +131,16 @@ var (
 	ErrOAuthBindingNotFound = &Err{BizCode: BizOAuthBindingNotFound, HTTP: http.StatusNotFound, Key: i18n.AuthOAuthBindingNotFound}
 	// ErrOAuthBindingConflict 该 openid 已被其他用户绑定 → 409。
 	ErrOAuthBindingConflict = &Err{BizCode: BizOAuthBindingConflict, HTTP: http.StatusConflict, Key: i18n.AuthOAuthBindingConflict}
+	// ErrOAuthStateInvalid OAuth state 无效 / 已过期 / 已被使用（T-37f）→ 400。
+	//
+	// 为什么是 400 而不是 401：这不是「认证失败」，而是**这次登录请求的参数已失效**。
+	// HTTP 401 会被前端拦截器当成「请重新登录本站」，而这里的正确动作是
+	// 「重新点一次第三方登录按钮」，语义完全不同。
+	//
+	// 为什么必须与 ErrOAuthFailed 分开（2026-11-25 真机实测的缺陷）：
+	// 两者同码时，「链接过期」「微信挂了」「有人在伪造 state」三种情况返回完全一样，
+	// 前端与运维都无法判断该提示什么、该不该告警。
+	ErrOAuthStateInvalid = &Err{BizCode: BizOAuthStateInvalid, HTTP: http.StatusBadRequest, Key: i18n.AuthOAuthStateInvalid}
 
 	// ---- RBAC 细分 ----
 	// ErrRoleNameExists 角色名已存在。

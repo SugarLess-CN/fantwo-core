@@ -59,7 +59,10 @@ var enCatalog = map[Key]string{
 	AuthOAuthUnbindLastMethod: "This is your last way to sign in, please set a phone number or email before unbinding",
 	AuthOAuthBindingNotFound:  "This third-party account is not bound to your profile",
 	AuthOAuthBindingConflict:  "This third-party account is already bound to another user",
-	AuthDeviceLimit:           "Device limit reached, please log out from another device",
+	// AuthOAuthStateInvalid 文案要**可执行**：「重新登录」是用户唯一能做的动作。
+	// 不能用 "failed" 之类无指引的说法 —— 用户会反复重试同一个过期链接。
+	AuthOAuthStateInvalid: "The login link has expired, please sign in again",
+	AuthDeviceLimit:       "Device limit reached, please log out from another device",
 
 	// ---------- user ----------
 	UserNotFound:            "User not found",

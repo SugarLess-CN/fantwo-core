@@ -679,7 +679,10 @@ func (s *AuthService) verifyOAuthState(ctx context.Context, provider, channel, s
 		return errcode.ErrDependencyUnavailable
 	}
 	if n == 0 {
-		return oauthFailed()
+		// state 未命中 = 链接已过期 / 已用过 / 伪造 —— 用户可自行修复（重新发起登录），
+		// 必须与「上游失败」区分开：上游失败要等，state 失效要重来（T-37f）。
+		// 注意仍然是 400 而不是 401：这不是本站认证态失效，是本次登录参数失效。
+		return errcode.ErrOAuthStateInvalid
 	}
 	// 一次性消费：删不掉也当失败处理（否则同一 state 可被重放换 token）。
 	if err := s.d.AuthTok.Del(ctx, key); err != nil {

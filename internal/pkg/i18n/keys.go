@@ -98,7 +98,13 @@ const (
 	AuthOAuthBindingNotFound Key = "auth.oauth_binding_not_found"
 	// AuthOAuthBindingConflict 该第三方账号已被其他用户绑定（T-37e）。
 	AuthOAuthBindingConflict Key = "auth.oauth_binding_conflict"
-	AuthDeviceLimit          Key = "auth.device_limit"
+	// AuthOAuthStateInvalid OAuth state 无效 / 已用过（T-37f）。
+	//
+	// 与 AuthOAuthFailed 严格分开：state 失效是**用户可自行修复**的
+	// （链接过期 → 重新发起登录），而上游失败是**等一等再重试**。两者同码时
+	// 前端只能提示「登录失败」，用户不知道该点哪里 —— 2026-11-25 真机实测发现。
+	AuthOAuthStateInvalid Key = "auth.oauth_state_invalid"
+	AuthDeviceLimit       Key = "auth.device_limit"
 
 	// ---------- user ----------
 	UserNotFound            Key = "user.not_found"
