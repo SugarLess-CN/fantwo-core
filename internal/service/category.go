@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -257,7 +258,7 @@ func (s *CategoryService) Update(ctx context.Context, id string, req UpdateCateg
 }
 
 // Remove 删除分类；存在子分类时拒绝删除（防止树断裂）。
-func (s *CategoryService) Remove(ctx context.Context, id string) (*map[string]interface{}, *errcode.Err) {
+func (s *CategoryService) Remove(ctx context.Context, id string) (*dto.DeleteResultDto, *errcode.Err) {
 	if _, err := s.repo.FindByID(ctx, id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrCategoryNotFound
@@ -276,8 +277,7 @@ func (s *CategoryService) Remove(ctx context.Context, id string) (*map[string]in
 		s.log.Error("删除分类失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": id, "deleted": true}
-	return &out, nil
+	return &dto.DeleteResultDto{ID: id, Deleted: true}, nil
 }
 
 // toCategoryView 实体转视图。

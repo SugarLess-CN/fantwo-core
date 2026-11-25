@@ -3709,6 +3709,49 @@ definitions:
         example: editor
         type: string
     type: object
+  dto.SearchArticleItemDto:
+    properties:
+      authorId:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      categoryId:
+        type: string
+      commentCount:
+        example: 5
+        type: integer
+      cover:
+        example: https://cdn.example.com/c.png
+        type: string
+      createdAt:
+        format: date-time
+        type: string
+      favoriteCount:
+        example: 3
+        type: integer
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      likes:
+        example: 12
+        type: integer
+      status:
+        example: PUBLISHED
+        type: string
+      summary:
+        type: string
+      title:
+        example: 我的第一篇作品
+        type: string
+      type:
+        example: article
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+      views:
+        example: 128
+        type: integer
+    type: object
   dto.SearchStatusDto:
     properties:
       documents:
@@ -5233,44 +5276,6 @@ definitions:
       trace_id:
         example: 4c3abb48-ddf2-4943-b685-ec4ec35449ed
         type: string
-    type: object
-  internal_handler.ResponsePageBody:
-    properties:
-      data:
-        $ref: '#/definitions/internal_handler.ResponsePageInner'
-      message:
-        example: Success
-        type: string
-      status_code:
-        example: 200
-        type: integer
-      timestamp:
-        example: 1795540372656
-        type: integer
-      trace_id:
-        example: 4c3abb48-ddf2-4943-b685-ec4ec35449ed
-        type: string
-    type: object
-  internal_handler.ResponsePageInner:
-    properties:
-      list: {}
-      meta:
-        $ref: '#/definitions/internal_handler.ResponsePageMeta'
-    type: object
-  internal_handler.ResponsePageMeta:
-    properties:
-      limit:
-        example: 10
-        type: integer
-      page:
-        example: 1
-        type: integer
-      total:
-        example: 100
-        type: integer
-      totalPages:
-        example: 10
-        type: integer
     type: object
 host: localhost:3000
 info:
@@ -11379,7 +11384,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.SearchArticleItemDto'
+                        type: array
+                    type: object
+              type: object
       summary: 搜索文章
       tags:
       - 搜索
@@ -11691,7 +11708,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.TagDto'
+                        type: array
+                    type: object
+              type: object
       security:
       - BearerAuth: []
       summary: 我关注的标签

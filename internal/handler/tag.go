@@ -95,7 +95,7 @@ func (h *TagHandler) Hot(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@Router		/tag/followed/list [get]
 func (h *TagHandler) FollowedList(c *gin.Context) {
 	page, limit := pageOf(c)

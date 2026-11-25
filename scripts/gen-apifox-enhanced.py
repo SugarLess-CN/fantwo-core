@@ -49,36 +49,6 @@ def main(src, out_dir):
         500: (10007, "Internal server error"),
     }
 
-    
-# Apifox 原有目录名映射（tag → Apifox folder 名）
-# Apifox 按 tag 自动建目录；tag 必须与 Apifox 原有目录名完全一致
-TAG_MAP = {
-    "成就": "成就管理",
-    "文章": "文章管理",
-    "装饰品": "装饰品管理",
-    "表情包": "表情包管理",
-    "消息": "信息管理",
-    "积分": "积分管理",
-    "角色": "角色管理",
-    "合集": "合集管理",
-    "上传": "上传管理",
-    "评论": "评论管理",
-    "订单": "订单管理",
-    "标签": "标签管理",
-    "支付": "支付管理",
-    "轮播": "轮播管理",
-    "邀请": "邀请管理",
-    "权限": "权限管理",
-    "举报": "举报管理",
-    "分类": "分类管理",
-    "搜索": "搜索管理",
-    "统计": "统计模块",
-}
-
-def map_tag(tag):
-    return TAG_MAP.get(tag, tag)
-
-
 # ---------- schema 批次 ----------
     s_idx = 0
     for name, schema in schemas.items():
@@ -152,6 +122,36 @@ def map_tag(tag):
                       ensure_ascii=False)
 
     print(f"生成完成: {s_idx} schema + {o_idx} operation → {out_dir}/")
+
+    
+# Apifox 原有目录名映射（tag → Apifox folder 名）
+# Apifox 按 tag 自动建目录；tag 必须与 Apifox 原有目录名完全一致
+TAG_MAP = {
+    "成就": "成就管理",
+    "文章": "文章管理",
+    "装饰品": "装饰品管理",
+    "表情包": "表情包管理",
+    "消息": "信息管理",
+    "积分": "积分管理",
+    "角色": "角色管理",
+    "合集": "合集管理",
+    "上传": "上传管理",
+    "评论": "评论管理",
+    "订单": "订单管理",
+    "标签": "标签管理",
+    "支付": "支付管理",
+    "轮播": "轮播管理",
+    "邀请": "邀请管理",
+    "权限": "权限管理",
+    "举报": "举报管理",
+    "分类": "分类管理",
+    "搜索": "搜索管理",
+    "统计": "统计模块",
+}
+
+def map_tag(tag):
+    return TAG_MAP.get(tag, tag)
+
 
 
 def _build_200_example(path, method, schema):
@@ -270,7 +270,25 @@ def swagger2_to_oas3(d):
             if others: nop["parameters"] = others
             np[method] = nop
         o3["paths"][path] = np
+    # 把 swagger2 的 #/definitions/X 改写成 OAS3 的 #/components/schemas/X。
+    # 必须在 o3 完全构造完之后、return 之前调用，否则后面构造的 paths 里的 $ref 改不到。
+    # 不改写的后果：OAS3 文档里 #/definitions/ 路径不存在 → Apifox 解析不到 →
+    # 静默降级成 {"type":"object","properties":{}} 空对象，且导入日志仍 100% 成功。
+    _rewrite_refs(o3)
     return o3
+
+
+def _rewrite_refs(node):
+    """递归把 swagger2 的 #/definitions/X 改写成 OAS3 的 #/components/schemas/X。"""
+    if isinstance(node, dict):
+        for k, v in list(node.items()):
+            if k == '$ref' and isinstance(v, str) and v.startswith('#/definitions/'):
+                node[k] = '#/components/schemas/' + v[len('#/definitions/'):]
+            else:
+                _rewrite_refs(v)
+    elif isinstance(node, list):
+        for it in node:
+            _rewrite_refs(it)
 
 
 if __name__ == '__main__':

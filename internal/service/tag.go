@@ -280,7 +280,7 @@ func (s *TagService) Remove(ctx context.Context, id string) (*dto.DeleteResultDt
 }
 
 // Follow 关注标签（对齐 POST /tag/:id/follow）。
-func (s *TagService) Follow(ctx context.Context, tagID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *TagService) Follow(ctx context.Context, tagID string, actor Actor) (*dto.TagFollowDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -308,12 +308,11 @@ func (s *TagService) Follow(ctx context.Context, tagID string, actor Actor) (*ma
 		s.log.Error("关注标签失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"followed": true}
-	return &out, nil
+	return &dto.TagFollowDto{Followed: true}, nil
 }
 
 // Unfollow 取消关注标签（对齐 DELETE /tag/:id/follow）。
-func (s *TagService) Unfollow(ctx context.Context, tagID string, actor Actor) (*map[string]interface{}, *errcode.Err) {
+func (s *TagService) Unfollow(ctx context.Context, tagID string, actor Actor) (*dto.TagFollowDto, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, errcode.ErrUnauthorized
 	}
@@ -334,8 +333,7 @@ func (s *TagService) Unfollow(ctx context.Context, tagID string, actor Actor) (*
 		s.log.Error("取消关注标签失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"followed": false}
-	return &out, nil
+	return &dto.TagFollowDto{Followed: false}, nil
 }
 
 // FollowedList 用户关注的标签列表（对齐 GET /tag/followed/list）。

@@ -126,7 +126,7 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 //	@Param		keyword query string false "关键字"
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.SearchArticleItemDto}}
 //	@Router		/search [get]
 func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	if !h.svc.Enabled() {

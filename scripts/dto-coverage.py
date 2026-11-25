@@ -50,7 +50,13 @@ def data_typed(schema, depth=0):
 
 
 def data_typed_named(ref):
-    """$ref 指向的定义里 data 是否有实质类型。"""
+    """$ref 指向的定义里 data 是否有实质类型。
+
+    ★ 2026-11-25 修正：旧版只判「data 不是空 {}」，漏了**分页壳的另一层**。
+    `internal_handler.ResponsePageInner` 的 data 是 `{list: {}, meta: ...}` ——
+    data 非空、但 list 是空 object，前端照样拿不到列表项字段。
+    所以解析到 PageBody/PageInner 时必须继续往下看 `list` / `data` 的类型。
+    """
     name = ref.rsplit('/', 1)[-1]
     target = defs.get(name)
     if not target:
@@ -59,9 +65,41 @@ def data_typed_named(ref):
     if 'data' not in props:
         return False
     dv = props['data']
-    # 空 {} 表示零定义
     if dv == {}:
         return False
+
+    # 内层：分页壳（ResponsePageInner / PageBody / ResponsePageBody）要看 list
+    def list_typed(node, depth=0):
+        if depth > 3 or not node:
+            return True  # 不是分页结构，交给外层判
+        if '$ref' in node:
+            t = defs.get(node['$ref'].rsplit('/', 1)[-1])
+            if not t:
+                return True
+            return list_typed(t, depth + 1)
+        if 'allOf' in node:
+            return all(list_typed(p, depth + 1) for p in node['allOf'])
+        p = node.get('properties') or {}
+        # 分页壳：有 list 就要看 list 的类型；有 data（ResponsePageBody 第一层）继续下钻
+        if 'list' in p:
+            lv = p['list']
+            if lv == {} or lv is None:
+                return False
+            if '$ref' in lv or 'allOf' in lv:
+                return True
+            if lv.get('type') == 'array' and lv.get('items'):
+                it = lv['items']
+                # items 是空 object → 未具名
+                if it == {}:
+                    return False
+                return bool(it)
+            return True
+        if 'data' in p:
+            return list_typed(p['data'], depth + 1)
+        return True
+
+    if isinstance(dv, dict) and ('$ref' in dv or 'allOf' in dv):
+        return list_typed(dv)
     return bool(dv)
 
 
@@ -108,8 +146,11 @@ if '--drift' in sys.argv or '--all' in sys.argv:
     #
     # 判别方式：抓函数签名里 `(map[string]interface{}, error)` 或
     # `(map[string]interface{}, *errcode.Err)` 这种**返回位置**的形态。
+    # ★ 必须兼容指针形态 `(*map[string]interface{}, *errcode.Err)` ——
+    # 2026-11-25 发现 3 处（category.Remove / tag.Follow / tag.Unfollow）用指针写法逃过了旧正则，
+    # 工具因此谎报「无漂移」。**工具撒谎比代码有债更危险**。
     pat = re.compile(
-        r'\)\s*\(\s*map\[string\]interface\{\}\s*,\s*(error|\*errcode\.Err)\s*\)'
+        r'\)\s*\(\s*\*?\s*map\[string\]interface\{\}\s*,\s*(error|\*errcode\.Err)\s*\)'
     )
     drift = {}
     for f in glob.glob('internal/service/*.go'):

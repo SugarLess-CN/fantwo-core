@@ -10922,7 +10922,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.SearchArticleItemDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -11265,7 +11292,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.TagDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -20189,6 +20243,65 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SearchArticleItemDto": {
+            "type": "object",
+            "properties": {
+                "authorId": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "categoryId": {
+                    "type": "string"
+                },
+                "commentCount": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "cover": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/c.png"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "favoriteCount": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "likes": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PUBLISHED"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "我的第一篇作品"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "article"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "views": {
+                    "type": "integer",
+                    "example": 128
+                }
+            }
+        },
         "dto.SearchStatusDto": {
             "type": "object",
             "properties": {
@@ -22308,60 +22421,6 @@ const docTemplate = `{
                 "trace_id": {
                     "type": "string",
                     "example": "4c3abb48-ddf2-4943-b685-ec4ec35449ed"
-                }
-            }
-        },
-        "internal_handler.ResponsePageBody": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/internal_handler.ResponsePageInner"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Success"
-                },
-                "status_code": {
-                    "type": "integer",
-                    "example": 200
-                },
-                "timestamp": {
-                    "type": "integer",
-                    "example": 1795540372656
-                },
-                "trace_id": {
-                    "type": "string",
-                    "example": "4c3abb48-ddf2-4943-b685-ec4ec35449ed"
-                }
-            }
-        },
-        "internal_handler.ResponsePageInner": {
-            "type": "object",
-            "properties": {
-                "list": {},
-                "meta": {
-                    "$ref": "#/definitions/internal_handler.ResponsePageMeta"
-                }
-            }
-        },
-        "internal_handler.ResponsePageMeta": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "page": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "total": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "totalPages": {
-                    "type": "integer",
-                    "example": 10
                 }
             }
         }
