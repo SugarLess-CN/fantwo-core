@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
@@ -126,6 +127,10 @@ func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.Us
 	}
 	if in.Username == "" || in.Password == "" {
 		return nil, errcode.ErrInvalidParam
+	}
+	// 密码长度校验：对齐原仓库 create-user.dto.ts @MinLength(6)（按 rune 计数）。
+	if utf8.RuneCountInString(in.Password) < 6 {
+		return nil, errcode.ErrInvalidParam.WithKey(i18n.AuthPasswordTooShort)
 	}
 	if dup, err := s.d.Users.ExistsUsername(s.d.DB, in.Username, ""); err != nil {
 		s.d.Logger.Error("register check username", zapErr(err))
@@ -344,6 +349,10 @@ func (s *AuthService) ChangePassword(ctx context.Context, userID, oldPwd, newPwd
 	if oldPwd == "" || newPwd == "" {
 		return errcode.ErrInvalidParam
 	}
+	// 新密码长度校验：对齐原仓库 change-password.dto.ts @MinLength(8)（按 rune 计数）。
+	if utf8.RuneCountInString(newPwd) < 8 {
+		return errcode.ErrInvalidParam.WithKey(i18n.AuthNewPasswordTooShort)
+	}
 	user, err := s.d.Users.FindPlainByID(s.d.DB, userID)
 	if err != nil {
 		return errcode.ErrUserNotExist
@@ -370,6 +379,10 @@ func (s *AuthService) ResetPassword(ctx context.Context, email, code, newPwd str
 	}
 	if email == "" || code == "" || newPwd == "" {
 		return errcode.ErrInvalidParam
+	}
+	// 新密码长度校验：与 ChangePassword 同口径（@MinLength(8)，按 rune 计数）。
+	if utf8.RuneCountInString(newPwd) < 8 {
+		return errcode.ErrInvalidParam.WithKey(i18n.AuthNewPasswordTooShort)
 	}
 	user, err := s.d.Users.FindByEmail(s.d.DB, email)
 	if IsNotFound(err) {

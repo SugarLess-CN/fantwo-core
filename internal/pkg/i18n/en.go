@@ -44,6 +44,8 @@ var enCatalog = map[Key]string{
 	AuthCaptchaTooFrequent:    "Please wait before requesting another code",
 	AuthPasswordReset:         "Password reset successful",
 	AuthPasswordChanged:       "Password changed successfully",
+	AuthPasswordTooShort:      "Password must be at least 6 characters",
+	AuthNewPasswordTooShort:   "New password must be at least 8 characters",
 	AuthPasswordMismatch:      "Passwords do not match",
 	AuthOldPasswordWrong:      "Current password is incorrect",
 	AuthOAuthNotConfigured:    "Third-party login is not configured",

@@ -209,6 +209,12 @@ func (s *CommentService) Create(ctx context.Context, actor Actor, req CreateComm
 		ArticleID: req.ArticleID,
 	}
 
+	// 文章存在性校验：对齐原仓库 comment.service.ts:570-572（article 不存在直接报错，不落脏数据）。
+	_, artErr := repository.NewArticleRepository(s.repo.DB()).FindByID(ctx, req.ArticleID)
+	if artErr != nil {
+		return nil, errcode.ErrNotFound.WithKey(i18n.ArticleNotFound)
+	}
+
 	if req.ParentID != nil && *req.ParentID != "" {
 		parent, e := s.getComment(ctx, *req.ParentID)
 		if e != nil {

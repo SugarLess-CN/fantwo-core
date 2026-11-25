@@ -65,10 +65,17 @@ const (
 	AuthCaptchaTooFrequent Key = "auth.captcha_too_frequent"
 	AuthPasswordReset      Key = "auth.password_reset"
 	AuthPasswordChanged    Key = "auth.password_changed"
-	AuthPasswordMismatch   Key = "auth.password_mismatch"
-	AuthOldPasswordWrong   Key = "auth.old_password_wrong"
-	AuthOAuthNotConfigured Key = "auth.oauth_not_configured"
-	AuthOAuthFailed        Key = "auth.oauth_failed"
+	// AuthPasswordTooShort 注册密码长度不足（原仓库 create-user.dto.ts:32 @MinLength(6)）。
+	// 按 **rune** 计数不是 byte —— 中文密码 1 个字算 1 位。
+	AuthPasswordTooShort Key = "auth.password_too_short"
+	// AuthNewPasswordTooShort 改密/重置密码长度不足（原仓库 change-password.dto.ts:25 @MinLength(8)）。
+	// 与注册分两个 key：阈值不同（6 vs 8），合并成一个会逼出一句含糊的「密码不符合要求」，
+	// 用户看到不知道到底要几位。
+	AuthNewPasswordTooShort Key = "auth.new_password_too_short"
+	AuthPasswordMismatch    Key = "auth.password_mismatch"
+	AuthOldPasswordWrong    Key = "auth.old_password_wrong"
+	AuthOAuthNotConfigured  Key = "auth.oauth_not_configured"
+	AuthOAuthFailed         Key = "auth.oauth_failed"
 	// AuthOAuthFailedDetail 带细节的失败文案（%s 为原因，**只放本方可读的原因**，
 	// 禁止放上游响应体片段 —— 见 docs/14 §7.1.2 禁令 2）。
 	AuthOAuthFailedDetail Key = "auth.oauth_failed_detail"
