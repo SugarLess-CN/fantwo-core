@@ -51,8 +51,9 @@ func TestBuildCategoryTree(t *testing.T) {
 		t.Errorf("技术下应有 2 个子分类，实际 %d", len(byID["root-1"].Children))
 	}
 	for _, ch := range byID["root-1"].Children {
-		if ch.ParentID == nil || *ch.ParentID != "root-1" {
-			t.Errorf("子分类 parentId 错误：%v", ch.ParentID)
+		// 2026-11-25 空值规范改造后：ParentID 是 string 值类型（空时 ""）
+		if ch.ParentID != "root-1" {
+			t.Errorf("子分类 parentId 错误：%q", ch.ParentID)
 		}
 	}
 }
@@ -94,10 +95,10 @@ func TestToCategoryView(t *testing.T) {
 	if v.ArticleCount != 12 || v.FollowCount != 3 {
 		t.Errorf("计数错误：article=%d follow=%d", v.ArticleCount, v.FollowCount)
 	}
-	if v.ParentID == nil || *v.ParentID != "p-1" {
-		t.Errorf("父分类错误：%v", v.ParentID)
+	if v.ParentID != "p-1" {
+		t.Errorf("父分类错误：%q", v.ParentID)
 	}
-	if v.Description == nil || *v.Description != desc || v.Link == nil || *v.Link != link {
+	if v.Description != desc || v.Link != link {
 		t.Error("描述/链接未映射")
 	}
 }

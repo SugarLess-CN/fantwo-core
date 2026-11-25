@@ -29,36 +29,45 @@ type RoleBriefDto struct {
 // 关注/粉丝列表项、登录响应里的 user 字段。
 // certification 不在本结构里 —— 只有 GET /user/profile 会额外带它，见 UserProfileDto。
 type UserDto struct {
-	ID                  string         `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Username            string         `json:"username" example:"alice"`
-	Nickname            *string        `json:"nickname" example:"爱丽丝"`
-	Avatar              *string        `json:"avatar" example:"https://cdn.example.com/a.png"`
-	Description         *string        `json:"description" example:"喜欢拍风景"`
-	Background          *string        `json:"background" example:"https://cdn.example.com/bg.png"`
-	Address             *string        `json:"address" example:"杭州"`
-	Gender              string         `json:"gender" example:"FEMALE"`
-	BirthDate           *string        `json:"birthDate" format:"date-time" example:"1998-06-01T00:00:00Z"`
-	Email               *string        `json:"email" example:"a***@example.com"`
-	Phone               *string        `json:"phone" example:"138****8000"`
-	Status              string         `json:"status" example:"ACTIVE"`
-	ArticleCount        int            `json:"articleCount" example:"12"`
-	FollowerCount       int            `json:"followerCount" example:"128"`
-	FollowingCount      int            `json:"followingCount" example:"36"`
-	Likes               int            `json:"likes" example:"512"`
-	Level               int            `json:"level" example:"5"`
-	Experience          int            `json:"experience" example:"430"`
-	Wallet              float64        `json:"wallet" example:"100.5"`
-	Points              int            `json:"points" example:"320"`
-	MembershipLevel     int            `json:"membershipLevel" example:"1"`
-	MembershipLevelName string         `json:"membershipLevelName" example:"普通用户"`
-	MembershipStatus    string         `json:"membershipStatus" example:"INACTIVE"`
-	MembershipEndDate   *string        `json:"membershipEndDate" format:"date-time"`
-	MyInviteCode        *string        `json:"myInviteCode" example:"AB12CD"`
-	InviteEarnings      float64        `json:"inviteEarnings" example:"0"`
-	InviteCount         int            `json:"inviteCount" example:"0"`
-	CreatedAt           string         `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	Roles               []RoleBriefDto `json:"roles,omitempty"`
-	IsMember            bool           `json:"isMember" example:"false"`
+	ID       string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	Username string `json:"username" example:"alice"`
+
+	// ---- 字符串字段：值类型，空时 ""（不是 null、不是省略）----
+	// 见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），
+	// 转换发生在 service.buildUserView → strOrEmpty()。
+	Nickname     string `json:"nickname" example:"爱丽丝"`
+	Avatar       string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Description  string `json:"description" example:"喜欢拍风景"`
+	Background   string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Address      string `json:"address" example:"杭州"`
+	Gender       string `json:"gender" example:"FEMALE"`
+	Email        string `json:"email" example:"a***@example.com"`
+	Phone        string `json:"phone" example:"138****8000"`
+	MyInviteCode string `json:"myInviteCode" example:"AB12CD"`
+
+	// ---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----
+	BirthDate         *string `json:"birthDate,omitempty" format:"date-time" example:"1998-06-01T00:00:00Z"`
+	MembershipEndDate *string `json:"membershipEndDate,omitempty" format:"date-time"`
+
+	Status              string  `json:"status" example:"ACTIVE"`
+	ArticleCount        int     `json:"articleCount" example:"12"`
+	FollowerCount       int     `json:"followerCount" example:"128"`
+	FollowingCount      int     `json:"followingCount" example:"36"`
+	Likes               int     `json:"likes" example:"512"`
+	Level               int     `json:"level" example:"5"`
+	Experience          int     `json:"experience" example:"430"`
+	Wallet              float64 `json:"wallet" example:"100.5"`
+	Points              int     `json:"points" example:"320"`
+	MembershipLevel     int     `json:"membershipLevel" example:"1"`
+	MembershipLevelName string  `json:"membershipLevelName" example:"普通用户"`
+	MembershipStatus    string  `json:"membershipStatus" example:"INACTIVE"`
+	InviteEarnings      float64 `json:"inviteEarnings" example:"0"`
+	InviteCount         int     `json:"inviteCount" example:"0"`
+	CreatedAt           string  `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+
+	// ---- 数组字段：去掉 omitempty，空时输出 []（不是省略、不是 null）----
+	Roles    []RoleBriefDto `json:"roles"`
+	IsMember bool           `json:"isMember" example:"false"`
 }
 
 // UserProfileDto 当前用户资料（GET /user/profile）。
@@ -72,17 +81,19 @@ type UserProfileDto struct {
 
 // CertificationDto 认证记录视图（service.certView，10 字段）。
 type CertificationDto struct {
-	ID               string  `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	UserID           string  `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Type             string  `json:"type" example:"CREATOR"`
-	Status           string  `json:"status" example:"APPROVED"`
-	RealName         *string `json:"realName" example:"张三"`
-	OrganizationName *string `json:"organizationName"`
-	Description      *string `json:"description" example:"签约摄影师"`
-	Slogan           *string `json:"slogan" example:"官方认证 · 签约摄影师"`
-	ReviewReason     *string `json:"reviewReason"`
-	ReviewedAt       *string `json:"reviewedAt" format:"date-time"`
-	CreatedAt        string  `json:"createdAt" format:"date-time"`
+	ID     string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	Type   string `json:"type" example:"CREATOR"`
+	Status string `json:"status" example:"APPROVED"`
+	// 字符串值类型：空时 ""（docs/21-JSON序列化规范.md）
+	RealName         string `json:"realName" example:"张三"`
+	OrganizationName string `json:"organizationName"`
+	Description      string `json:"description" example:"签约摄影师"`
+	Slogan           string `json:"slogan" example:"官方认证 · 签约摄影师"`
+	ReviewReason     string `json:"reviewReason"`
+	// 时间：空时不传
+	ReviewedAt *string `json:"reviewedAt,omitempty" format:"date-time"`
+	CreatedAt  string  `json:"createdAt" format:"date-time"`
 }
 
 // UserConfigDto 用户配置（GET /user/config，model.UserProfile 对外字段）。
@@ -116,7 +127,7 @@ type UserConfigDto struct {
 	HideFollowings            bool    `json:"hideFollowings" example:"false"`
 	HideTags                  bool    `json:"hideTags" example:"false"`
 	WatermarkEnabled          bool    `json:"watermarkEnabled" example:"false"`
-	Remark                    *string `json:"remark"`
+	Remark                    string  `json:"remark"`
 }
 
 // ---------------------------------------------------------------------------
@@ -459,7 +470,7 @@ type WalletTransactionDto struct {
 	OrderID       *string `json:"orderId"`
 	PaymentID     *string `json:"paymentId"`
 	Description   *string `json:"description" example:"Wallet recharge"`
-	Remark        *string `json:"remark"`
+	Remark        string  `json:"remark"`
 }
 
 // WalletTxSummaryDto 按类型聚合的收支（WalletStatistics 的 byType 值）。

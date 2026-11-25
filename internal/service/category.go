@@ -43,22 +43,32 @@ type UpdateCategoryRequest struct {
 }
 
 // CategoryView 分类视图（Tree 版本携带子分类）。
+// CategoryView 分类对外视图。
+//
+// 空值规则见 docs/21-JSON序列化规范.md：
+//   - 字符串：值类型，空时 ""（ParentID 曾是指针且无 omitempty → 响应里出现 null）
+//   - 数组：Children 非 nil，空时 []（不再用 omitempty 省略）
+//   - 时间：CreatedAt/UpdatedAt 必填，值类型不变
 type CategoryView struct {
-	ID           string         `json:"id"`
-	Name         string         `json:"name"`
-	Description  *string        `json:"description,omitempty"`
-	ParentID     *string        `json:"parentId"`
-	Link         *string        `json:"link,omitempty"`
-	Avatar       *string        `json:"avatar,omitempty"`
-	Background   *string        `json:"background,omitempty"`
-	Cover        *string        `json:"cover,omitempty"`
-	Sort         int            `json:"sort"`
-	Status       string         `json:"status"`
-	ArticleCount int            `json:"articleCount"`
-	FollowCount  int            `json:"followCount"`
-	Children     []CategoryView `json:"children,omitempty"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// 字符串字段：空时 ""，不出现 null
+	Description string `json:"description"`
+	// ParentID 为空表示「这是一级分类」。用 "" 而不是 null：
+	// 前端判断 `if (cat.parentId)` 时 "" 与 null 都是 falsy，行为一致，但类型可信。
+	ParentID     string `json:"parentId"`
+	Link         string `json:"link"`
+	Avatar       string `json:"avatar"`
+	Background   string `json:"background"`
+	Cover        string `json:"cover"`
+	Sort         int    `json:"sort"`
+	Status       string `json:"status"`
+	ArticleCount int    `json:"articleCount"`
+	FollowCount  int    `json:"followCount"`
+	// 数组：空时 [] 而不是省略
+	Children  []CategoryView `json:"children"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 // CategoryService 分类业务逻辑（对齐原 NestJS CategoryService）。
@@ -275,18 +285,21 @@ func toCategoryView(c model.Category) CategoryView {
 	return CategoryView{
 		ID:           c.ID,
 		Name:         c.Name,
-		Description:  c.Description,
-		ParentID:     c.ParentID,
-		Link:         c.Link,
-		Avatar:       c.Avatar,
-		Background:   c.Background,
-		Cover:        c.Cover,
+		Description:  strOrEmpty(c.Description),
+		ParentID:     strOrEmpty(c.ParentID),
+		Link:         strOrEmpty(c.Link),
+		Avatar:       strOrEmpty(c.Avatar),
+		Background:   strOrEmpty(c.Background),
+		Cover:        strOrEmpty(c.Cover),
 		Sort:         c.Sort,
 		Status:       c.Status,
 		ArticleCount: c.ArticleCount,
 		FollowCount:  c.FollowCount,
 		CreatedAt:    c.CreatedAt,
 		UpdatedAt:    c.UpdatedAt,
+		// 在这里兜底而不是在每个调用点：toCategoryView 是**唯一**的组装入口，
+		// 放在这能保证 tree / list / findOne 三条路径的 children 都是 [] 而非 null。
+		Children: make([]CategoryView, 0),
 	}
 }
 
@@ -304,6 +317,9 @@ func buildCategoryTree(all []model.Category) []CategoryView {
 	out := make([]CategoryView, 0, len(roots))
 	for _, r := range roots {
 		v := toCategoryView(r)
+		// 显式初始化为空切片：叶节点没有子分类时，nil 会序列化成 null，
+		// 而规范要求 []（docs/21-JSON序列化规范.md）
+		v.Children = make([]CategoryView, 0, len(byParent[r.ID]))
 		for _, ch := range byParent[r.ID] {
 			v.Children = append(v.Children, toCategoryView(ch))
 		}

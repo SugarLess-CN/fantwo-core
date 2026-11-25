@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -30,71 +31,65 @@ type UserService struct {
 func NewUserService(d *Deps) *UserService { return &UserService{d: d} }
 
 // UserView 用户对外视图（camelCase，对齐原前端契约）。
-type UserView struct {
-	ID                  string      `json:"id"`
-	Username            string      `json:"username"`
-	Nickname            *string     `json:"nickname"`
-	Avatar              *string     `json:"avatar"`
-	Description         *string     `json:"description"`
-	Background          *string     `json:"background"`
-	Address             *string     `json:"address"`
-	Gender              string      `json:"gender"`
-	BirthDate           *time.Time  `json:"birthDate"`
-	Email               *string     `json:"email"`
-	Phone               *string     `json:"phone"`
-	Status              string      `json:"status"`
-	ArticleCount        int         `json:"articleCount"`
-	FollowerCount       int         `json:"followerCount"`
-	FollowingCount      int         `json:"followingCount"`
-	Likes               int         `json:"likes"`
-	Level               int         `json:"level"`
-	Experience          int         `json:"experience"`
-	Wallet              float64     `json:"wallet"`
-	Points              int         `json:"points"`
-	MembershipLevel     int         `json:"membershipLevel"`
-	MembershipLevelName string      `json:"membershipLevelName"`
-	MembershipStatus    string      `json:"membershipStatus"`
-	MembershipEndDate   *time.Time  `json:"membershipEndDate"`
-	MyInviteCode        *string     `json:"myInviteCode"`
-	InviteEarnings      float64     `json:"inviteEarnings"`
-	InviteCount         int         `json:"inviteCount"`
-	CreatedAt           time.Time   `json:"createdAt"`
-	Roles               []RoleBrief `json:"roles,omitempty"`
-	IsMember            bool        `json:"isMember"`
-	Certification       interface{} `json:"certification,omitempty"`
-}
+// UserView 用户对外视图。
+//
+// **别名到 dto.UserDto**（2026-11-25 空值规范改造）：
+// 结构定义统一放 `internal/dto/`，service/handler 层只引用不重新定义 ——
+// 否则 dto 与 service 两处定义会漂移，swagger 与真实响应也对不上。
+//
+// 字段类型规则见 docs/21-JSON序列化规范.md：
+// 字符串值类型（空 ""）、数组非 nil（空 []）、时间与嵌套对象 omitempty（空不传）。
+type UserView = dto.UserDto
 
-// RoleBrief 角色简述。
-type RoleBrief struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-}
+// RoleBrief 角色简述（别名到 dto.RoleBriefDto，理由同上）。
+type RoleBrief = dto.RoleBriefDto
 
 // buildUserView 组装用户视图（masked=true 时按原语义掩码手机/邮箱）。
+//
+// 空值转换规则见 docs/21-JSON序列化规范.md：
+//   - 字符串：*string → string（nil 变 ""），对外不出现 null
+//   - 时间：*time.Time → *string（nil 保持 nil，靠 omitempty 整个字段不传）
+//   - 数组：Roles 显式初始化，空时序列化成 [] 而不是 null
 func buildUserView(u *model.User, masked bool, isMember bool) *UserView {
 	v := &UserView{
-		ID: u.ID, Username: u.Username, Nickname: u.Nickname, Avatar: u.Avatar,
-		Description: u.Description, Background: u.Background, Address: u.Address,
-		Gender: u.Gender, BirthDate: u.BirthDate, Email: u.Email, Phone: u.Phone,
-		Status: u.Status, ArticleCount: u.ArticleCount, FollowerCount: u.FollowerCount,
-		FollowingCount: u.FollowingCount, Likes: u.Likes, Level: u.Level,
-		Experience: u.Experience, Wallet: u.Wallet, Points: u.Points,
-		MembershipLevel: u.MembershipLevel, MembershipLevelName: u.MembershipLevelName,
-		MembershipStatus: u.MembershipStatus, MembershipEndDate: u.MembershipEndDate,
-		MyInviteCode: u.MyInviteCode, InviteEarnings: u.InviteEarnings,
-		InviteCount: u.InviteCount, CreatedAt: u.CreatedAt, IsMember: isMember,
+		ID:          u.ID,
+		Username:    u.Username,
+		Nickname:    strOrEmpty(u.Nickname),
+		Avatar:      strOrEmpty(u.Avatar),
+		Description: strOrEmpty(u.Description),
+		Background:  strOrEmpty(u.Background),
+		Address:     strOrEmpty(u.Address),
+		Gender:      u.Gender,
+		Status:      u.Status,
+		// 时间用 RFC3339；nil 时保持 nil → omitempty 不传该字段
+		BirthDate:           timePtrRFC3339(u.BirthDate),
+		Email:               strOrEmpty(u.Email),
+		Phone:               strOrEmpty(u.Phone),
+		ArticleCount:        u.ArticleCount,
+		FollowerCount:       u.FollowerCount,
+		FollowingCount:      u.FollowingCount,
+		Likes:               u.Likes,
+		Level:               u.Level,
+		Experience:          u.Experience,
+		Wallet:              u.Wallet,
+		Points:              u.Points,
+		MembershipLevel:     u.MembershipLevel,
+		MembershipLevelName: u.MembershipLevelName,
+		MembershipStatus:    u.MembershipStatus,
+		MembershipEndDate:   timePtrRFC3339(u.MembershipEndDate),
+		MyInviteCode:        strOrEmpty(u.MyInviteCode),
+		InviteEarnings:      u.InviteEarnings,
+		InviteCount:         u.InviteCount,
+		CreatedAt:           u.CreatedAt.Format(time.RFC3339),
+		IsMember:            isMember,
 	}
 	if masked {
-		if u.Phone != nil {
-			p := maskPhone(*u.Phone)
-			v.Phone = &p
-		}
-		if u.Email != nil {
-			e := maskEmail(*u.Email)
-			v.Email = &e
-		}
+		// 掩码后是确定值；原值为 nil 时 maskPhone("") 会返回 ""，仍是字符串不是 null
+		v.Phone = maskPhone(v.Phone)
+		v.Email = maskEmail(v.Email)
 	}
+	// 数组必须显式初始化为空切片，否则 nil 会序列化成 null
+	v.Roles = make([]RoleBrief, 0, len(u.Roles))
 	for _, r := range u.Roles {
 		dn := ""
 		if r.DisplayName != nil {
@@ -105,7 +100,21 @@ func buildUserView(u *model.User, masked bool, isMember bool) *UserView {
 	return v
 }
 
-// maskPhone 138****8000。
+// timePtrRFC3339 时间指针 → RFC3339 字符串指针；nil 保持 nil。
+//
+// 为什么对外是 string 而不是 time.Time：
+// dto 层的 CreatedAt 也是 string（swagger 里 format:"date-time"），保持一致。
+// nil 时返回 nil，配合 `json:",omitempty"` 让字段整个不出现 —— 时间没有"空"的自然表示
+// （传 "" 会让前端 new Date("") 得到 Invalid Date，比不传更糟）。
+func timePtrRFC3339(t *time.Time) *string {
+	if t == nil {
+		return nil
+	}
+	s := t.Format(time.RFC3339)
+	return &s
+}
+
+// maskPhone 138****8000。空串原样返回（避免把 nil 变成一个假号码）。
 func maskPhone(p string) string {
 	if len(p) < 7 {
 		return p
@@ -113,8 +122,11 @@ func maskPhone(p string) string {
 	return p[:3] + "****" + p[len(p)-4:]
 }
 
-// maskEmail a****@domain。
+// maskEmail a****@domain。空串原样返回。
 func maskEmail(e string) string {
+	if e == "" {
+		return ""
+	}
 	at := strings.LastIndex(e, "@")
 	if at <= 0 {
 		return e
@@ -135,7 +147,11 @@ func isMembershipActive(u *model.User) bool {
 }
 
 // Profile 当前用户信息（含认证/会员/自动签到）。
-func (s *UserService) Profile(ctx context.Context, userID string) (map[string]interface{}, *errcode.Err) {
+// Profile 当前用户信息（GET /user/profile）。
+//
+// 返回 dto.UserProfileDto（= UserDto + certification）而不是手写 map：
+// 手写 map 无法被 swag 解析（swagger 里 data 只能是空对象），也容易漏字段。
+func (s *UserService) Profile(ctx context.Context, userID string) (*dto.UserProfileDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -146,13 +162,13 @@ func (s *UserService) Profile(ctx context.Context, userID string) (map[string]in
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	view := buildUserView(user, true, isMembershipActive(user))
+	base := buildUserView(user, true, isMembershipActive(user))
+	out := &dto.UserProfileDto{UserDto: *base}
 	if cert, err := s.d.Users.FindApprovedCert(s.d.DB, userID); err == nil {
-		view.Certification = certView(cert)
+		out.Certification = certDto(cert)
 	}
 	// 自动签到（原 getProfile 副作用）：失败不影响主流程。
 	_, _ = s.Sign(ctx, userID, true)
-	out := toMap(view)
 	return out, nil
 }
 
@@ -461,22 +477,56 @@ func (s *UserService) RemoveUser(ctx context.Context, id string) *errcode.Err {
 }
 
 // GetConfig 当前用户配置（无则建默认）。
-func (s *UserService) GetConfig(ctx context.Context, userID string) (*model.UserProfile, *errcode.Err) {
+//
+// 返回 dto.UserConfigDto 而不是 *model.UserProfile：
+// 直接透传 model 会让数据库模型变成对外契约（remark 是 *string → 响应里出现 null，
+// 且将来给表加列会自动泄漏到 API）。转换层是必要的隔离。
+func (s *UserService) GetConfig(ctx context.Context, userID string) (*dto.UserConfigDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
 	p, err := s.d.Users.FindProfile(s.d.DB, userID)
-	if err == nil {
-		return p, nil
+	if err != nil {
+		if !IsNotFound(err) {
+			return nil, errcode.ErrInternal
+		}
+		p = &model.UserProfile{UserID: userID}
+		if err := s.d.Users.CreateProfile(s.d.DB, p); err != nil {
+			return nil, errcode.ErrInternal
+		}
 	}
-	if !IsNotFound(err) {
-		return nil, errcode.ErrInternal
+	return userConfigDto(p), nil
+}
+
+// userConfigDto model.UserProfile → dto.UserConfigDto（空值规则见 docs/21）。
+func userConfigDto(p *model.UserProfile) *dto.UserConfigDto {
+	return &dto.UserConfigDto{
+		UserID:                    p.UserID,
+		ArticleCommissionRate:     p.ArticleCommissionRate,
+		MembershipCommissionRate:  p.MembershipCommissionRate,
+		ProductCommissionRate:     p.ProductCommissionRate,
+		ServiceCommissionRate:     p.ServiceCommissionRate,
+		EnableCustomCommission:    p.EnableCustomCommission,
+		EnableSystemNotification:  p.EnableSystemNotification,
+		EnableCommentNotification: p.EnableCommentNotification,
+		EnableLikeNotification:    p.EnableLikeNotification,
+		EnableFollowNotification:  p.EnableFollowNotification,
+		EnableMessageNotification: p.EnableMessageNotification,
+		EnableOrderNotification:   p.EnableOrderNotification,
+		EnablePaymentNotification: p.EnablePaymentNotification,
+		EnableInviteNotification:  p.EnableInviteNotification,
+		EnableEmailNotification:   p.EnableEmailNotification,
+		EnableSmsNotification:     p.EnableSmsNotification,
+		EnablePushNotification:    p.EnablePushNotification,
+		HideFavorites:             p.HideFavorites,
+		HideComments:              p.HideComments,
+		HideCollections:           p.HideCollections,
+		HideFollowers:             p.HideFollowers,
+		HideFollowings:            p.HideFollowings,
+		HideTags:                  p.HideTags,
+		WatermarkEnabled:          p.WatermarkEnabled,
+		Remark:                    strOrEmpty(p.Remark),
 	}
-	p = &model.UserProfile{UserID: userID}
-	if err := s.d.Users.CreateProfile(s.d.DB, p); err != nil {
-		return nil, errcode.ErrInternal
-	}
-	return p, nil
 }
 
 // UpdateConfigInput 配置更新（指针语义，nil 不改）。
@@ -698,28 +748,6 @@ func (s *UserService) FavoriteDetail(ctx context.Context, userID, articleID stri
 			Summary: article.Summary, AuthorID: article.AuthorID, FavoritedAt: fav.CreatedAt,
 		},
 	}, nil
-}
-
-// toMap UserView → map（便于追加 certification 等可选字段）。
-func toMap(v *UserView) map[string]interface{} {
-	out := map[string]interface{}{
-		"id": v.ID, "username": v.Username, "nickname": v.Nickname,
-		"avatar": v.Avatar, "description": v.Description, "background": v.Background,
-		"address": v.Address, "gender": v.Gender, "birthDate": v.BirthDate,
-		"email": v.Email, "phone": v.Phone, "status": v.Status,
-		"articleCount": v.ArticleCount, "followerCount": v.FollowerCount,
-		"followingCount": v.FollowingCount, "likes": v.Likes, "level": v.Level,
-		"experience": v.Experience, "wallet": v.Wallet, "points": v.Points,
-		"membershipLevel": v.MembershipLevel, "membershipLevelName": v.MembershipLevelName,
-		"membershipStatus": v.MembershipStatus, "membershipEndDate": v.MembershipEndDate,
-		"myInviteCode": v.MyInviteCode, "inviteEarnings": v.InviteEarnings,
-		"inviteCount": v.InviteCount, "createdAt": v.CreatedAt,
-		"isMember": v.IsMember, "roles": v.Roles,
-	}
-	if v.Certification != nil {
-		out["certification"] = v.Certification
-	}
-	return out
 }
 
 // authtokenBump 批量递增权限版本（权限/角色变更后令旧 token 失效）。

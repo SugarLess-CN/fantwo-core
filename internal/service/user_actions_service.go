@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -235,7 +236,7 @@ func (s *UserService) Sign(ctx context.Context, userID string, auto bool) (map[s
 }
 
 // SignRecords 签到记录（近 days 天）。
-func (s *UserService) SignRecords(ctx context.Context, userID string, days int) ([]map[string]interface{}, *errcode.Err) {
+func (s *UserService) SignRecords(ctx context.Context, userID string, days int) ([]*dto.SignInRecordDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -247,12 +248,12 @@ func (s *UserService) SignRecords(ctx context.Context, userID string, days int) 
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	out := make([]map[string]interface{}, 0, len(list))
+	out := make([]*dto.SignInRecordDto, 0, len(list))
 	for _, r := range list {
-		out = append(out, map[string]interface{}{
-			"signInDate":      r.SignInDate.Format("2006-01-02"),
-			"consecutiveDays": r.ConsecutiveDays,
-			"isAuto":          r.IsAuto,
+		out = append(out, &dto.SignInRecordDto{
+			SignInDate:      r.SignInDate.Format("2006-01-02"),
+			ConsecutiveDays: r.ConsecutiveDays,
+			IsAuto:          r.IsAuto,
 		})
 	}
 	return out, nil
@@ -556,14 +557,20 @@ func (s *UserService) CancelDeletion(ctx context.Context, userID string) (map[st
 
 // ---------- 认证（官方/创作者） ----------
 
-// certView 认证视图。
-func certView(c *model.UserCertification) map[string]interface{} {
-	return map[string]interface{}{
-		"id": c.ID, "userId": c.UserID, "type": c.Type, "status": c.Status,
-		"realName": c.RealName, "organizationName": c.OrganizationName,
-		"description": c.Description, "slogan": c.Slogan,
-		"reviewReason": c.ReviewReason, "reviewedAt": c.ReviewedAt,
-		"createdAt": c.CreatedAt,
+// certDto 认证视图（返回 dto 类型，字段空值规则见 docs/21）。
+func certDto(c *model.UserCertification) *dto.CertificationDto {
+	return &dto.CertificationDto{
+		ID:               c.ID,
+		UserID:           c.UserID,
+		Type:             c.Type,
+		Status:           c.Status,
+		RealName:         strOrEmpty(c.RealName),
+		OrganizationName: strOrEmpty(c.OrganizationName),
+		Description:      strOrEmpty(c.Description),
+		Slogan:           strOrEmpty(c.Slogan),
+		ReviewReason:     strOrEmpty(c.ReviewReason),
+		ReviewedAt:       timePtrRFC3339(c.ReviewedAt),
+		CreatedAt:        c.CreatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -578,7 +585,7 @@ type ApplyCertInput struct {
 }
 
 // ApplyCertification 提交认证申请。
-func (s *UserService) ApplyCertification(ctx context.Context, userID string, in ApplyCertInput) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) ApplyCertification(ctx context.Context, userID string, in ApplyCertInput) (*dto.CertificationDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -604,7 +611,7 @@ func (s *UserService) ApplyCertification(ctx context.Context, userID string, in 
 	if err := s.d.Users.CreateCert(s.d.DB, cert); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return certView(cert), nil
+	return certDto(cert), nil
 }
 
 // LatestCertification 我的最新认证记录（无则 null）。
@@ -619,13 +626,13 @@ func (s *UserService) LatestCertification(ctx context.Context, userID string) (i
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return certView(cert), nil
+	return certDto(cert), nil
 }
 
 // MyCertifications 我的全部认证记录（GET /user/certification/me）。
 //
 // 与 LatestCertification（/status）的区别：这里返回列表，供前端展示历史申请。
-func (s *UserService) MyCertifications(ctx context.Context, userID string) ([]map[string]interface{}, *errcode.Err) {
+func (s *UserService) MyCertifications(ctx context.Context, userID string) ([]*dto.CertificationDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -634,9 +641,9 @@ func (s *UserService) MyCertifications(ctx context.Context, userID string) ([]ma
 		s.d.Logger.Error("list certifications", zapErr(err))
 		return nil, errcode.ErrInternal
 	}
-	out := make([]map[string]interface{}, 0, len(rows))
+	out := make([]*dto.CertificationDto, 0, len(rows))
 	for i := range rows {
-		out = append(out, certView(&rows[i]))
+		out = append(out, certDto(&rows[i]))
 	}
 	return out, nil
 }
@@ -676,7 +683,7 @@ func (s *UserService) identityOf(userID string) map[string]interface{} {
 }
 
 // AdminListCerts 管理员分页查认证申请。
-func (s *UserService) AdminListCerts(ctx context.Context, page, limit int, status, certType string) ([]map[string]interface{}, int64, *errcode.Err) {
+func (s *UserService) AdminListCerts(ctx context.Context, page, limit int, status, certType string) ([]*dto.CertificationDto, int64, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, 0, e
 	}
@@ -685,9 +692,9 @@ func (s *UserService) AdminListCerts(ctx context.Context, page, limit int, statu
 	if err != nil {
 		return nil, 0, errcode.ErrInternal
 	}
-	out := make([]map[string]interface{}, 0, len(list))
+	out := make([]*dto.CertificationDto, 0, len(list))
 	for i := range list {
-		out = append(out, certView(&list[i]))
+		out = append(out, certDto(&list[i]))
 	}
 	return out, total, nil
 }
@@ -699,7 +706,7 @@ type AuditCertInput struct {
 }
 
 // AuditCertification 审核（通过/拒绝）。
-func (s *UserService) AuditCertification(ctx context.Context, certID, reviewerID string, in AuditCertInput) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) AuditCertification(ctx context.Context, certID, reviewerID string, in AuditCertInput) (*dto.CertificationDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -724,11 +731,11 @@ func (s *UserService) AuditCertification(ctx context.Context, certID, reviewerID
 		return nil, errcode.ErrInternal
 	}
 	cert.Status, cert.ReviewedAt = in.Status, &now
-	return certView(cert), nil
+	return certDto(cert), nil
 }
 
 // RevokeCertification 撤销已通过的认证。
-func (s *UserService) RevokeCertification(ctx context.Context, certID, reviewerID, reason string) (map[string]interface{}, *errcode.Err) {
+func (s *UserService) RevokeCertification(ctx context.Context, certID, reviewerID, reason string) (*dto.CertificationDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -747,7 +754,7 @@ func (s *UserService) RevokeCertification(ctx context.Context, certID, reviewerI
 		return nil, errcode.ErrInternal
 	}
 	cert.Status, cert.ReviewedAt = model.CertStatusRevoked, &now
-	return certView(cert), nil
+	return certDto(cert), nil
 }
 
 // ExecuteDueDeletions 扫描到期注销并执行（asynq handler / 定时任务兜底）。

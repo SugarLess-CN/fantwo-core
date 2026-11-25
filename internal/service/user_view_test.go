@@ -1,10 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 )
 
@@ -44,20 +46,25 @@ func TestMaskEmailEdgeCases(t *testing.T) {
 	}
 }
 
-// TestToMapCamelCaseKeys 用户视图转 map 时键名必须全部 camelCase（全局 JSON 口径）。
+// TestUserViewJSONKeysCamelCase 真实 JSON 序列化后键名必须全部 camelCase（全局 JSON 口径）。
 //
-// 防的 bug：新增字段写成 snake_case 混进响应（2026-11-19 全局决策：对外一律 camelCase，
-// DB 列名才用 snake_case），前端按 camelCase 取值为 undefined。
-func TestToMapCamelCaseKeys(t *testing.T) {
+// 防的 bug：新增字段写成 snake_case 混进响应，前端按 camelCase 取值为 undefined。
+// 2026-11-25：改为断言真实 json.Marshal 结果（旧版走已删除的 toMap），
+// 顺带断言 roles 序列化成 [] 而不是 null。
+func TestUserViewJSONKeysCamelCase(t *testing.T) {
 	nick, avatar, desc := "小画家", "https://cdn/a.png", "简介"
 	u := &model.User{
 		Username: "alice", Nickname: &nick, Avatar: &avatar, Description: &desc,
 		Status: model.UserStatusActive,
 	}
 	u.ID = "u-1"
-	m := toMap(ViewUser(u, false))
-	if len(m) == 0 {
-		t.Fatal("视图 map 不应为空")
+	raw, err := json.Marshal(ViewUser(u, false))
+	if err != nil {
+		t.Fatalf("序列化失败: %v", err)
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		t.Fatalf("反序列化失败: %v", err)
 	}
 	for k := range m {
 		if strings.Contains(k, "_") {
@@ -65,25 +72,43 @@ func TestToMapCamelCaseKeys(t *testing.T) {
 		}
 	}
 	for _, required := range []string{"id", "username", "nickname", "avatar", "isMember",
-		"articleCount", "followerCount", "membershipLevelName"} {
+		"articleCount", "followerCount", "membershipLevelName", "roles"} {
 		if _, ok := m[required]; !ok {
 			t.Errorf("缺少必备字段 %q", required)
 		}
 	}
+	// roles 必须是 []（不是 null）
+	if v, ok := m["roles"]; !ok || v == nil {
+		t.Error("roles 应是 []，不能是 null 或缺失")
+	}
 }
 
-// TestToMapIncludesCertification 有认证信息时才输出 certification（无则不输出 null）。
+// TestUserProfileCertificationOmitempty 无认证时 certification 字段整个不出现（不是 null）。
 //
-// 防的 bug：无认证也输出 certification:null → 前端按非空判断显示认证标识。
-func TestToMapIncludesCertification(t *testing.T) {
+// 防的 bug：无认证也输出 certification:null → 前端按非空判断会误显示认证标识。
+// 2026-11-25：改用 dto.UserProfileDto（= UserDto + certification omitempty）。
+func TestUserProfileCertificationOmitempty(t *testing.T) {
 	u := &model.User{Username: "bob", Status: model.UserStatusActive}
 	u.ID = "u-2"
-	v := ViewUser(u, false)
-	if _, ok := toMap(v)["certification"]; ok {
-		t.Error("无认证时不应输出 certification")
+	p := &dto.UserProfileDto{UserDto: *ViewUser(u, false)}
+
+	raw, _ := json.Marshal(p)
+	var m map[string]interface{}
+	_ = json.Unmarshal(raw, &m)
+	if _, ok := m["certification"]; ok {
+		t.Error("无认证时 certification 字段不应出现（更不能是 null）")
 	}
-	v.Certification = map[string]interface{}{"id": "c-1", "type": model.CertTypeCreator}
-	if _, ok := toMap(v)["certification"]; !ok {
+
+	// 有认证时才出现
+	rev := time.Now()
+	cert := &model.UserCertification{UserID: "u-2", Type: model.CertTypeCreator, Status: "APPROVED"}
+	cert.ID = "c-1"
+	cert.ReviewedAt = &rev
+	p.Certification = certDto(cert)
+	raw2, _ := json.Marshal(p)
+	var m2 map[string]interface{}
+	_ = json.Unmarshal(raw2, &m2)
+	if _, ok := m2["certification"]; !ok {
 		t.Error("有认证时应输出 certification")
 	}
 }

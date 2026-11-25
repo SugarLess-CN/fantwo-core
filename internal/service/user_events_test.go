@@ -67,11 +67,49 @@ func TestViewUserMasksSensitive(t *testing.T) {
 	email := "someone@example.com"
 	u := newTestUser("u-1", &phone, &email)
 	v := ViewUser(u, true)
-	if v.Phone == nil || *v.Phone != "138****8000" {
-		t.Errorf("手机号掩码错误: %v", v.Phone)
+	// 2026-11-25 空值规范改造后：Phone/Email 是 string 值类型（空时 ""），不再是 *string
+	if v.Phone != "138****8000" {
+		t.Errorf("手机号掩码错误: %q", v.Phone)
 	}
-	if v.Email == nil || *v.Email != "s****@example.com" {
-		t.Errorf("邮箱掩码错误: %v", v.Email)
+	if v.Email != "s****@example.com" {
+		t.Errorf("邮箱掩码错误: %q", v.Email)
+	}
+}
+
+// TestViewUserNoNullFields 空值序列化规范（docs/21-JSON序列化规范.md）。
+//
+// 防的 bug：model 层的 *string 直接透传到 dto → 对外 JSON 出现 "email": null，
+// 前端每个字段都要写 null 判断，字段类型也不可信。
+//
+// 规范：字符串空时 ""、数组空时 []、时间空时不传。
+func TestViewUserNoNullFields(t *testing.T) {
+	// 除 username/status 外全部留空（模拟刚注册、什么都没填的用户）
+	u := newTestUser("u-null", nil, nil)
+	v := ViewUser(u, true)
+
+	// ① 字符串字段：必须是 ""，不能是 null（值类型天然保证，这里断言语义）
+	strs := map[string]string{
+		"nickname": v.Nickname, "avatar": v.Avatar, "description": v.Description,
+		"background": v.Background, "address": v.Address, "email": v.Email,
+		"phone": v.Phone, "myInviteCode": v.MyInviteCode,
+	}
+	for name, val := range strs {
+		if val != "" {
+			t.Errorf("%s 应为空串而不是 null，实际 %q", name, val)
+		}
+	}
+
+	// ② 数组字段：必须非 nil（nil 会序列化成 null 而不是 []）
+	if v.Roles == nil {
+		t.Error("roles 不应为 nil（nil 序列化成 null，规范要求 []）")
+	}
+
+	// ③ 时间字段：必须为 nil（nil + omitempty → 整个字段不传；不能是空串）
+	if v.BirthDate != nil {
+		t.Errorf("birthDate 应为 nil（omitempty 不传），实际 %v", *v.BirthDate)
+	}
+	if v.MembershipEndDate != nil {
+		t.Errorf("membershipEndDate 应为 nil，实际 %v", *v.MembershipEndDate)
 	}
 }
 
