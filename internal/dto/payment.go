@@ -108,8 +108,12 @@ type CreatePaymentResultDto struct {
 //
 // params 是待签名的原始参数集合（key-value 字符串）。签名算法见 service.epaySign：
 // 按 key 升序拼 a=b&c=d（排除 sign / sign_type / 空值）后接 appKey 取 MD5。
+//
+// params 带 omitempty：请求体本身不受空值规范约束（docs/21 §四例外），
+// 但带上它能让 Apifox Mock / 文档示例在未填该字段时不渲染 `"params": null`，
+// 且对 gin 的绑定行为零影响（不传即零值 map）。
 type EpaySignatureRequest struct {
-	Params map[string]string `json:"params"`
+	Params map[string]string `json:"params,omitempty"`
 }
 
 // EpaySignatureResultDto 易支付签名自测结果（POST /payment/test/epay-signature）。
