@@ -6,6 +6,7 @@ package handler
 import (
 	"strconv"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -27,8 +28,8 @@ func NewUserHandler(svc *service.UserService) *UserHandler { return &UserHandler
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
-//	@Failure	401	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserProfileDto}
+//	@Failure	401	{object}	dto.ResponseBody
 //	@Router		/user/profile [get]
 func (h *UserHandler) Profile(c *gin.Context) {
 	out, e := h.svc.Profile(c.Request.Context(), middleware.CurrentUserID(c))
@@ -47,9 +48,9 @@ func (h *UserHandler) Profile(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"待更新字段（部分更新）"
-//	@Success		200		{object}	ResponseBody
-//	@Failure		400		{object}	ResponseBody
+//	@Param			body body dto.UpdateProfileRequest	true	"待更新字段（部分更新）"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.UserDto}
+//	@Failure		400		{object}	dto.ResponseBody
 //	@Router			/user/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var in service.UpdateProfileInput
@@ -72,7 +73,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@Router		/user/profile/contact [patch]
 func (h *UserHandler) UpdateContact(c *gin.Context) {
 	var in service.UpdateProfileInput
@@ -94,7 +95,7 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/profile/phone/code [post]
 func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 	var req struct {
@@ -118,7 +119,7 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BindPhoneResultDto}
 //	@Router		/user/profile/phone [post]
 func (h *UserHandler) BindPhone(c *gin.Context) {
 	var in service.BindPhoneInput
@@ -139,7 +140,7 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletionRequestResultDto}
 //	@Router		/user/account/deletion [post]
 func (h *UserHandler) DeletionRequest(c *gin.Context) {
 	var in service.RequestDeletionInput
@@ -158,7 +159,7 @@ func (h *UserHandler) DeletionRequest(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletionStatusDto}
 //	@Router		/user/account/status [get]
 func (h *UserHandler) DeletionStatus(c *gin.Context) {
 	out, e := h.svc.DeletionStatus(c.Request.Context(), middleware.CurrentUserID(c))
@@ -175,7 +176,7 @@ func (h *UserHandler) DeletionStatus(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletionStatusDto}
 //	@Router		/user/account/deletion/cancel [post]
 func (h *UserHandler) DeletionCancel(c *gin.Context) {
 	out, e := h.svc.CancelDeletion(c.Request.Context(), middleware.CurrentUserID(c))
@@ -194,7 +195,7 @@ func (h *UserHandler) DeletionCancel(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.FavoriteItemDto}}
 //	@Router		/user/profile/favorites [get]
 func (h *UserHandler) Favorites(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -213,7 +214,7 @@ func (h *UserHandler) Favorites(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		productId path string true "productId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.FavoriteDetailDto}
 //	@Router		/user/profile/favorites/{productId} [get]
 func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 	out, e := h.svc.FavoriteDetail(c.Request.Context(), middleware.CurrentUserID(c), c.Param("productId"))
@@ -234,7 +235,7 @@ func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 //	@Param			page	query		int		false	"页码，默认 1"
 //	@Param			limit	query		int		false	"每页条数，默认 10"
 //	@Param			keyword	query		string	false	"用户名关键字"
-//	@Success		200		{object}	ResponseBody
+//	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDto}}
 //	@Router			/user [get]
 func (h *UserHandler) FindAll(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -259,9 +260,9 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body	body		object	true	"CreateUserInput"
-//	@Success	200		{object}	ResponseBody
-//	@Failure	403		{object}	ResponseBody
+//	@Param		body body dto.CreateUserRequest	true	"CreateUserInput"
+//	@Success	200		{object}	dto.ResponseBody{data=dto.UserDto}
+//	@Failure	403		{object}	dto.ResponseBody
 //	@Router		/user [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var in service.CreateUserInput
@@ -283,8 +284,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"用户 ID"
-//	@Success	200	{object}	ResponseBody
-//	@Failure	404	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
+//	@Failure	404	{object}	dto.ResponseBody
 //	@Router		/user/{id} [get]
 func (h *UserHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"))
@@ -304,7 +305,7 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@Router		/user/{id} [patch]
 func (h *UserHandler) Update(c *gin.Context) {
 	var in service.UpdateUserInput
@@ -326,8 +327,8 @@ func (h *UserHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id	path		string	true	"用户 ID"
-//	@Success	200	{object}	ResponseBody
-//	@Failure	403	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
+//	@Failure	403	{object}	dto.ResponseBody
 //	@Router		/user/{id} [delete]
 func (h *UserHandler) Remove(c *gin.Context) {
 	if e := h.svc.RemoveUser(c.Request.Context(), c.Param("id")); e != nil {
@@ -343,7 +344,7 @@ func (h *UserHandler) Remove(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UserConfigDto}
 //	@Router		/user/config [get]
 func (h *UserHandler) GetConfig(c *gin.Context) {
 	p, e := h.svc.GetConfig(c.Request.Context(), middleware.CurrentUserID(c))
@@ -362,7 +363,7 @@ func (h *UserHandler) GetConfig(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/config [patch]
 func (h *UserHandler) UpdateConfig(c *gin.Context) {
 	var in service.UpdateConfigInput
@@ -384,7 +385,7 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/config/notifications [patch]
 func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 	var in service.NotificationInput
@@ -406,7 +407,7 @@ func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/config/commission [patch]
 func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 	var in service.UpdateConfigInput
@@ -426,7 +427,7 @@ func (h *UserHandler) UpdateCommissionSettings(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommissionConfigDto}
 //	@Router		/user/commission/config [get]
 func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 	out, e := h.svc.CommissionConfig(c.Request.Context(), middleware.CurrentUserID(c))
@@ -444,7 +445,7 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/commission/config [post]
 func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 	var in service.SetCommissionInput
@@ -465,7 +466,7 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CommissionResultDto}
 //	@Router		/user/commission/calculate [post]
 func (h *UserHandler) CalculateCommission(c *gin.Context) {
 	var req struct {
@@ -490,7 +491,7 @@ func (h *UserHandler) CalculateCommission(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MembershipCheckDto}
 //	@Router		/user/{id}/membership/check [get]
 func (h *UserHandler) CheckMembership(c *gin.Context) {
 	out, e := h.svc.CheckMembership(c.Request.Context(), c.Param("id"))
@@ -508,7 +509,7 @@ func (h *UserHandler) CheckMembership(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BatchMembershipCheckDto}
 //	@Router		/user/membership/batch-check [post]
 func (h *UserHandler) BatchCheckMembership(c *gin.Context) {
 	out, e := h.svc.BatchCheckMembership(c.Request.Context())
@@ -535,3 +536,7 @@ func queryBool(c *gin.Context, key string) *bool {
 	b := v == "true" || v == "1"
 	return &b
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}

@@ -95,13 +95,58 @@ type ResponsePageBody struct {
     Timestamp  int64    `json:"timestamp"`
 }
 
-// PageBody 分页数据体。
+// PageBody 分页数据体 —— **必须与 response.PageData 严格同构**。
+//
+// ⚠️ 修正（2026-11-25 实测）：本文初版写成 `{list,total,page,size}`，与实现不符。
+// 真实契约是 `{list, meta:{total,page,limit,totalPages}}` —— 分页元信息在 **meta 子对象**里，
+// 且字段名是 `limit` 不是 `size`、多了 `totalPages`。照旧文档写会造出一份与实现打架的文档。
 type PageBody struct {
-    List  interface{} `json:"list"`
-    Total int64       `json:"total" example:"128"`
-    Page  int         `json:"page" example:"1"`
-    Size  int         `json:"size" example:"20"`
+    List interface{} `json:"list"`
+    Meta PageMeta    `json:"meta"`
 }
+
+// PageMeta 分页元信息（对齐 response.Meta）。
+type PageMeta struct {
+    Total      int64 `json:"total" example:"128"`
+    Page       int   `json:"page" example:"1"`
+    Limit      int   `json:"limit" example:"20"`
+    TotalPages int64 `json:"totalPages" example:"7"`
+}
+```
+
+**核验方式**（别凭记忆写分页结构）：
+
+```bash
+sed -n '108,122p' internal/pkg/response/response.go   # Meta / PageData 的唯一定义源
+```
+
+## 三之一、两条 swag 硬约束（踩出来的，必须照做）
+
+### 约束 A：`--exclude` 必须同时排除 `tmp` 和 `internal/dto`
+
+```bash
+swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal --exclude tmp,internal/dto
+```
+
+**不排 `internal/dto` 会怎样**：swag 会用两种 PkgPath 各登记一次 dto 包（`go list` 给完整模块路径、
+目录扫描给相对路径），判定 `NotUnique` 后 schema 名变成
+`github_com_SugarLess-CN_fantwo-core_internal_dto.UserDto` —— 本文 §二「schema 名 = `dto.`」的目标当场落空。
+
+**为什么排掉 dto 不会漏扫接口**：`internal/dto` 里没有 handler 注解（纯类型定义）。
+`go list` 仍把它当依赖包解析，字段照样完整。
+
+三处命令必须同步（否则下一个人照文档跑就出错）：
+`Makefile` 的 `swag` 目标 / `README.md` 的手动命令 / `scripts/dev.sh` / 本文。
+
+### 约束 B：每个用了 dto 注解的 handler 文件必须**自己** import dto
+
+swag 解析 `{object} dto.LoginRequest` 时，**只看该注解所在文件的 import 列表**。
+只在 `swagger_types.go` 里 import 无效，会报 `cannot find type definition: dto.LoginRequest`。
+
+落地方式：文件末尾加一行哨兵引用，让 import 不被判为未使用：
+
+```go
+var _ = dto.ResponseBody{}
 ```
 
 ### 3.2 业务 DTO（每个域一次）

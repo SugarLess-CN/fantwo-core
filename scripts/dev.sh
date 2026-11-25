@@ -42,7 +42,7 @@ if [ "${SKIP_SWAG:-0}" != "1" ]; then
   # --exclude tmp 必不可少：tmp/ 下有 tmp/deploy-pkg（整项目副本，211 个 .go），
   # 不排除会被 swag 当成包扫进去，$ref 变成 tmp_deploy-pkg_internal_handler.*
   # （本会话实测：definitions 从 6 涨到 11，全部指向错误定义）。
-  swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal --exclude tmp
+  swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal --exclude tmp,internal/dto
   echo "==> 完成，操作数：$(grep -oE '"(get|post|put|patch|delete)":' docs/swagger/swagger.json | wc -l | tr -d ' ')"
 fi
 

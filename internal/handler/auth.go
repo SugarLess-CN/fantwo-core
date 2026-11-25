@@ -7,6 +7,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -38,9 +39,9 @@ type loginRequest struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			Device-Id	header		string			false	"设备标识，缺省 default"
-//	@Param			body		body		loginRequest	true	"登录参数"
-//	@Success		200			{object}	ResponseBody
-//	@Failure		401			{object}	ResponseBody
+//	@Param			body body dto.LoginRequest	true	"登录参数"
+//	@Success		200			{object}	dto.ResponseBody{data=dto.LoginResultDto}
+//	@Failure		401			{object}	dto.ResponseBody
 //	@Router			/user/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
@@ -67,9 +68,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@Tags			用户认证
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		object	true	"registerRequest{username,nickname,password,email,phone}"
-//	@Success		200		{object}	ResponseBody
-//	@Failure		409		{object}	ResponseBody
+//	@Param			body body dto.RegisterRequest	true	"registerRequest{username,nickname,password,email,phone}"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.UserDto}
+//	@Failure		409		{object}	dto.ResponseBody
 //	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req struct {
@@ -101,9 +102,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			Device-Id	header		string	true	"设备标识"
-//	@Param			body		body		object	true	"refreshRequest{refreshToken}"
-//	@Success		200			{object}	ResponseBody
-//	@Failure		401			{object}	ResponseBody
+//	@Param			body body dto.RefreshTokenRequest	true	"refreshRequest{refreshToken}"
+//	@Success		200			{object}	dto.ResponseBody{data=dto.RefreshTokenResultDto}
+//	@Failure		401			{object}	dto.ResponseBody
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
@@ -134,8 +135,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 //	@Tags			用户认证
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Success		200	{object}	ResponseBody
-//	@Failure		401	{object}	ResponseBody
+//	@Success		200	{object}	dto.ResponseBody{data=dto.SuccessDto}
+//	@Failure		401	{object}	dto.ResponseBody
 //	@Router			/user/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
@@ -153,7 +154,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/logout-all [post]
 func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	userID := middleware.CurrentUserID(c)
@@ -170,7 +171,7 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/auth/sms/send [post]
 func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 	var req struct {
@@ -196,7 +197,7 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/auth/sms/login [post]
 func (h *AuthHandler) SmsLogin(c *gin.Context) {
 	var req struct {
@@ -223,7 +224,7 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/email/verification [post]
 func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 	var req struct {
@@ -250,7 +251,7 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/password/reset [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req struct {
@@ -275,7 +276,7 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	var req struct {
@@ -317,7 +318,7 @@ func deviceIDOf(c *gin.Context) string {
 //	@Summary	GitHub 授权链接
 //	@Tags		用户认证
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
 //	@Router		/user/oauth/github/url [get]
 func (h *AuthHandler) GithubURL(c *gin.Context) {
 	out, e := h.svc.GithubAuthURL(c.Request.Context())
@@ -334,7 +335,7 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
 	var req struct {
@@ -367,3 +368,7 @@ func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 		c.Query("code"), c.Query("state"), c.Query("error"), deviceIDOf(c))
 	c.Redirect(http.StatusFound, loc)
 }
+
+// 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
+// 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
+var _ = dto.ResponseBody{}
