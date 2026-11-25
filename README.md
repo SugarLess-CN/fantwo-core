@@ -70,7 +70,7 @@ Swagger UI 由 swaggo 生成，**默认关闭**；开发环境显式开启后再
 go install github.com/swaggo/swag/cmd/swag@latest
 
 # 2) 生成文档到 docs/swagger/（改了 handler 注解后必须重跑，产物入库）
-swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal
+swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal --exclude tmp
 
 # 3) 开启 UI 并启动
 SWAGGER_ENABLED=true go run ./cmd/server

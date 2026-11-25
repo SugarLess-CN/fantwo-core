@@ -32,7 +32,7 @@ cover: ## 生成覆盖率报告
 	go tool cover -func=coverage.out | tail -1
 
 swag: ## 重新生成 Swagger 文档
-	swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal
+	swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInternal --exclude tmp
 
 route-audit: ## 打印全部注册路由 + 总数（对照 docs/02 用）
 	go run ./tmp/routeaudit 2>/dev/null || echo "（tmp/routeaudit 已清理，可参考 docs/06 的比对脚本）"

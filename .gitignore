@@ -22,6 +22,7 @@ coverage.*
 
 # 项目运行时
 config.yaml
+config/config.yml
 *.log
 bin/
 
