@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
@@ -43,7 +44,7 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "categoryRequest{name,parentId}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@Router		/category [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req service.CreateCategoryRequest
@@ -64,7 +65,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 //	@Summary	分类列表
 //	@Tags		分类
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CategoryDto}}
 //	@Router		/category [get]
 func (h *CategoryHandler) List(c *gin.Context) {
 	q := parseCategoryQuery(c)
@@ -82,7 +83,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 //	@Tags		分类
 //	@Produce	json
 //	@Param		id path string true "分类 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@Router		/category/{id} [get]
 func (h *CategoryHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"))
@@ -102,7 +103,7 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "分类 ID"
 //	@Param		body body object true "categoryRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@Router		/category/{id} [patch]
 func (h *CategoryHandler) Update(c *gin.Context) {
 	var req service.UpdateCategoryRequest
@@ -125,7 +126,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "分类 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/category/{id} [delete]
 func (h *CategoryHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))
@@ -135,3 +136,6 @@ func (h *CategoryHandler) Remove(c *gin.Context) {
 	}
 	ctOK(c, out)
 }
+
+// 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
+var _ = dto.ResponseBody{}

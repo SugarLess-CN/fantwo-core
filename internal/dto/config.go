@@ -149,3 +149,15 @@ type SensitiveWordCacheClearDto struct {
 	Success bool `json:"success" example:"true"`
 	Total   int  `json:"total" example:"128"`
 }
+
+// SensitiveWordRequest 单个敏感词增删请求体（POST / DELETE /config/sensitive-words）。
+//
+// 原实现是 handler 内的匿名 struct，只取 word；此处具名以便 swag 复用。
+type SensitiveWordRequest struct {
+	Word string `json:"word" binding:"required" example:"违禁词"`
+}
+
+// SensitiveWordBatchRequest 批量敏感词增删请求体（POST / DELETE /config/sensitive-words/batch）。
+type SensitiveWordBatchRequest struct {
+	Words []string `json:"words" binding:"required"`
+}

@@ -14,6 +14,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -55,7 +56,7 @@ func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogSer
 //	@Tags		搜索
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SearchSyncResultDto}
 //	@Router		/search/sync/articles [post]
 func (h *SearchHandler) SyncArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
@@ -88,7 +89,7 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 //	@Tags		搜索
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SearchStatusDto}
 //	@Router		/search/status [get]
 func (h *SearchHandler) Status(c *gin.Context) {
 	res := h.svc.Status(c.Request.Context())
@@ -101,7 +102,7 @@ func (h *SearchHandler) Status(c *gin.Context) {
 //	@Tags		搜索
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SearchSyncResultDto}
 //	@Router		/search/clear/articles [post]
 func (h *SearchHandler) ClearArticles(c *gin.Context) {
 	if !h.svc.Enabled() {
@@ -215,7 +216,7 @@ func infraAtoi(s string, def int) int {
 //	@Summary	热搜词
 //	@Tags		搜索
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.HotKeywordsDto}
 //	@Router		/search/hot [get]
 func (h *SearchHandler) HotKeywords(c *gin.Context) {
 	days := infraAtoi(c.Query("days"), 7)
@@ -252,3 +253,5 @@ func infraCurrentUserID(c *gin.Context) string {
 	}
 	return claims.UserID
 }
+
+var _ = dto.ResponseBody{}

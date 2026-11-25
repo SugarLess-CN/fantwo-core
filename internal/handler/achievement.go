@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -16,7 +17,7 @@ import (
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "achievementRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@Router		/achievement [post]
 func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 	var in model.AchievementInput
@@ -37,7 +38,7 @@ func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 //	@Summary	成就列表
 //	@Tags		成就
 //	@Produce	json
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.AchievementDto}}
 //	@Router		/achievement [get]
 func (h *OpsHandler) AchievementList(c *gin.Context) {
 	list, err := h.Achievement.List(
@@ -59,7 +60,7 @@ func (h *OpsHandler) AchievementList(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementStatsDto}
 //	@Router		/achievement/stats [get]
 func (h *OpsHandler) AchievementStats(c *gin.Context) {
 	uid := requireUser(c)
@@ -80,7 +81,7 @@ func (h *OpsHandler) AchievementStats(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Param		id path string true "成就 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@Router		/achievement/{id} [get]
 func (h *OpsHandler) AchievementGet(c *gin.Context) {
 	view, err := h.Achievement.Get(c.Param("id"), currentUserID(c))
@@ -100,7 +101,7 @@ func (h *OpsHandler) AchievementGet(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@Router		/achievement/{id} [patch]
 func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 	var in model.AchievementInput
@@ -123,7 +124,7 @@ func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/achievement/{id} [delete]
 func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 	if err := h.Achievement.Delete(c.Param("id")); err != nil {
@@ -140,7 +141,7 @@ func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "成就 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementClaimResultDto}
 //	@Router		/achievement/{id}/claim [post]
 func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 	uid := requireUser(c)
@@ -161,7 +162,7 @@ func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementClaimAllResultDto}
 //	@Router		/achievement/claim-all [post]
 func (h *OpsHandler) AchievementClaimAll(c *gin.Context) {
 	uid := requireUser(c)
@@ -175,3 +176,6 @@ func (h *OpsHandler) AchievementClaimAll(c *gin.Context) {
 	}
 	ok(c, res)
 }
+
+// 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
+var _ = dto.ResponseBody{}

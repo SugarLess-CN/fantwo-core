@@ -57,9 +57,7 @@ func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ConfigDto}}
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.ConfigDto}
 //	@Router		/config [get]
 func (h *ConfigHandler) List(c *gin.Context) {
 	list, err := h.svc.List()
@@ -77,7 +75,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "configRequest{key,value,group,remark}"
+//	@Param		body body dto.ConfigRequest true "配置项入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config [post]
 func (h *ConfigHandler) Create(c *gin.Context) {
@@ -100,7 +98,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body []dto.ConfigRequest true "配置数组（批量更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
 //	@Router		/config [patch]
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
@@ -144,7 +142,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
-//	@Param		body body object true "kv 映射"
+//	@Param		body body []dto.ConfigRequest true "配置数组（按分组批量更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
 //	@Router		/config/group/{group} [patch]
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
@@ -237,7 +235,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.ConfigRequest true "配置项入参（PATCH 部分更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config/{id} [patch]
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
@@ -279,8 +277,6 @@ func (h *ConfigHandler) Remove(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordListDto}
 //	@Router		/config/sensitive-words [get]
 func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
@@ -302,13 +298,11 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
 //	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
-	var body struct {
-		Word string `json:"word"`
-	}
+	var body dto.SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
 		return
@@ -326,13 +320,11 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
 //	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
-	var body struct {
-		Word string `json:"word"`
-	}
+	var body dto.SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
 		return
@@ -350,13 +342,11 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.SensitiveWordBatchRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
 //	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
-	var body struct {
-		Words []string `json:"words"`
-	}
+	var body dto.SensitiveWordBatchRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
 		return
@@ -379,13 +369,11 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.SensitiveWordBatchRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
 //	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
-	var body struct {
-		Words []string `json:"words"`
-	}
+	var body dto.SensitiveWordBatchRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
 		return

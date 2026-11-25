@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -16,7 +17,7 @@ import (
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "reportRequest{targetType,targetId,reason}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -42,7 +43,7 @@ func (h *OpsHandler) ReportCreate(c *gin.Context) {
 //	@Tags		举报
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ReportDto}}
 //	@Router		/report [get]
 func (h *OpsHandler) ReportList(c *gin.Context) {
 	q := model.ReportQuery{
@@ -70,7 +71,7 @@ func (h *OpsHandler) ReportList(c *gin.Context) {
 //	@Tags		举报
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ReportStatisticsDto}
 //	@Router		/report/statistics [get]
 func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 	st, err := h.Report.Statistics()
@@ -88,7 +89,7 @@ func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@Router		/report/{id} [get]
 func (h *OpsHandler) ReportGet(c *gin.Context) {
 	r, err := h.Report.Get(c.Param("id"))
@@ -108,7 +109,7 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
 //	@Param		body body object true "handleRequest{status,remark}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@Router		/report/{id} [patch]
 func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 	uid := requireUser(c)
@@ -135,7 +136,7 @@ func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/report/{id} [delete]
 func (h *OpsHandler) ReportDelete(c *gin.Context) {
 	if err := h.Report.Delete(c.Param("id")); err != nil {
@@ -144,3 +145,6 @@ func (h *OpsHandler) ReportDelete(c *gin.Context) {
 	}
 	ok(c, gin.H{"deleted": true})
 }
+
+// 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
+var _ = dto.ResponseBody{}

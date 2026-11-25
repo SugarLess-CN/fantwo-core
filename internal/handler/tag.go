@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -22,7 +23,7 @@ type TagHandler struct {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "tagRequest{name,description}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
 	var req service.CreateTagRequest
@@ -43,7 +44,7 @@ func (h *TagHandler) Create(c *gin.Context) {
 //	@Summary	标签列表
 //	@Tags		标签
 //	@Produce	json
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@Router		/tag [get]
 func (h *TagHandler) List(c *gin.Context) {
 	q := parseTagQuery(c)
@@ -60,7 +61,7 @@ func (h *TagHandler) List(c *gin.Context) {
 //	@Summary	推荐标签
 //	@Tags		标签
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@Router		/tag/recommended [get]
 func (h *TagHandler) Recommended(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -77,7 +78,7 @@ func (h *TagHandler) Recommended(c *gin.Context) {
 //	@Summary	热门标签
 //	@Tags		标签
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@Router		/tag/hot [get]
 func (h *TagHandler) Hot(c *gin.Context) {
 	list, e := h.svc.Hot(c.Request.Context(), actorOf(c), intQuery(c, "limit", 10))
@@ -112,7 +113,7 @@ func (h *TagHandler) FollowedList(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Param		id path string true "标签 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@Router		/tag/{id} [get]
 func (h *TagHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -132,7 +133,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
 //	@Param		body body object true "tagRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@Router		/tag/{id} [patch]
 func (h *TagHandler) Update(c *gin.Context) {
 	var req service.UpdateTagRequest
@@ -155,7 +156,7 @@ func (h *TagHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/tag/{id} [delete]
 func (h *TagHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))
@@ -173,7 +174,7 @@ func (h *TagHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@Router		/tag/{id}/follow [post]
 func (h *TagHandler) Follow(c *gin.Context) {
 	out, e := h.svc.Follow(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -191,7 +192,7 @@ func (h *TagHandler) Follow(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@Router		/tag/{id}/follow [delete]
 func (h *TagHandler) Unfollow(c *gin.Context) {
 	out, e := h.svc.Unfollow(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -201,3 +202,6 @@ func (h *TagHandler) Unfollow(c *gin.Context) {
 	}
 	ctOK(c, out)
 }
+
+// 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
+var _ = dto.ResponseBody{}

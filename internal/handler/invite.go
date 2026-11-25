@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -14,7 +15,7 @@ import (
 //	@Tags		邀请
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@Router		/invite [post]
 func (h *OpsHandler) InviteCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -42,7 +43,7 @@ func (h *OpsHandler) InviteCreate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "useInviteRequest{code}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@Router		/invite/use [post]
 func (h *OpsHandler) InviteUse(c *gin.Context) {
 	uid := requireUser(c)
@@ -68,7 +69,7 @@ func (h *OpsHandler) InviteUse(c *gin.Context) {
 //	@Tags		邀请
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.InviteDto}}
 //	@Router		/invite/my [get]
 func (h *OpsHandler) InviteMyList(c *gin.Context) {
 	uid := requireUser(c)
@@ -90,7 +91,7 @@ func (h *OpsHandler) InviteMyList(c *gin.Context) {
 //	@Tags		邀请
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.InviteStatsDto}
 //	@Router		/invite/stats [get]
 func (h *OpsHandler) InviteStats(c *gin.Context) {
 	uid := requireUser(c)
@@ -111,7 +112,7 @@ func (h *OpsHandler) InviteStats(c *gin.Context) {
 //	@Tags		邀请
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.InviteStatsDto}
 //	@Router		/invite/earnings [get]
 func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 	uid := requireUser(c)
@@ -133,7 +134,7 @@ func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "邀请码 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@Router		/invite/{id} [get]
 func (h *OpsHandler) InviteGet(c *gin.Context) {
 	uid := requireUser(c)
@@ -147,3 +148,6 @@ func (h *OpsHandler) InviteGet(c *gin.Context) {
 	}
 	ok(c, inv)
 }
+
+// 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
+var _ = dto.ResponseBody{}

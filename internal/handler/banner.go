@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -18,7 +19,7 @@ import (
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "bannerRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput
@@ -40,7 +41,7 @@ func (h *OpsHandler) BannerCreate(c *gin.Context) {
 //	@Tags		轮播
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.BannerDto}}
 //	@Router		/banners [get]
 func (h *OpsHandler) BannerList(c *gin.Context) {
 	q := model.BannerQuery{
@@ -65,7 +66,7 @@ func (h *OpsHandler) BannerList(c *gin.Context) {
 //	@Summary	当前生效轮播
 //	@Tags		轮播
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@Router		/banners/active [get]
 func (h *OpsHandler) BannerActive(c *gin.Context) {
 	list, err := h.Banner.Active()
@@ -82,7 +83,7 @@ func (h *OpsHandler) BannerActive(c *gin.Context) {
 //	@Tags		轮播
 //	@Produce	json
 //	@Param		id path string true "轮播 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@Router		/banners/{id} [get]
 func (h *OpsHandler) BannerGet(c *gin.Context) {
 	b, err := h.Banner.Get(c.Param("id"))
@@ -102,7 +103,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "轮播 ID"
 //	@Param		body body object true "bannerRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@Router		/banners/{id} [patch]
 func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 	var in model.BannerInput
@@ -125,7 +126,7 @@ func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "轮播 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/banners/{id} [delete]
 func (h *OpsHandler) BannerDelete(c *gin.Context) {
 	if err := h.Banner.Delete(c.Param("id")); err != nil {
@@ -134,3 +135,5 @@ func (h *OpsHandler) BannerDelete(c *gin.Context) {
 	}
 	ok(c, gin.H{"deleted": true})
 }
+
+var _ = dto.ResponseBody{}

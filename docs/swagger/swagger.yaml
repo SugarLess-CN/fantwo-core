@@ -1,5 +1,119 @@
 basePath: /api/v1
 definitions:
+  dto.AchievementClaimAllResultDto:
+    properties:
+      claimed:
+        example: 2
+        type: integer
+      total:
+        example: 5
+        type: integer
+    type: object
+  dto.AchievementClaimResultDto:
+    properties:
+      decorationId:
+        type: string
+      exp:
+        example: 5
+        type: integer
+      points:
+        example: 10
+        type: integer
+    type: object
+  dto.AchievementConditionDto:
+    properties:
+      extra:
+        additionalProperties: true
+        type: object
+      target:
+        example: 10
+        type: integer
+      type:
+        example: ARTICLE_COUNT
+        type: string
+    type: object
+  dto.AchievementDto:
+    properties:
+      claimed:
+        example: false
+        type: boolean
+      claimedAt:
+        format: date-time
+        type: string
+      code:
+        example: FIRST_ARTICLE
+        type: string
+      completed:
+        example: false
+        type: boolean
+      completedAt:
+        description: 时间：空时不传（未完成无 completedAt，未领取无 claimedAt）
+        format: date-time
+        type: string
+      condition:
+        allOf:
+        - $ref: '#/definitions/dto.AchievementConditionDto'
+        description: Condition 完成条件（必有，jsonb 默认零值 {type:"",target:0}）
+      createdAt:
+        format: date-time
+        type: string
+      description:
+        type: string
+      enabled:
+        example: true
+        type: boolean
+      hidden:
+        example: false
+        type: boolean
+      icon:
+        example: https://cdn.example.com/badge.png
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      name:
+        example: 初次创作
+        type: string
+      progress:
+        description: 当前用户进度（未登录时 progress=0 / completed=false / claimed=false）
+        example: 3
+        type: integer
+      rarity:
+        example: COMMON
+        type: string
+      rewardDecorationId:
+        type: string
+      rewardExp:
+        example: 5
+        type: integer
+      rewardPoints:
+        example: 10
+        type: integer
+      sort:
+        example: 1
+        type: integer
+      type:
+        example: ARTICLE
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+    type: object
+  dto.AchievementStatsDto:
+    properties:
+      claimed:
+        example: 1
+        type: integer
+      completed:
+        example: 3
+        type: integer
+      completionRate:
+        example: "15.00"
+        type: string
+      total:
+        example: 20
+        type: integer
+    type: object
   dto.AddPointsRequest:
     properties:
       amount:
@@ -277,6 +391,26 @@ definitions:
         example: link
         type: string
     type: object
+  dto.AssignMenusRequest:
+    properties:
+      menus:
+        example:
+        - '["dashboard"'
+        - '"articles"]'
+        items:
+          type: string
+        type: array
+    type: object
+  dto.AssignPermissionsRequest:
+    properties:
+      permissionIds:
+        example:
+        - '["article:create"'
+        - '"article:update"]'
+        items:
+          type: string
+        type: array
+    type: object
   dto.AuditConfigDto:
     properties:
       aliyunAccessKeyId:
@@ -438,6 +572,35 @@ definitions:
         example: xiaoming
         type: string
     type: object
+  dto.BannerDto:
+    properties:
+      createdAt:
+        format: date-time
+        type: string
+      description:
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      imageUrl:
+        example: https://cdn.example.com/banner.png
+        type: string
+      linkUrl:
+        example: https://example.com/activity
+        type: string
+      sortOrder:
+        example: 1
+        type: integer
+      status:
+        example: active
+        type: string
+      title:
+        example: 双十一活动
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+    type: object
   dto.BatchDeleteBrowseRequest:
     properties:
       articleIds:
@@ -597,6 +760,51 @@ definitions:
         type: string
       status:
         example: ACTIVE
+        type: string
+    type: object
+  dto.CategoryDto:
+    properties:
+      articleCount:
+        example: 128
+        type: integer
+      avatar:
+        type: string
+      background:
+        type: string
+      children:
+        description: Children 子分类（tree=true 或详情时填充；叶节点是 [] 不是 null）。
+        items:
+          $ref: '#/definitions/dto.CategoryDto'
+        type: array
+      cover:
+        type: string
+      createdAt:
+        format: date-time
+        type: string
+      description:
+        type: string
+      followCount:
+        example: 16
+        type: integer
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      link:
+        type: string
+      name:
+        example: 风景摄影
+        type: string
+      parentId:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      sort:
+        example: 1
+        type: integer
+      status:
+        example: ENABLED
+        type: string
+      updatedAt:
+        format: date-time
         type: string
     type: object
   dto.CertificationDto:
@@ -985,6 +1193,32 @@ definitions:
         example: '***'
         type: string
     type: object
+  dto.ConfigRequest:
+    properties:
+      description:
+        example: 站点名称
+        type: string
+      group:
+        example: site
+        type: string
+      key:
+        example: site_name
+        type: string
+      public:
+        example: true
+        type: boolean
+      type:
+        enum:
+        - string
+        - number
+        - boolean
+        - json
+        example: string
+        type: string
+      value:
+        example: PicArt
+        type: string
+    type: object
   dto.ConfigUpdateResultDto:
     properties:
       skipped:
@@ -1048,6 +1282,17 @@ definitions:
         type: array
       meta:
         $ref: '#/definitions/dto.CursorMetaDto'
+    type: object
+  dto.CopyRoleRequest:
+    properties:
+      displayName:
+        example: 编辑（副本）
+        type: string
+      name:
+        example: editor-copy
+        type: string
+    required:
+    - name
     type: object
   dto.CountDto:
     properties:
@@ -1343,6 +1588,30 @@ definitions:
       validDays:
         example: 0
         type: integer
+    type: object
+  dto.CreateRoleRequest:
+    properties:
+      description:
+        example: 内容编辑角色
+        type: string
+      displayName:
+        example: 编辑
+        type: string
+      isActive:
+        example: true
+        type: boolean
+      isSystem:
+        example: false
+        type: boolean
+      name:
+        example: editor
+        type: string
+      permissionIds:
+        items:
+          type: string
+        type: array
+    required:
+    - name
     type: object
   dto.CreateUserRequest:
     properties:
@@ -1995,6 +2264,37 @@ definitions:
     - code
     - state
     type: object
+  dto.GroupCountDto:
+    properties:
+      count:
+        example: 12
+        type: integer
+      key:
+        example: article
+        type: string
+    type: object
+  dto.HotKeywordDto:
+    properties:
+      count:
+        example: 18
+        type: integer
+      keyword:
+        example: 风景
+        type: string
+    type: object
+  dto.HotKeywordsDto:
+    properties:
+      days:
+        example: 7
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/dto.HotKeywordDto'
+        type: array
+      total:
+        example: 10
+        type: integer
+    type: object
   dto.HotSearchItemDto:
     properties:
       count:
@@ -2027,6 +2327,75 @@ definitions:
       userId:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
+    type: object
+  dto.InviteDto:
+    properties:
+      commissionRate:
+        description: CommissionRate 分成比例（0-1 的小数，不是百分数）
+        example: 0.05
+        type: number
+      createdAt:
+        format: date-time
+        type: string
+      expiredAt:
+        format: date-time
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      inviteCode:
+        example: INVAB12CD34
+        type: string
+      inviteUrl:
+        example: http://localhost:3000/register?code=INVAB12CD34
+        type: string
+      inviteeId:
+        type: string
+      inviterId:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      remark:
+        type: string
+      status:
+        example: PENDING
+        type: string
+      type:
+        example: GENERAL
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+      usedAt:
+        description: 时间：usedAt / expiredAt 空时不传
+        format: date-time
+        type: string
+    type: object
+  dto.InviteStatsDto:
+    properties:
+      commissionCount:
+        example: 12
+        type: integer
+      expired:
+        example: 1
+        type: integer
+      paidEarnings:
+        example: 54.45
+        type: number
+      pending:
+        example: 3
+        type: integer
+      pendingEarnings:
+        example: 4.95
+        type: number
+      total:
+        example: 12
+        type: integer
+      totalEarnings:
+        example: 59.4
+        type: number
+      used:
+        example: 8
+        type: integer
     type: object
   dto.LoginRequest:
     properties:
@@ -2577,6 +2946,17 @@ definitions:
           $ref: '#/definitions/dto.PermissionDto'
         type: array
     type: object
+  dto.PermissionRequest:
+    properties:
+      description:
+        example: 置顶文章
+        type: string
+      name:
+        example: article:pin
+        type: string
+    required:
+    - name
+    type: object
   dto.PointsActivityDeleteResultDto:
     properties:
       deleted:
@@ -3083,6 +3463,71 @@ definitions:
     required:
     - articleIds
     type: object
+  dto.ReportDto:
+    properties:
+      action:
+        example: NONE
+        type: string
+      category:
+        example: spam
+        type: string
+      createdAt:
+        format: date-time
+        type: string
+      description:
+        type: string
+      handledAt:
+        description: 时间：handledAt 未处理时不传
+        format: date-time
+        type: string
+      handlerId:
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      reason:
+        example: 垃圾广告
+        type: string
+      reportedArticleId:
+        type: string
+      reportedCommentId:
+        type: string
+      reportedUserId:
+        type: string
+      reporterId:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      result:
+        type: string
+      status:
+        example: PENDING
+        type: string
+      type:
+        example: article
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+    type: object
+  dto.ReportStatisticsDto:
+    properties:
+      byCategory:
+        items:
+          $ref: '#/definitions/dto.GroupCountDto'
+        type: array
+      byStatus:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      byType:
+        items:
+          $ref: '#/definitions/dto.GroupCountDto'
+        type: array
+      total:
+        example: 36
+        type: integer
+    type: object
   dto.ResponseBody:
     properties:
       data: {}
@@ -3263,6 +3708,45 @@ definitions:
         example: editor
         type: string
     type: object
+  dto.SearchStatusDto:
+    properties:
+      documents:
+        example: 1280
+        type: integer
+      enabled:
+        example: true
+        type: boolean
+      error:
+        type: string
+      index:
+        example: articles
+        type: string
+      indexExists:
+        example: true
+        type: boolean
+      message:
+        type: string
+    type: object
+  dto.SearchSyncCountDto:
+    properties:
+      totalSynced:
+        example: 1280
+        type: integer
+    type: object
+  dto.SearchSyncResultDto:
+    properties:
+      data:
+        $ref: '#/definitions/dto.SearchSyncCountDto'
+      message:
+        example: Synced 1280 articles
+        type: string
+      success:
+        example: true
+        type: boolean
+      totalSynced:
+        example: 1280
+        type: integer
+    type: object
   dto.SendPrivateRequest:
     properties:
       content:
@@ -3285,6 +3769,15 @@ definitions:
       success:
         example: true
         type: boolean
+    type: object
+  dto.SensitiveWordBatchRequest:
+    properties:
+      words:
+        items:
+          type: string
+        type: array
+    required:
+    - words
     type: object
   dto.SensitiveWordBatchResultDto:
     properties:
@@ -3324,6 +3817,14 @@ definitions:
       total:
         example: 128
         type: integer
+    type: object
+  dto.SensitiveWordRequest:
+    properties:
+      word:
+        example: 违禁词
+        type: string
+    required:
+    - word
     type: object
   dto.SetCommentPinRequest:
     properties:
@@ -3439,6 +3940,134 @@ definitions:
     - amount
     - source
     type: object
+  dto.StatisticsContentDto:
+    properties:
+      articles:
+        example: 3200
+        type: integer
+      collections:
+        example: 128
+        type: integer
+      comments:
+        example: 9800
+        type: integer
+      pendingArticles:
+        example: 24
+        type: integer
+      publicCollections:
+        example: 96
+        type: integer
+      publishedArticles:
+        example: 2800
+        type: integer
+      publishedComments:
+        example: 9500
+        type: integer
+      todayArticles:
+        example: 12
+        type: integer
+      todayComments:
+        example: 86
+        type: integer
+    type: object
+  dto.StatisticsEngagementDto:
+    properties:
+      articleComments:
+        example: 9800
+        type: integer
+      articleFavorites:
+        example: 2100
+        type: integer
+      articleLikes:
+        example: 8600
+        type: integer
+      articleShares:
+        example: 320
+        type: integer
+      articleViews:
+        example: 128000
+        type: integer
+      collectionItems:
+        example: 1280
+        type: integer
+      collectionViews:
+        example: 5600
+        type: integer
+      commentLikes:
+        example: 1500
+        type: integer
+      commentReplies:
+        example: 2400
+        type: integer
+    type: object
+  dto.StatisticsModerationDto:
+    properties:
+      pendingArticles:
+        example: 24
+        type: integer
+      pendingReports:
+        example: 7
+        type: integer
+      processingReports:
+        example: 2
+        type: integer
+    type: object
+  dto.StatisticsOrdersDto:
+    properties:
+      paidCount:
+        example: 320
+        type: integer
+      paidRevenue:
+        example: 12672.5
+        type: number
+      todayPaidCount:
+        example: 5
+        type: integer
+      todayPaidRevenue:
+        example: 396
+        type: number
+    type: object
+  dto.StatisticsOverviewDto:
+    properties:
+      content:
+        $ref: '#/definitions/dto.StatisticsContentDto'
+      engagement:
+        $ref: '#/definitions/dto.StatisticsEngagementDto'
+      moderation:
+        $ref: '#/definitions/dto.StatisticsModerationDto'
+      orders:
+        $ref: '#/definitions/dto.StatisticsOrdersDto'
+      users:
+        $ref: '#/definitions/dto.StatisticsUsersDto'
+    type: object
+  dto.StatisticsTrendsDto:
+    properties:
+      days:
+        example: 7
+        type: integer
+      series:
+        items:
+          $ref: '#/definitions/dto.TrendPointDto'
+        type: array
+    type: object
+  dto.StatisticsUsersDto:
+    properties:
+      active:
+        example: 860
+        type: integer
+      activeMembers:
+        example: 96
+        type: integer
+      banned:
+        example: 12
+        type: integer
+      todayNew:
+        example: 8
+        type: integer
+      total:
+        example: 1024
+        type: integer
+    type: object
   dto.SuccessDto:
     properties:
       success:
@@ -3456,6 +4085,80 @@ definitions:
       name:
         example: 风景
         type: string
+    type: object
+  dto.TagDto:
+    properties:
+      articleCount:
+        example: 42
+        type: integer
+      avatar:
+        example: https://cdn.example.com/tag.png
+        type: string
+      background:
+        type: string
+      cover:
+        example: https://cdn.example.com/cover.jpg
+        type: string
+      createdAt:
+        format: date-time
+        type: string
+      description:
+        description: |-
+          字符串字段：值类型，空时 ""（原 service.TagView 用 *string + omitempty，
+          会让前端拿到 undefined；docs/21 §一 要求 ""）
+        example: 前端相关
+        type: string
+      followCount:
+        example: 8
+        type: integer
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      isFollowed:
+        example: true
+        type: boolean
+      name:
+        example: Vue
+        type: string
+      sort:
+        example: 9
+        type: integer
+      updatedAt:
+        format: date-time
+        type: string
+    type: object
+  dto.TagFollowDto:
+    properties:
+      followed:
+        example: true
+        type: boolean
+    type: object
+  dto.ToggleRoleStatusRequest:
+    properties:
+      isActive:
+        example: false
+        type: boolean
+    type: object
+  dto.TrendPointDto:
+    properties:
+      articles:
+        example: 12
+        type: integer
+      comments:
+        example: 86
+        type: integer
+      date:
+        example: "2026-11-25"
+        type: string
+      paidOrders:
+        example: 5
+        type: integer
+      paidRevenue:
+        example: 396
+        type: number
+      users:
+        example: 8
+        type: integer
     type: object
   dto.UnreadCountDto:
     properties:
@@ -3671,6 +4374,28 @@ definitions:
         type: string
       phone:
         type: string
+    type: object
+  dto.UpdateRoleRequest:
+    properties:
+      description:
+        example: 内容编辑角色
+        type: string
+      displayName:
+        example: 编辑
+        type: string
+      isActive:
+        example: true
+        type: boolean
+      isSystem:
+        example: false
+        type: boolean
+      name:
+        example: editor
+        type: string
+      permissionIds:
+        items:
+          type: string
+        type: array
     type: object
   dto.UploadAnimatedOptsDto:
     properties:
@@ -4564,7 +5289,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.AchievementDto'
+                        type: array
+                    type: object
+              type: object
       summary: 成就列表
       tags:
       - 成就
@@ -4584,7 +5321,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 创建成就定义
@@ -4604,7 +5346,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DeleteResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 删除成就定义
@@ -4623,7 +5370,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementDto'
+              type: object
       summary: 成就详情
       tags:
       - 成就
@@ -4648,7 +5400,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 更新成就定义
@@ -4668,7 +5425,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementClaimResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 领取成就奖励
@@ -4682,7 +5444,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementClaimAllResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 一键领取全部可领成就
@@ -4696,7 +5463,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AchievementStatsDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 我的成就进度统计
@@ -5732,7 +6504,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.BannerDto'
+                        type: array
+                    type: object
+              type: object
       security:
       - BearerAuth: []
       summary: 轮播位列表（管理端）
@@ -5754,7 +6538,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BannerDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 创建轮播位
@@ -5774,7 +6563,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DeleteResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 删除轮播位
@@ -5793,7 +6587,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BannerDto'
+              type: object
       summary: 轮播位详情
       tags:
       - 轮播
@@ -5818,7 +6617,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BannerDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 更新轮播位
@@ -5832,7 +6636,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BannerDto'
+              type: object
       summary: 当前生效轮播
       tags:
       - 轮播
@@ -5844,7 +6653,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.CategoryDto'
+                        type: array
+                    type: object
+              type: object
       summary: 分类列表
       tags:
       - 分类
@@ -5864,7 +6685,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 创建分类
@@ -5884,7 +6710,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DeleteResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 删除分类
@@ -5903,7 +6734,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryDto'
+              type: object
       summary: 分类详情
       tags:
       - 分类
@@ -5928,7 +6764,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CategoryDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 更新分类
@@ -6590,15 +7431,6 @@ paths:
       - 评论
   /config:
     get:
-      parameters:
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数
-        in: query
-        name: limit
-        type: integer
       produces:
       - application/json
       responses:
@@ -6606,17 +7438,12 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/dto.ResponsePageBody'
+            - $ref: '#/definitions/dto.ResponseBody'
             - properties:
                 data:
-                  allOf:
-                  - $ref: '#/definitions/dto.PageBody'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/dto.ConfigDto'
-                        type: array
-                    type: object
+                  items:
+                    $ref: '#/definitions/dto.ConfigDto'
+                  type: array
               type: object
       security:
       - BearerAuth: []
@@ -6625,12 +7452,14 @@ paths:
       - 系统配置
     patch:
       parameters:
-      - description: 请求体
+      - description: 配置数组（批量更新）
         in: body
         name: body
         required: true
         schema:
-          type: object
+          items:
+            $ref: '#/definitions/dto.ConfigRequest'
+          type: array
       produces:
       - application/json
       responses:
@@ -6652,12 +7481,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: configRequest{key,value,group,remark}
+      - description: 配置项入参
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.ConfigRequest'
       produces:
       - application/json
       responses:
@@ -6733,12 +7562,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: 请求体
+      - description: 配置项入参（PATCH 部分更新）
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.ConfigRequest'
       produces:
       - application/json
       responses:
@@ -6809,12 +7638,14 @@ paths:
         name: group
         required: true
         type: string
-      - description: kv 映射
+      - description: 配置数组（按分组批量更新）
         in: body
         name: body
         required: true
         schema:
-          type: object
+          items:
+            $ref: '#/definitions/dto.ConfigRequest'
+          type: array
       produces:
       - application/json
       responses:
@@ -6882,7 +7713,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.SensitiveWordRequest'
       produces:
       - application/json
       responses:
@@ -6901,15 +7732,6 @@ paths:
       tags:
       - 系统配置
     get:
-      parameters:
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页条数
-        in: query
-        name: limit
-        type: integer
       produces:
       - application/json
       responses:
@@ -6934,7 +7756,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.SensitiveWordRequest'
       produces:
       - application/json
       responses:
@@ -6960,7 +7782,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.SensitiveWordBatchRequest'
       produces:
       - application/json
       responses:
@@ -6985,7 +7807,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.SensitiveWordBatchRequest'
       produces:
       - application/json
       responses:
@@ -8285,7 +9107,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InviteDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 生成邀请码
@@ -8305,7 +9132,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InviteDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 邀请码详情
@@ -8319,7 +9151,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InviteStatsDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 我的邀请收益
@@ -8333,7 +9170,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.InviteDto'
+                        type: array
+                    type: object
+              type: object
       security:
       - BearerAuth: []
       summary: 我的邀请码列表
@@ -8347,7 +9196,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InviteStatsDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 我的邀请统计
@@ -8370,7 +9224,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.InviteDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 绑定邀请人
@@ -9428,12 +10287,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: permissionRequest{name,description}
+      - description: 权限点入参
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.PermissionRequest'
       produces:
       - application/json
       responses:
@@ -9509,12 +10368,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: permissionRequest
+      - description: 权限点入参
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.PermissionRequest'
       produces:
       - application/json
       responses:
@@ -10014,7 +10873,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.ReportDto'
+                        type: array
+                    type: object
+              type: object
       security:
       - BearerAuth: []
       summary: 举报列表（管理端）
@@ -10036,7 +10907,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ReportDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 提交举报
@@ -10056,7 +10932,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DeleteResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 删除举报
@@ -10075,7 +10956,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ReportDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 举报详情
@@ -10102,7 +10988,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ReportDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 处理举报
@@ -10116,7 +11007,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ReportStatisticsDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 举报统计
@@ -10147,12 +11043,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: roleRequest{name,description,isEnabled}
+      - description: 创建角色入参
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateRoleRequest'
       produces:
       - application/json
       responses:
@@ -10228,12 +11124,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: roleRequest
+      - description: 更新角色入参（全部指针语义，nil=不改）
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateRoleRequest'
       produces:
       - application/json
       responses:
@@ -10259,6 +11155,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: 复制角色入参
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CopyRoleRequest'
       produces:
       - application/json
       responses:
@@ -10310,12 +11212,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: menusRequest{menus}
+      - description: 菜单键全量重写
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.AssignMenusRequest'
       produces:
       - application/json
       responses:
@@ -10343,12 +11245,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: assignRequest{permissionIds}
+      - description: 权限 ID 全量重写
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.AssignPermissionsRequest'
       produces:
       - application/json
       responses:
@@ -10376,12 +11278,12 @@ paths:
         name: id
         required: true
         type: string
-      - description: statusRequest{isEnabled}
+      - description: 启用/禁用（nil 按 true）
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.ToggleRoleStatusRequest'
       produces:
       - application/json
       responses:
@@ -10488,7 +11390,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SearchSyncResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 清空文章索引
@@ -10502,7 +11409,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.HotKeywordsDto'
+              type: object
       summary: 热搜词
       tags:
       - 搜索
@@ -10514,7 +11426,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SearchStatusDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 搜索索引状态
@@ -10528,7 +11445,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SearchSyncResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 全量同步文章到 ES
@@ -10542,7 +11464,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.StatisticsOverviewDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 站点总览统计
@@ -10565,7 +11492,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.StatisticsTrendsDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 站点趋势统计
@@ -10579,7 +11511,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponsePageBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.TagDto'
+                        type: array
+                    type: object
+              type: object
       summary: 标签列表
       tags:
       - 标签
@@ -10599,7 +11543,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 创建标签
@@ -10619,7 +11568,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DeleteResultDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 删除标签
@@ -10638,7 +11592,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagDto'
+              type: object
       summary: 标签详情
       tags:
       - 标签
@@ -10663,7 +11622,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 更新标签
@@ -10683,7 +11647,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagFollowDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 取消关注标签
@@ -10702,7 +11671,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagFollowDto'
+              type: object
       security:
       - BearerAuth: []
       summary: 关注标签
@@ -10730,7 +11704,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagDto'
+              type: object
       summary: 热门标签
       tags:
       - 标签
@@ -10742,7 +11721,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_handler.ResponseBody'
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TagDto'
+              type: object
       summary: 推荐标签
       tags:
       - 标签

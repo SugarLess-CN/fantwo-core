@@ -32,7 +32,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.AchievementDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -68,7 +95,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -92,7 +131,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementClaimAllResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -116,7 +167,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementStatsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -144,7 +207,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -175,7 +250,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.DeleteResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -218,7 +305,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -251,7 +350,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AchievementClaimResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2094,7 +2205,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.BannerDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2130,7 +2268,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BannerDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2149,7 +2299,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BannerDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2177,7 +2339,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BannerDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2208,7 +2382,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.DeleteResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2251,7 +2437,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BannerDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2270,7 +2468,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.CategoryDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2306,7 +2531,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.CategoryDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2334,7 +2571,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.CategoryDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2365,7 +2614,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.DeleteResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -2408,7 +2669,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.CategoryDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -3573,48 +3846,22 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "配置列表（管理端）",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页条数",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                    "$ref": "#/definitions/dto.ResponseBody"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/dto.PageBody"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/dto.ConfigDto"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/dto.ConfigDto"
+                                            }
                                         }
                                     }
                                 }
@@ -3641,12 +3888,12 @@ const docTemplate = `{
                 "summary": "创建配置项",
                 "parameters": [
                     {
-                        "description": "configRequest{key,value,group,remark}",
+                        "description": "配置项入参",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ConfigRequest"
                         }
                     }
                 ],
@@ -3686,12 +3933,15 @@ const docTemplate = `{
                 "summary": "批量更新配置",
                 "parameters": [
                     {
-                        "description": "请求体",
+                        "description": "配置数组（批量更新）",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ConfigRequest"
+                            }
                         }
                     }
                 ],
@@ -3820,12 +4070,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "kv 映射",
+                        "description": "配置数组（按分组批量更新）",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ConfigRequest"
+                            }
                         }
                     }
                 ],
@@ -3941,20 +4194,6 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "敏感词列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页条数",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3996,7 +4235,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.SensitiveWordRequest"
                         }
                     }
                 ],
@@ -4041,7 +4280,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.SensitiveWordRequest"
                         }
                     }
                 ],
@@ -4088,7 +4327,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.SensitiveWordBatchRequest"
                         }
                     }
                 ],
@@ -4133,7 +4372,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.SensitiveWordBatchRequest"
                         }
                     }
                 ],
@@ -4307,12 +4546,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "请求体",
+                        "description": "配置项入参（PATCH 部分更新）",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ConfigRequest"
                         }
                     }
                 ],
@@ -6624,7 +6863,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.InviteDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6648,7 +6899,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.InviteStatsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6672,7 +6935,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.InviteDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6696,7 +6986,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.InviteStatsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6734,7 +7036,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.InviteDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -6767,7 +7081,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.InviteDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -8652,12 +8978,12 @@ const docTemplate = `{
                 "summary": "创建权限点",
                 "parameters": [
                     {
-                        "description": "permissionRequest{name,description}",
+                        "description": "权限点入参",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.PermissionRequest"
                         }
                     }
                 ],
@@ -8834,12 +9160,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "permissionRequest",
+                        "description": "权限点入参",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.PermissionRequest"
                         }
                     }
                 ],
@@ -9701,7 +10027,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.ReportDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9737,7 +10090,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ReportDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9761,7 +10126,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ReportStatisticsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9794,7 +10171,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ReportDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9825,7 +10214,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.DeleteResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9868,7 +10269,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ReportDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -9930,12 +10343,12 @@ const docTemplate = `{
                 "summary": "创建角色",
                 "parameters": [
                     {
-                        "description": "roleRequest{name,description,isEnabled}",
+                        "description": "创建角色入参",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateRoleRequest"
                         }
                     }
                 ],
@@ -10177,12 +10590,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "roleRequest",
+                        "description": "更新角色入参（全部指针语义，nil=不改）",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateRoleRequest"
                         }
                     }
                 ],
@@ -10229,6 +10642,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "复制角色入参",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CopyRoleRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -10322,12 +10744,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "menusRequest{menus}",
+                        "description": "菜单键全量重写",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.AssignMenusRequest"
                         }
                     }
                 ],
@@ -10379,12 +10801,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "assignRequest{permissionIds}",
+                        "description": "权限 ID 全量重写",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.AssignPermissionsRequest"
                         }
                     }
                 ],
@@ -10436,12 +10858,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "statusRequest{isEnabled}",
+                        "description": "启用/禁用（nil 按 true）",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ToggleRoleStatusRequest"
                         }
                     }
                 ],
@@ -10524,7 +10946,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SearchSyncResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10543,7 +10977,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.HotKeywordsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10567,7 +11013,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SearchStatusDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10591,7 +11049,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.SearchSyncResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10615,7 +11085,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StatisticsOverviewDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10653,7 +11135,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.StatisticsTrendsDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10672,7 +11166,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponsePageBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.TagDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10708,7 +11229,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10751,7 +11284,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10770,7 +11315,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10798,7 +11355,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10829,7 +11398,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.DeleteResultDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10872,7 +11453,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10905,7 +11498,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagFollowDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -10936,7 +11541,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_handler.ResponseBody"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.TagFollowDto"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -14472,6 +15089,166 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AchievementClaimAllResultDto": {
+            "type": "object",
+            "properties": {
+                "claimed": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "dto.AchievementClaimResultDto": {
+            "type": "object",
+            "properties": {
+                "decorationId": {
+                    "type": "string"
+                },
+                "exp": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "points": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "dto.AchievementConditionDto": {
+            "type": "object",
+            "properties": {
+                "extra": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "target": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "type": {
+                    "type": "string",
+                    "example": "ARTICLE_COUNT"
+                }
+            }
+        },
+        "dto.AchievementDto": {
+            "type": "object",
+            "properties": {
+                "claimed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "claimedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "code": {
+                    "type": "string",
+                    "example": "FIRST_ARTICLE"
+                },
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completedAt": {
+                    "description": "时间：空时不传（未完成无 completedAt，未领取无 claimedAt）",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "condition": {
+                    "description": "Condition 完成条件（必有，jsonb 默认零值 {type:\"\",target:0}）",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.AchievementConditionDto"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "hidden": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "icon": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/badge.png"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "初次创作"
+                },
+                "progress": {
+                    "description": "当前用户进度（未登录时 progress=0 / completed=false / claimed=false）",
+                    "type": "integer",
+                    "example": 3
+                },
+                "rarity": {
+                    "type": "string",
+                    "example": "COMMON"
+                },
+                "rewardDecorationId": {
+                    "type": "string"
+                },
+                "rewardExp": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "rewardPoints": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "sort": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "type": "string",
+                    "example": "ARTICLE"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.AchievementStatsDto": {
+            "type": "object",
+            "properties": {
+                "claimed": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "completed": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "completionRate": {
+                    "type": "string",
+                    "example": "15.00"
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 20
+                }
+            }
+        },
         "dto.AddPointsRequest": {
             "type": "object",
             "required": [
@@ -14852,6 +15629,36 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AssignMenusRequest": {
+            "type": "object",
+            "properties": {
+                "menus": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"dashboard\"",
+                        "\"articles\"]"
+                    ]
+                }
+            }
+        },
+        "dto.AssignPermissionsRequest": {
+            "type": "object",
+            "properties": {
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"article:create\"",
+                        "\"article:update\"]"
+                    ]
+                }
+            }
+        },
         "dto.AuditConfigDto": {
             "type": "object",
             "properties": {
@@ -15063,6 +15870,46 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "xiaoming"
+                }
+            }
+        },
+        "dto.BannerDto": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "imageUrl": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/banner.png"
+                },
+                "linkUrl": {
+                    "type": "string",
+                    "example": "https://example.com/activity"
+                },
+                "sortOrder": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "example": "active"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "双十一活动"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },
@@ -15293,6 +16140,69 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "ACTIVE"
+                }
+            }
+        },
+        "dto.CategoryDto": {
+            "type": "object",
+            "properties": {
+                "articleCount": {
+                    "type": "integer",
+                    "example": 128
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "children": {
+                    "description": "Children 子分类（tree=true 或详情时填充；叶节点是 [] 不是 null）。",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CategoryDto"
+                    }
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "followCount": {
+                    "type": "integer",
+                    "example": 16
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "风景摄影"
+                },
+                "parentId": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "sort": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ENABLED"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },
@@ -15819,6 +16729,41 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ConfigRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "站点名称"
+                },
+                "group": {
+                    "type": "string",
+                    "example": "site"
+                },
+                "key": {
+                    "type": "string",
+                    "example": "site_name"
+                },
+                "public": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "json"
+                    ],
+                    "example": "string"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "PicArt"
+                }
+            }
+        },
         "dto.ConfigUpdateResultDto": {
             "type": "object",
             "properties": {
@@ -15906,6 +16851,22 @@ const docTemplate = `{
                 },
                 "meta": {
                     "$ref": "#/definitions/dto.CursorMetaDto"
+                }
+            }
+        },
+        "dto.CopyRoleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "displayName": {
+                    "type": "string",
+                    "example": "编辑（副本）"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "editor-copy"
                 }
             }
         },
@@ -16312,6 +17273,40 @@ const docTemplate = `{
                 "validDays": {
                     "type": "integer",
                     "example": 0
+                }
+            }
+        },
+        "dto.CreateRoleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "内容编辑角色"
+                },
+                "displayName": {
+                    "type": "string",
+                    "example": "编辑"
+                },
+                "isActive": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "isSystem": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "name": {
+                    "type": "string",
+                    "example": "editor"
+                },
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -17214,6 +18209,51 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GroupCountDto": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "key": {
+                    "type": "string",
+                    "example": "article"
+                }
+            }
+        },
+        "dto.HotKeywordDto": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 18
+                },
+                "keyword": {
+                    "type": "string",
+                    "example": "风景"
+                }
+            }
+        },
+        "dto.HotKeywordsDto": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.HotKeywordDto"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
         "dto.HotSearchItemDto": {
             "type": "object",
             "properties": {
@@ -17257,6 +18297,100 @@ const docTemplate = `{
                 "userId": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                }
+            }
+        },
+        "dto.InviteDto": {
+            "type": "object",
+            "properties": {
+                "commissionRate": {
+                    "description": "CommissionRate 分成比例（0-1 的小数，不是百分数）",
+                    "type": "number",
+                    "example": 0.05
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "expiredAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "inviteCode": {
+                    "type": "string",
+                    "example": "INVAB12CD34"
+                },
+                "inviteUrl": {
+                    "type": "string",
+                    "example": "http://localhost:3000/register?code=INVAB12CD34"
+                },
+                "inviteeId": {
+                    "type": "string"
+                },
+                "inviterId": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PENDING"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "GENERAL"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "usedAt": {
+                    "description": "时间：usedAt / expiredAt 空时不传",
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.InviteStatsDto": {
+            "type": "object",
+            "properties": {
+                "commissionCount": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "expired": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "paidEarnings": {
+                    "type": "number",
+                    "example": 54.45
+                },
+                "pending": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "pendingEarnings": {
+                    "type": "number",
+                    "example": 4.95
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "totalEarnings": {
+                    "type": "number",
+                    "example": 59.4
+                },
+                "used": {
+                    "type": "integer",
+                    "example": 8
                 }
             }
         },
@@ -17989,6 +19123,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PermissionRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "置顶文章"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "article:pin"
+                }
+            }
+        },
         "dto.PointsActivityDeleteResultDto": {
             "type": "object",
             "properties": {
@@ -18693,6 +19843,98 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ReportDto": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "example": "NONE"
+                },
+                "category": {
+                    "type": "string",
+                    "example": "spam"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "handledAt": {
+                    "description": "时间：handledAt 未处理时不传",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "handlerId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "垃圾广告"
+                },
+                "reportedArticleId": {
+                    "type": "string"
+                },
+                "reportedCommentId": {
+                    "type": "string"
+                },
+                "reportedUserId": {
+                    "type": "string"
+                },
+                "reporterId": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PENDING"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "article"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.ReportStatisticsDto": {
+            "type": "object",
+            "properties": {
+                "byCategory": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GroupCountDto"
+                    }
+                },
+                "byStatus": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "byType": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GroupCountDto"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 36
+                }
+            }
+        },
         "dto.ResponseBody": {
             "type": "object",
             "properties": {
@@ -18946,6 +20188,62 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SearchStatusDto": {
+            "type": "object",
+            "properties": {
+                "documents": {
+                    "type": "integer",
+                    "example": 1280
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "error": {
+                    "type": "string"
+                },
+                "index": {
+                    "type": "string",
+                    "example": "articles"
+                },
+                "indexExists": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SearchSyncCountDto": {
+            "type": "object",
+            "properties": {
+                "totalSynced": {
+                    "type": "integer",
+                    "example": 1280
+                }
+            }
+        },
+        "dto.SearchSyncResultDto": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.SearchSyncCountDto"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Synced 1280 articles"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "totalSynced": {
+                    "type": "integer",
+                    "example": 1280
+                }
+            }
+        },
         "dto.SendPrivateRequest": {
             "type": "object",
             "properties": {
@@ -18975,6 +20273,20 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "dto.SensitiveWordBatchRequest": {
+            "type": "object",
+            "required": [
+                "words"
+            ],
+            "properties": {
+                "words": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -19030,6 +20342,18 @@ const docTemplate = `{
                 "total": {
                     "type": "integer",
                     "example": 128
+                }
+            }
+        },
+        "dto.SensitiveWordRequest": {
+            "type": "object",
+            "required": [
+                "word"
+            ],
+            "properties": {
+                "word": {
+                    "type": "string",
+                    "example": "违禁词"
                 }
             }
         },
@@ -19195,6 +20519,186 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.StatisticsContentDto": {
+            "type": "object",
+            "properties": {
+                "articles": {
+                    "type": "integer",
+                    "example": 3200
+                },
+                "collections": {
+                    "type": "integer",
+                    "example": 128
+                },
+                "comments": {
+                    "type": "integer",
+                    "example": 9800
+                },
+                "pendingArticles": {
+                    "type": "integer",
+                    "example": 24
+                },
+                "publicCollections": {
+                    "type": "integer",
+                    "example": 96
+                },
+                "publishedArticles": {
+                    "type": "integer",
+                    "example": 2800
+                },
+                "publishedComments": {
+                    "type": "integer",
+                    "example": 9500
+                },
+                "todayArticles": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "todayComments": {
+                    "type": "integer",
+                    "example": 86
+                }
+            }
+        },
+        "dto.StatisticsEngagementDto": {
+            "type": "object",
+            "properties": {
+                "articleComments": {
+                    "type": "integer",
+                    "example": 9800
+                },
+                "articleFavorites": {
+                    "type": "integer",
+                    "example": 2100
+                },
+                "articleLikes": {
+                    "type": "integer",
+                    "example": 8600
+                },
+                "articleShares": {
+                    "type": "integer",
+                    "example": 320
+                },
+                "articleViews": {
+                    "type": "integer",
+                    "example": 128000
+                },
+                "collectionItems": {
+                    "type": "integer",
+                    "example": 1280
+                },
+                "collectionViews": {
+                    "type": "integer",
+                    "example": 5600
+                },
+                "commentLikes": {
+                    "type": "integer",
+                    "example": 1500
+                },
+                "commentReplies": {
+                    "type": "integer",
+                    "example": 2400
+                }
+            }
+        },
+        "dto.StatisticsModerationDto": {
+            "type": "object",
+            "properties": {
+                "pendingArticles": {
+                    "type": "integer",
+                    "example": 24
+                },
+                "pendingReports": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "processingReports": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "dto.StatisticsOrdersDto": {
+            "type": "object",
+            "properties": {
+                "paidCount": {
+                    "type": "integer",
+                    "example": 320
+                },
+                "paidRevenue": {
+                    "type": "number",
+                    "example": 12672.5
+                },
+                "todayPaidCount": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "todayPaidRevenue": {
+                    "type": "number",
+                    "example": 396
+                }
+            }
+        },
+        "dto.StatisticsOverviewDto": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "$ref": "#/definitions/dto.StatisticsContentDto"
+                },
+                "engagement": {
+                    "$ref": "#/definitions/dto.StatisticsEngagementDto"
+                },
+                "moderation": {
+                    "$ref": "#/definitions/dto.StatisticsModerationDto"
+                },
+                "orders": {
+                    "$ref": "#/definitions/dto.StatisticsOrdersDto"
+                },
+                "users": {
+                    "$ref": "#/definitions/dto.StatisticsUsersDto"
+                }
+            }
+        },
+        "dto.StatisticsTrendsDto": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TrendPointDto"
+                    }
+                }
+            }
+        },
+        "dto.StatisticsUsersDto": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer",
+                    "example": 860
+                },
+                "activeMembers": {
+                    "type": "integer",
+                    "example": 96
+                },
+                "banned": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "todayNew": {
+                    "type": "integer",
+                    "example": 8
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 1024
+                }
+            }
+        },
         "dto.SuccessDto": {
             "type": "object",
             "properties": {
@@ -19218,6 +20722,106 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "风景"
+                }
+            }
+        },
+        "dto.TagDto": {
+            "type": "object",
+            "properties": {
+                "articleCount": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "avatar": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/tag.png"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.jpg"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "description": {
+                    "description": "字符串字段：值类型，空时 \"\"（原 service.TagView 用 *string + omitempty，\n会让前端拿到 undefined；docs/21 §一 要求 \"\"）",
+                    "type": "string",
+                    "example": "前端相关"
+                },
+                "followCount": {
+                    "type": "integer",
+                    "example": 8
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "isFollowed": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Vue"
+                },
+                "sort": {
+                    "type": "integer",
+                    "example": 9
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.TagFollowDto": {
+            "type": "object",
+            "properties": {
+                "followed": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ToggleRoleStatusRequest": {
+            "type": "object",
+            "properties": {
+                "isActive": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "dto.TrendPointDto": {
+            "type": "object",
+            "properties": {
+                "articles": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "comments": {
+                    "type": "integer",
+                    "example": 86
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2026-11-25"
+                },
+                "paidOrders": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "paidRevenue": {
+                    "type": "number",
+                    "example": 396
+                },
+                "users": {
+                    "type": "integer",
+                    "example": 8
                 }
             }
         },
@@ -19523,6 +21127,37 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UpdateRoleRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "内容编辑角色"
+                },
+                "displayName": {
+                    "type": "string",
+                    "example": "编辑"
+                },
+                "isActive": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "isSystem": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "name": {
+                    "type": "string",
+                    "example": "editor"
+                },
+                "permissionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

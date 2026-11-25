@@ -100,7 +100,7 @@ func (h *RoleHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "roleRequest{name,description,isEnabled}"
+//	@Param		body body dto.CreateRoleRequest true "创建角色入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role [post]
 func (h *RoleHandler) Create(c *gin.Context) {
@@ -124,7 +124,7 @@ func (h *RoleHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "roleRequest"
+//	@Param		body body dto.UpdateRoleRequest true "更新角色入参（全部指针语义，nil=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role/{id} [patch]
 func (h *RoleHandler) Update(c *gin.Context) {
@@ -164,13 +164,11 @@ func (h *RoleHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "源角色 ID"
+//	@Param		body body dto.CopyRoleRequest true "复制角色入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role/{id}/copy [post]
 func (h *RoleHandler) Copy(c *gin.Context) {
-	var in struct {
-		Name        string `json:"name"`
-		DisplayName string `json:"displayName"`
-	}
+	var in dto.CopyRoleRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -190,7 +188,7 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "assignRequest{permissionIds}"
+//	@Param		body body dto.AssignPermissionsRequest true "权限 ID 全量重写"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RolePermissionsAssignedDto}
 //	@Router		/role/{id}/permissions [post]
 func (h *RoleHandler) AssignPermissions(c *gin.Context) {
@@ -216,7 +214,7 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "statusRequest{isEnabled}"
+//	@Param		body body dto.ToggleRoleStatusRequest true "启用/禁用（nil 按 true）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleStatusDto}
 //	@Router		/role/{id}/status [patch]
 func (h *RoleHandler) ToggleStatus(c *gin.Context) {
@@ -246,7 +244,7 @@ func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Param		body body object true "menusRequest{menus}"
+//	@Param		body body dto.AssignMenusRequest true "菜单键全量重写"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleMenusAssignedDto}
 //	@Router		/role/{id}/menus [put]
 func (h *RoleHandler) AssignMenus(c *gin.Context) {
@@ -376,7 +374,7 @@ func (h *PermissionHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "permissionRequest{name,description}"
+//	@Param		body body dto.PermissionRequest true "权限点入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@Router		/permission [post]
 func (h *PermissionHandler) Create(c *gin.Context) {
@@ -400,7 +398,7 @@ func (h *PermissionHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "权限 ID"
-//	@Param		body body object true "permissionRequest"
+//	@Param		body body dto.PermissionRequest true "权限点入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@Router		/permission/{id} [patch]
 func (h *PermissionHandler) Update(c *gin.Context) {
