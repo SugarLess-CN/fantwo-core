@@ -11,6 +11,7 @@ package router
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/SugarLess-CN/fantwo-core/internal/ws"
 	"github.com/gin-gonic/gin"
@@ -43,7 +44,7 @@ func RegisterMessageRoutes(v1 *gin.RouterGroup, opt Option) {
 	v1.GET("/ws-message", gateway.Handler)
 
 	// 3) REST：登录态统一由中间件保证（DB 不可用时 handler 返回 503）
-	auth := v1.Group("", middleware.JWTAuth(opt.Signer))
+	auth := v1.Group("", middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis)))
 	{
 		msg := auth.Group("/message")
 		{

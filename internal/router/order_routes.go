@@ -4,6 +4,7 @@ package router
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,7 @@ func RegisterOrderRoutes(v1 *gin.RouterGroup, opt Option) {
 		return // 降级启动：无 DB 不注册业务路由
 	}
 	h := &handler.OrderHandler{Svc: service.NewOrderService(opt.DB)}
-	auth := middleware.JWTAuth(opt.Signer)
+	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	perm := middleware.RequirePermissions
 
 	g := v1.Group("/order")

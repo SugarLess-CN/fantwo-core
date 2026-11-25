@@ -7,6 +7,7 @@ package router
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func RegisterPaymentRoutes(v1 *gin.RouterGroup, opt Option) {
 		return
 	}
 	h := &handler.PaymentHandler{Svc: service.NewPaymentService(opt.DB, queue.FromRedisClient(opt.Redis))}
-	auth := middleware.JWTAuth(opt.Signer)
+	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 
 	g := v1.Group("/payment")
 	{

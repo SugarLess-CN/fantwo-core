@@ -5,7 +5,7 @@
 // RegisterOpsRoutes（并行纪律）。
 //
 // 鉴权语义（对齐原 controller 装饰器）：
-//   - 默认 JWT（middleware.JWTAuth）；
+//   - 默认 JWT（middleware.JWTAuthV2：验签 + 黑名单 + 全端登出 + perm_ver）；
 //   - @NoAuth() → middleware.OptionalAuth；
 //   - @Permissions(...) → middleware.RequirePermissions(...)。
 //
@@ -18,6 +18,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/gin-gonic/gin"
@@ -166,9 +167,9 @@ func guard(opt Option, perms ...string) []gin.HandlerFunc {
 		return []gin.HandlerFunc{degraded()}
 	}
 	if len(perms) == 0 {
-		return []gin.HandlerFunc{middleware.JWTAuth(opt.Signer)}
+		return []gin.HandlerFunc{middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))}
 	}
-	return []gin.HandlerFunc{middleware.JWTAuth(opt.Signer), middleware.RequirePermissions(perms...)}
+	return []gin.HandlerFunc{middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis)), middleware.RequirePermissions(perms...)}
 }
 
 // optAuth 可选登录（对齐 @NoAuth()）。

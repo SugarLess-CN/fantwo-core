@@ -4,6 +4,7 @@ package router
 import (
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func RegisterAuditRoutes(v1 *gin.RouterGroup, opt Option) {
 		auditSvc.SetSensitiveChecker(cfgSvc.CheckText) // 本地敏感词与云 provider 独立生效
 	}
 	h := &handler.AuditHandler{Svc: auditSvc}
-	auth := middleware.JWTAuth(opt.Signer)
+	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	perm := middleware.RequirePermissions
 
 	g := v1.Group("/content-audit")

@@ -9,6 +9,7 @@ import (
 
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
@@ -49,7 +50,7 @@ func authMid(opt Option) gin.HandlerFunc {
 			response.Fail(c, errcode.ErrUnauthorized)
 		}
 	}
-	return middleware.JWTAuth(opt.Signer)
+	return middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 }
 
 // optionalMid 可选登录中间件；Signer 未配置时注入空身份放行。

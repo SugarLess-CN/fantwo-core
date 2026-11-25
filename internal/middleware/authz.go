@@ -125,8 +125,12 @@ func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jw
 			return nil, "", errcode.ErrNeedAuth
 		}
 	}
-	// 3) 权限版本比对：不一致要求刷新（权限已变更）
-	if cur := authtoken.PermVer(ctx, st, claims.UserID); cur != claims.PermVer {
+	// 3) 权限版本比对：perm_ver 单调递增，**0 = 未设置或查询失败 → 跳过比对**。
+	// 与上面黑名单 / 全端登出同向 fail-open，避免 Redis 故障把已登录用户全站打死：
+	// 从未 bump 过的用户库里就没有 perm_ver key（读到 0），那种场景 token 里携带的也是 0，
+	// 所以「cur == 0 跳过」不会漏判任何真实发生过的权限变更 —— 变更必然伴随 bump，
+	// key 一定存在且 > 0，此时才走严格比对。
+	if cur := authtoken.PermVer(ctx, st, claims.UserID); cur != 0 && cur != claims.PermVer {
 		return nil, "", errcode.ErrPermVersionStale
 	}
 	return claims, token, nil

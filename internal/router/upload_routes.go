@@ -12,6 +12,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +39,7 @@ func infraUploadSvc(opt Option) *infra.Infra {
 func infraChain(opt Option, perms ...string) []gin.HandlerFunc {
 	chain := make([]gin.HandlerFunc, 0, 2)
 	if opt.Signer != nil {
-		chain = append(chain, middleware.JWTAuth(opt.Signer))
+		chain = append(chain, middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis)))
 	}
 	if len(perms) > 0 {
 		chain = append(chain, middleware.RequirePermissions(perms...))
