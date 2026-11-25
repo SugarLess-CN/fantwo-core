@@ -34,7 +34,20 @@ async function apifoxImport(openapiDoc) {
   const url = `${API_BASE}/v1/projects/${PROJECT_ID}/import-openapi`;
   const body = JSON.stringify({
     input: JSON.stringify(openapiDoc),  // 关键：字符串不是对象
-    options: { endpointOverwriteBehavior: 'AUTO_MERGE', updateFolderOfChangedEndpoint: true },
+    // endpointOverwriteBehavior：接口按方法+路径合并（保留 Apifox 里手工加的说明/示例）
+    //
+    // schemaOverwriteBehavior 必须显式给 OVERWRITE_EXISTING —— 这是 DTO 同步的关键。
+    // 不写它时 Apifox 用默认策略，实测**不会更新已存在的数据模型**：
+    // 我们改了 dto.UserDto（*string → string、新增字段），Apifox 里还是旧结构，
+    // 前端按 Apifox 生成 SDK 会拿到过时字段。
+    // 四个枚举（来自 Apifox Open API）：OVERWRITE_EXISTING / AUTO_MERGE / KEEP_EXISTING / CREATE_NEW
+    // 选 OVERWRITE_EXISTING 的理由：schema 由 swag 从代码生成，代码是唯一事实源，
+    // 不存在「Apifox 侧手工改过 schema 需要保护」的场景。
+    options: {
+      endpointOverwriteBehavior: 'AUTO_MERGE',
+      schemaOverwriteBehavior: 'OVERWRITE_EXISTING',
+      updateFolderOfChangedEndpoint: true,
+    },
   });
   const resp = await fetch(url, {
     method: 'POST',

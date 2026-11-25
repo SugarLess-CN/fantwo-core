@@ -276,6 +276,78 @@ python scripts/dto-coverage.py --list | grep -E "article|comment"
 
 ---
 
+## 五之三、DTO 同步到 Apifox（每批 DTO 改动后必做）
+
+**DTO 改了不等于同步了** —— Apifox 是前端和测试的契约来源，不同步等于白改。
+
+### 关键：`schemaOverwriteBehavior` 必须显式给 `OVERWRITE_EXISTING`
+
+```js
+options: {
+  endpointOverwriteBehavior: 'AUTO_MERGE',      // 接口按方法+路径合并，保留 Apifox 手工说明
+  schemaOverwriteBehavior: 'OVERWRITE_EXISTING', // ★ DTO 同步的关键
+  updateFolderOfChangedEndpoint: true,
+}
+```
+
+**不写 `schemaOverwriteBehavior` 会怎样**（本会话实测踩到）：
+Apifox 用默认策略，**已存在的数据模型不会被更新**。
+我们改了 `dto.UserDto`（`*string` → `string`、新增字段），Apifox 里还是旧结构，
+前端按 Apifox 生成 SDK 会拿到过时字段 —— 而且**看不出是旧的**，因为导入日志显示成功。
+
+四个枚举（Apifox Open API）：`OVERWRITE_EXISTING` / `AUTO_MERGE` / `KEEP_EXISTING` / `CREATE_NEW`
+
+**为什么选 OVERWRITE_EXISTING**：schema 由 swag 从代码生成，**代码是唯一事实源**，
+不存在「Apifox 侧手工改过 schema 需要保护」的场景。
+
+### 完整同步流程
+
+```bash
+# ① 重新生成 swagger（DTO 变了）
+make swag
+
+# ② 拆批次（schema 一批一个文件 + operation 一批一个）
+python scripts/gen-apifox-enhanced.py docs/swagger/swagger.json tmp/apifox-enhanced/
+
+# ③ 导入（逐文件，日志写 tmp/apifox-import.log）
+node scripts/apifox-import.mjs tmp/apifox-enhanced/
+
+# ④ 核对（三件都要做）
+tail -30 tmp/apifox-import.log | grep -cE "✓|OK"      # 成功计数
+grep -cE "✗|ERROR|422" tmp/apifox-import.log          # 失败应为 0
+```
+
+### ⑤ 只读 MCP 反查（最可靠的一步）
+
+导入成功 ≠ Apifox 里是对的。用只读 MCP 拉回来比对：
+
+```
+apifox-picart → refresh_project_oas → read_project_oas
+```
+
+**核对三项**：
+
+| 项 | 期望 |
+|---|---|
+| `definitions` 里有 `dto.*` | 数量与 swagger 的 `dto.*` 一致 |
+| `dto.UserDto` 的字段 | 与本地 swagger 逐字段一致（关键是 `email`/`phone` 是 `string` 不是 nullable） |
+| 某个接口的 200 schema | `data` 指向 `#/definitions/dto.Xxx`，不是空 `{}` |
+
+**踩过的坑**：Apifox 里同时存在 `tmp_deploy-pkg_internal_handler.*`（污染版，含 `code` 字段+中文）
+和干净的 `internal_handler.*` —— 内容不同，按污染版解析的前端读不到 `status_code`/`trace_id`。
+那 5 个污染 schema 只能在 Apifox 界面手工删（`apifox-picart-import` 只允许导入，不允许删除）。
+
+### 什么时候不用同步
+
+| 场景 | 同步？ |
+|---|---|
+| 改了 dto 结构（字段增删、类型变） | ✅ 必须 |
+| 改了 handler 注解（`{data=...}`） | ✅ 必须 |
+| 改了 service 内部逻辑、响应结构不变 | ❌ 不用 |
+| 只改 i18n 文案 | ❌ 不用（message 是通用字段） |
+
+---
+
 ## 六、验证清单
 
 每批 DTO 抽取完成后逐条确认：
