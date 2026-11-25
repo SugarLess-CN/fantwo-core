@@ -13,7 +13,15 @@
 
 import json, sys, os, re
 
-def main(src, out_dir):
+def main(src, out_dir, mode='full'):
+    """mode:
+       full  — 单文档全量（默认）。1 个文件 o-full.json = 全部 paths + 全部 schemas。
+               ★ 这是唯一能让 Apifox 正确解析 $ref 的模式：它的 import-openapi
+               只认「同一次导入的文档里 components.schemas 中定义过」的 schema，
+               拆批次时 op 批次里 schemas=0 → $ref 全部降级成 {"type":"object","properties":{}}。
+       split — 历史行为（1 schema 一批 + 1 op 一批）。**已知无效**，仅保留以便对比/回退。
+       tag   — 按 tag 分组，每批带全量 schemas。
+    """
     d = json.load(open(src, encoding='utf-8'))
     if d.get('swagger') == '2.0':
         d = swagger2_to_oas3(d)
@@ -50,16 +58,22 @@ def main(src, out_dir):
     }
 
 # ---------- schema 批次 ----------
+    # ---------- schema 批次（仅 split/tag 模式写独立文件；full 模式并入单文档） ----------
     s_idx = 0
-    for name, schema in schemas.items():
-        s_idx += 1
-        doc = {"openapi": "3.0.3", "info": {"title": "t", "version": "1"},
-               "paths": {}, "components": {"schemas": {name: schema}}}
-        json.dump(doc, open(f'{out_dir}/s-{s_idx:02d}.json', 'w', encoding='utf-8'),
-                  ensure_ascii=False)
+    if mode != 'full':
+        for name, schema in schemas.items():
+            s_idx += 1
+            doc = {"openapi": "3.0.3", "info": {"title": "t", "version": "1"},
+                   "paths": {}, "components": {"schemas": {name: schema}}}
+            json.dump(doc, open(f'{out_dir}/s-{s_idx:02d}.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
+    else:
+        s_idx = len(schemas)
 
     # ---------- operation 批次 ----------
     o_idx = 0
+    out_paths = {}          # full/tag 模式累积；split 模式逐条落盘
+    tag_groups = {}         # tag 模式：tag 名 → {path: {method: op}}
     for path, item in d.get('paths', {}).items():
         for method, op in item.items():
             if method == 'parameters':
@@ -115,13 +129,41 @@ def main(src, out_dir):
 
             op['responses'] = responses
 
-            doc = {"openapi": "3.0.3",
-                   "info": {"title": "PicArt fantwo-core", "version": "2026-11-24"},
-                   "paths": {path: {method: op}}}
-            json.dump(doc, open(f'{out_dir}/o-{o_idx:03d}.json', 'w', encoding='utf-8'),
-                      ensure_ascii=False)
+            if mode == 'full':
+                out_paths.setdefault(path, {})[method] = op
+            elif mode == 'tag':
+                # 一个 op 可能多 tag，按首个 tag 归组（Apifox 目录按首个 tag 建）
+                t = (op.get('tags') or ['未分类'])[0]
+                tag_groups.setdefault(t, {}).setdefault(path, {})[method] = op
+            else:  # split（历史行为，已知无效）
+                doc = {"openapi": "3.0.3",
+                       "info": {"title": "PicArt fantwo-core", "version": "2026-11-24"},
+                       "paths": {path: {method: op}}}
+                json.dump(doc, open(f'{out_dir}/o-{o_idx:03d}.json', 'w', encoding='utf-8'),
+                          ensure_ascii=False)
 
-    print(f"生成完成: {s_idx} schema + {o_idx} operation → {out_dir}/")
+    # ---------- 落盘（按模式） ----------
+    if mode == 'full':
+        # 文件名必须 o- 前缀：apifox-import.mjs 只扫 s-*/o-* 文件
+        doc = {"openapi": "3.0.3",
+               "info": {"title": "PicArt fantwo-core", "version": "2026-11-25"},
+               "paths": out_paths,
+               "components": {"schemas": schemas}}
+        p = f'{out_dir}/o-full.json'
+        json.dump(doc, open(p, 'w', encoding='utf-8'), ensure_ascii=False)
+        print(f"生成完成: 1 个全量文档（{s_idx} schema + {o_idx} operation）→ {p}")
+    elif mode == 'tag':
+        # 每批都带全量 schemas —— 否则 $ref 跨批次解析不到
+        for i, (t, paths) in enumerate(sorted(tag_groups.items()), 1):
+            doc = {"openapi": "3.0.3",
+                   "info": {"title": f"PicArt {t}", "version": "2026-11-25"},
+                   "paths": paths,
+                   "components": {"schemas": schemas}}
+            json.dump(doc, open(f'{out_dir}/o-tag{i:02d}.json', 'w', encoding='utf-8'),
+                      ensure_ascii=False)
+        print(f"生成完成: {len(tag_groups)} 个 tag 批次（每批带 {s_idx} schema）+ {o_idx} operation → {out_dir}/")
+    else:
+        print(f"生成完成: {s_idx} schema + {o_idx} operation → {out_dir}/")
 
     
 # Apifox 原有目录名映射（tag → Apifox folder 名）
@@ -293,6 +335,18 @@ def _rewrite_refs(node):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print("用法: python scripts/gen-apifox-enhanced.py <swagger.json> <输出目录>")
+        print("用法: python scripts/gen-apifox-enhanced.py <swagger.json> <输出目录> "
+              "[--mode full|split|tag]")
+        print("  full  (默认) 单文档全量 o-full.json —— 唯一能让 Apifox 正确解析 $ref 的模式")
+        print("  split        1 schema + 1 op 一批（历史行为，$ref 跨文档解析不到，已知无效）")
+        print("  tag          按 tag 分组，每批带全量 schemas")
         sys.exit(1)
-    main(sys.argv[1], sys.argv[2])
+    m = 'full'
+    if '--mode' in sys.argv:
+        i = sys.argv.index('--mode')
+        if i + 1 < len(sys.argv):
+            m = sys.argv[i + 1]
+    if m not in ('full', 'split', 'tag'):
+        print(f"未知 mode: {m}（允许 full|split|tag）")
+        sys.exit(1)
+    main(sys.argv[1], sys.argv[2], m)
