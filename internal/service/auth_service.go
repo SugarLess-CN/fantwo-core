@@ -87,8 +87,17 @@ func (s *AuthService) Login(ctx context.Context, in LoginInput) (*model.User, st
 	if e := s.d.ready(); e != nil {
 		return nil, "", "", e
 	}
-	if in.Account == "" || in.Password == "" || in.DeviceID == "" {
+	if in.Account == "" || in.Password == "" {
 		return nil, "", "", errcode.ErrInvalidParam
+	}
+	// device-id 单独判：它是**请求头**，不是 body 字段。缺失时客户端需要知道
+	// 「去补哪个头」，而不是笼统的「Invalid request parameter」。
+	// 与 RefreshToken（handler/auth.go:118 已用 ErrDeviceIDRequired）保持同一错误码口径。
+	//
+	// 历史问题：这三项原本合并成一个 ErrInvalidParam（10008），
+	// 导致 Apifox 里 Device-Id 传空字符串时只看到「参数错误」，完全不知道是缺头。
+	if in.DeviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
 	}
 	user, err := s.d.Users.FindByAccount(s.d.DB, in.Account)
 	if IsNotFound(err) {
