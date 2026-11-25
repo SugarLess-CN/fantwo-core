@@ -139,6 +139,73 @@ for k,v in (s.get('properties') or {}).items():
 
 ---
 
+## 四之二、已登记的合法例外（2026-11-25 独立验收确认）
+
+规范说「字符串空时 `""`」，但有几处**有意偏离**。它们偏离得有理由，登记在此，
+**避免下一个人照规范把它们"改回来"反而造出假契约**。
+
+| 字段 | 位置 | 为什么偏离 | 反例后果 |
+|---|---|---|---|
+| `MenuNodeDto.Children` | `dto/profile.go` | `/profile/menus` 实测是**平铺列表**，`role_service.go:543` 从不填 Children。声明 `children: []` 是**假契约** | 文档说永远有 children:[]，实际永不出现 → 前端写死判断 |
+| `CreatePaymentResultDto.Status` | `dto/payment.go` | 语义是「**只有余额支付才有这个字段**」，不是「状态为空」 | 去掉 omitempty 会让支付宝/微信支付也返回 `status:""`，前端误判为有支付状态 |
+| `CreatePaymentResultDto.PaymentURL` / `CodeURL` | `dto/payment.go` | 同上，按支付方式有条件返回（支付宝给 url、微信给 codeUrl） | 两个都在时前端不知道该用哪个 |
+| `UserConfigDto.Username` / `CertificationDto.Type` / `Slogan` | `dto/user.go` | 「字段本身按场景存在」：Login 才带 username、有认证才带 type/slogan | — |
+| `EpaySignatureRequest.Params` | `dto/payment.go` | **请求体**不受本文约束（§四已列），加 omitempty 只是让 Apifox 示例不渲染 `null` | — |
+
+**判据**：偏离只有两种合法理由 ——
+**① 「字段按场景存在否」（有条件返回）** 或 **② 底层实现根本不产生该字段**。
+「图省事」不是理由。
+
+---
+
+## 四之三、⚠️ 一个规范管不住的坑：契约漂移
+
+**本文只管「字段怎么序列化」，管不了「service 到底返回什么类型」。**
+
+2026-11-25 独立验收时发现的真实案例：
+
+```go
+// 注解声明 dto.CreatePaymentResultDto（swagger 看起来完美）
+// @Success 200 {object} dto.ResponseBody{data=dto.CreatePaymentResultDto}
+
+// 但 service 实际返回：
+func (s *PaymentService) CreatePayment(...) (map[string]interface{}, error)
+
+// handler 直接抛：
+response.Success(c, data)
+```
+
+**文档与运行时是两份契约**，前端按 dto 生成 SDK 会拿到不存在的字段。
+
+**全仓当时有 42 个这样的函数**，而 `scripts/dto-coverage.py` **完全查不出来**
+（它只看 swagger 注解，不看运行时类型）。
+
+### 自查命令（必须加入 DTO 验收清单）
+
+```bash
+# service 层不许有 map 返回（events 与纯内部工具除外）
+grep -rn "map\[string\]interface{}, error)\|map\[string\]interface{}, \*errcode.Err)" \
+  internal/service/*.go | grep -v _test
+# 期望：0 行（或只有明确标注的内部工具）
+```
+
+### 为什么会出现
+
+DTO 工程按「改注解」推进时，很容易只改 handler 的 `@Success`，
+而 service 的返回类型没跟着改 —— 编译能过、swagger 看起来对、真机也返回 200，
+**只有把响应字段和 swagger 逐字段比对才能发现**。
+
+### 教训
+
+`dto-coverage.py` 的「data 未具名 = 223」是**必要条件不是充分条件**。
+真正的验收要三件一起做：
+
+1. `dto-coverage.py` 的未具名数在降
+2. **`grep map[string]interface{}` 的返回数在降**
+3. 真机响应字段 vs swagger `definitions` 逐字段比对
+
+---
+
 ## 五、这次改动的范围与顺序
 
 按影响面从小到大，**逐域改，每域改完立刻验证**：

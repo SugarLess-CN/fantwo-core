@@ -90,3 +90,46 @@ if '--list' in sys.argv:
     print('\n明细:')
     for m, p in sorted(bad, key=lambda x: x[1]):
         print(f'  {m:<7} {p}')
+
+# ---------- 契约漂移检查 ----------
+# 覆盖率只反映 swagger 注解，看不出 service 层实际返回什么类型。
+# 有 42 个函数注解写 dto.Xxx 但实际返回 map[string]interface{} ——
+# 文档说一套、运行时另一套，前端按 dto 生成 SDK 会拿到不存在的字段。
+if '--drift' in sys.argv or '--all' in sys.argv:
+    import subprocess, glob
+
+    print('\n' + '=' * 62)
+    print('契约漂移检查：service 层返回 map[string]interface{} 的函数')
+    print('=' * 62)
+
+    # 只认「map 是返回值」的情况，不是「map 是参数」。
+    # 误报来源：`func (x) Update(fields map[string]interface{}) error` ——
+    # 这是把 map 传给 GORM 更新，函数本身返回 error，不是契约漂移。
+    #
+    # 判别方式：抓函数签名里 `(map[string]interface{}, error)` 或
+    # `(map[string]interface{}, *errcode.Err)` 这种**返回位置**的形态。
+    pat = re.compile(
+        r'\)\s*\(\s*map\[string\]interface\{\}\s*,\s*(error|\*errcode\.Err)\s*\)'
+    )
+    drift = {}
+    for f in glob.glob('internal/service/*.go'):
+        if f.endswith('_test.go'):
+            continue
+        try:
+            content = open(f, encoding='utf-8').read()
+        except Exception:
+            continue
+        n = len(pat.findall(content))
+        if n:
+            drift[f] = n
+
+    total = sum(drift.values())
+    if total == 0:
+        print('✓ 无契约漂移')
+    else:
+        print(f'⚠️  {total} 个函数返回 map 而非具名结构：')
+        for f, n in sorted(drift.items(), key=lambda x: -x[1]):
+            print(f'  {f.replace("internal/service/", ""):<32} {n}')
+        print()
+        print('这些函数的 handler 注解可能已声明 dto.Xxx，但运行时抛的是 map。')
+        print('修法：返回具名 dto。详见 docs/21 §四之三。')
