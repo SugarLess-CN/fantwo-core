@@ -2,6 +2,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -21,7 +22,7 @@ type AuditHandler struct {
 //	@Tags		内容审核
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AuditConfigDto}
 //	@Router		/content-audit/config [get]
 func (h *AuditHandler) Config(c *gin.Context) {
 	response.Success(c, h.Svc.GetAuditConfig())
@@ -33,11 +34,11 @@ func (h *AuditHandler) Config(c *gin.Context) {
 //	@Tags		内容审核
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AuditConfigReloadDto}
 //	@Router		/content-audit/config/reload [post]
 func (h *AuditHandler) Reload(c *gin.Context) {
 	cfg := h.Svc.GetAuditConfig() // 每次调用现读 config 表，等价于重载
-	response.SuccessMsg(c, i18n.AuditConfigReloaded, gin.H{"provider": cfg.Provider})
+	response.SuccessMsg(c, i18n.AuditConfigReloaded, dto.AuditConfigReloadDto{Provider: cfg.Provider})
 }
 
 // PendingArticles GET /content-audit/pending-articles（待审核文章列表）。
@@ -48,7 +49,7 @@ func (h *AuditHandler) Reload(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PendingArticleItemDto}}
 //	@Router		/content-audit/pending-articles [get]
 func (h *AuditHandler) PendingArticles(c *gin.Context) {
 	page, limit := pageTx(c)
@@ -69,16 +70,18 @@ func (h *AuditHandler) PendingArticles(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "文章 ID"
-//	@Param		body body object true "reviewRequest{pass,reason}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.ReviewArticleRequest true "复审入参 result=APPROVED|REJECTED"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AuditReviewResultDto}
 //	@Router		/content-audit/articles/{id}/review [post]
 func (h *AuditHandler) ReviewArticle(c *gin.Context) {
-	var in service.ReviewArticleInput
+	var in dto.ReviewArticleRequest
 	if err := c.ShouldBindJSON(&in); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
 	}
-	data, err := h.Svc.ReviewArticle(c.Param("id"), in, middleware.CurrentUserID(c))
+	data, err := h.Svc.ReviewArticle(c.Param("id"), service.ReviewArticleInput{
+		Result: in.Result, Reason: in.Reason,
+	}, middleware.CurrentUserID(c))
 	if err != nil {
 		failTx(c, err)
 		return
@@ -93,13 +96,11 @@ func (h *AuditHandler) ReviewArticle(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "textAuditRequest{content,scene}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.AuditTextRequest true "文本送审入参"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AuditResultDto}
 //	@Router		/content-audit/text [post]
 func (h *AuditHandler) AuditText(c *gin.Context) {
-	var body struct {
-		Content string `json:"content" binding:"required"`
-	}
+	var body dto.AuditTextRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
@@ -114,16 +115,19 @@ func (h *AuditHandler) AuditText(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "imageAuditRequest{url,scene}"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body body dto.AuditImageRequest true "图片送审入参"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AuditResultDto}
 //	@Router		/content-audit/image [post]
 func (h *AuditHandler) AuditImage(c *gin.Context) {
-	var body struct {
-		URL string `json:"url" binding:"required"`
-	}
+	var body dto.AuditImageRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		failTx(c, errcode.ErrBadRequest)
 		return
 	}
 	response.Success(c, h.Svc.TestAuditImage(body.URL))
 }
+
+// 让 dto 包成为本文件的真实 import（swag 只按「注解所在文件的 import 列表」解析
+// 跨包类型，docs/18 §三之一 约束 B）。本文件的注解写了 dto.Xxx，这里引用一次。
+// 不参与运行逻辑。
+var _ = dto.ResponseBody{}

@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -155,20 +156,13 @@ func skipValueUpdate(key, value string) bool {
 //
 // startupOnly 与 masked 是两件独立的事，可以同时为 true（s3_access_key 就是）：
 // 写路径先判启动期直接拒绝，读路径仍按敏感打码 —— 历史数据可能已存在于老库，读出必须遮住。
-type ConfigView struct {
-	ID          string    `json:"id"`
-	Key         string    `json:"key"`
-	Value       string    `json:"value"`
-	Description string    `json:"description"`
-	Type        string    `json:"type"`
-	Group       string    `json:"group"`
-	Public      bool      `json:"public"`
-	HasValue    bool      `json:"hasValue"`
-	Masked      bool      `json:"masked"`
-	StartupOnly bool      `json:"startupOnly"` // 启动期配置：改了必须重启，管理端应置灰只读
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-}
+//
+// 为什么是 dto 别名（而不是本包自定义结构）：结构与 dto.ConfigDto 逐字段一致
+// （12 字段、同名 JSON、时间用 time.Time 值类型）。此前是两份平行定义 ——
+// 注解声明 dto.ConfigDto、运行时返回本结构，是「文档一份、运行时另一份」的漂移源。
+// 收归别名后 swag schema 与运行时类型就是同一个类型，不会再各改一边。
+// **打码语义完全不变**：判定仍在 toView / isSensitiveKey，别名只负责形状。
+type ConfigView = dto.ConfigDto
 
 // toView 把配置实体转成管理端视图（纯函数，便于单测）。
 //
@@ -579,7 +573,9 @@ func (s *ConfigService) Remove(id string) error {
 //
 // 返回形态：{group: {key: value}}，便于前端按分组取用；
 // 值按 type 做类型还原（number/boolean/json），与原始实现一致。
-func (s *ConfigService) PublicConfigs() (map[string]map[string]interface{}, error) {
+//
+// 返回具名类型 dto.PublicConfigsDto（内部就是同一个 map 类型），使注解与运行时同源。
+func (s *ConfigService) PublicConfigs() (dto.PublicConfigsDto, error) {
 	if s.db == nil {
 		return nil, svcUnavailable()
 	}
@@ -587,7 +583,7 @@ func (s *ConfigService) PublicConfigs() (map[string]map[string]interface{}, erro
 	if err := s.db.Where("public = ?", true).Order(`"group" ASC, key ASC`).Find(&rows).Error; err != nil {
 		return nil, svcInternal("查询公开配置失败: %v", err)
 	}
-	return aggregatePublic(rows), nil
+	return dto.PublicConfigsDto(aggregatePublic(rows)), nil
 }
 
 // aggregatePublic 把 public 配置聚合成 {group: {key: value}}（纯函数，便于单测）。
@@ -616,7 +612,11 @@ func aggregatePublic(rows []model.Config) map[string]map[string]interface{} {
 //
 // 广告组不含密钥类配置，故此处不做打码/剔除；若将来把敏感项误归入 advertisement 组，
 // 需要在此追加 isSensitiveKey 兜底（与 PublicConfigs 的 aggregatePublic 保持一致）。
-func (s *ConfigService) AdvertisementConfig() (map[string]interface{}, error) {
+//
+// 扁平字段用 configValue* 助手做类型回落：map 取不存在的键得到 nil，
+// 直接塞进 interface{} 会让 JSON 出现 null（docs/21 违规）——
+// 改用具名 dto 后字段是 bool/string 值类型，缺失即 false/""，null 面消失。
+func (s *ConfigService) AdvertisementConfig() (*dto.AdvertisementConfigDto, error) {
 	if s.db == nil {
 		return nil, svcUnavailable()
 	}
@@ -628,20 +628,50 @@ func (s *ConfigService) AdvertisementConfig() (map[string]interface{}, error) {
 	for _, c := range rows {
 		out[c.Key] = castValue(c.Value, c.Type)
 	}
-	// 显式给出前端常用的扁平字段，兼容前端按固定字段名读取
-	return map[string]interface{}{
-		"enabled":            out["advertisement_enabled"],
-		"homeBanner":         out["advertisement_home_banner"],
-		"homeBannerLink":     out["advertisement_home_banner_link"],
-		"articleTop":         out["advertisement_article_top"],
-		"articleTopLink":     out["advertisement_article_top_link"],
-		"articleBottom":      out["advertisement_article_bottom"],
-		"articleBottomLink":  out["advertisement_article_bottom_link"],
-		"articleSidebar":     out["advertisement_article_sidebar"],
-		"articleSidebarLink": out["advertisement_article_sidebar_link"],
-		"globalNotice":       out["advertisement_global_notice"],
-		"raw":                out,
+	return &dto.AdvertisementConfigDto{
+		Enabled:            castBool(out["advertisement_enabled"]),
+		HomeBanner:         castString(out["advertisement_home_banner"]),
+		HomeBannerLink:     castString(out["advertisement_home_banner_link"]),
+		ArticleTop:         castString(out["advertisement_article_top"]),
+		ArticleTopLink:     castString(out["advertisement_article_top_link"]),
+		ArticleBottom:      castString(out["advertisement_article_bottom"]),
+		ArticleBottomLink:  castString(out["advertisement_article_bottom_link"]),
+		ArticleSidebar:     castString(out["advertisement_article_sidebar"]),
+		ArticleSidebarLink: castString(out["advertisement_article_sidebar_link"]),
+		GlobalNotice:       castString(out["advertisement_global_notice"]),
+		Raw:                out,
 	}, nil
+}
+
+// castString 任意配置值 → 字符串（nil → ""，非字符串用 fmt 兜底而非丢弃）。
+//
+// 为什么非字符串也转而不是返回 ""：广告位 URL 类配置若被误标成 number 类型，
+// 直接丢掉会让前端「明明配了却显示空」，比显示原值更难排查。
+func castString(v interface{}) string {
+	switch t := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return t
+	default:
+		return fmt.Sprintf("%v", t)
+	}
+}
+
+// castBool 任意配置值 → 布尔（nil → false）。
+func castBool(v interface{}) bool {
+	switch t := v.(type) {
+	case bool:
+		return t
+	case string:
+		switch strings.ToLower(strings.TrimSpace(t)) {
+		case "true", "1", "yes", "on":
+			return true
+		}
+		return false
+	default:
+		return false
+	}
 }
 
 // ---------- 配置值读取（带缓存） ----------

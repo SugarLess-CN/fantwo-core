@@ -138,6 +138,55 @@ swag init -g cmd/server/main.go -o docs/swagger --parseDependency --parseInterna
 三处命令必须同步（否则下一个人照文档跑就出错）：
 `Makefile` 的 `swag` 目标 / `README.md` 的手动命令 / `scripts/dev.sh` / 本文。
 
+### 约束 A2：`interface{}` / `any` 字段不能带 `example` 标签
+
+```go
+// ❌ 会让整个 handler 的注解解析失败
+ArticleID interface{} `json:"articleId,omitempty" example:"abc"`
+// ✅
+ArticleID interface{} `json:"articleId,omitempty"`
+```
+
+**报错原文**：`[articleId]: any is unsupported type in example value`
+
+**最阴险的地方**：swag 仍返回 **exit=0**，只把这句塞进 stdout 的 warning 流里。
+如果只看 exit code（像我之前强调的那样），**会误判成功**，然后带着一个残缺的
+`definitions` 继续往下走。
+
+**所以 Step 2 的正确判定是三件一起**：
+
+```bash
+"$(go env GOPATH)/bin/swag.exe" init -g cmd/server/main.go -o docs/swagger \
+  --parseDependency --parseInternal --exclude tmp,internal/dto > /tmp/swag.out 2>&1
+echo "exit=$?"                                  # ① 退出码
+grep -icE "unsupported|any is|cannot find|declared multiple" /tmp/swag.out   # ② 应为 0
+python -c "import json;d=json.load(open('docs/swagger/swagger.json',encoding='utf-8'));\
+print('defs:',len(d['definitions']),'dto.*:',len([k for k in d['definitions'] if k.startswith('dto.')]))"  # ③ 产物对得上
+```
+
+**exit=0 不等于成功** —— 这是本规范里最容易忽视的一条。
+
+### 约束 A3：游标分页不能用 `dto.PageBody` / `dto.PageMeta`
+
+`dto.PageBody` 是 `{list, meta}`，`dto.PageMeta` 是 `{total,page,limit,totalPages}`（**偏移分页**）。
+
+**游标分页**（如私信历史 `/message/private/{userId}/messages`）的实际契约是：
+
+```json
+{"data": {"list": [...], "meta": {"nextCursor": "...", "hasMore": true}}}
+```
+
+—— 注意是 **`{data, meta}` 不是 `{list, meta}`**（字段名叫 `data` 不叫 `list`），
+且 `meta` 里是 `nextCursor` / `hasMore` 而不是 `total` / `page`。
+
+**所以游标分页必须建自己的容器 DTO**（如 `CursorListDto` / `CursorMetaDto`），
+硬套 `PageBody` 会造出与运行时完全不符的契约。
+
+**核对方式**：
+```bash
+grep -n -B2 -A6 "cursor\|Cursor" internal/service/message*_service.go | head -20
+```
+
 ### 约束 B：每个用了 dto 注解的 handler 文件必须**自己** import dto
 
 swag 解析 `{object} dto.LoginRequest` 时，**只看该注解所在文件的 import 列表**。

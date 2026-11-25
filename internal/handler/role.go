@@ -26,7 +26,7 @@ func NewRoleHandler(svc *service.RoleService) *RoleHandler { return &RoleHandler
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.RoleDto}
 //	@Router		/role [get]
 func (h *RoleHandler) List(c *gin.Context) {
 	roles, e := h.svc.ListRoles(c.Request.Context())
@@ -45,7 +45,7 @@ func (h *RoleHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.RoleDto}}
 //	@Router		/role/list [get]
 func (h *RoleHandler) ListPaged(c *gin.Context) {
 	page, limit := queryPage(c)
@@ -64,7 +64,7 @@ func (h *RoleHandler) ListPaged(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.RoleDto}
 //	@Router		/role/active [get]
 func (h *RoleHandler) Active(c *gin.Context) {
 	roles, e := h.svc.ActiveRoles(c.Request.Context())
@@ -82,7 +82,7 @@ func (h *RoleHandler) Active(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDetailDto}
 //	@Router		/role/{id} [get]
 func (h *RoleHandler) FindOne(c *gin.Context) {
 	out, e := h.svc.FindRole(c.Request.Context(), c.Param("id"))
@@ -101,7 +101,7 @@ func (h *RoleHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "roleRequest{name,description,isEnabled}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role [post]
 func (h *RoleHandler) Create(c *gin.Context) {
 	var in service.CreateRoleInput
@@ -125,7 +125,7 @@ func (h *RoleHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
 //	@Param		body body object true "roleRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role/{id} [patch]
 func (h *RoleHandler) Update(c *gin.Context) {
 	var in service.UpdateRoleInput
@@ -147,7 +147,7 @@ func (h *RoleHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"（系统角色不可删）
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/role/{id} [delete]
 func (h *RoleHandler) Remove(c *gin.Context) {
 	if e := h.svc.DeleteRole(c.Request.Context(), c.Param("id")); e != nil {
@@ -164,7 +164,7 @@ func (h *RoleHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "源角色 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@Router		/role/{id}/copy [post]
 func (h *RoleHandler) Copy(c *gin.Context) {
 	var in struct {
@@ -191,7 +191,7 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
 //	@Param		body body object true "assignRequest{permissionIds}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RolePermissionsAssignedDto}
 //	@Router		/role/{id}/permissions [post]
 func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 	var in struct {
@@ -217,7 +217,7 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
 //	@Param		body body object true "statusRequest{isEnabled}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleStatusDto}
 //	@Router		/role/{id}/status [patch]
 func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 	var in struct {
@@ -247,7 +247,7 @@ func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
 //	@Param		body body object true "menusRequest{menus}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleMenusAssignedDto}
 //	@Router		/role/{id}/menus [put]
 func (h *RoleHandler) AssignMenus(c *gin.Context) {
 	var in struct {
@@ -271,7 +271,7 @@ func (h *RoleHandler) AssignMenus(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "角色 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.RoleMenusDto}
 //	@Router		/role/{id}/menus [get]
 func (h *RoleHandler) Menus(c *gin.Context) {
 	out, e := h.svc.RoleMenus(c.Request.Context(), c.Param("id"))
@@ -323,7 +323,7 @@ func NewPermissionHandler(svc *service.RoleService) *PermissionHandler {
 //	@Tags		权限
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.PermissionDto}
 //	@Router		/permission [get]
 func (h *PermissionHandler) List(c *gin.Context) {
 	list, e := h.svc.ListPermissions(c.Request.Context())
@@ -340,7 +340,7 @@ func (h *PermissionHandler) List(c *gin.Context) {
 //	@Tags		权限
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.PermissionGroupDto}
 //	@Router		/permission/tree [get]
 func (h *PermissionHandler) Tree(c *gin.Context) {
 	list, e := h.svc.PermissionTree(c.Request.Context())
@@ -358,7 +358,7 @@ func (h *PermissionHandler) Tree(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "权限 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@Router		/permission/{id} [get]
 func (h *PermissionHandler) FindOne(c *gin.Context) {
 	out, e := h.svc.FindPermission(c.Request.Context(), c.Param("id"))
@@ -377,7 +377,7 @@ func (h *PermissionHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "permissionRequest{name,description}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@Router		/permission [post]
 func (h *PermissionHandler) Create(c *gin.Context) {
 	var in service.PermissionInput
@@ -401,7 +401,7 @@ func (h *PermissionHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "权限 ID"
 //	@Param		body body object true "permissionRequest"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@Router		/permission/{id} [patch]
 func (h *PermissionHandler) Update(c *gin.Context) {
 	var in service.PermissionInput
@@ -423,7 +423,7 @@ func (h *PermissionHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "权限 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/permission/{id} [delete]
 func (h *PermissionHandler) Remove(c *gin.Context) {
 	if e := h.svc.DeletePermission(c.Request.Context(), c.Param("id")); e != nil {

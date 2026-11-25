@@ -33,6 +33,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
@@ -58,7 +59,7 @@ func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ConfigDto}}
 //	@Router		/config [get]
 func (h *ConfigHandler) List(c *gin.Context) {
 	list, err := h.svc.List()
@@ -77,7 +78,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "configRequest{key,value,group,remark}"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config [post]
 func (h *ConfigHandler) Create(c *gin.Context) {
 	var in infra.ConfigInput
@@ -100,7 +101,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
 //	@Router		/config [patch]
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -114,7 +115,7 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 		return
 	}
 	// updated 为真实写库条数；skipped 为「未命中的 key + 敏感项空值/*** 占位符」条数
-	response.Success(c, gin.H{"updated": updated, "skipped": skipped})
+	response.Success(c, dto.ConfigUpdateResultDto{Updated: updated, Skipped: skipped})
 }
 
 // ByGroup GET /config/group/:group。
@@ -124,7 +125,7 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=[]dto.ConfigDto}
 //	@Router		/config/group/{group} [get]
 func (h *ConfigHandler) ByGroup(c *gin.Context) {
 	list, err := h.svc.ByGroup(c.Param("group"))
@@ -144,7 +145,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
 //	@Param		body body object true "kv 映射"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
 //	@Router		/config/group/{group} [patch]
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -157,7 +158,7 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"updated": updated, "skipped": skipped})
+	response.Success(c, dto.ConfigUpdateResultDto{Updated: updated, Skipped: skipped})
 }
 
 // Public GET /config/public（NoAuth）。
@@ -165,7 +166,7 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 //	@Summary	公开配置
 //	@Tags		系统配置
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PublicConfigsDto}
 //	@Router		/config/public [get]
 func (h *ConfigHandler) Public(c *gin.Context) {
 	res, err := h.svc.PublicConfigs()
@@ -181,7 +182,7 @@ func (h *ConfigHandler) Public(c *gin.Context) {
 //	@Summary	广告位配置
 //	@Tags		系统配置
 //	@Produce	json
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AdvertisementConfigDto}
 //	@Router		/config/advertisement [get]
 func (h *ConfigHandler) Advertisement(c *gin.Context) {
 	res, err := h.svc.AdvertisementConfig()
@@ -199,7 +200,7 @@ func (h *ConfigHandler) Advertisement(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		key path string true "配置键"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config/key/{key} [get]
 func (h *ConfigHandler) ByKey(c *gin.Context) {
 	cfg, err := h.svc.ByKey(c.Param("key"))
@@ -217,7 +218,7 @@ func (h *ConfigHandler) ByKey(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config/{id} [get]
 func (h *ConfigHandler) ByID(c *gin.Context) {
 	cfg, err := h.svc.ByID(c.Param("id"))
@@ -237,7 +238,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@Router		/config/{id} [patch]
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 	var in infra.ConfigInput
@@ -260,14 +261,14 @@ func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedFlagDto}
 //	@Router		/config/{id} [delete]
 func (h *ConfigHandler) Remove(c *gin.Context) {
 	if err := h.svc.Remove(c.Param("id")); err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"deleted": true})
+	response.Success(c, dto.DeletedFlagDto{Deleted: true})
 }
 
 // ---------- 敏感词 ----------
@@ -280,7 +281,7 @@ func (h *ConfigHandler) Remove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordListDto}
 //	@Router		/config/sensitive-words [get]
 func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 	words, err := h.svc.SensitiveWords()
@@ -288,7 +289,11 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{"success": true, "data": words, "total": len(words)})
+	// words 为 nil 时序列化成 null —— 先兜底成空切片（docs/21 规则二）
+	if words == nil {
+		words = []string{}
+	}
+	response.Success(c, dto.SensitiveWordListDto{Success: true, Words: words, Total: len(words)})
 }
 
 // CreateSensitiveWord POST /config/sensitive-words（body: {word}）。
@@ -298,7 +303,7 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
 //	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 	var body struct {
@@ -312,7 +317,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.SuccessMsg(c, i18n.ConfigSensitiveAdded, gin.H{"success": true})
+	response.SuccessMsg(c, i18n.ConfigSensitiveAdded, dto.SensitiveWordActionDto{Success: true})
 }
 
 // RemoveSensitiveWord DELETE /config/sensitive-words（body: {word}）。
@@ -322,7 +327,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
 //	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 	var body struct {
@@ -336,7 +341,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.SuccessMsg(c, i18n.ConfigSensitiveRemoved, gin.H{"success": true})
+	response.SuccessMsg(c, i18n.ConfigSensitiveRemoved, dto.SensitiveWordActionDto{Success: true})
 }
 
 // BatchCreateSensitiveWords POST /config/sensitive-words/batch（body: {words:[...]}）。
@@ -346,7 +351,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
 //	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	var body struct {
@@ -361,10 +366,10 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{
-		"success": true,
-		"message": i18n.Tf(i18n.ConfigSensitiveBatchAdded, len(body.Words)),
-		"added":   added,
+	response.Success(c, dto.SensitiveWordBatchResultDto{
+		Success: true,
+		Message: i18n.Tf(i18n.ConfigSensitiveBatchAdded, len(body.Words)),
+		Added:   added,
 	})
 }
 
@@ -375,7 +380,7 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
 //	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	var body struct {
@@ -390,10 +395,10 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 		response.Fail(c, infraErrOrNil(err))
 		return
 	}
-	response.Success(c, gin.H{
-		"success": true,
-		"message": i18n.Tf(i18n.ConfigSensitiveBatchRemoved, len(body.Words)),
-		"removed": removed,
+	response.Success(c, dto.SensitiveWordBatchResultDto{
+		Success: true,
+		Message: i18n.Tf(i18n.ConfigSensitiveBatchRemoved, len(body.Words)),
+		Removed: removed,
 	})
 }
 
@@ -403,12 +408,17 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordCacheClearDto}
 //	@Router		/config/sensitive-words/clear-cache [post]
 func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)
-	response.SuccessMsg(c, i18n.ConfigCacheCleared, gin.H{
-		"success": true,
-		"total":   h.svc.TrieSize(),
+	response.SuccessMsg(c, i18n.ConfigCacheCleared, dto.SensitiveWordCacheClearDto{
+		Success: true,
+		Total:   h.svc.TrieSize(),
 	})
 }
+
+// 让 dto 包成为本文件的真实 import（swag 只按「注解所在文件的 import 列表」解析
+// 跨包类型，docs/18 §三之一 约束 B）。本文件的注解写了 dto.Xxx，这里引用一次。
+// 不参与运行逻辑。
+var _ = dto.ResponseBody{}

@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -64,67 +65,45 @@ func ParseCursor(s string) *Cursor {
 }
 
 // CursorMeta 游标分页元信息（对齐源端 meta:{limit,hasMore,nextCursor}）。
-type CursorMeta struct {
-	Limit      int     `json:"limit"`
-	HasMore    bool    `json:"hasMore"`
-	NextCursor *string `json:"nextCursor"`
-}
+//
+// 结构收归 dto.CursorMetaDto（外部契约唯一来源）；nextCursor 由 *string 改为
+// 值类型 string —— 最后一页是 "" 而不是 null（docs/21 §一）。
+type CursorMeta = dto.CursorMetaDto
 
-// PrivateMessageVO 私信出参（对齐源端 serializePrivateMessage）。
-type PrivateMessageVO struct {
-	model.PrivateMessage
-	Type       string       `json:"type"` // 固定 "private"
-	IsRead     bool         `json:"isRead"`
-	IsRecalled bool         `json:"isRecalled"`
-	Sender     *UserBriefVO `json:"sender"`
-	Receiver   *UserBriefVO `json:"receiver"`
-}
+// PrivateMessageVO 私信出参（结构定义见 dto.PrivateMessageDto）。
+//
+// 不再内嵌 model.PrivateMessage：readAt / recalledAt / recallReason / payload
+// 都是 model 层的可空列，内嵌会输出 null。现由 toVOWith 逐字段组装。
+type PrivateMessageVO = dto.PrivateMessageDto
 
 // ConversationVO 会话列表项（对齐源端 getPrivateConversations 的 data 元素）。
-type ConversationVO struct {
-	ConversationID string            `json:"conversationId"`
-	Counterpart    *UserBriefVO      `json:"counterpart"`
-	LatestMessage  *PrivateMessageVO `json:"latestMessage"`
-	UnreadCount    int64             `json:"unreadCount"`
-	LastMessageAt  *time.Time        `json:"lastMessageAt"`
-}
+type ConversationVO = dto.ConversationDto
 
 // ConversationListVO 会话列表结果体。
-type ConversationListVO struct {
-	Data []ConversationVO `json:"data"`
-	Meta CursorMeta       `json:"meta"`
-}
+type ConversationListVO = dto.ConversationListDto
 
 // PrivateHistoryVO 私信历史结果体。
-type PrivateHistoryVO struct {
-	Data []PrivateMessageVO `json:"data"`
-	Meta CursorMeta         `json:"meta"`
-}
+type PrivateHistoryVO = dto.PrivateHistoryDto
 
 // ReadResultVO 标记已读结果（对齐源端 markConversationAsRead 返回）。
-type ReadResultVO struct {
-	ConversationID string     `json:"conversationId"`
-	CounterpartID  string     `json:"counterpartId"`
-	MessageIDs     []string   `json:"messageIds"`
-	ReadAt         *time.Time `json:"readAt"`
-}
+type ReadResultVO = dto.ReadResultDto
 
 // ReadReceiptVO 已读回执（WS privateMessagesReadReceipt / privateConversationRead 载荷）。
-type ReadReceiptVO struct {
-	ConversationID string   `json:"conversationId"`
-	SenderID       string   `json:"senderId"`
-	ReceiverID     string   `json:"receiverId"`
-	MessageIDs     []string `json:"messageIds"`
-	ReadAt         string   `json:"readAt"`
-}
+type ReadReceiptVO = dto.ReadReceiptDto
 
 // BlockedUserVO 拉黑列表项（对齐源端 getBlockedUsers 的 data 元素）。
-type BlockedUserVO struct {
-	ID          string       `json:"id"`
-	Reason      *string      `json:"reason"`
-	CreatedAt   time.Time    `json:"createdAt"`
-	BlockedUser *UserBriefVO `json:"blockedUser"`
-}
+//
+// reason 由 *string 改为值类型：空时 ""（docs/21 §一）。
+type BlockedUserVO = dto.BlockedUserDto
+
+// BlockedUserListVO 拉黑列表结果体（原返回 map{"data": [...]} 的具名形态）。
+type BlockedUserListVO = dto.BlockedUserListDto
+
+// BlockResultVO 拉黑 / 取消拉黑结果（原返回手写 map 的具名形态，camelCase 对齐全站）。
+type BlockResultVO = dto.BlockResultDto
+
+// MarkMessagesReadResultVO 批量私信已读结果（原返回手写 map 的具名形态）。
+type MarkMessagesReadResultVO = dto.MarkMessagesReadResultDto
 
 // SendPrivateInput 发送私信入参（对齐 SendPrivateMessageDto）。
 type SendPrivateInput struct {
@@ -409,8 +388,7 @@ func (s *PrivateMessageService) Conversations(userID, cursor string, limit int) 
 	if hasMore && len(rows) > 0 {
 		last := rows[len(rows)-1]
 		if last.LastMessageAt != nil {
-			nc := EncodeCursor(*last.LastMessageAt, last.ID)
-			meta.NextCursor = &nc
+			meta.NextCursor = EncodeCursor(*last.LastMessageAt, last.ID)
 		}
 	}
 	return &ConversationListVO{Data: out, Meta: meta}, nil
@@ -477,8 +455,7 @@ func (s *PrivateMessageService) ConversationMessages(userID, counterpartID, curs
 	meta := CursorMeta{Limit: limit, HasMore: hasMore}
 	if hasMore && len(rows) > 0 {
 		last := rows[len(rows)-1]
-		nc := EncodeCursor(last.CreatedAt, last.ID)
-		meta.NextCursor = &nc
+		meta.NextCursor = EncodeCursor(last.CreatedAt, last.ID)
 	}
 	return &PrivateHistoryVO{Data: out, Meta: meta}, nil
 }
@@ -533,12 +510,12 @@ func (s *PrivateMessageService) MarkConversationRead(userID, counterpartID strin
 //
 // 对齐源端 markMessagesAsRead：只处理「我是 receiver 且尚未已读」的消息，
 // 并对每条回执向发送者推送 privateMessagesReadReceipt。
-func (s *PrivateMessageService) MarkMessagesRead(userID string, messageIDs []string) (map[string]interface{}, error) {
+func (s *PrivateMessageService) MarkMessagesRead(userID string, messageIDs []string) (*MarkMessagesReadResultVO, error) {
 	if e := s.ready(); e != nil {
 		return nil, e
 	}
 	if len(messageIDs) == 0 {
-		return map[string]interface{}{"message_ids": []string{}}, nil
+		return &MarkMessagesReadResultVO{MessageIDs: []string{}, Receipts: []ReadReceiptVO{}}, nil
 	}
 	rows, err := s.Priv.FindMessagesForUser(s.DB, messageIDs, userID)
 	if err != nil {
@@ -551,7 +528,7 @@ func (s *PrivateMessageService) MarkMessagesRead(userID string, messageIDs []str
 		}
 	}
 	if len(unread) == 0 {
-		return map[string]interface{}{"message_ids": []string{}}, nil
+		return &MarkMessagesReadResultVO{MessageIDs: []string{}, Receipts: []ReadReceiptVO{}}, nil
 	}
 	ids := make([]string, 0, len(unread))
 	for i := range unread {
@@ -585,10 +562,10 @@ func (s *PrivateMessageService) MarkMessagesRead(userID string, messageIDs []str
 	}
 	s.emitUnreadCount(userID)
 
-	return map[string]interface{}{
-		"message_ids": ids,
-		"read_at":     nowT,
-		"receipts":    receipts,
+	return &MarkMessagesReadResultVO{
+		MessageIDs: ids,
+		ReadAt:     &nowT,
+		Receipts:   receipts,
 	}, nil
 }
 
@@ -658,7 +635,7 @@ func (s *PrivateMessageService) Recall(userID, messageID, reason string) (*Priva
 }
 
 // Block 拉黑（对齐源端 blockUser：不能拉黑自己、目标必须存在、重复拉黑幂等）。
-func (s *PrivateMessageService) Block(userID, targetID string, reason *string) (map[string]interface{}, error) {
+func (s *PrivateMessageService) Block(userID, targetID string, reason *string) (*BlockResultVO, error) {
 	if e := s.ready(); e != nil {
 		return nil, e
 	}
@@ -681,22 +658,22 @@ func (s *PrivateMessageService) Block(userID, targetID string, reason *string) (
 			return nil, err
 		}
 	}
-	return map[string]interface{}{"success": true, "blocked_user_id": targetID}, nil
+	return &BlockResultVO{Success: true, BlockedUserID: targetID}, nil
 }
 
 // Unblock 取消拉黑。
-func (s *PrivateMessageService) Unblock(userID, targetID string) (map[string]interface{}, error) {
+func (s *PrivateMessageService) Unblock(userID, targetID string) (*BlockResultVO, error) {
 	if e := s.ready(); e != nil {
 		return nil, e
 	}
 	if err := s.Priv.DeleteBlock(s.DB, userID, targetID); err != nil {
 		return nil, err
 	}
-	return map[string]interface{}{"success": true, "blocked_user_id": targetID}, nil
+	return &BlockResultVO{Success: true, BlockedUserID: targetID}, nil
 }
 
 // Blocks 我拉黑的用户列表。
-func (s *PrivateMessageService) Blocks(userID string) (map[string]interface{}, error) {
+func (s *PrivateMessageService) Blocks(userID string) (*BlockedUserListVO, error) {
 	if e := s.ready(); e != nil {
 		return nil, e
 	}
@@ -711,15 +688,13 @@ func (s *PrivateMessageService) Blocks(userID string) (map[string]interface{}, e
 	users := s.loadUsers(ids)
 	out := make([]BlockedUserVO, 0, len(rows))
 	for _, b := range rows {
-		item := BlockedUserVO{ID: b.ID, Reason: b.Reason, CreatedAt: b.CreatedAt}
+		item := BlockedUserVO{ID: b.ID, Reason: strOrEmpty(b.Reason), CreatedAt: b.CreatedAt}
 		if u, ok := users[b.BlockedUserID]; ok && u != nil {
-			item.BlockedUser = &UserBriefVO{
-				ID: u.ID, Username: u.Username, Nickname: u.Nickname, Avatar: u.Avatar, IsBlocked: true,
-			}
+			item.BlockedUser = briefUser(u, map[string]struct{}{u.ID: {}})
 		}
 		out = append(out, item)
 	}
-	return map[string]interface{}{"data": out}, nil
+	return &BlockedUserListVO{Data: out}, nil
 }
 
 // ConversationSummary 会话摘要（供 WS privateConversationUpdated 推送）。
@@ -764,12 +739,30 @@ func (s *PrivateMessageService) toVO(m *model.PrivateMessage, blocked map[string
 }
 
 // toVOWith 用预加载的用户表组装 VO（对齐源端 serializePrivateMessage）。
+//
+// 逐字段赋值：model.PrivateMessage 的 readAt / recalledAt / recalledById /
+// recallReason / payload 都是可空列，内嵌会输出 null（docs/21）。
 func (s *PrivateMessageService) toVOWith(m *model.PrivateMessage, users map[string]*model.User, blocked map[string]struct{}) *PrivateMessageVO {
 	vo := &PrivateMessageVO{
-		PrivateMessage: *m,
+		ID:             m.ID,
+		ConversationID: m.ConversationID,
+		SenderID:       m.SenderID,
+		ReceiverID:     m.ReceiverID,
+		MessageKind:    m.MessageKind,
+		Content:        m.Content,
+		ReadAt:         m.ReadAt,
+		RecalledAt:     m.RecalledAt,
+		RecalledByID:   strOrEmpty(m.RecalledByID),
+		RecallReason:   strOrEmpty(m.RecallReason),
 		Type:           MsgTypePrivate,
 		IsRead:         m.ReadAt != nil,
 		IsRecalled:     m.RecalledAt != nil,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+	}
+	// payload 是运行时不定的业务结构：保留 map 原类型，空时整个字段不传（omitempty）
+	if len(m.Payload) > 0 {
+		vo.Payload = m.Payload
 	}
 	if u, ok := users[m.SenderID]; ok && u != nil {
 		vo.Sender = briefUser(u, blocked)
@@ -777,7 +770,7 @@ func (s *PrivateMessageService) toVOWith(m *model.PrivateMessage, users map[stri
 	if u, ok := users[m.ReceiverID]; ok && u != nil {
 		vo.Receiver = briefUser(u, blocked)
 	}
-	// 撤回后正文已清空，前端靠 is_recalled 渲染占位
+	// 撤回后正文已清空，前端靠 isRecalled 渲染占位
 	return vo
 }
 

@@ -27,6 +27,7 @@
 package handler
 
 import (
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -91,9 +92,9 @@ func currentUID(c *gin.Context) (string, bool) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		object	true	"CreateMessageInput"
-//	@Success		200		{object}	ResponseBody
-//	@Failure		403		{object}	ResponseBody
+//	@Param	body	body	dto.CreateMessageRequest	true	"CreateMessageInput{content,type,receiverId}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
+//	@Failure	403	{object}	dto.ResponseBody
 //	@Router			/message [post]
 func (h *MessageHandler) Create(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -121,7 +122,7 @@ func (h *MessageHandler) Create(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			page	query		int		false	"页码"
 //	@Param			limit	query		int		false	"每页条数"
-//	@Success		200		{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@Router			/message [get]
 func (h *MessageHandler) List(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -145,7 +146,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
-//	@Success	200	{object}	ResponsePageBody
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@Router		/message/search [get]
 func (h *MessageHandler) Search(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -185,7 +186,7 @@ func (h *MessageHandler) Search(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@Router		/message/{id} [get]
 func (h *MessageHandler) Detail(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -208,8 +209,8 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param	body	body	dto.UpdateMessageRequest	true	"UpdateMessageInput"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@Router		/message/{id} [patch]
 func (h *MessageHandler) Update(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -236,7 +237,7 @@ func (h *MessageHandler) Update(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/message/{id} [delete]
 func (h *MessageHandler) Remove(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -257,7 +258,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Router		/message/{id}/read [post]
 func (h *MessageHandler) MarkRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -277,7 +278,7 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@Router		/message/read-all [post]
 func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -300,8 +301,8 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param	body	body	dto.BatchMessageRequest	true	"BatchMessageInput{messageIds,action}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@Router		/message/batch [post]
 func (h *MessageHandler) Batch(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -327,7 +328,7 @@ func (h *MessageHandler) Batch(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.UnreadCountDto}
 //	@Router		/message/unread/count [get]
 func (h *MessageHandler) UnreadCount(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -353,9 +354,9 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			userId	path		string	true	"接收者用户 ID"
-//	@Param			body	body		object	true	"SendPrivateInput{content,type}"
-//	@Success		200		{object}	ResponseBody
-//	@Failure		403		{object}	ResponseBody
+//	@Param	body	body	dto.SendPrivateRequest	true	"SendPrivateInput{content,messageKind,payload}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
+//	@Failure	403	{object}	dto.ResponseBody
 //	@Router			/message/private/{userId} [post]
 func (h *MessageHandler) SendPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -383,7 +384,7 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			cursor	query		string	false	"游标（上一页最后一条的 cursor）"
 //	@Param			limit	query		int		false	"每页条数，默认 20"
-//	@Success		200		{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ConversationListDto}
 //	@Router			/message/private/conversations [get]
 func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -405,7 +406,7 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateHistoryDto}
 //	@Router		/message/private/conversations/{userId}/messages [get]
 func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -427,7 +428,7 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.ReadResultDto}
 //	@Router		/message/private/conversations/{userId}/read [post]
 func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -448,8 +449,8 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
-//	@Success	200	{object}	ResponseBody
+//	@Param	body	body	dto.PrivateReadBatchRequest	true	"PrivateReadBatchInput{messageIds}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.MarkMessagesReadResultDto}
 //	@Router		/message/private/read-batch [post]
 func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -478,7 +479,8 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body	body	dto.RecallPrivateRequest	false	"RecallPrivateInput{reason}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@Router		/message/private/recall/{id} [post]
 func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -504,7 +506,8 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Param		body	body	dto.BlockUserRequest	false	"BlockUserInput{reason}"
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@Router		/message/private/block/{userId} [post]
 func (h *MessageHandler) BlockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -534,7 +537,7 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@Router		/message/private/block/{userId} [delete]
 func (h *MessageHandler) UnblockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -555,7 +558,7 @@ func (h *MessageHandler) UnblockUser(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	ResponseBody
+//	@Success	200	{object}	dto.ResponseBody{data=dto.BlockedUserListDto}
 //	@Router		/message/private/blocks [get]
 func (h *MessageHandler) Blocks(c *gin.Context) {
 	uid, ok := currentUID(c)
@@ -603,3 +606,7 @@ func queryInt(c *gin.Context, key string, def int) int {
 	}
 	return n
 }
+
+// 本文件用了 dto.Xxx 注解：swag 只在**注解所在文件的 import 列表**里找包路径，
+// 缺这一行会报 "cannot find type definition: dto.MessageDto"（docs/18 §五）。
+var _ = dto.ResponseBody{}

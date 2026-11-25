@@ -11,6 +11,7 @@ package service
 import (
 	"context"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -172,7 +173,11 @@ func (s *RoleService) ensureRole(name, display, desc string, isSystem bool, perm
 }
 
 // ListRoles 全部角色。
-func (s *RoleService) ListRoles(ctx context.Context) ([]model.Role, *errcode.Err) {
+//
+// 返回 []dto.RoleDto（不是 model.Role）：model 的 displayName/description 是 *string，
+// 直出会让 JSON 出现 null（docs/21 违规）；permissions 带 omitempty，空时整字段消失
+// 而规范要求 []。转换集中在 toRoleDto / toRoleDtos。
+func (s *RoleService) ListRoles(ctx context.Context) ([]dto.RoleDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -180,11 +185,11 @@ func (s *RoleService) ListRoles(ctx context.Context) ([]model.Role, *errcode.Err
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return roles, nil
+	return toRoleDtos(roles), nil
 }
 
 // ActiveRoles 活跃角色。
-func (s *RoleService) ActiveRoles(ctx context.Context) ([]model.Role, *errcode.Err) {
+func (s *RoleService) ActiveRoles(ctx context.Context) ([]dto.RoleDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -192,11 +197,11 @@ func (s *RoleService) ActiveRoles(ctx context.Context) ([]model.Role, *errcode.E
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return roles, nil
+	return toRoleDtos(roles), nil
 }
 
 // ListRolesPaged 分页角色。
-func (s *RoleService) ListRolesPaged(ctx context.Context, page, limit int, name string, isActive *bool) ([]model.Role, int64, *errcode.Err) {
+func (s *RoleService) ListRolesPaged(ctx context.Context, page, limit int, name string, isActive *bool) ([]dto.RoleDto, int64, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, 0, e
 	}
@@ -205,11 +210,15 @@ func (s *RoleService) ListRolesPaged(ctx context.Context, page, limit int, name 
 	if err != nil {
 		return nil, 0, errcode.ErrInternal
 	}
-	return roles, total, nil
+	return toRoleDtos(roles), total, nil
 }
 
 // FindRole 角色详情（含权限与菜单）。
-func (s *RoleService) FindRole(ctx context.Context, id string) (map[string]interface{}, *errcode.Err) {
+//
+// 返回具名 dto.RoleDetailDto（此前是 map[string]interface{} 字面量）：
+// map 版本有两个问题 —— ①displayName/description 直接塞 *string，JSON 出 null；
+// ②swag 注解声明 dto、运行时却是 map，是「文档一份、运行时另一份」的漂移源。
+func (s *RoleService) FindRole(ctx context.Context, id string) (*dto.RoleDetailDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -221,11 +230,9 @@ func (s *RoleService) FindRole(ctx context.Context, id string) (map[string]inter
 		return nil, errcode.ErrInternal
 	}
 	menus, _ := s.d.Roles.MenuKeys(s.d.DB, id)
-	return map[string]interface{}{
-		"id": role.ID, "name": role.Name, "displayName": role.DisplayName,
-		"description": role.Description, "isActive": role.IsActive,
-		"isSystem": role.IsSystem, "permissions": role.Permissions,
-		"menus": menus, "createdAt": role.CreatedAt, "updatedAt": role.UpdatedAt,
+	return &dto.RoleDetailDto{
+		RoleDto: toRoleDto(role),
+		Menus:   sliceOrEmpty(menus),
 	}, nil
 }
 
@@ -240,7 +247,7 @@ type CreateRoleInput struct {
 }
 
 // CreateRole 创建角色。
-func (s *RoleService) CreateRole(ctx context.Context, in CreateRoleInput) (*model.Role, *errcode.Err) {
+func (s *RoleService) CreateRole(ctx context.Context, in CreateRoleInput) (*dto.RoleDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -272,7 +279,12 @@ func (s *RoleService) CreateRole(ctx context.Context, in CreateRoleInput) (*mode
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return s.findRoleOrErr(role.ID)
+	created, e := s.findRoleOrErr(role.ID)
+	if e != nil {
+		return nil, e
+	}
+	out := toRoleDto(created)
+	return &out, nil
 }
 
 // UpdateRoleInput 更新角色入参。
@@ -286,7 +298,7 @@ type UpdateRoleInput struct {
 }
 
 // UpdateRole 更新角色（含权限重写 + perm_ver bump）。
-func (s *RoleService) UpdateRole(ctx context.Context, id string, in UpdateRoleInput) (*model.Role, *errcode.Err) {
+func (s *RoleService) UpdateRole(ctx context.Context, id string, in UpdateRoleInput) (*dto.RoleDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -330,7 +342,12 @@ func (s *RoleService) UpdateRole(ctx context.Context, id string, in UpdateRoleIn
 	if in.PermissionIDs != nil {
 		s.bumpRoleUsers(ctx, id)
 	}
-	return s.findRoleOrErr(id)
+	role, e := s.findRoleOrErr(id)
+	if e != nil {
+		return nil, e
+	}
+	out := toRoleDto(role)
+	return &out, nil
 }
 
 // DeleteRole 删除角色（系统角色禁删、使用中禁删）。
@@ -362,7 +379,7 @@ func (s *RoleService) DeleteRole(ctx context.Context, id string) *errcode.Err {
 }
 
 // CopyRole 复制角色（权限/菜单一并复制）。
-func (s *RoleService) CopyRole(ctx context.Context, id, name, displayName string) (*model.Role, *errcode.Err) {
+func (s *RoleService) CopyRole(ctx context.Context, id, name, displayName string) (*dto.RoleDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -406,11 +423,16 @@ func (s *RoleService) CopyRole(ctx context.Context, id, name, displayName string
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return s.findRoleOrErr(copied.ID)
+	created, e := s.findRoleOrErr(copied.ID)
+	if e != nil {
+		return nil, e
+	}
+	out := toRoleDto(created)
+	return &out, nil
 }
 
 // ToggleStatus 启用/禁用角色。
-func (s *RoleService) ToggleStatus(ctx context.Context, id string, isActive bool) (map[string]interface{}, *errcode.Err) {
+func (s *RoleService) ToggleStatus(ctx context.Context, id string, isActive bool) (*dto.RoleStatusDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -426,11 +448,11 @@ func (s *RoleService) ToggleStatus(ctx context.Context, id string, isActive bool
 	}
 	// 角色启用状态变化 → 该角色用户权限集可能变化，bump 让其重新登录。
 	s.bumpRoleUsers(ctx, id)
-	return map[string]interface{}{"id": role.ID, "name": role.Name, "isActive": isActive}, nil
+	return &dto.RoleStatusDto{ID: role.ID, Name: role.Name, IsActive: isActive}, nil
 }
 
 // AssignPermissions 为角色分配权限（重写 + bump）。
-func (s *RoleService) AssignPermissions(ctx context.Context, roleID string, permissionIDs []string) (map[string]interface{}, *errcode.Err) {
+func (s *RoleService) AssignPermissions(ctx context.Context, roleID string, permissionIDs []string) (*dto.RolePermissionsAssignedDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -452,14 +474,16 @@ func (s *RoleService) AssignPermissions(ctx context.Context, roleID string, perm
 		return nil, errcode.ErrInternal
 	}
 	bumped := s.bumpRoleUsers(ctx, roleID)
-	return map[string]interface{}{
-		"roleId": roleID, "permissionCount": len(permissionIDs),
-		"affectedUsers": bumped, "permVersionBumped": bumped > 0,
+	return &dto.RolePermissionsAssignedDto{
+		RoleID:            roleID,
+		PermissionCount:   len(permissionIDs),
+		AffectedUsers:     bumped,
+		PermVersionBumped: bumped > 0,
 	}, nil
 }
 
 // AssignMenus 为角色分配菜单。
-func (s *RoleService) AssignMenus(ctx context.Context, roleID string, menuKeys []string) (map[string]interface{}, *errcode.Err) {
+func (s *RoleService) AssignMenus(ctx context.Context, roleID string, menuKeys []string) (*dto.RoleMenusAssignedDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -471,11 +495,11 @@ func (s *RoleService) AssignMenus(ctx context.Context, roleID string, menuKeys [
 	if err := s.d.Roles.ReplaceMenus(s.d.DB, roleID, menuKeys); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"roleId": roleID, "menus": menuKeys}, nil
+	return &dto.RoleMenusAssignedDto{RoleID: roleID, Menus: sliceOrEmpty(menuKeys)}, nil
 }
 
 // RoleMenus 角色菜单。
-func (s *RoleService) RoleMenus(ctx context.Context, roleID string) (map[string]interface{}, *errcode.Err) {
+func (s *RoleService) RoleMenus(ctx context.Context, roleID string) (*dto.RoleMenusDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -483,7 +507,11 @@ func (s *RoleService) RoleMenus(ctx context.Context, roleID string) (map[string]
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return map[string]interface{}{"roleId": roleID, "menus": menus, "allMenus": DefaultMenuKeys}, nil
+	return &dto.RoleMenusDto{
+		RoleID:   roleID,
+		Menus:    sliceOrEmpty(menus),
+		AllMenus: sliceOrEmpty(DefaultMenuKeys),
+	}, nil
 }
 
 // MenuNode 菜单树节点（对齐 swagger /profile/menus 的树形结构）。
@@ -505,7 +533,7 @@ var menuTitles = map[string]string{
 
 // MyMenus 当前用户可见菜单树：取其全部角色的菜单键并集，按 DefaultMenuKeys 顺序输出。
 // super-admin（含 * / admin 权限）返回全部菜单。
-func (s *RoleService) MyMenus(ctx context.Context, userID string, perms []string) (map[string]interface{}, *errcode.Err) {
+func (s *RoleService) MyMenus(ctx context.Context, userID string, perms []string) (*dto.MyMenusDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -540,15 +568,18 @@ func (s *RoleService) MyMenus(ctx context.Context, userID string, perms []string
 			}
 		}
 	}
-	nodes := make([]*MenuNode, 0, len(allowed))
+	// 返回 dto.MyMenusDto（profile.go 已封版的结构）。Children 不填 ——
+	// MyMenus 是**平铺列表**，从不嵌套；dto.MenuNodeDto.Children 带 omitempty 正是
+	// 镜像这个事实（详见 internal/dto/profile.go 的说明）。
+	nodes := make([]dto.MenuNodeDto, 0, len(allowed))
 	for _, k := range allowed {
 		title := menuTitles[k]
 		if title == "" {
 			title = k
 		}
-		nodes = append(nodes, &MenuNode{Key: k, Title: title})
+		nodes = append(nodes, dto.MenuNodeDto{Key: k, Title: title})
 	}
-	return map[string]interface{}{"menus": nodes, "total": len(nodes)}, nil
+	return &dto.MyMenusDto{Menus: nodes, Total: len(nodes)}, nil
 }
 
 // bumpRoleUsers 递增角色下全部用户的权限版本，返回影响人数。
@@ -569,7 +600,7 @@ func (s *RoleService) bumpRoleUsers(ctx context.Context, roleID string) int {
 // ---------- 权限 CRUD ----------
 
 // ListPermissions 全部权限。
-func (s *RoleService) ListPermissions(ctx context.Context) ([]model.Permission, *errcode.Err) {
+func (s *RoleService) ListPermissions(ctx context.Context) ([]dto.PermissionDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -577,11 +608,11 @@ func (s *RoleService) ListPermissions(ctx context.Context) ([]model.Permission, 
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return list, nil
+	return toPermissionDtos(list), nil
 }
 
 // FindPermission 权限详情。
-func (s *RoleService) FindPermission(ctx context.Context, id string) (*model.Permission, *errcode.Err) {
+func (s *RoleService) FindPermission(ctx context.Context, id string) (*dto.PermissionDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -592,7 +623,8 @@ func (s *RoleService) FindPermission(ctx context.Context, id string) (*model.Per
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return p, nil
+	out := toPermissionDto(p)
+	return &out, nil
 }
 
 // PermissionInput 权限创建/更新入参。
@@ -602,7 +634,7 @@ type PermissionInput struct {
 }
 
 // CreatePermission 创建权限。
-func (s *RoleService) CreatePermission(ctx context.Context, in PermissionInput) (*model.Permission, *errcode.Err) {
+func (s *RoleService) CreatePermission(ctx context.Context, in PermissionInput) (*dto.PermissionDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -618,11 +650,12 @@ func (s *RoleService) CreatePermission(ctx context.Context, in PermissionInput) 
 	if err := s.d.Perms.Create(s.d.DB, p); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return p, nil
+	out := toPermissionDto(p)
+	return &out, nil
 }
 
 // UpdatePermission 更新权限。
-func (s *RoleService) UpdatePermission(ctx context.Context, id string, in PermissionInput) (*model.Permission, *errcode.Err) {
+func (s *RoleService) UpdatePermission(ctx context.Context, id string, in PermissionInput) (*dto.PermissionDto, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -646,7 +679,12 @@ func (s *RoleService) UpdatePermission(ctx context.Context, id string, in Permis
 			return nil, errcode.ErrInternal
 		}
 	}
-	return s.findPermOrErr(id)
+	perm, e := s.findPermOrErr(id)
+	if e != nil {
+		return nil, e
+	}
+	out := toPermissionDto(perm)
+	return &out, nil
 }
 
 // DeletePermission 删除权限（引用中禁删）。
@@ -673,13 +711,13 @@ func (s *RoleService) DeletePermission(ctx context.Context, id string) *errcode.
 }
 
 // PermissionTree 权限按模块分组（前端勾选树）。
-func (s *RoleService) PermissionTree(ctx context.Context) ([]map[string]interface{}, *errcode.Err) {
+func (s *RoleService) PermissionTree(ctx context.Context) ([]dto.PermissionGroupDto, *errcode.Err) {
 	list, e := s.ListPermissions(ctx)
 	if e != nil {
 		return nil, e
 	}
 	order := []string{}
-	groups := map[string][]model.Permission{}
+	groups := map[string][]dto.PermissionDto{}
 	for _, p := range list {
 		mod := p.Name
 		for i, ch := range p.Name {
@@ -693,10 +731,11 @@ func (s *RoleService) PermissionTree(ctx context.Context) ([]map[string]interfac
 		}
 		groups[mod] = append(groups[mod], p)
 	}
-	out := make([]map[string]interface{}, 0, len(order))
+	out := make([]dto.PermissionGroupDto, 0, len(order))
 	for _, mod := range order {
-		out = append(out, map[string]interface{}{
-			"module": mod, "permissions": groups[mod],
+		out = append(out, dto.PermissionGroupDto{
+			Module:      mod,
+			Permissions: sliceOrEmpty(groups[mod]),
 		})
 	}
 	return out, nil

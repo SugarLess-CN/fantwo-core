@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -55,47 +56,23 @@ type MessagePublisher interface {
 }
 
 // UserBriefVO 用户简要信息（消息里嵌的 sender / receiver）。
-type UserBriefVO struct {
-	ID        string  `json:"id"`
-	Username  string  `json:"username"`
-	Nickname  *string `json:"nickname"`
-	Avatar    *string `json:"avatar"`
-	IsBlocked bool    `json:"isBlocked"`
-}
-
-// MessageVO 站内消息出参。
 //
-// 注意：内嵌 model.Message 已在字段级声明 snake_case json tag；源端为 camelCase
-// （isRead / isBroadcast / createdAt），本仓库统一 snake_case（团队约定），
-// 前端字段映射在迁移说明里同步。
-type MessageVO struct {
-	model.Message
-	Sender           *UserBriefVO `json:"sender"`
-	Receiver         *UserBriefVO `json:"receiver"`
-	ArticleID        interface{}  `json:"articleId"`
-	CommentID        interface{}  `json:"commentId"`
-	TargetID         interface{}  `json:"targetId"`
-	TargetType       interface{}  `json:"targetType"`
-	NotificationType interface{}  `json:"notificationType"`
-}
+// 结构定义收归 dto（对外契约唯一来源，docs/18），此处保留别名让调用方零改动。
+// nickname / avatar 由 *string 改为值类型：空时 "" 而不是 null（docs/21 §一）。
+type UserBriefVO = dto.MessageUserBriefDto
+
+// MessageVO 站内消息出参（结构定义见 dto.MessageDto）。
+//
+// 不再内嵌 model.Message：内嵌会把 model 层的 *string / jsonb 列原样泄漏到对外
+// JSON（title 为 null、metadata 为 null），违反 docs/21。改为逐字段组装，
+// 转换见 buildMessageVO。
+type MessageVO = dto.MessageDto
 
 // MessageCreateResult 创建结果（对齐源端 {success, message, data} 包装）。
-type MessageCreateResult struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
+type MessageCreateResult = dto.MessageCreateResultDto
 
 // UnreadCountVO 未读计数（七字段，对齐源端 getUnreadCount 返回值）。
-type UnreadCountVO struct {
-	Personal     int64 `json:"personal"`
-	Notification int64 `json:"notification"`
-	Direct       int64 `json:"direct"`
-	System       int64 `json:"system"`
-	Private      int64 `json:"private"`
-	Broadcast    int64 `json:"broadcast"`
-	Total        int64 `json:"total"`
-}
+type UnreadCountVO = dto.UnreadCountDto
 
 // CreateMessageInput 创建消息入参（对齐 CreateMessageDto）。
 type CreateMessageInput struct {
@@ -662,8 +639,27 @@ func (s *MessageService) toVO(m *model.Message, userID string, blocked map[strin
 }
 
 // buildMessageVO 组装出参：用户信息 + metadata 派生字段（对齐源端 transformMessage）。
+//
+// 逐字段赋值而不内嵌 model.Message：title 是 model 层 *string（空值语义）、
+// receiverId 也是 *string —— 直接内嵌会输出 null。这里统一走 strOrEmpty，
+// 保证对外 JSON 无 null（docs/21）。
 func buildMessageVO(m *model.Message, users map[string]*model.User, blocked map[string]struct{}) *MessageVO {
-	vo := &MessageVO{Message: *m}
+	vo := &MessageVO{
+		ID:          m.ID,
+		SenderID:    m.SenderID,
+		ReceiverID:  strOrEmpty(m.ReceiverID),
+		Content:     m.Content,
+		Title:       strOrEmpty(m.Title),
+		Type:        m.Type,
+		IsRead:      m.IsRead,
+		IsBroadcast: m.IsBroadcast,
+		CreatedAt:   m.CreatedAt,
+		UpdatedAt:   m.UpdatedAt,
+	}
+	// metadata 是运行时不定的业务结构：保留 map 原类型，空时整个字段不传（omitempty）
+	if len(m.Metadata) > 0 {
+		vo.Metadata = m.Metadata
+	}
 	if u, ok := users[m.SenderID]; ok && u != nil {
 		vo.Sender = briefUser(u, blocked)
 	}
@@ -672,40 +668,37 @@ func buildMessageVO(m *model.Message, users map[string]*model.User, blocked map[
 			vo.Receiver = briefUser(u, blocked)
 		}
 	}
-	if m.Metadata != nil {
-		// 源端把 metadata 里的业务键平铺到响应（articleId/commentId/targetId/targetType/notificationType）
-		vo.ArticleID = m.Metadata["article_id"]
-		if vo.ArticleID == nil {
-			vo.ArticleID = m.Metadata["articleId"]
-		}
-		vo.CommentID = m.Metadata["comment_id"]
-		if vo.CommentID == nil {
-			vo.CommentID = m.Metadata["commentId"]
-		}
-		vo.TargetID = m.Metadata["target_id"]
-		if vo.TargetID == nil {
-			vo.TargetID = m.Metadata["targetId"]
-		}
-		vo.TargetType = m.Metadata["target_type"]
-		if vo.TargetType == nil {
-			vo.TargetType = m.Metadata["targetType"]
-		}
-		vo.NotificationType = m.Metadata["notification_type"]
-		if vo.NotificationType == nil {
-			vo.NotificationType = m.Metadata["notificationType"]
-		}
-	}
+	// 源端把 metadata 里的业务键平铺到响应（articleId/commentId/targetId/targetType/notificationType）。
+	// 取不到就保持 nil → omitempty 让整个字段不传（不输出 null）。
+	vo.ArticleID = metaValue(m.Metadata, "article_id", "articleId")
+	vo.CommentID = metaValue(m.Metadata, "comment_id", "commentId")
+	vo.TargetID = metaValue(m.Metadata, "target_id", "targetId")
+	vo.TargetType = metaValue(m.Metadata, "target_type", "targetType")
+	vo.NotificationType = metaValue(m.Metadata, "notification_type", "notificationType")
 	return vo
 }
 
+// metaValue 取 metadata 里的业务键（兼容 snake_case 与 camelCase 两种历史写法）。
+// 都取不到返回 nil（配合 omitempty 让字段整个不传）。
+func metaValue(meta model.MessageJSON, keys ...string) interface{} {
+	for _, k := range keys {
+		if v, ok := meta[k]; ok && v != nil {
+			return v
+		}
+	}
+	return nil
+}
+
 // briefUser 用户简要信息 + 拉黑标记。
+//
+// nickname / avatar 是 model 层 *string，走 strOrEmpty 转值类型（空时 ""）。
 func briefUser(u *model.User, blocked map[string]struct{}) *UserBriefVO {
 	_, isBlocked := blocked[u.ID]
 	return &UserBriefVO{
 		ID:        u.ID,
 		Username:  u.Username,
-		Nickname:  u.Nickname,
-		Avatar:    u.Avatar,
+		Nickname:  strOrEmpty(u.Nickname),
+		Avatar:    strOrEmpty(u.Avatar),
 		IsBlocked: isBlocked,
 	}
 }

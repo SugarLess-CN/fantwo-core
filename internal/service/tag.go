@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
@@ -250,7 +251,7 @@ func (s *TagService) Update(ctx context.Context, id string, req UpdateTagRequest
 }
 
 // Remove 删除标签并清理文章关联与关注记录。
-func (s *TagService) Remove(ctx context.Context, id string) (*map[string]interface{}, *errcode.Err) {
+func (s *TagService) Remove(ctx context.Context, id string) (*dto.DeleteResultDto, *errcode.Err) {
 	if _, err := s.repo.FindByID(ctx, id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrTagNotFound
@@ -275,8 +276,7 @@ func (s *TagService) Remove(ctx context.Context, id string) (*map[string]interfa
 		s.log.Error("删除标签失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	out := map[string]interface{}{"id": id, "deleted": true}
-	return &out, nil
+	return &dto.DeleteResultDto{ID: id, Deleted: true}, nil
 }
 
 // Follow 关注标签（对齐 POST /tag/:id/follow）。

@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -554,11 +555,17 @@ func (s *AuditService) emitStatusChanged(r *model.AuditRecord) {
 
 // ---------- 人工复审（管理端） ----------
 
-// ListPendingArticles 待审核文章列表（articles 表局部视图）。
-// PendingArticleItem 待审核文章条目（对外 camelCase）。
+// PendingArticleItem 待审核文章的 **DB 扫描目标**（内部类型，不直接对外）。
 //
-// 此前直接用 []map[string]interface{} 查询，Find 会原样返回数据库列名
-// （author_id / created_at），违反全局 camelCase 口径，故改为显式结构映射。
+// 历史：本结构此前是 `[]map[string]interface{}` 的替代品，用来修掉 snake_case
+// 列名直出（author_id / created_at）的问题。
+//
+// 为什么现在还要这层内部结构、不直接 Scan 到 dto：
+//   - CategoryID 在 DB 是 **NULL**（文章可无分类），GORM 的 Scan 需要 *string 承接；
+//   - 对外 JSON 要求它是 ""（docs/21 规则一），所以转换发生在扫描之后的
+//     toPendingArticleItemDtos。
+//
+// 直出本结构会得到 `"categoryId": null` —— 这正是本域此前的 null 来源。
 type PendingArticleItem struct {
 	ID         string    `json:"id"`
 	Title      string    `json:"title"`
@@ -568,8 +575,11 @@ type PendingArticleItem struct {
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
-// ListPendingArticles 待审核文章分页。
-func (s *AuditService) ListPendingArticles(page, limit int) ([]PendingArticleItem, int64, error) {
+// ListPendingArticles 待审核文章分页（articles 表局部视图）。
+//
+// 返回具名 []dto.PendingArticleItemDto：DB 扫描走内部 PendingArticleItem，
+// 再经 toPendingArticleItemDtos 把 categoryId 的 NULL 收敛成 ""。
+func (s *AuditService) ListPendingArticles(page, limit int) ([]dto.PendingArticleItemDto, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -580,14 +590,33 @@ func (s *AuditService) ListPendingArticles(page, limit int) ([]PendingArticleIte
 	if err := s.DB.Table(model.Article{}.TableName()).Where("status = ?", "PENDING").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	out := make([]PendingArticleItem, 0, limit)
+	rows := make([]PendingArticleItem, 0, limit)
 	err := s.DB.Table(model.Article{}.TableName()).
 		Select("id, title, author_id, category_id, status, created_at").
 		Where("status = ?", "PENDING").
 		Order("created_at DESC").
 		Offset((page - 1) * limit).Limit(limit).
-		Scan(&out).Error
-	return out, total, err
+		Scan(&rows).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return toPendingArticleItemDtos(rows), total, nil
+}
+
+// toPendingArticleItemDtos 扫描结果 → 对外 DTO（categoryId 的 NULL 收敛成 ""）。
+func toPendingArticleItemDtos(rows []PendingArticleItem) []dto.PendingArticleItemDto {
+	out := make([]dto.PendingArticleItemDto, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, dto.PendingArticleItemDto{
+			ID:         r.ID,
+			Title:      r.Title,
+			AuthorID:   r.AuthorID,
+			CategoryID: strOrEmpty(r.CategoryID),
+			Status:     r.Status,
+			CreatedAt:  r.CreatedAt,
+		})
+	}
+	return out
 }
 
 // ReviewArticleInput 人工复审入参。
@@ -597,7 +626,7 @@ type ReviewArticleInput struct {
 }
 
 // ReviewArticle 人工复审：只发 article.status.changed 事件（content 域负责落库与计数）。
-func (s *AuditService) ReviewArticle(articleID string, in ReviewArticleInput, operatorID string) (map[string]interface{}, error) {
+func (s *AuditService) ReviewArticle(articleID string, in ReviewArticleInput, operatorID string) (*dto.AuditReviewResultDto, error) {
 	// 用实体查询而非 First(&map)：GORM 对 map 目标的 First 语义不可靠，
 	// 曾导致「文章存在却返回 404 文章不存在」。
 	var art model.Article
@@ -619,23 +648,70 @@ func (s *AuditService) ReviewArticle(articleID string, in ReviewArticleInput, op
 		ArticleID: articleID, From: status, To: to, Reason: in.Reason,
 		Source: model.AuditSourceManual, OperatorID: operatorID,
 	})
-	return map[string]interface{}{
-		"articleId": articleID, "result": in.Result, "reason": in.Reason,
-		"reviewedBy": operatorID, "reviewedAt": time.Now(),
+	// reviewedAt 用与其它域一致的时间格式（RFC3339），不用 time.Time 直出 ——
+	// 前端统一按字符串解析，混入 Go 默认格式会造成时区歧义。
+	return &dto.AuditReviewResultDto{
+		ArticleID:  articleID,
+		Result:     in.Result,
+		Reason:     in.Reason,
+		ReviewedBy: operatorID,
+		ReviewedAt: time.Now().Format(time.RFC3339),
 	}, nil
 }
 
 // GetAuditConfig 获取审核配置（GET /content-audit/config）。
-func (s *AuditService) GetAuditConfig() AuditConfig { return s.LoadAuditConfig() }
+//
+// 返回具名 dto.AuditConfigDto：内部 AuditConfig 带 TencentSecretKey /
+// AliyunAccessKeySecret 两个 `json:"-"` 字段（永不下发），dto 侧**根本不声明它们**，
+// 从类型上保证凭据不会被误加回响应。
+//
+// Sensitivity 字段名与取值（low/medium/high）**逐字保留**，不许改名 —— 见任务书 B。
+func (s *AuditService) GetAuditConfig() dto.AuditConfigDto {
+	return toAuditConfigDto(s.LoadAuditConfig())
+}
+
+// toAuditConfigDto 内部审核配置 → 对外 DTO（纯函数，便于单测）。
+//
+// 刻意不搬 TencentSecretKey / AliyunAccessKeySecret —— 它们是凭据，只供 provider 调用使用。
+func toAuditConfigDto(c AuditConfig) dto.AuditConfigDto {
+	return dto.AuditConfigDto{
+		Provider:          c.Provider,
+		CommentEnabled:    c.CommentEnabled,
+		AvatarEnabled:     c.AvatarEnabled,
+		ImageEnabled:      c.ImageEnabled,
+		ArticleEnabled:    c.ArticleEnabled,
+		AutoBlock:         c.AutoBlock,
+		ReviewMode:        c.ReviewMode,
+		Sensitivity:       c.Sensitivity,
+		TencentSecretID:   c.TencentSecretID,
+		TencentRegion:     c.TencentRegion,
+		TencentTextBiz:    c.TencentTextBiz,
+		TencentImageBiz:   c.TencentImageBiz,
+		AliyunAccessKeyID: c.AliyunAccessKeyID,
+		AliyunRegion:      c.AliyunRegion,
+	}
+}
 
 // TestAuditText 测试文本审核（POST /content-audit/text）。
-func (s *AuditService) TestAuditText(content string) AuditResult {
-	return s.AuditText("", content, "")
+func (s *AuditService) TestAuditText(content string) dto.AuditResultDto {
+	return toAuditResultDto(s.AuditText("", content, ""))
 }
 
 // TestAuditImage 测试图片审核（POST /content-audit/image）。
-func (s *AuditService) TestAuditImage(url string) AuditResult {
-	return s.AuditImage("", url, "")
+func (s *AuditService) TestAuditImage(url string) dto.AuditResultDto {
+	return toAuditResultDto(s.AuditImage("", url, ""))
+}
+
+// toAuditResultDto 内部审核结果 → 对外 DTO（纯函数，便于单测）。
+func toAuditResultDto(r AuditResult) dto.AuditResultDto {
+	return dto.AuditResultDto{
+		Passed:     r.Passed,
+		Action:     r.Action,
+		Label:      r.Label,
+		Reason:     r.Reason,
+		Score:      r.Score,
+		DetailJSON: r.DetailJSON,
+	}
 }
 
 // RegisterQueueHandlers 把审核任务处理器挂到 asynq mux（main 启动 worker 时调用）。
