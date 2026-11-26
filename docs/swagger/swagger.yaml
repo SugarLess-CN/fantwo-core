@@ -176,6 +176,27 @@ definitions:
         description: Raw 广告组的原始键值（含上面 11 个字段的源 key）。无配置时为 {}（不是 null）。
         type: object
     type: object
+  dto.ApplyCertificationRequest:
+    properties:
+      description:
+        type: string
+      materials:
+        items:
+          type: string
+        type: array
+      organizationName:
+        type: string
+      realName:
+        type: string
+      slogan:
+        example: 官方认证 · 签约摄影师
+        type: string
+      type:
+        example: CREATOR
+        type: string
+    required:
+    - type
+    type: object
   dto.ArticleCollectionBriefDto:
     properties:
       id:
@@ -410,6 +431,16 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  dto.AuditCertificationRequest:
+    properties:
+      reason:
+        type: string
+      status:
+        example: APPROVED
+        type: string
+    required:
+    - status
     type: object
   dto.AuditConfigDto:
     properties:
@@ -1300,6 +1331,41 @@ definitions:
         example: 12
         type: integer
     type: object
+  dto.CreateAchievementRequest:
+    properties:
+      code:
+        example: FIRST_ARTICLE
+        type: string
+      condition:
+        $ref: '#/definitions/dto.AchievementConditionDto'
+      description:
+        type: string
+      enabled:
+        type: boolean
+      hidden:
+        type: boolean
+      icon:
+        type: string
+      name:
+        example: 初次创作
+        type: string
+      rarity:
+        example: COMMON
+        type: string
+      rewardDecorationId:
+        type: string
+      rewardExp:
+        example: 5
+        type: integer
+      rewardPoints:
+        example: 10
+        type: integer
+      sort:
+        type: integer
+      type:
+        example: ARTICLE
+        type: string
+    type: object
   dto.CreateArticleOrderRequest:
     properties:
       articleId:
@@ -1388,6 +1454,57 @@ definitions:
         type: number
     required:
     - title
+    type: object
+  dto.CreateBannerRequest:
+    properties:
+      description:
+        type: string
+      imageUrl:
+        example: https://cdn.example.com/banner.png
+        type: string
+      linkUrl:
+        type: string
+      sortOrder:
+        example: 1
+        type: integer
+      status:
+        example: active
+        type: string
+      title:
+        example: 双十一活动
+        type: string
+    type: object
+  dto.CreateCategoryRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      link:
+        maxLength: 200
+        type: string
+      name:
+        example: 风景摄影
+        maxLength: 50
+        type: string
+      parentId:
+        type: string
+      sort:
+        example: 1
+        type: integer
+      status:
+        enum:
+        - ENABLED
+        - DISABLED
+        example: ENABLED
+        type: string
+    required:
+    - name
     type: object
   dto.CreateCollectionRequest:
     properties:
@@ -1589,6 +1706,30 @@ definitions:
         example: 0
         type: integer
     type: object
+  dto.CreateReportRequest:
+    properties:
+      category:
+        example: spam
+        type: string
+      description:
+        type: string
+      reason:
+        example: 垃圾广告
+        type: string
+      reportedArticleId:
+        type: string
+      reportedCommentId:
+        type: string
+      reportedUserId:
+        type: string
+      type:
+        example: article
+        type: string
+    required:
+    - category
+    - reason
+    - type
+    type: object
   dto.CreateRoleRequest:
     properties:
       description:
@@ -1610,6 +1751,27 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - name
+    type: object
+  dto.CreateTagRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      name:
+        example: Vue
+        maxLength: 50
+        type: string
+      sort:
+        example: 9
+        type: integer
     required:
     - name
     type: object
@@ -4228,6 +4390,35 @@ definitions:
         example: 12
         type: integer
     type: object
+  dto.UpdateAchievementRequest:
+    properties:
+      code:
+        type: string
+      condition:
+        $ref: '#/definitions/dto.AchievementConditionDto'
+      description:
+        type: string
+      enabled:
+        type: boolean
+      hidden:
+        type: boolean
+      icon:
+        type: string
+      name:
+        type: string
+      rarity:
+        type: string
+      rewardDecorationId:
+        type: string
+      rewardExp:
+        type: integer
+      rewardPoints:
+        type: integer
+      sort:
+        type: integer
+      type:
+        type: string
+    type: object
   dto.UpdateArticleRequest:
     properties:
       activityId:
@@ -4294,6 +4485,48 @@ definitions:
         type: string
       viewPrice:
         type: number
+    type: object
+  dto.UpdateBannerRequest:
+    properties:
+      description:
+        type: string
+      imageUrl:
+        type: string
+      linkUrl:
+        type: string
+      sortOrder:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      link:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      parentId:
+        type: string
+      sort:
+        type: integer
+      status:
+        enum:
+        - ENABLED
+        - DISABLED
+        type: string
     type: object
   dto.UpdateCollectionRequest:
     properties:
@@ -4419,6 +4652,17 @@ definitions:
       phone:
         type: string
     type: object
+  dto.UpdateReportRequest:
+    properties:
+      action:
+        example: DELETE_CONTENT
+        type: string
+      result:
+        type: string
+      status:
+        example: RESOLVED
+        type: string
+    type: object
   dto.UpdateRoleRequest:
     properties:
       description:
@@ -4440,6 +4684,36 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  dto.UpdateTagRequest:
+    properties:
+      avatar:
+        type: string
+      background:
+        type: string
+      cover:
+        type: string
+      description:
+        maxLength: 200
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sort:
+        type: integer
+    type: object
+  dto.UpdateUserConfigRequest:
+    properties:
+      articleCommissionRate:
+        type: number
+      enableCustomCommission:
+        type: boolean
+      membershipCommissionRate:
+        type: number
+      productCommissionRate:
+        type: number
+      serviceCommissionRate:
+        type: number
     type: object
   dto.UploadAnimatedOptsDto:
     properties:
@@ -4797,6 +5071,14 @@ definitions:
       textTemplate:
         example: PicArt
         type: string
+    type: object
+  dto.UseInviteRequest:
+    properties:
+      inviteCode:
+        example: INVAB12CD34
+        type: string
+    required:
+    - inviteCode
     type: object
   dto.UserActivityProgressDto:
     properties:
@@ -5317,12 +5599,12 @@ paths:
       - application/json
       operationId: AchievementController_create
       parameters:
-      - description: achievementRequest
+      - description: 创建成就定义
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateAchievementRequest'
       produces:
       - application/json
       responses:
@@ -5404,7 +5686,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateAchievementRequest'
       produces:
       - application/json
       responses:
@@ -6499,13 +6781,6 @@ paths:
   /auth/sms/login:
     post:
       operationId: AuthController_smsLogin
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -6524,13 +6799,6 @@ paths:
   /auth/sms/send:
     post:
       operationId: AuthController_sendSmsCode
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -6578,12 +6846,12 @@ paths:
       - application/json
       operationId: BannerController_create
       parameters:
-      - description: bannerRequest
+      - description: 创建轮播位
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateBannerRequest'
       produces:
       - application/json
       responses:
@@ -6665,7 +6933,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateBannerRequest'
       produces:
       - application/json
       responses:
@@ -6736,7 +7004,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateCategoryRequest'
       produces:
       - application/json
       responses:
@@ -6818,7 +7086,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
       produces:
       - application/json
       responses:
@@ -9359,7 +9627,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UseInviteRequest'
       produces:
       - application/json
       responses:
@@ -11099,12 +11367,12 @@ paths:
       - application/json
       operationId: ReportController_create
       parameters:
-      - description: reportRequest{targetType,targetId,reason}
+      - description: 提交举报
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateReportRequest'
       produces:
       - application/json
       responses:
@@ -11188,7 +11456,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateReportRequest'
       produces:
       - application/json
       responses:
@@ -11772,12 +12040,12 @@ paths:
       - application/json
       operationId: TagController_create
       parameters:
-      - description: tagRequest{name,description}
+      - description: 创建标签
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateTagRequest'
       produces:
       - application/json
       responses:
@@ -11859,7 +12127,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateTagRequest'
       produces:
       - application/json
       responses:
@@ -12424,12 +12692,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -12644,13 +12906,6 @@ paths:
   /user/account/deletion:
     post:
       operationId: UserController_requestAccountDeletion
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -12764,7 +13019,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.AuditCertificationRequest'
       produces:
       - application/json
       responses:
@@ -12819,7 +13074,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.ApplyCertificationRequest'
       produces:
       - application/json
       responses:
@@ -12928,13 +13183,6 @@ paths:
   /user/commission/calculate:
     post:
       operationId: UserController_calculateCommission
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -12974,13 +13222,6 @@ paths:
       - 用户管理
     post:
       operationId: UserController_setUserCommissionConfig
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13028,7 +13269,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateUserConfigRequest'
       produces:
       - application/json
       responses:
@@ -13057,7 +13298,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.UpdateUserConfigRequest'
       produces:
       - application/json
       responses:
@@ -13080,13 +13321,6 @@ paths:
       consumes:
       - application/json
       operationId: UserController_updateNotificationSettings
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13107,13 +13341,6 @@ paths:
   /user/email/verification:
     post:
       operationId: UserController_sendVerificationCode
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13213,13 +13440,6 @@ paths:
   /user/membership/batch-check:
     post:
       operationId: UserController_batchCheckMembershipStatus
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13544,13 +13764,6 @@ paths:
   /user/password/change:
     post:
       operationId: UserController_changePassword
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13571,13 +13784,6 @@ paths:
   /user/password/reset:
     post:
       operationId: UserController_resetPassword
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13655,13 +13861,6 @@ paths:
       consumes:
       - application/json
       operationId: UserController_updateContact
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13744,13 +13943,6 @@ paths:
   /user/profile/phone:
     post:
       operationId: UserProfileController_bindPhone
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -13771,13 +13963,6 @@ paths:
   /user/profile/phone/code:
     post:
       operationId: UserProfileController_sendBindPhoneCode
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
@@ -14014,13 +14199,6 @@ paths:
   /user/wallet/withdraw:
     post:
       operationId: UserController_withdrawWallet
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:

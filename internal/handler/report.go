@@ -16,9 +16,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "reportRequest{targetType,targetId,reason}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_create
+//	@Param		body body dto.CreateReportRequest true "提交举报"
 //	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -112,7 +112,7 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "举报 ID"
-//	@Param		body body object true "handleRequest{status,remark}"
+//	@Param		body body dto.UpdateReportRequest true "handleRequest{status,remark}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_update
 //	@Router		/report/{id} [patch]

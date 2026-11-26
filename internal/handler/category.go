@@ -43,7 +43,7 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "categoryRequest{name,parentId}"
+//	@Param		body body dto.CreateCategoryRequest true "categoryRequest{name,parentId}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@ID			CategoryController_create
 //	@Router		/category [post]
@@ -105,7 +105,7 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "分类 ID"
-//	@Param		body body object true "categoryRequest"
+//	@Param		body body dto.UpdateCategoryRequest true "categoryRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@ID			CategoryController_update
 //	@Router		/category/{id} [patch]

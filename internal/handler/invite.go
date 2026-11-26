@@ -43,7 +43,7 @@ func (h *OpsHandler) InviteCreate(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "useInviteRequest{code}"
+//	@Param		body body dto.UseInviteRequest true "useInviteRequest{code}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@ID			InviteController_useInvite
 //	@Router		/invite/use [post]

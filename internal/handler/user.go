@@ -74,7 +74,6 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_updateContact
 //	@Router		/user/profile/contact [patch]
@@ -97,7 +96,6 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserProfileController_sendBindPhoneCode
 //	@Router		/user/profile/phone/code [post]
@@ -122,7 +120,6 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BindPhoneResultDto}
 //	@ID			UserProfileController_bindPhone
 //	@Router		/user/profile/phone [post]
@@ -144,7 +141,6 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletionRequestResultDto}
 //	@ID			UserController_requestAccountDeletion
 //	@Router		/user/account/deletion [post]
@@ -317,7 +313,6 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_update
 //	@Router		/user/{id} [patch]
@@ -378,7 +373,7 @@ func (h *UserHandler) GetConfig(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.UpdateUserConfigRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_updateUserConfig
 //	@Router		/user/config [patch]
@@ -401,7 +396,6 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_updateNotificationSettings
 //	@Router		/user/config/notifications [patch]
@@ -424,7 +418,7 @@ func (h *UserHandler) UpdateNotifications(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
+//	@Param		body body dto.UpdateUserConfigRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_updateCommissionSettings
 //	@Router		/user/config/commission [patch]
@@ -464,7 +458,6 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_setUserCommissionConfig
 //	@Router		/user/commission/config [post]
@@ -486,7 +479,6 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommissionResultDto}
 //	@ID			UserController_calculateCommission
 //	@Router		/user/commission/calculate [post]
@@ -531,7 +523,6 @@ func (h *UserHandler) CheckMembership(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BatchMembershipCheckDto}
 //	@ID			UserController_batchCheckMembershipStatus
 //	@Router		/user/membership/batch-check [post]

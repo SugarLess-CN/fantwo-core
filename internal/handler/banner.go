@@ -18,9 +18,9 @@ import (
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "bannerRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_create
+//	@Param		body body dto.CreateBannerRequest true "创建轮播位"
 //	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput
@@ -106,7 +106,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "轮播 ID"
-//	@Param		body body object true "bannerRequest"
+//	@Param		body body dto.UpdateBannerRequest true "bannerRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_update
 //	@Router		/banners/{id} [patch]

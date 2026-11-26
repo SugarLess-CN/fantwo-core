@@ -175,7 +175,6 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 //	@Summary	发送短信验证码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			AuthController_sendSmsCode
 //	@Router		/auth/sms/send [post]
@@ -202,7 +201,6 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 //	@Summary	手机验证码登录
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@ID			AuthController_smsLogin
 //	@Router		/auth/sms/login [post]
@@ -230,7 +228,6 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 //	@Summary	发送邮箱验证码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_sendVerificationCode
 //	@Router		/user/email/verification [post]
@@ -258,7 +255,6 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 //	@Summary	邮箱验证码重置密码
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_resetPassword
 //	@Router		/user/password/reset [post]
@@ -284,7 +280,6 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_changePassword
 //	@Router		/user/password/change [post]

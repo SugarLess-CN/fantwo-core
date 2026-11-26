@@ -84,12 +84,12 @@ const docTemplate = `{
                 "operationId": "AchievementController_create",
                 "parameters": [
                     {
-                        "description": "achievementRequest",
+                        "description": "创建成就定义",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateAchievementRequest"
                         }
                     }
                 ],
@@ -304,7 +304,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateAchievementRequest"
                         }
                     }
                 ],
@@ -2155,17 +2155,6 @@ const docTemplate = `{
                 ],
                 "summary": "手机验证码登录",
                 "operationId": "AuthController_smsLogin",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2198,17 +2187,6 @@ const docTemplate = `{
                 ],
                 "summary": "发送短信验证码",
                 "operationId": "AuthController_sendSmsCode",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2301,12 +2279,12 @@ const docTemplate = `{
                 "operationId": "BannerController_create",
                 "parameters": [
                     {
-                        "description": "bannerRequest",
+                        "description": "创建轮播位",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateBannerRequest"
                         }
                     }
                 ],
@@ -2479,7 +2457,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateBannerRequest"
                         }
                     }
                 ],
@@ -2575,7 +2553,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateCategoryRequest"
                         }
                     }
                 ],
@@ -2716,7 +2694,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateCategoryRequest"
                         }
                     }
                 ],
@@ -7163,7 +7141,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UseInviteRequest"
                         }
                     }
                 ],
@@ -10275,12 +10253,12 @@ const docTemplate = `{
                 "operationId": "ReportController_create",
                 "parameters": [
                     {
-                        "description": "reportRequest{targetType,targetId,reason}",
+                        "description": "提交举报",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateReportRequest"
                         }
                     }
                 ],
@@ -10463,7 +10441,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateReportRequest"
                         }
                     }
                 ],
@@ -11466,12 +11444,12 @@ const docTemplate = `{
                 "operationId": "TagController_create",
                 "parameters": [
                     {
-                        "description": "tagRequest{name,description}",
+                        "description": "创建标签",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.CreateTagRequest"
                         }
                     }
                 ],
@@ -11728,7 +11706,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateTagRequest"
                         }
                     }
                 ],
@@ -12506,17 +12484,6 @@ const docTemplate = `{
                 ],
                 "summary": "申请注销账号",
                 "operationId": "UserController_requestAccountDeletion",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12717,7 +12684,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.AuditCertificationRequest"
                         }
                     }
                 ],
@@ -12814,7 +12781,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ApplyCertificationRequest"
                         }
                     }
                 ],
@@ -13015,17 +12982,6 @@ const docTemplate = `{
                 ],
                 "summary": "佣金试算",
                 "operationId": "UserController_calculateCommission",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13098,17 +13054,6 @@ const docTemplate = `{
                 ],
                 "summary": "设置佣金配置",
                 "operationId": "UserController_setUserCommissionConfig",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13191,7 +13136,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateUserConfigRequest"
                         }
                     }
                 ],
@@ -13242,7 +13187,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.UpdateUserConfigRequest"
                         }
                     }
                 ],
@@ -13286,17 +13231,6 @@ const docTemplate = `{
                 ],
                 "summary": "更新通知偏好",
                 "operationId": "UserController_updateNotificationSettings",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13329,17 +13263,6 @@ const docTemplate = `{
                 ],
                 "summary": "发送邮箱验证码",
                 "operationId": "UserController_sendVerificationCode",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13517,17 +13440,6 @@ const docTemplate = `{
                 ],
                 "summary": "批量会员状态检查",
                 "operationId": "UserController_batchCheckMembershipStatus",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14077,17 +13989,6 @@ const docTemplate = `{
                 ],
                 "summary": "修改密码",
                 "operationId": "UserController_changePassword",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14120,17 +14021,6 @@ const docTemplate = `{
                 ],
                 "summary": "邮箱验证码重置密码",
                 "operationId": "UserController_resetPassword",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14270,17 +14160,6 @@ const docTemplate = `{
                 ],
                 "summary": "修改联系方式",
                 "operationId": "UserController_updateContact",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14430,17 +14309,6 @@ const docTemplate = `{
                 ],
                 "summary": "绑定手机号",
                 "operationId": "UserProfileController_bindPhone",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14478,17 +14346,6 @@ const docTemplate = `{
                 ],
                 "summary": "发送绑定手机验证码",
                 "operationId": "UserProfileController_sendBindPhoneCode",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14907,17 +14764,6 @@ const docTemplate = `{
                 ],
                 "summary": "钱包提现",
                 "operationId": "UserController_withdrawWallet",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -15065,15 +14911,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
                     }
                 ],
                 "responses": {
@@ -15686,6 +15523,37 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ApplyCertificationRequest": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "materials": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organizationName": {
+                    "type": "string"
+                },
+                "realName": {
+                    "type": "string"
+                },
+                "slogan": {
+                    "type": "string",
+                    "example": "官方认证 · 签约摄影师"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "CREATOR"
+                }
+            }
+        },
         "dto.ArticleCollectionBriefDto": {
             "type": "object",
             "properties": {
@@ -16009,6 +15877,21 @@ const docTemplate = `{
                         "[\"article:create\"",
                         "\"article:update\"]"
                     ]
+                }
+            }
+        },
+        "dto.AuditCertificationRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "APPROVED"
                 }
             }
         },
@@ -17232,6 +17115,56 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateAchievementRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "FIRST_ARTICLE"
+                },
+                "condition": {
+                    "$ref": "#/definitions/dto.AchievementConditionDto"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "初次创作"
+                },
+                "rarity": {
+                    "type": "string",
+                    "example": "COMMON"
+                },
+                "rewardDecorationId": {
+                    "type": "string"
+                },
+                "rewardExp": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "rewardPoints": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "ARTICLE"
+                }
+            }
+        },
         "dto.CreateArticleOrderRequest": {
             "type": "object",
             "required": [
@@ -17357,6 +17290,78 @@ const docTemplate = `{
                 "viewPrice": {
                     "type": "number",
                     "example": 0
+                }
+            }
+        },
+        "dto.CreateBannerRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/banner.png"
+                },
+                "linkUrl": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "example": "active"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "双十一活动"
+                }
+            }
+        },
+        "dto.CreateCategoryRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "link": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "风景摄影"
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ],
+                    "example": "ENABLED"
                 }
             }
         },
@@ -17629,6 +17634,40 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateReportRequest": {
+            "type": "object",
+            "required": [
+                "category",
+                "reason",
+                "type"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "example": "spam"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "垃圾广告"
+                },
+                "reportedArticleId": {
+                    "type": "string"
+                },
+                "reportedCommentId": {
+                    "type": "string"
+                },
+                "reportedUserId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "article"
+                }
+            }
+        },
         "dto.CreateRoleRequest": {
             "type": "object",
             "required": [
@@ -17660,6 +17699,36 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.CreateTagRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Vue"
+                },
+                "sort": {
+                    "type": "integer",
+                    "example": 9
                 }
             }
         },
@@ -21271,6 +21340,50 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateAchievementRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "condition": {
+                    "$ref": "#/definitions/dto.AchievementConditionDto"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rarity": {
+                    "type": "string"
+                },
+                "rewardDecorationId": {
+                    "type": "string"
+                },
+                "rewardExp": {
+                    "type": "integer"
+                },
+                "rewardPoints": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateArticleRequest": {
             "type": "object",
             "properties": {
@@ -21366,6 +21479,68 @@ const docTemplate = `{
                 },
                 "viewPrice": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.UpdateBannerRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "linkUrl": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateCategoryRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "link": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "parentId": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ]
                 }
             }
         },
@@ -21543,6 +21718,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateReportRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "example": "DELETE_CONTENT"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "RESOLVED"
+                }
+            }
+        },
         "dto.UpdateRoleRequest": {
             "type": "object",
             "properties": {
@@ -21571,6 +21762,51 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.UpdateTagRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.UpdateUserConfigRequest": {
+            "type": "object",
+            "properties": {
+                "articleCommissionRate": {
+                    "type": "number"
+                },
+                "enableCustomCommission": {
+                    "type": "boolean"
+                },
+                "membershipCommissionRate": {
+                    "type": "number"
+                },
+                "productCommissionRate": {
+                    "type": "number"
+                },
+                "serviceCommissionRate": {
+                    "type": "number"
                 }
             }
         },
@@ -22078,6 +22314,18 @@ const docTemplate = `{
                 "textTemplate": {
                     "type": "string",
                     "example": "PicArt"
+                }
+            }
+        },
+        "dto.UseInviteRequest": {
+            "type": "object",
+            "required": [
+                "inviteCode"
+            ],
+            "properties": {
+                "inviteCode": {
+                    "type": "string",
+                    "example": "INVAB12CD34"
                 }
             }
         },

@@ -22,9 +22,9 @@ type TagHandler struct {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body object true "tagRequest{name,description}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_create
+//	@Param		body body dto.CreateTagRequest true "创建标签"
 //	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
 	var req service.CreateTagRequest
@@ -138,7 +138,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
-//	@Param		body body object true "tagRequest"
+//	@Param		body body dto.UpdateTagRequest true "tagRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_update
 //	@Router		/tag/{id} [patch]
