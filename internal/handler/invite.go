@@ -16,6 +16,7 @@ import (
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
+//	@ID			InviteController_createInvite
 //	@Router		/invite [post]
 func (h *OpsHandler) InviteCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -44,6 +45,7 @@ func (h *OpsHandler) InviteCreate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body object true "useInviteRequest{code}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
+//	@ID			InviteController_useInvite
 //	@Router		/invite/use [post]
 func (h *OpsHandler) InviteUse(c *gin.Context) {
 	uid := requireUser(c)
@@ -70,6 +72,7 @@ func (h *OpsHandler) InviteUse(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.InviteDto}}
+//	@ID			InviteController_getMyInvites
 //	@Router		/invite/my [get]
 func (h *OpsHandler) InviteMyList(c *gin.Context) {
 	uid := requireUser(c)
@@ -92,6 +95,7 @@ func (h *OpsHandler) InviteMyList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteStatsDto}
+//	@ID			InviteController_getInviteStats
 //	@Router		/invite/stats [get]
 func (h *OpsHandler) InviteStats(c *gin.Context) {
 	uid := requireUser(c)
@@ -113,6 +117,7 @@ func (h *OpsHandler) InviteStats(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteStatsDto}
+//	@ID			InviteController_getMyInviteEarnings
 //	@Router		/invite/earnings [get]
 func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 	uid := requireUser(c)
@@ -135,6 +140,7 @@ func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "邀请码 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
+//	@ID			InviteController_getInviteDetail
 //	@Router		/invite/{id} [get]
 func (h *OpsHandler) InviteGet(c *gin.Context) {
 	uid := requireUser(c)

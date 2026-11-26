@@ -220,6 +220,7 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@Produce	json
 //	@Param		body body dto.QqAppLoginRequest true "{accessToken, openId} 或 {payload}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
+//	@ID			QqAppLoginController_login
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 	var req struct {

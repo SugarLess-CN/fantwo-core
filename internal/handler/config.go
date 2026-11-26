@@ -58,6 +58,7 @@ func NewConfigHandler(svc *infra.ConfigService) *ConfigHandler {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.ConfigDto}
+//	@ID			ConfigController_findAll
 //	@Router		/config [get]
 func (h *ConfigHandler) List(c *gin.Context) {
 	list, err := h.svc.List()
@@ -77,6 +78,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.ConfigRequest true "配置项入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
+//	@ID			ConfigController_create
 //	@Router		/config [post]
 func (h *ConfigHandler) Create(c *gin.Context) {
 	var in infra.ConfigInput
@@ -100,6 +102,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body []dto.ConfigRequest true "配置数组（批量更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
+//	@ID			ConfigController_updateAll
 //	@Router		/config [patch]
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -124,6 +127,7 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		group path string true "分组名"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.ConfigDto}
+//	@ID			ConfigController_findByGroup
 //	@Router		/config/group/{group} [get]
 func (h *ConfigHandler) ByGroup(c *gin.Context) {
 	list, err := h.svc.ByGroup(c.Param("group"))
@@ -144,6 +148,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Param		group path string true "分组名"
 //	@Param		body body []dto.ConfigRequest true "配置数组（按分组批量更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
+//	@ID			ConfigController_updateGroup
 //	@Router		/config/group/{group} [patch]
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 	var items []infra.ConfigInput
@@ -165,6 +170,7 @@ func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PublicConfigsDto}
+//	@ID			ConfigController_getPublicConfigs
 //	@Router		/config/public [get]
 func (h *ConfigHandler) Public(c *gin.Context) {
 	res, err := h.svc.PublicConfigs()
@@ -181,6 +187,7 @@ func (h *ConfigHandler) Public(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AdvertisementConfigDto}
+//	@ID			ConfigController_getAdvertisementConfig
 //	@Router		/config/advertisement [get]
 func (h *ConfigHandler) Advertisement(c *gin.Context) {
 	res, err := h.svc.AdvertisementConfig()
@@ -199,6 +206,7 @@ func (h *ConfigHandler) Advertisement(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		key path string true "配置键"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
+//	@ID			ConfigController_findByKey
 //	@Router		/config/key/{key} [get]
 func (h *ConfigHandler) ByKey(c *gin.Context) {
 	cfg, err := h.svc.ByKey(c.Param("key"))
@@ -217,6 +225,7 @@ func (h *ConfigHandler) ByKey(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
+//	@ID			ConfigController_findOne
 //	@Router		/config/{id} [get]
 func (h *ConfigHandler) ByID(c *gin.Context) {
 	cfg, err := h.svc.ByID(c.Param("id"))
@@ -237,6 +246,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.ConfigRequest true "配置项入参（PATCH 部分更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
+//	@ID			ConfigController_update
 //	@Router		/config/{id} [patch]
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 	var in infra.ConfigInput
@@ -260,6 +270,7 @@ func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "配置 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedFlagDto}
+//	@ID			ConfigController_remove
 //	@Router		/config/{id} [delete]
 func (h *ConfigHandler) Remove(c *gin.Context) {
 	if err := h.svc.Remove(c.Param("id")); err != nil {
@@ -278,6 +289,7 @@ func (h *ConfigHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordListDto}
+//	@ID			ConfigController_findAllSensitiveWords
 //	@Router		/config/sensitive-words [get]
 func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 	words, err := h.svc.SensitiveWords()
@@ -300,6 +312,7 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
+//	@ID			ConfigController_createSensitiveWord
 //	@Router		/config/sensitive-words [post]
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 	var body dto.SensitiveWordRequest
@@ -322,6 +335,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.SensitiveWordRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordActionDto}
+//	@ID			ConfigController_removeSensitiveWord
 //	@Router		/config/sensitive-words [delete]
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 	var body dto.SensitiveWordRequest
@@ -344,6 +358,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.SensitiveWordBatchRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
+//	@ID			ConfigController_batchCreateSensitiveWords
 //	@Router		/config/sensitive-words/batch [post]
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	var body dto.SensitiveWordBatchRequest
@@ -371,6 +386,7 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.SensitiveWordBatchRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordBatchResultDto}
+//	@ID			ConfigController_batchRemoveSensitiveWords
 //	@Router		/config/sensitive-words/batch [delete]
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	var body dto.SensitiveWordBatchRequest
@@ -397,6 +413,7 @@ func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SensitiveWordCacheClearDto}
+//	@ID			ConfigController_clearSensitiveWordsCache
 //	@Router		/config/sensitive-words/clear-cache [post]
 func (h *ConfigHandler) ClearSensitiveWordsCache(c *gin.Context) {
 	h.svc.RefreshCache(infra.ConfigKeySensitiveWords)

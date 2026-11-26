@@ -28,6 +28,7 @@ type ArticleHandler struct {
 //	@Success		200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		400		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
+//	@ID			ArticleController_create
 //	@Router			/article [post]
 func (h *ArticleHandler) Create(c *gin.Context) {
 	var req service.CreateArticleRequest
@@ -57,6 +58,7 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Param			type		query		string	false	"image/mixed/video，默认 all"
 //	@Param			status		query		string	false	"状态筛选，逗号分隔"
 //	@Success		200			{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
+//	@ID			ArticleController_findAll
 //	@Router			/article [get]
 func (h *ArticleHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -86,6 +88,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
+//	@ID			ArticleController_getDrafts
 //	@Router		/article/drafts [get]
 func (h *ArticleHandler) Drafts(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -104,6 +107,7 @@ func (h *ArticleHandler) Drafts(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.ArticleDto}
+//	@ID			ArticleController_findRecommendations
 //	@Router		/article/recommend/{id} [get]
 func (h *ArticleHandler) Recommendations(c *gin.Context) {
 	list, e := h.svc.FindRecommendations(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -122,6 +126,7 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
+//	@ID			ArticleController_search
 //	@Router		/article/search [get]
 func (h *ArticleHandler) Search(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -146,6 +151,7 @@ func (h *ArticleHandler) Search(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.HotSearchItemDto}
+//	@ID			ArticleController_getHotSearches
 //	@Router		/article/hot-search [get]
 func (h *ArticleHandler) HotSearch(c *gin.Context) {
 	limit := intQuery(c, "limit", 10)
@@ -165,6 +171,7 @@ func (h *ArticleHandler) HotSearch(c *gin.Context) {
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
+//	@ID			ArticleController_findByAuthor
 //	@Router		/article/author/{id} [get]
 func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -189,6 +196,7 @@ func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=[]string}
+//	@ID			ArticleController_getPublishedArticleIds
 //	@Router		/article/published/ids [get]
 func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 	ids, e := h.svc.PublishedArticleIDs(c.Request.Context())
@@ -207,6 +215,7 @@ func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 //	@Param			id	path		string	true	"文章 ID"
 //	@Success		200	{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		404	{object}	ResponseBody
+//	@ID			ArticleController_findOne
 //	@Router			/article/{id} [get]
 func (h *ArticleHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -228,6 +237,7 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Param		body	body		dto.UpdateArticleRequest	true	"待更新字段（部分更新）"
 //	@Success	200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure	403		{object}	ResponseBody
+//	@ID			ArticleController_update
 //	@Router		/article/{id} [patch]
 func (h *ArticleHandler) Update(c *gin.Context) {
 	var req service.UpdateArticleRequest
@@ -252,6 +262,7 @@ func (h *ArticleHandler) Update(c *gin.Context) {
 //	@Param		id	path		string	true	"文章 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Failure	403	{object}	ResponseBody
+//	@ID			ArticleController_remove
 //	@Router		/article/{id} [delete]
 func (h *ArticleHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -272,6 +283,7 @@ func (h *ArticleHandler) Remove(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.SetFeaturedRequest true "是否设精"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SetFeaturedResultDto}
+//	@ID			ArticleController_setFeatured
 //	@Router		/article/{id}/featured [patch]
 func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 	var req service.SetFeaturedRequest
@@ -297,6 +309,7 @@ func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.SetProfilePinRequest true "是否主页置顶"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ProfilePinResultDto}
+//	@ID			ArticleController_setProfilePin
 //	@Router		/article/{id}/profile-pin [patch]
 func (h *ArticleHandler) SetProfilePin(c *gin.Context) {
 	var req service.SetProfilePinRequest

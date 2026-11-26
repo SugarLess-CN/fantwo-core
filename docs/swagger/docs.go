@@ -28,6 +28,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "成就列表",
+                "operationId": "AchievementController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -80,6 +81,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "创建成就定义",
+                "operationId": "AchievementController_create",
                 "parameters": [
                     {
                         "description": "achievementRequest",
@@ -127,6 +129,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "一键领取全部可领成就",
+                "operationId": "AchievementController_claimAllRewards",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -163,6 +166,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "我的成就进度统计",
+                "operationId": "AchievementController_getUserStats",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -194,6 +198,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "成就详情",
+                "operationId": "AchievementController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -237,6 +242,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "删除成就定义",
+                "operationId": "AchievementController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -283,6 +289,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "更新成就定义",
+                "operationId": "AchievementController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -337,6 +344,7 @@ const docTemplate = `{
                     "成就"
                 ],
                 "summary": "领取成就奖励",
+                "operationId": "AchievementController_claimReward",
                 "parameters": [
                     {
                         "type": "string",
@@ -378,6 +386,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "文章列表",
+                "operationId": "ArticleController_findAll",
                 "parameters": [
                     {
                         "type": "integer",
@@ -475,6 +484,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "创建文章",
+                "operationId": "ArticleController_create",
                 "parameters": [
                     {
                         "description": "文章内容",
@@ -529,6 +539,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "作者主页文章",
+                "operationId": "ArticleController_findByAuthor",
                 "parameters": [
                     {
                         "type": "integer",
@@ -594,6 +605,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "清空浏览历史",
+                "operationId": "ArticleController_clearBrowseHistory",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -630,6 +642,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "批量删除浏览记录",
+                "operationId": "ArticleController_batchDeleteBrowseHistory",
                 "parameters": [
                     {
                         "description": "待删除的文章 ID 列表",
@@ -677,6 +690,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "浏览历史",
+                "operationId": "ArticleController_getUserBrowseHistory",
                 "parameters": [
                     {
                         "type": "integer",
@@ -742,6 +756,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "最近浏览",
+                "operationId": "ArticleController_getRecentBrowsedArticles",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -781,6 +796,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "浏览统计",
+                "operationId": "ArticleController_getBrowseStats",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -817,6 +833,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "单条浏览记录",
+                "operationId": "ArticleController_getBrowseHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -860,6 +877,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "删除浏览记录",
+                "operationId": "ArticleController_deleteBrowseHistory",
                 "parameters": [
                     {
                         "type": "string",
@@ -905,6 +923,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "我点踩的文章",
+                "operationId": "ArticleController_getDislikedArticles",
                 "parameters": [
                     {
                         "type": "integer",
@@ -970,6 +989,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "我的草稿箱",
+                "operationId": "ArticleController_getDrafts",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1035,6 +1055,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "我收藏的文章",
+                "operationId": "ArticleController_getFavoritedArticles",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1095,6 +1116,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "热搜词",
+                "operationId": "ArticleController_getHotSearches",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1134,6 +1156,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "我赞过的文章",
+                "operationId": "ArticleController_getLikedArticles",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1194,6 +1217,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "已发布文章 ID 列表",
+                "operationId": "ArticleController_getPublishedArticleIds",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1228,6 +1252,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "相关文章推荐",
+                "operationId": "ArticleController_findRecommendations",
                 "parameters": [
                     {
                         "type": "string",
@@ -1271,6 +1296,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "文章搜索（ES）",
+                "operationId": "ArticleController_search",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1331,6 +1357,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "文章详情",
+                "operationId": "ArticleController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -1380,6 +1407,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "删除文章",
+                "operationId": "ArticleController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -1432,6 +1460,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "更新文章",
+                "operationId": "ArticleController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -1495,6 +1524,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "上报阅读进度",
+                "operationId": "ArticleController_updateBrowseProgress",
                 "parameters": [
                     {
                         "type": "string",
@@ -1548,6 +1578,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "点踩文章",
+                "operationId": "ArticleController_dislikeArticle",
                 "parameters": [
                     {
                         "type": "string",
@@ -1599,6 +1630,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "取消点踩",
+                "operationId": "ArticleController_cancelDislikeArticle",
                 "parameters": [
                     {
                         "type": "string",
@@ -1644,6 +1676,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "点踩状态",
+                "operationId": "ArticleController_getDislikeStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -1689,6 +1722,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "收藏文章",
+                "operationId": "ArticleController_favoriteArticle",
                 "parameters": [
                     {
                         "type": "string",
@@ -1732,6 +1766,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "取消收藏",
+                "operationId": "ArticleController_unfavoriteArticle",
                 "parameters": [
                     {
                         "type": "string",
@@ -1777,6 +1812,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "收藏状态",
+                "operationId": "ArticleController_checkFavoriteStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -1825,6 +1861,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "设置/取消精华",
+                "operationId": "ArticleController_setFeatured",
                 "parameters": [
                     {
                         "type": "string",
@@ -1879,6 +1916,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "点赞文章",
+                "operationId": "ArticleController_like",
                 "parameters": [
                     {
                         "type": "string",
@@ -1927,6 +1965,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "点赞数",
+                "operationId": "ArticleController_getLikeCount",
                 "parameters": [
                     {
                         "type": "string",
@@ -1967,6 +2006,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "点赞状态",
+                "operationId": "ArticleController_getLikeStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -2015,6 +2055,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "设置/取消主页置顶",
+                "operationId": "ArticleController_setProfilePin",
                 "parameters": [
                     {
                         "type": "string",
@@ -2064,6 +2105,7 @@ const docTemplate = `{
                     "文章"
                 ],
                 "summary": "分享文章",
+                "operationId": "ArticleController_share",
                 "parameters": [
                     {
                         "type": "string",
@@ -2112,6 +2154,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "手机验证码登录",
+                "operationId": "AuthController_smsLogin",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -2154,6 +2197,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "发送短信验证码",
+                "operationId": "AuthController_sendSmsCode",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -2201,6 +2245,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "轮播位列表（管理端）",
+                "operationId": "BannerController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2253,6 +2298,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "创建轮播位",
+                "operationId": "BannerController_create",
                 "parameters": [
                     {
                         "description": "bannerRequest",
@@ -2295,6 +2341,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "当前生效轮播",
+                "operationId": "BannerController_findActive",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2326,6 +2373,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "轮播位详情",
+                "operationId": "BannerController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -2369,6 +2417,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "删除轮播位",
+                "operationId": "BannerController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -2415,6 +2464,7 @@ const docTemplate = `{
                     "轮播"
                 ],
                 "summary": "更新轮播位",
+                "operationId": "BannerController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -2464,6 +2514,7 @@ const docTemplate = `{
                     "分类"
                 ],
                 "summary": "分类列表",
+                "operationId": "CategoryController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2516,6 +2567,7 @@ const docTemplate = `{
                     "分类"
                 ],
                 "summary": "创建分类",
+                "operationId": "CategoryController_create",
                 "parameters": [
                     {
                         "description": "categoryRequest{name,parentId}",
@@ -2558,6 +2610,7 @@ const docTemplate = `{
                     "分类"
                 ],
                 "summary": "分类详情",
+                "operationId": "CategoryController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -2601,6 +2654,7 @@ const docTemplate = `{
                     "分类"
                 ],
                 "summary": "删除分类",
+                "operationId": "CategoryController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -2647,6 +2701,7 @@ const docTemplate = `{
                     "分类"
                 ],
                 "summary": "更新分类",
+                "operationId": "CategoryController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -3313,6 +3368,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "全部评论（管理端）",
+                "operationId": "CommentController_findAllComments",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3380,6 +3436,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "创建评论",
+                "operationId": "CommentController_create",
                 "parameters": [
                     {
                         "description": "评论内容",
@@ -3428,6 +3485,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "文章评论列表",
+                "operationId": "CommentController_findAll",
                 "parameters": [
                     {
                         "type": "string",
@@ -3495,6 +3553,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "文章评论数",
+                "operationId": "CommentController_getCommentCount",
                 "parameters": [
                     {
                         "type": "string",
@@ -3535,6 +3594,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "用户评论列表",
+                "operationId": "CommentController_getUserComments",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3595,6 +3655,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "评论详情",
+                "operationId": "CommentController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -3638,6 +3699,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "删除评论",
+                "operationId": "CommentController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -3690,6 +3752,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "更新评论",
+                "operationId": "CommentController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -3744,6 +3807,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "点赞评论",
+                "operationId": "CommentController_like",
                 "parameters": [
                     {
                         "type": "string",
@@ -3792,6 +3856,7 @@ const docTemplate = `{
                     "评论"
                 ],
                 "summary": "设置/取消评论置顶",
+                "operationId": "CommentController_setPin",
                 "parameters": [
                     {
                         "type": "string",
@@ -3846,6 +3911,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "配置列表（管理端）",
+                "operationId": "ConfigController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3886,6 +3952,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "创建配置项",
+                "operationId": "ConfigController_create",
                 "parameters": [
                     {
                         "description": "配置项入参",
@@ -3931,6 +3998,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "批量更新配置",
+                "operationId": "ConfigController_updateAll",
                 "parameters": [
                     {
                         "description": "配置数组（批量更新）",
@@ -3976,6 +4044,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "广告位配置",
+                "operationId": "ConfigController_getAdvertisementConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4012,6 +4081,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "按分组读配置",
+                "operationId": "ConfigController_findByGroup",
                 "parameters": [
                     {
                         "type": "string",
@@ -4061,6 +4131,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "按分组更新配置",
+                "operationId": "ConfigController_updateGroup",
                 "parameters": [
                     {
                         "type": "string",
@@ -4118,6 +4189,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "按键读配置",
+                "operationId": "ConfigController_findByKey",
                 "parameters": [
                     {
                         "type": "string",
@@ -4158,6 +4230,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "公开配置",
+                "operationId": "ConfigController_getPublicConfigs",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4194,6 +4267,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "敏感词列表",
+                "operationId": "ConfigController_findAllSensitiveWords",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4228,6 +4302,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "新增敏感词",
+                "operationId": "ConfigController_createSensitiveWord",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -4273,6 +4348,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "删除敏感词",
+                "operationId": "ConfigController_removeSensitiveWord",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -4320,6 +4396,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "批量导入敏感词",
+                "operationId": "ConfigController_batchCreateSensitiveWords",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -4365,6 +4442,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "批量删除敏感词",
+                "operationId": "ConfigController_batchRemoveSensitiveWords",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -4412,6 +4490,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "清空敏感词缓存",
+                "operationId": "ConfigController_clearSensitiveWordsCache",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4448,6 +4527,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "配置项详情",
+                "operationId": "ConfigController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -4491,6 +4571,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "删除配置项",
+                "operationId": "ConfigController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -4537,6 +4618,7 @@ const docTemplate = `{
                     "系统配置"
                 ],
                 "summary": "按 ID 更新配置项",
+                "operationId": "ConfigController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -4594,6 +4676,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "人工复审文章",
+                "operationId": "ContentAuditController_reviewArticle",
                 "parameters": [
                     {
                         "type": "string",
@@ -4648,6 +4731,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "审核配置",
+                "operationId": "ContentAuditController_getConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4684,6 +4768,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "重载审核配置",
+                "operationId": "ContentAuditController_reloadConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4723,6 +4808,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "图片送审（调试）",
+                "operationId": "ContentAuditController_auditImage",
                 "parameters": [
                     {
                         "description": "图片送审入参",
@@ -4770,6 +4856,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "待人工复审文章",
+                "operationId": "ContentAuditController_getPendingArticles",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4838,6 +4925,7 @@ const docTemplate = `{
                     "内容审核"
                 ],
                 "summary": "文本送审（调试）",
+                "operationId": "ContentAuditController_auditText",
                 "parameters": [
                     {
                         "description": "文本送审入参",
@@ -4885,6 +4973,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "装饰品商城列表",
+                "operationId": "DecorationController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4937,6 +5026,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "创建装饰品",
+                "operationId": "DecorationController_create",
                 "parameters": [
                     {
                         "description": "装饰品字段（全部可选，不传=不改）",
@@ -4984,6 +5074,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "我的成就徽章",
+                "operationId": "DecorationController_getMyAchievementBadges",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5035,6 +5126,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "装饰品活动列表",
+                "operationId": "DecorationController_findAllActivities",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5098,6 +5190,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "创建装饰品限时活动",
+                "operationId": "DecorationController_createActivity",
                 "parameters": [
                     {
                         "description": "活动字段（name/decorationId 必填）",
@@ -5145,6 +5238,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "领取活动奖励",
+                "operationId": "DecorationController_claimActivityReward",
                 "parameters": [
                     {
                         "type": "string",
@@ -5190,6 +5284,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "我的活动进度",
+                "operationId": "DecorationController_getMyActivityProgress",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5229,6 +5324,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "活动详情",
+                "operationId": "DecorationController_findOneActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -5272,6 +5368,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "删除装饰品活动",
+                "operationId": "DecorationController_removeActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -5318,6 +5415,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "更新装饰品活动",
+                "operationId": "DecorationController_updateActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -5372,6 +5470,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "清理过期装饰品（管理触发）",
+                "operationId": "DecorationController_cleanExpired",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5408,6 +5507,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "赠送装饰品",
+                "operationId": "DecorationController_gift",
                 "parameters": [
                     {
                         "description": "toUserId/decorationId/message",
@@ -5458,6 +5558,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "购买装饰品",
+                "operationId": "DecorationController_purchase",
                 "parameters": [
                     {
                         "description": "decorationId",
@@ -5505,6 +5606,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "卸下装饰品",
+                "operationId": "DecorationController_unuseDecoration",
                 "parameters": [
                     {
                         "type": "string",
@@ -5550,6 +5652,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "佩戴装饰品",
+                "operationId": "DecorationController_useDecoration",
                 "parameters": [
                     {
                         "type": "string",
@@ -5595,6 +5698,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "我当前佩戴的装饰品",
+                "operationId": "DecorationController_getCurrentDecorations",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5631,6 +5735,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "我的装饰品",
+                "operationId": "DecorationController_getMyDecorations",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5682,6 +5787,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "指定用户装饰品",
+                "operationId": "DecorationController_getUserDecorations",
                 "parameters": [
                     {
                         "type": "string",
@@ -5742,6 +5848,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "装饰品详情",
+                "operationId": "DecorationController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -5785,6 +5892,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "删除装饰品",
+                "operationId": "DecorationController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -5831,6 +5939,7 @@ const docTemplate = `{
                     "装饰品"
                 ],
                 "summary": "更新装饰品",
+                "operationId": "DecorationController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -5880,6 +5989,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "表情列表",
+                "operationId": "EmojiController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5932,6 +6042,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "创建表情",
+                "operationId": "EmojiController_create",
                 "parameters": [
                     {
                         "description": "表情字段（全部可选，不传=不改）",
@@ -5974,6 +6085,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "表情分类",
+                "operationId": "EmojiController_getCategories",
                 "responses": {
                     "200": {
                         "description": "分类名数组（空时 []）",
@@ -6013,6 +6125,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "我收藏的表情",
+                "operationId": "EmojiController_getFavorites",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6059,6 +6172,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "表情包列表",
+                "operationId": "EmojiPackController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6111,6 +6225,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "创建表情包",
+                "operationId": "EmojiPackController_create",
                 "parameters": [
                     {
                         "description": "表情包字段（全部可选，不传=不改）",
@@ -6153,6 +6268,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "表情包详情",
+                "operationId": "EmojiPackController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -6196,6 +6312,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "删除表情包",
+                "operationId": "EmojiPackController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -6242,6 +6359,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "更新表情包",
+                "operationId": "EmojiPackController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -6299,6 +6417,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "向表情包添加表情",
+                "operationId": "EmojiPackController_addEmoji",
                 "parameters": [
                     {
                         "type": "string",
@@ -6353,6 +6472,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "从表情包移除表情",
+                "operationId": "EmojiPackController_removeEmoji",
                 "parameters": [
                     {
                         "type": "string",
@@ -6406,6 +6526,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "更新包内表情",
+                "operationId": "EmojiPackController_updateEmojiSort",
                 "parameters": [
                     {
                         "type": "string",
@@ -6462,6 +6583,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "热门表情",
+                "operationId": "EmojiController_getPopular",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6501,6 +6623,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "我最近使用的表情",
+                "operationId": "EmojiController_getRecent",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6543,6 +6666,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "上传表情（走图片审核队列）",
+                "operationId": "EmojiController_upload",
                 "parameters": [
                     {
                         "type": "file",
@@ -6583,6 +6707,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "表情详情",
+                "operationId": "EmojiController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -6626,6 +6751,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "删除表情",
+                "operationId": "EmojiController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -6672,6 +6798,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "更新表情",
+                "operationId": "EmojiController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -6726,6 +6853,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "收藏表情",
+                "operationId": "EmojiController_addToFavorites",
                 "parameters": [
                     {
                         "type": "string",
@@ -6769,6 +6897,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "取消收藏表情",
+                "operationId": "EmojiController_removeFromFavorites",
                 "parameters": [
                     {
                         "type": "string",
@@ -6814,6 +6943,7 @@ const docTemplate = `{
                     "表情包"
                 ],
                 "summary": "记录表情使用",
+                "operationId": "EmojiController_incrementUseCount",
                 "parameters": [
                     {
                         "type": "string",
@@ -6859,6 +6989,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "生成邀请码",
+                "operationId": "InviteController_createInvite",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6895,6 +7026,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "我的邀请收益",
+                "operationId": "InviteController_getMyInviteEarnings",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6931,6 +7063,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "我的邀请码列表",
+                "operationId": "InviteController_getMyInvites",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -6982,6 +7115,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "我的邀请统计",
+                "operationId": "InviteController_getInviteStats",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7021,6 +7155,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "绑定邀请人",
+                "operationId": "InviteController_useInvite",
                 "parameters": [
                     {
                         "description": "useInviteRequest{code}",
@@ -7068,6 +7203,7 @@ const docTemplate = `{
                     "邀请"
                 ],
                 "summary": "邀请码详情",
+                "operationId": "InviteController_getInviteDetail",
                 "parameters": [
                     {
                         "type": "string",
@@ -7113,6 +7249,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "我的消息列表",
+                "operationId": "MessageController_findAll",
                 "parameters": [
                     {
                         "type": "integer",
@@ -7180,6 +7317,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "创建站内消息",
+                "operationId": "MessageController_create",
                 "parameters": [
                     {
                         "description": "CreateMessageInput{content,type,receiverId}",
@@ -7233,6 +7371,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "批量操作（已读/删除）",
+                "operationId": "MessageController_batchOperation",
                 "parameters": [
                     {
                         "description": "BatchMessageInput{messageIds,action}",
@@ -7280,6 +7419,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "拉黑用户",
+                "operationId": "MessageController_blockPrivateUser",
                 "parameters": [
                     {
                         "type": "string",
@@ -7331,6 +7471,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "取消拉黑",
+                "operationId": "MessageController_unblockPrivateUser",
                 "parameters": [
                     {
                         "type": "string",
@@ -7376,6 +7517,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "我的拉黑列表",
+                "operationId": "MessageController_getBlockedUsers",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7412,6 +7554,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "私信会话列表",
+                "operationId": "MessageController_getPrivateConversations",
                 "parameters": [
                     {
                         "type": "string",
@@ -7462,6 +7605,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "私信历史",
+                "operationId": "MessageController_getPrivateConversation",
                 "parameters": [
                     {
                         "type": "string",
@@ -7507,6 +7651,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "整会话已读",
+                "operationId": "MessageController_markPrivateConversationRead",
                 "parameters": [
                     {
                         "type": "string",
@@ -7552,6 +7697,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "批量私信已读",
+                "operationId": "MessageController_markPrivateMessagesRead",
                 "parameters": [
                     {
                         "description": "PrivateReadBatchInput{messageIds}",
@@ -7599,6 +7745,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "撤回私信",
+                "operationId": "MessageController_recallPrivateMessage",
                 "parameters": [
                     {
                         "type": "string",
@@ -7656,6 +7803,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "发送私信",
+                "operationId": "MessageController_sendPrivateMessage",
                 "parameters": [
                     {
                         "type": "string",
@@ -7716,6 +7864,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "全部已读",
+                "operationId": "MessageController_markAllAsRead",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7752,6 +7901,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "消息高级查询",
+                "operationId": "MessageController_search",
                 "parameters": [
                     {
                         "type": "integer",
@@ -7817,6 +7967,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "未读计数",
+                "operationId": "MessageController_getUnreadCount",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7853,6 +8004,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "消息详情",
+                "operationId": "MessageController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -7896,6 +8048,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "删除消息",
+                "operationId": "MessageController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -7942,6 +8095,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "更新消息",
+                "operationId": "MessageController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -7996,6 +8150,7 @@ const docTemplate = `{
                     "消息"
                 ],
                 "summary": "单条已读",
+                "operationId": "MessageController_markAsRead",
                 "parameters": [
                     {
                         "type": "string",
@@ -8041,6 +8196,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "全部订单（管理端）",
+                "operationId": "OrderController_getAllOrders",
                 "parameters": [
                     {
                         "type": "integer",
@@ -8133,6 +8289,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "创建文章购买订单",
+                "operationId": "OrderController_createArticleOrder",
                 "parameters": [
                     {
                         "description": "文章订单入参",
@@ -8189,6 +8346,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "创建会员订单",
+                "operationId": "OrderController_createMembershipOrder",
                 "parameters": [
                     {
                         "description": "会员订单入参（plan 与 duration 二选一）",
@@ -8242,6 +8400,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "按订单号查询",
+                "operationId": "OrderController_findByOrderNo",
                 "parameters": [
                     {
                         "type": "string",
@@ -8287,6 +8446,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "我的待支付订单",
+                "operationId": "OrderController_getPendingOrders",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8326,6 +8486,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "我的订单",
+                "operationId": "OrderController_getUserOrders",
                 "parameters": [
                     {
                         "type": "integer",
@@ -8409,6 +8570,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "钱包余额",
+                "operationId": "OrderController_getWalletBalance",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8445,6 +8607,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "订单详情",
+                "operationId": "OrderController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -8496,6 +8659,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "取消订单",
+                "operationId": "OrderController_cancelOrder",
                 "parameters": [
                     {
                         "type": "string",
@@ -8545,6 +8709,7 @@ const docTemplate = `{
                     "订单"
                 ],
                 "summary": "申请退款",
+                "operationId": "OrderController_requestRefund",
                 "parameters": [
                     {
                         "type": "string",
@@ -8608,6 +8773,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "发起支付",
+                "operationId": "PaymentController_createPayment",
                 "parameters": [
                     {
                         "description": "支付入参",
@@ -8660,6 +8826,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "支付宝异步回调",
+                "operationId": "PaymentController_alipayNotify",
                 "responses": {
                     "200": {
                         "description": "success",
@@ -8680,6 +8847,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "易支付异步回调",
+                "operationId": "PaymentController_epayNotify",
                 "responses": {
                     "200": {
                         "description": "success",
@@ -8703,6 +8871,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "微信支付异步回调",
+                "operationId": "PaymentController_wechatNotify",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8731,6 +8900,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "按订单查支付记录",
+                "operationId": "PaymentController_findPaymentByOrderId",
                 "parameters": [
                     {
                         "type": "string",
@@ -8776,6 +8946,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "支付记录详情",
+                "operationId": "PaymentController_findPaymentRecord",
                 "parameters": [
                     {
                         "type": "string",
@@ -8824,6 +8995,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "易支付签名调试",
+                "operationId": "PaymentController_epaySignature",
                 "parameters": [
                     {
                         "description": "待签名的参数集合",
@@ -8871,6 +9043,7 @@ const docTemplate = `{
                     "支付"
                 ],
                 "summary": "我的支付记录",
+                "operationId": "PaymentController_findUserPayments",
                 "parameters": [
                     {
                         "type": "integer",
@@ -8936,6 +9109,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "权限点列表",
+                "operationId": "PermissionController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8976,6 +9150,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "创建权限点",
+                "operationId": "PermissionController_create",
                 "parameters": [
                     {
                         "description": "权限点入参",
@@ -9023,6 +9198,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "权限树",
+                "operationId": "PermissionController_getTree",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -9062,6 +9238,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "权限点详情",
+                "operationId": "PermissionController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -9105,6 +9282,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "删除权限点",
+                "operationId": "PermissionController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -9151,6 +9329,7 @@ const docTemplate = `{
                     "权限"
                 ],
                 "summary": "更新权限点",
+                "operationId": "PermissionController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -9200,6 +9379,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "积分活动列表",
+                "operationId": "PointsController_findAllActivities",
                 "parameters": [
                     {
                         "type": "string",
@@ -9254,6 +9434,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "创建积分活动",
+                "operationId": "PointsController_createActivity",
                 "parameters": [
                     {
                         "description": "活动入参（未传字段取默认值）",
@@ -9296,6 +9477,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "积分活动详情",
+                "operationId": "PointsController_findOneActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -9339,6 +9521,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "删除积分活动",
+                "operationId": "PointsController_removeActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -9385,6 +9568,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "更新积分活动",
+                "operationId": "PointsController_updateActivity",
                 "parameters": [
                     {
                         "type": "string",
@@ -9439,6 +9623,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "领取积分活动奖励",
+                "operationId": "PointsController_claimTaskReward",
                 "parameters": [
                     {
                         "type": "string",
@@ -9487,6 +9672,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "加积分",
+                "operationId": "PointsController_addPoints",
                 "parameters": [
                     {
                         "description": "加分入参",
@@ -9534,6 +9720,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "我的积分余额",
+                "operationId": "PointsController_getBalance",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -9573,6 +9760,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "花积分",
+                "operationId": "PointsController_spendPoints",
                 "parameters": [
                     {
                         "description": "消费入参",
@@ -9620,6 +9808,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "积分统计",
+                "operationId": "PointsController_getStatistics",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -9656,6 +9845,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "我的积分任务",
+                "operationId": "PointsController_getMyTasks",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -9695,6 +9885,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "我的任务进度",
+                "operationId": "PointsController_getMyTaskProgress",
                 "parameters": [
                     {
                         "type": "string",
@@ -9740,6 +9931,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "我的积分流水",
+                "operationId": "PointsController_getTransactions",
                 "parameters": [
                     {
                         "type": "integer",
@@ -9805,6 +9997,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "全部积分流水（管理端）",
+                "operationId": "PointsController_getAllTransactions",
                 "parameters": [
                     {
                         "type": "integer",
@@ -9870,6 +10063,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "指定用户积分余额",
+                "operationId": "PointsController_getUserBalance",
                 "parameters": [
                     {
                         "type": "string",
@@ -9915,6 +10109,7 @@ const docTemplate = `{
                     "积分"
                 ],
                 "summary": "指定用户积分流水",
+                "operationId": "PointsController_getUserTransactions",
                 "parameters": [
                     {
                         "type": "string",
@@ -9987,6 +10182,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "我的菜单树",
+                "operationId": "UserController_getMenus",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -10023,6 +10219,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "举报列表（管理端）",
+                "operationId": "ReportController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -10075,6 +10272,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "提交举报",
+                "operationId": "ReportController_create",
                 "parameters": [
                     {
                         "description": "reportRequest{targetType,targetId,reason}",
@@ -10122,6 +10320,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "举报统计",
+                "operationId": "ReportController_getStatistics",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -10158,6 +10357,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "举报详情",
+                "operationId": "ReportController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -10201,6 +10401,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "删除举报",
+                "operationId": "ReportController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -10247,6 +10448,7 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "处理举报",
+                "operationId": "ReportController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -10301,6 +10503,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "角色列表（全量）",
+                "operationId": "RoleController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -10341,6 +10544,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "创建角色",
+                "operationId": "RoleController_create",
                 "parameters": [
                     {
                         "description": "创建角色入参",
@@ -10388,6 +10592,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "启用中的角色",
+                "operationId": "RoleController_getActiveRoles",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -10427,6 +10632,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "角色分页列表",
+                "operationId": "RoleController_findWithPagination",
                 "parameters": [
                     {
                         "type": "integer",
@@ -10492,6 +10698,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "角色详情",
+                "operationId": "RoleController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -10535,6 +10742,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "删除角色",
+                "operationId": "RoleController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -10581,6 +10789,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "更新角色",
+                "operationId": "RoleController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -10635,6 +10844,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "复制角色",
+                "operationId": "RoleController_copyRole",
                 "parameters": [
                     {
                         "type": "string",
@@ -10689,6 +10899,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "角色菜单",
+                "operationId": "RoleController_getMenus",
                 "parameters": [
                     {
                         "type": "string",
@@ -10735,6 +10946,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "绑定角色菜单",
+                "operationId": "RoleController_bindMenus",
                 "parameters": [
                     {
                         "type": "string",
@@ -10792,6 +11004,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "绑定角色权限",
+                "operationId": "RoleController_assignPermissions",
                 "parameters": [
                     {
                         "type": "string",
@@ -10849,6 +11062,7 @@ const docTemplate = `{
                     "角色"
                 ],
                 "summary": "启用/禁用角色",
+                "operationId": "RoleController_toggleStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -10898,6 +11112,7 @@ const docTemplate = `{
                     "搜索"
                 ],
                 "summary": "搜索文章",
+                "operationId": "SearchController_searchArticles",
                 "parameters": [
                     {
                         "type": "string",
@@ -10969,6 +11184,7 @@ const docTemplate = `{
                     "搜索"
                 ],
                 "summary": "清空文章索引",
+                "operationId": "SearchController_clearArticles",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11000,6 +11216,7 @@ const docTemplate = `{
                     "搜索"
                 ],
                 "summary": "热搜词",
+                "operationId": "SearchController_getHotKeywords",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11036,6 +11253,7 @@ const docTemplate = `{
                     "搜索"
                 ],
                 "summary": "搜索索引状态",
+                "operationId": "SearchController_getStatus",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11072,6 +11290,7 @@ const docTemplate = `{
                     "搜索"
                 ],
                 "summary": "全量同步文章到 ES",
+                "operationId": "SearchController_syncArticles",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11108,6 +11327,7 @@ const docTemplate = `{
                     "统计"
                 ],
                 "summary": "站点总览统计",
+                "operationId": "StatisticsController_getOverview",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11144,6 +11364,7 @@ const docTemplate = `{
                     "统计"
                 ],
                 "summary": "站点趋势统计",
+                "operationId": "StatisticsController_getTrends",
                 "parameters": [
                     {
                         "type": "string",
@@ -11189,6 +11410,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "标签列表",
+                "operationId": "TagController_findAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11241,6 +11463,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "创建标签",
+                "operationId": "TagController_create",
                 "parameters": [
                     {
                         "description": "tagRequest{name,description}",
@@ -11288,6 +11511,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "我关注的标签",
+                "operationId": "TagController_getFollowedTags",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11334,6 +11558,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "热门标签",
+                "operationId": "TagController_getHotTags",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11365,6 +11590,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "推荐标签",
+                "operationId": "TagController_getRecommendedTags",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11396,6 +11622,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "标签详情",
+                "operationId": "TagController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -11439,6 +11666,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "删除标签",
+                "operationId": "TagController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -11485,6 +11713,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "更新标签",
+                "operationId": "TagController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -11539,6 +11768,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "关注标签",
+                "operationId": "TagController_follow",
                 "parameters": [
                     {
                         "type": "string",
@@ -11582,6 +11812,7 @@ const docTemplate = `{
                     "标签"
                 ],
                 "summary": "取消关注标签",
+                "operationId": "TagController_unfollow",
                 "parameters": [
                     {
                         "type": "string",
@@ -11627,6 +11858,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "上传记录列表",
+                "operationId": "UploadController_findAll",
                 "parameters": [
                     {
                         "type": "integer",
@@ -11692,6 +11924,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "上传头像（走图片审核）",
+                "operationId": "UploadController_uploadAvatar",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11726,6 +11959,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "上传限制配置",
+                "operationId": "UploadController_getUploadConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11765,6 +11999,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "确认直传完成入库",
+                "operationId": "UploadController_confirmUpload",
                 "parameters": [
                     {
                         "description": "key/url/originalName/mimeType/size 必填",
@@ -11815,6 +12050,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "上传文件",
+                "operationId": "UploadController_uploadFile",
                 "parameters": [
                     {
                         "type": "file",
@@ -11869,6 +12105,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "上传记录详情",
+                "operationId": "UploadController_getFileInfo",
                 "parameters": [
                     {
                         "type": "string",
@@ -11914,6 +12151,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "回填元数据",
+                "operationId": "UploadController_fillMissingMetadata",
                 "parameters": [
                     {
                         "type": "integer",
@@ -11958,6 +12196,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "执行本地→S3 迁移",
+                "operationId": "UploadController_processUncompressedImages",
                 "parameters": [
                     {
                         "description": "limit/dryRun（query 同名参数并存，body 优先）",
@@ -12004,6 +12243,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "迁移统计",
+                "operationId": "UploadController_getMigrationStats",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12043,6 +12283,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "S3 预签名直传",
+                "operationId": "UploadController_generatePresignedUrl",
                 "parameters": [
                     {
                         "description": "filename/contentType/size 均必填",
@@ -12090,6 +12331,7 @@ const docTemplate = `{
                     "上传"
                 ],
                 "summary": "删除上传记录",
+                "operationId": "UploadController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -12136,6 +12378,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "用户列表",
+                "operationId": "UserController_findAll",
                 "parameters": [
                     {
                         "type": "integer",
@@ -12208,6 +12451,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "管理员创建用户",
+                "operationId": "UserController_create",
                 "parameters": [
                     {
                         "description": "CreateUserInput",
@@ -12261,6 +12505,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "申请注销账号",
+                "operationId": "UserController_requestAccountDeletion",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -12308,6 +12553,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "取消注销申请",
+                "operationId": "UserController_cancelAccountDeletion",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12344,6 +12590,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "注销申请状态",
+                "operationId": "UserController_getDeletionStatus",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12380,6 +12627,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "认证申请列表（管理端）",
+                "operationId": "UserController_findApplications",
                 "parameters": [
                     {
                         "type": "integer",
@@ -12454,6 +12702,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "认证审核",
+                "operationId": "UserController_audit",
                 "parameters": [
                     {
                         "type": "string",
@@ -12508,6 +12757,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "撤销认证",
+                "operationId": "UserController_revoke",
                 "parameters": [
                     {
                         "type": "string",
@@ -12556,6 +12806,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "提交认证申请",
+                "operationId": "UserController_apply",
                 "parameters": [
                     {
                         "description": "certApplyRequest{type,realName,idCard,attachments}",
@@ -12603,6 +12854,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "我的身份标识",
+                "operationId": "UserController_getMyIdentity",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12639,6 +12891,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "指定用户身份标识",
+                "operationId": "UserController_getIdentityByUserId",
                 "parameters": [
                     {
                         "type": "string",
@@ -12684,6 +12937,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "我的认证记录",
+                "operationId": "UserCertificationController_findMine",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12723,6 +12977,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "我的认证状态",
+                "operationId": "UserController_getMyCertification",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12759,6 +13014,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "佣金试算",
+                "operationId": "UserController_calculateCommission",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -12806,6 +13062,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "读取佣金配置",
+                "operationId": "UserController_getUserCommissionConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12840,6 +13097,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "设置佣金配置",
+                "operationId": "UserController_setUserCommissionConfig",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -12887,6 +13145,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "我的用户配置",
+                "operationId": "UserController_getUserConfig",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12924,6 +13183,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "更新用户配置",
+                "operationId": "UserController_updateUserConfig",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -12974,6 +13234,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "更新全局佣金配置",
+                "operationId": "UserController_updateCommissionSettings",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13024,6 +13285,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "更新通知偏好",
+                "operationId": "UserController_updateNotificationSettings",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13066,6 +13328,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "发送邮箱验证码",
+                "operationId": "UserController_sendVerificationCode",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13112,6 +13375,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "用户登录",
+                "operationId": "UserController_login",
                 "parameters": [
                     {
                         "type": "string",
@@ -13172,6 +13436,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "退出登录",
+                "operationId": "UserController_logout",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13214,6 +13479,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "全端退出登录",
+                "operationId": "AuthController_logoutAll",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13250,6 +13516,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "批量会员状态检查",
+                "operationId": "UserController_batchCheckMembershipStatus",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13418,6 +13685,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "GitHub 回调（重定向模式）",
+                "operationId": "UserController_githubOAuthRedirectCallback",
                 "responses": {
                     "302": {
                         "description": "重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）",
@@ -13438,6 +13706,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "GitHub 回调（SPA 模式换本站 token）",
+                "operationId": "UserController_githubOAuthCallback",
                 "parameters": [
                     {
                         "description": "code + state",
@@ -13480,6 +13749,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "GitHub 授权链接",
+                "operationId": "UserController_getGithubOAuthUrl",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13514,6 +13784,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "QQ App 登录（客户端交 access_token）",
+                "operationId": "QqAppLoginController_login",
                 "parameters": [
                     {
                         "description": "{accessToken, openId} 或 {payload}",
@@ -13805,6 +14076,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "修改密码",
+                "operationId": "UserController_changePassword",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13847,6 +14119,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "邮箱验证码重置密码",
+                "operationId": "UserController_resetPassword",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -13894,6 +14167,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "当前用户资料",
+                "operationId": "UserController_getProfile",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13938,6 +14212,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "更新当前用户资料",
+                "operationId": "UserController_updateProfile",
                 "parameters": [
                     {
                         "description": "待更新字段（部分更新）",
@@ -13994,6 +14269,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "修改联系方式",
+                "operationId": "UserController_updateContact",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -14041,6 +14317,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "我的收藏夹",
+                "operationId": "UserProfileController_findFavorites",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14106,6 +14383,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "收藏项详情",
+                "operationId": "UserProfileController_findFavoriteDetail",
                 "parameters": [
                     {
                         "type": "string",
@@ -14151,6 +14429,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "绑定手机号",
+                "operationId": "UserProfileController_bindPhone",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -14198,6 +14477,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "发送绑定手机验证码",
+                "operationId": "UserProfileController_sendBindPhoneCode",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -14244,6 +14524,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "刷新 access token",
+                "operationId": "UserController_refreshToken",
                 "parameters": [
                     {
                         "type": "string",
@@ -14303,6 +14584,7 @@ const docTemplate = `{
                     "用户认证"
                 ],
                 "summary": "用户注册",
+                "operationId": "UserController_registerUser",
                 "parameters": [
                     {
                         "description": "registerRequest{username,nickname,password,email,phone}",
@@ -14356,6 +14638,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "每日签到",
+                "operationId": "UserController_signIn",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14392,6 +14675,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "签到记录",
+                "operationId": "UserController_getSignInRecords",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14445,6 +14729,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "签到统计",
+                "operationId": "UserController_getSignInStats",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14481,6 +14766,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "钱包余额",
+                "operationId": "UserController_getWalletBalance",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14517,6 +14803,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "钱包统计",
+                "operationId": "UserController_getWalletStatistics",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14553,6 +14840,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "钱包流水",
+                "operationId": "UserController_getWalletTransactions",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14618,6 +14906,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "钱包提现",
+                "operationId": "UserController_withdrawWallet",
                 "parameters": [
                     {
                         "description": "请求体",
@@ -14665,6 +14954,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "用户详情",
+                "operationId": "UserController_findOne",
                 "parameters": [
                     {
                         "type": "string",
@@ -14714,6 +15004,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "删除用户",
+                "operationId": "UserController_remove",
                 "parameters": [
                     {
                         "type": "string",
@@ -14766,6 +15057,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "更新用户（管理端）",
+                "operationId": "UserController_update",
                 "parameters": [
                     {
                         "type": "string",
@@ -14820,6 +15112,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "关注用户",
+                "operationId": "UserController_follow",
                 "parameters": [
                     {
                         "type": "string",
@@ -14860,6 +15153,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "粉丝列表",
+                "operationId": "UserController_getFollowers",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14920,6 +15214,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "粉丝数",
+                "operationId": "UserController_getFollowerCount",
                 "parameters": [
                     {
                         "type": "string",
@@ -14960,6 +15255,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "关注列表",
+                "operationId": "UserController_getFollowings",
                 "parameters": [
                     {
                         "type": "integer",
@@ -15020,6 +15316,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "关注数",
+                "operationId": "UserController_getFollowingCount",
                 "parameters": [
                     {
                         "type": "string",
@@ -15065,6 +15362,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "会员状态检查",
+                "operationId": "UserController_checkMembershipStatus",
                 "parameters": [
                     {
                         "type": "string",
@@ -15110,6 +15408,7 @@ const docTemplate = `{
                     "用户管理"
                 ],
                 "summary": "取消关注",
+                "operationId": "UserController_unfollow",
                 "parameters": [
                     {
                         "type": "string",

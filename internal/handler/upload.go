@@ -49,6 +49,7 @@ func NewUploadHandler(svc *infra.Infra) *UploadHandler { return &UploadHandler{s
 //	@Param		page query int false "页码"
 //	@Param		limit query int false "每页条数"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UploadDto}}
+//	@ID			UploadController_findAll
 //	@Router		/upload [get]
 func (h *UploadHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -90,6 +91,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UploadDto}
+//	@ID			UploadController_getFileInfo
 //	@Router		/upload/info/{id} [get]
 func (h *UploadHandler) Info(c *gin.Context) {
 	up, err := h.svc.GetFileInfo(c.Param("id"))
@@ -110,6 +112,7 @@ func (h *UploadHandler) Info(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UploadConfigDto}
+//	@ID			UploadController_getUploadConfig
 //	@Router		/upload/config [get]
 func (h *UploadHandler) Config(c *gin.Context) {
 	response.Success(c, h.svc.GetUploadConfig(c))
@@ -125,6 +128,7 @@ func (h *UploadHandler) Config(c *gin.Context) {
 //	@Param		file formData file true "文件本体"
 //	@Param		scene formData string false "场景：article/avatar/comment"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.UploadDto}
+//	@ID			UploadController_uploadFile
 //	@Router		/upload/file [post]
 func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 
@@ -135,6 +139,7 @@ func (h *UploadHandler) UploadFile(c *gin.Context) { h.upload(c, "") }
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.UploadDto}
+//	@ID			UploadController_uploadAvatar
 //	@Router		/upload/avatar [post]
 func (h *UploadHandler) UploadAvatar(c *gin.Context) { h.upload(c, infra.SceneAvatar) }
 
@@ -196,6 +201,7 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 //	@Security	BearerAuth
 //	@Param		body body dto.PresignRequest true "filename/contentType/size 均必填"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PresignResultDto}
+//	@ID			UploadController_generatePresignedUrl
 //	@Router		/upload/presign [post]
 func (h *UploadHandler) Presign(c *gin.Context) {
 	// 绑定 dto 的请求结构（而不是 handler 私有匿名结构）：文档声明的字段
@@ -222,6 +228,7 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.ConfirmUploadRequest true "key/url/originalName/mimeType/size 必填"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UploadDto}
+//	@ID			UploadController_confirmUpload
 //	@Router		/upload/confirm [post]
 func (h *UploadHandler) Confirm(c *gin.Context) {
 	var body dto.ConfirmUploadRequest
@@ -253,6 +260,7 @@ func (h *UploadHandler) Confirm(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationStatsDto}
+//	@ID			UploadController_getMigrationStats
 //	@Router		/upload/migration/stats [get]
 func (h *UploadHandler) MigrationStats(c *gin.Context) {
 	stats, err := h.svc.MigrationStats(c.Request.Context())
@@ -272,6 +280,7 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.MigrationProcessRequest false "limit/dryRun（query 同名参数并存，body 优先）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationProcessResultDto}
+//	@ID			UploadController_processUncompressedImages
 //	@Router		/upload/migration/process [post]
 func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
@@ -302,6 +311,7 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		limit query int false "本批上限（默认 100）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationFillResultDto}
+//	@ID			UploadController_fillMissingMetadata
 //	@Router		/upload/migration/metadata [post]
 func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
@@ -321,6 +331,7 @@ func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "上传记录 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
+//	@ID			UploadController_remove
 //	@Router		/upload/{id} [delete]
 func (h *UploadHandler) Remove(c *gin.Context) {
 	if err := h.svc.RemoveUpload(c.Param("id")); err != nil {

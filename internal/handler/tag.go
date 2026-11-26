@@ -24,6 +24,7 @@ type TagHandler struct {
 //	@Security	BearerAuth
 //	@Param		body body object true "tagRequest{name,description}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
+//	@ID			TagController_create
 //	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
 	var req service.CreateTagRequest
@@ -45,6 +46,7 @@ func (h *TagHandler) Create(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
+//	@ID			TagController_findAll
 //	@Router		/tag [get]
 func (h *TagHandler) List(c *gin.Context) {
 	q := parseTagQuery(c)
@@ -62,6 +64,7 @@ func (h *TagHandler) List(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
+//	@ID			TagController_getRecommendedTags
 //	@Router		/tag/recommended [get]
 func (h *TagHandler) Recommended(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -79,6 +82,7 @@ func (h *TagHandler) Recommended(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
+//	@ID			TagController_getHotTags
 //	@Router		/tag/hot [get]
 func (h *TagHandler) Hot(c *gin.Context) {
 	list, e := h.svc.Hot(c.Request.Context(), actorOf(c), intQuery(c, "limit", 10))
@@ -96,6 +100,7 @@ func (h *TagHandler) Hot(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
+//	@ID			TagController_getFollowedTags
 //	@Router		/tag/followed/list [get]
 func (h *TagHandler) FollowedList(c *gin.Context) {
 	page, limit := pageOf(c)
@@ -114,6 +119,7 @@ func (h *TagHandler) FollowedList(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "标签 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
+//	@ID			TagController_findOne
 //	@Router		/tag/{id} [get]
 func (h *TagHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -134,6 +140,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Param		id path string true "标签 ID"
 //	@Param		body body object true "tagRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
+//	@ID			TagController_update
 //	@Router		/tag/{id} [patch]
 func (h *TagHandler) Update(c *gin.Context) {
 	var req service.UpdateTagRequest
@@ -157,6 +164,7 @@ func (h *TagHandler) Update(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
+//	@ID			TagController_remove
 //	@Router		/tag/{id} [delete]
 func (h *TagHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))
@@ -175,6 +183,7 @@ func (h *TagHandler) Remove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "标签 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
+//	@ID			TagController_follow
 //	@Router		/tag/{id}/follow [post]
 func (h *TagHandler) Follow(c *gin.Context) {
 	out, e := h.svc.Follow(c.Request.Context(), c.Param("id"), actorOf(c))
@@ -193,6 +202,7 @@ func (h *TagHandler) Follow(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
+//	@ID			TagController_unfollow
 //	@Router		/tag/{id}/follow [delete]
 func (h *TagHandler) Unfollow(c *gin.Context) {
 	out, e := h.svc.Unfollow(c.Request.Context(), c.Param("id"), actorOf(c))

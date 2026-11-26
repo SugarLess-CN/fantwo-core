@@ -18,6 +18,7 @@ import (
 //	@Security	BearerAuth
 //	@Param		body body object true "achievementRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
+//	@ID			AchievementController_create
 //	@Router		/achievement [post]
 func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 	var in model.AchievementInput
@@ -39,6 +40,7 @@ func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.AchievementDto}}
+//	@ID			AchievementController_findAll
 //	@Router		/achievement [get]
 func (h *OpsHandler) AchievementList(c *gin.Context) {
 	list, err := h.Achievement.List(
@@ -61,6 +63,7 @@ func (h *OpsHandler) AchievementList(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementStatsDto}
+//	@ID			AchievementController_getUserStats
 //	@Router		/achievement/stats [get]
 func (h *OpsHandler) AchievementStats(c *gin.Context) {
 	uid := requireUser(c)
@@ -82,6 +85,7 @@ func (h *OpsHandler) AchievementStats(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "成就 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
+//	@ID			AchievementController_findOne
 //	@Router		/achievement/{id} [get]
 func (h *OpsHandler) AchievementGet(c *gin.Context) {
 	view, err := h.Achievement.Get(c.Param("id"), currentUserID(c))
@@ -102,6 +106,7 @@ func (h *OpsHandler) AchievementGet(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body object true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
+//	@ID			AchievementController_update
 //	@Router		/achievement/{id} [patch]
 func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 	var in model.AchievementInput
@@ -125,6 +130,7 @@ func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
+//	@ID			AchievementController_remove
 //	@Router		/achievement/{id} [delete]
 func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 	if err := h.Achievement.Delete(c.Param("id")); err != nil {
@@ -142,6 +148,7 @@ func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "成就 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementClaimResultDto}
+//	@ID			AchievementController_claimReward
 //	@Router		/achievement/{id}/claim [post]
 func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 	uid := requireUser(c)
@@ -163,6 +170,7 @@ func (h *OpsHandler) AchievementClaim(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementClaimAllResultDto}
+//	@ID			AchievementController_claimAllRewards
 //	@Router		/achievement/claim-all [post]
 func (h *OpsHandler) AchievementClaimAll(c *gin.Context) {
 	uid := requireUser(c)

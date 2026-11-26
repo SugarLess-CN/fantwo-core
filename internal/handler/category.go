@@ -45,6 +45,7 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 //	@Security	BearerAuth
 //	@Param		body body object true "categoryRequest{name,parentId}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
+//	@ID			CategoryController_create
 //	@Router		/category [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req service.CreateCategoryRequest
@@ -66,6 +67,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 //	@Tags		分类
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CategoryDto}}
+//	@ID			CategoryController_findAll
 //	@Router		/category [get]
 func (h *CategoryHandler) List(c *gin.Context) {
 	q := parseCategoryQuery(c)
@@ -84,6 +86,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "分类 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
+//	@ID			CategoryController_findOne
 //	@Router		/category/{id} [get]
 func (h *CategoryHandler) FindOne(c *gin.Context) {
 	view, e := h.svc.FindOne(c.Request.Context(), c.Param("id"))
@@ -104,6 +107,7 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 //	@Param		id path string true "分类 ID"
 //	@Param		body body object true "categoryRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
+//	@ID			CategoryController_update
 //	@Router		/category/{id} [patch]
 func (h *CategoryHandler) Update(c *gin.Context) {
 	var req service.UpdateCategoryRequest
@@ -127,6 +131,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "分类 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
+//	@ID			CategoryController_remove
 //	@Router		/category/{id} [delete]
 func (h *CategoryHandler) Remove(c *gin.Context) {
 	out, e := h.svc.Remove(c.Request.Context(), c.Param("id"))

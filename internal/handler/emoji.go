@@ -31,6 +31,7 @@ const emojiMaxSize = 5 * 1024 * 1024
 //	@Security	BearerAuth
 //	@Param		body body dto.EmojiInputRequest true "表情字段（全部可选，不传=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
+//	@ID			EmojiController_create
 //	@Router		/emoji [post]
 func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -62,6 +63,7 @@ func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		file formData file true "表情图片（png/jpeg/gif/webp/svg，≤5MB）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
+//	@ID			EmojiController_upload
 //	@Router		/emoji/upload [post]
 func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 	if requireUser(c) == "" {
@@ -90,6 +92,7 @@ func (h *OpsHandler) EmojiUpload(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiDto}}
+//	@ID			EmojiController_findAll
 //	@Router		/emoji [get]
 func (h *OpsHandler) EmojiList(c *gin.Context) {
 	q := model.EmojiQuery{
@@ -125,6 +128,7 @@ func (h *OpsHandler) EmojiList(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "表情 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
+//	@ID			EmojiController_findOne
 //	@Router		/emoji/{id} [get]
 func (h *OpsHandler) EmojiGet(c *gin.Context) {
 	e, err := h.Emoji.Get(c.Param("id"), currentUserID(c))
@@ -145,6 +149,7 @@ func (h *OpsHandler) EmojiGet(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.EmojiInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
+//	@ID			EmojiController_update
 //	@Router		/emoji/{id} [patch]
 func (h *OpsHandler) EmojiUpdate(c *gin.Context) {
 	uid := requireUser(c)
@@ -172,6 +177,7 @@ func (h *OpsHandler) EmojiUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
+//	@ID			EmojiController_remove
 //	@Router		/emoji/{id} [delete]
 func (h *OpsHandler) EmojiDelete(c *gin.Context) {
 	uid := requireUser(c)
@@ -191,6 +197,7 @@ func (h *OpsHandler) EmojiDelete(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=[]string} "分类名数组（空时 []）"
+//	@ID			EmojiController_getCategories
 //	@Router		/emoji/categories/list [get]
 func (h *OpsHandler) EmojiCategories(c *gin.Context) {
 	cats, err := h.Emoji.Categories()
@@ -207,6 +214,7 @@ func (h *OpsHandler) EmojiCategories(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.EmojiDto}
+//	@ID			EmojiController_getPopular
 //	@Router		/emoji/popular/list [get]
 func (h *OpsHandler) EmojiPopular(c *gin.Context) {
 	list, err := h.Emoji.Popular(atoiDefault(c.Query("limit"), 20))
@@ -224,6 +232,7 @@ func (h *OpsHandler) EmojiPopular(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.EmojiDto}
+//	@ID			EmojiController_getRecent
 //	@Router		/emoji/recent/list [get]
 func (h *OpsHandler) EmojiRecent(c *gin.Context) {
 	uid := requireUser(c)
@@ -245,6 +254,7 @@ func (h *OpsHandler) EmojiRecent(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiDto}}
+//	@ID			EmojiController_getFavorites
 //	@Router		/emoji/favorites/list [get]
 func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 	uid := requireUser(c)
@@ -267,6 +277,7 @@ func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "表情 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
+//	@ID			EmojiController_addToFavorites
 //	@Router		/emoji/{id}/favorite [post]
 func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 	uid := requireUser(c)
@@ -288,6 +299,7 @@ func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
+//	@ID			EmojiController_removeFromFavorites
 //	@Router		/emoji/{id}/favorite [delete]
 func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 	uid := requireUser(c)
@@ -309,6 +321,7 @@ func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiUseDto}
+//	@ID			EmojiController_incrementUseCount
 //	@Router		/emoji/{id}/use [post]
 func (h *OpsHandler) EmojiUse(c *gin.Context) {
 	if err := h.Emoji.Use(c.Param("id")); err != nil {
@@ -329,6 +342,7 @@ func (h *OpsHandler) EmojiUse(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		body body dto.EmojiPackInputRequest true "表情包字段（全部可选，不传=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDto}
+//	@ID			EmojiPackController_create
 //	@Router		/emoji/packs [post]
 func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 	uid := requireUser(c)
@@ -354,6 +368,7 @@ func (h *OpsHandler) EmojiPackCreate(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.EmojiPackDto}}
+//	@ID			EmojiPackController_findAll
 //	@Router		/emoji/packs [get]
 func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 	q := model.EmojiPackQuery{
@@ -378,6 +393,7 @@ func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 //	@Produce	json
 //	@Param		id path string true "表情包 ID"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDetailDto}
+//	@ID			EmojiPackController_findOne
 //	@Router		/emoji/packs/{id} [get]
 func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 	detail, err := h.Emoji.PackDetail(c.Param("id"), currentUserID(c))
@@ -398,6 +414,7 @@ func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.EmojiPackInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDto}
+//	@ID			EmojiPackController_update
 //	@Router		/emoji/packs/{id} [patch]
 func (h *OpsHandler) EmojiPackUpdate(c *gin.Context) {
 	uid := requireUser(c)
@@ -425,6 +442,7 @@ func (h *OpsHandler) EmojiPackUpdate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
+//	@ID			EmojiPackController_remove
 //	@Router		/emoji/packs/{id} [delete]
 func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 	uid := requireUser(c)
@@ -448,6 +466,7 @@ func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		body body dto.EmojiPackAddEmojiRequest true "emojiId"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
+//	@ID			EmojiPackController_addEmoji
 //	@Router		/emoji/packs/{id}/emojis [post]
 func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 	uid := requireUser(c)
@@ -478,6 +497,7 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 //	@Param		emojiId path string true "emojiId"
 //	@Param		body body dto.EmojiPackUpdateEmojiRequest true "sort"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
+//	@ID			EmojiPackController_updateEmojiSort
 //	@Router		/emoji/packs/{id}/emojis/{emojiId} [patch]
 func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 	uid := requireUser(c)
@@ -506,6 +526,7 @@ func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 //	@Param		id path string true "id"
 //	@Param		emojiId path string true "emojiId"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackRemoveEmojiDto}
+//	@ID			EmojiPackController_removeEmoji
 //	@Router		/emoji/packs/{id}/emojis/{emojiId} [delete]
 func (h *OpsHandler) EmojiPackRemoveEmoji(c *gin.Context) {
 	uid := requireUser(c)
