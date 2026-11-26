@@ -1,165 +1,369 @@
 ---
 name: apifox-import
-description: 通过 Apifox 的 import MCP 把接口数据导入 Apifox 项目。当用户要求「导入接口到 Apifox」「更新 Apifox 接口」时使用。包含已实测的 MCP 限制（每次 ≤1 operation、schema 先行、$ref 完整性）与分批导入流程、422 排查表、分类保护机制。输入是任一份符合 OpenAPI 3.x 的 JSON（来源不限）。
+description: 把 swagger 接口文档导入 Apifox 并反查验证。当用户要求「导入接口到 Apifox」「同步 DTO 到 Apifox」「更新 Apifox 接口」「读取 Apifox 文档」时使用。包含单文档全量方案、6 个静默失败坑（$ref 前缀 / 拆批次 / 文件名前缀 / 注解不生效 / schema ignored / 分类不匹配）、导入前闸门命令、只读 MCP 反查方法。输入是 swagger.json。
 ---
 
-# Apifox 接口导入（import MCP）
+# Apifox 导入与反查
 
-通过 Apifox 的 import MCP（工具名含 `import-openapi` 的那个）把接口数据导入 Apifox 项目。
+**本 skill 记录的是实测有效路径**，不是理论。每条坑都标了「怎么发现的」，因为这类问题的共同特征是
+**日志全部显示成功**。
 
-## 前置检查
+---
 
-1. **MCP 选择**：确认当前环境已接入 Apifox 的 import MCP（工具名含 `import-openapi`）。若存在多个 Apifox MCP（只读查看用 / import 导入用），导入用 import 那个；名称与目标项目无关的 MCP 不可用。
-2. **输入要求**：一份符合 **OpenAPI 3.x** 的 JSON（`"openapi": "3.0.x"`）。输入来源不限——由调用方准备好；若手里的文档是其它格式，先转换成 3.x 再进入本流程（转换不属于本 skill 的职责）。
+## 零、先记住这一条
 
-## 已实测的 MCP 限制（422 Invalid Parameter 的根因，务必遵守）
+> **导入日志说「成功 580/580」不等于 Apifox 里是对的。**
+>
+> 本项目实测踩过 6 次「静默失败」——日志 100% 绿，但 Apifox 侧数据是坏的。
+> **唯一可信的验收方式是「导入后只用读 MCP 反查实际结构」。**
 
-| 限制 | 规则 | 违反后果 |
+判定顺序永远是：
+
+```
+改注解 → 跑 swag → 【读 swagger.json 验证注解真生效】→ 生成批次
+       → 【读批次文件验证 $ref 正确】→ 导入 → 【读 MCP 验证 Apifox 侧结构】
+```
+
+**三个方括号是硬闸门，跳过一个就可能白跑一轮。** 每轮白跑至少 10 分钟。
+
+---
+
+## 一、工具链现状
+
+| 用途 | 工具 | 说明 |
 |---|---|---|
-| 每次调用 ≤ **1 个 operation** | 2 个及以上大概率 422（带 requestBody 必 422） | 拆批：每个 operation 一次调用（实测 309 次全部成功） |
-| **schema 必须先于 paths** | `$ref` 指向未导入的 schema → 422 | 第 0 步：逐个导入 components.schemas（每次 1 个） |
-| schema **重名** → 覆盖 | 服务端按名 upsert | 换名会新增，同名 AUTO_MERGE 会「更新 1」 |
-| paths 内 `$ref` 必须指向**已导入** schema | 引用完整性校验 | 导入 paths 前先 `grep` 全部 `$ref`，逐一核对已存在 |
-| **成对调用会 422** | 同一 path 的两个 method 放一次请求 → 422 | 即使同一 path，get/post 也要分两次调用 |
+| **生成批次** | `scripts/gen-apifox-enhanced.py` | 本地 swagger → Apifox 批次文件 |
+| **导入** | `scripts/apifox-import.mjs` | **自写，直调 Apifox Open API，不走第三方 MCP** |
+| **反查** | 只读 MCP（工具名带 `apifox-` 且能读 OAS） | 唯一可信的验收手段 |
 
-## ⚠️ 分类保护（实测踩过：tag 名不匹配导致 Apifox 自动创建新目录，原有目录变空）
+### 为什么不用 import MCP
 
-**Apifox 按 `tags` 字段自动匹配已有目录。tag 名必须与 Apifox 原有目录名**完全一致****，否则 Apifox 会新建一个同义但不同名的目录，导致原有目录变空、接口散落在错误位置。
+历史用过第三方 import MCP，限制严重：**每次只能导 1 个 operation**、schema 必须先于 paths、
+成对 method 会 422。用它导 320 个接口要 320 次调用。
 
-分类的正确做法不是「做映射表」——映射表只在「接口文档本身带有正确 tags」时才有意义。真实情况是：**很多接口文档没有 tags 或 tags 不规范**，此时需要**通读全部接口的路径与操作语义，自行归类**，生成一套与 Apifox 已有目录对齐的 tags。
+**自写脚本一次请求完成**（单文档全量），**11 秒**。别回去用 MCP 导入。
 
-### 第 -1 步：获取 Apifox 原有目录名（必做，不可跳过）
+### MCP 身份判定（重要）
 
-用只读 MCP 拉取当前 Apifox 项目的 OAS，提取所有已有 tag/目录名：
+存在多个 Apifox MCP 时：
+- **只读**（读 OAS、列项目）—— 用来反查
+- **import**（工具名含 `import-openapi`）—— 本 skill **不用**
+- **名称带 office / 电商相关** —— **永久禁用**，曾两次误当本项目源
 
-```
-1. 调 Apifox 只读 MCP 的「读取 OAS」工具
-2. 遍历全部 paths，收集所有 operation 的 tags 值 → 这就是 Apifox 已有的目录名集合
-```
-
-或者直接在 Apifox 面板截图/复制目录列表。
-
-### 第 -2 步：通读全部接口，按语义归类
-
-**这一步是人工/LLM 智能判断，不是机械映射。**
-
-逐个阅读每个 operation 的 `path`、`method`、`summary`、`description`，理解它的业务含义，然后归入 Apifox 已有目录中最匹配的那个。判断依据：
-
-1. **路径前缀**：`/article/*` → 文章类；`/user/*` → 用户类；`/order/*` → 订单类
-2. **summary 语义**：「获取文章列表」→ 文章类；「用户登录」→ 认证类
-3. **操作类型**：CRUD 归到对应资源；管理端操作归到管理类
-
-归类完成后输出一张清单（接口路径 → 分配的 tag），人工抽查确认无误。
-
-**注意事项**：
-- 如果某个接口实在无法归入已有目录，可以新建一个 tag（Apifox 会自动创建新目录），但必须在汇报中明确说明，让用户确认。
-- 不要凭接口路径的字面前缀硬套——要理解业务语义。例如 `/user/certification/*` 虽然前缀是 user，但业务上是「认证」而非「用户资料」。
-
-### 第 -3 步：在生成脚本里应用归类结果
-
-```python
-# 从第 -2 步的归类结果生成 接口路径 → tag 的映射
-TAG_MAP = {
-    # 由通读归类填入，例：
-    # "/user/login": "用户认证",
-    # "/article/{id}": "文章管理",
-}
-
-def get_tag(path):
-    return TAG_MAP.get(path, "未分类")  # 未命中的给默认
-```
-
-**验证**：生成完后抽查几个批次文件，确认 tags 与 Apifox 原有目录名一致。如仍有新目录名，归类有误，重新归类。
+**只读 MCP 首次调用报 broken link，先 `refresh` 再 `read`。**
 
 ---
 
-## 流程
+## 二、标准流程（4 步）
 
-### 第 0 步：拆分 schema（每次 1 个，不带 paths）
+```bash
+cd <项目根>
 
-```python
+# ① 生成 swagger（改了注解/DTO 才需要）
+"$(go env GOPATH)/bin/swag.exe" init -g cmd/server/main.go -o docs/swagger \
+  --parseDependency --parseInternal --exclude tmp,internal/dto > tmp/swag.out 2>&1
+echo "exit=$?"                                                      # 必须 0
+grep -icE "unsupported|cannot find|declared multiple" tmp/swag.out  # 必须 0
+
+# ② 生成批次（默认 --mode full = 单文档全量）
+rm -rf tmp/apifox-enhanced
+python scripts/gen-apifox-enhanced.py docs/swagger/swagger.json tmp/apifox-enhanced/
+
+# ③ 闸门：验证批次文件自洽（跳过这步 = 大概率白跑）
+python -c "
 import json
-d = json.load(open('input.json', encoding='utf-8'))   # OpenAPI 3.x 输入
-for i, (name, schema) in enumerate(d['components']['schemas'].items()):
-    doc = {"openapi": "3.0.3", "info": {"title": "t", "version": "1"},
-           "paths": {}, "components": {"schemas": {name: schema}}}
-    json.dump(doc, open(f'tmp/schemas/s-{i:02d}.json', 'w', encoding='utf-8'), ensure_ascii=False)
+d=json.load(open('tmp/apifox-enhanced/o-full.json',encoding='utf-8'))
+schema=set(d.get('components',{}).get('schemas',{}))
+refs=set()
+def w(n):
+    if isinstance(n,dict):
+        for k,v in n.items():
+            if k=='\$ref' and isinstance(v,str): refs.add(v.rsplit('/',1)[-1])
+            else: w(v)
+    elif isinstance(n,list):
+        for i in n: w(i)
+w(d)
+print('schemas=',len(schema),'missing=',sorted(refs-schema) or '无 ✓')
+"
+# 期望 missing 为空。非空 → 停下，别导入
+
+# ④ 导入
+node scripts/apifox-import.mjs tmp/apifox-enhanced/
+# 期望：总计 1 | 成功 1 | 失败 0
 ```
-
-对每个文件调 import MCP 的 `import-openapi` 工具（`endpointOverwriteBehavior: "AUTO_MERGE"`）。期望输出：`数据模型: 新增 1`（已存在则 `更新 1`，同样算成功）。
-
-**注意**：schema 内部的 `$ref` 必须指向同批已导入的 schema——有依赖顺序的（如 PageBody → PageInner → PageMeta）按依赖序导入。
-
-### 第 1 步：导入 paths（每个 operation 一次调用，tags 已归类）
-
-```python
-import json, os
-d = json.load(open('input.json', encoding='utf-8'))
-os.makedirs('tmp/batches', exist_ok=True)
-n = 0
-for path, item in d['paths'].items():
-    for method, op in item.items():
-        if method == 'parameters': continue
-        # ⚠️ tags 必须在此处已完成归类（第 -3 步）
-        n += 1
-        doc = {"openapi": "3.0.3", "info": {"title": "t", "version": "1"},
-               "paths": {path: {method: op}}}
-        json.dump(doc, open(f'tmp/batches/o-{n:03d}.json', 'w', encoding='utf-8'), ensure_ascii=False)
-```
-
-**$ref 修正**：所有 `$ref` 必须指向第 0 步已导入的 schema。导入前批量核对：
-
-```python
-import re, glob
-schemas = set(d['components']['schemas'].keys())
-missing = set()
-for f in glob.glob('tmp/batches/*.json'):
-    for ref in re.findall(r'#/components/schemas/([^"]+)', open(f, encoding='utf-8').read()):
-        if ref not in schemas: missing.add(ref)
-assert not missing, f"未导入的 schema: {missing}"
-```
-
-然后**逐个**调用 MCP。309 个 operation = 309 次调用，实测全部成功。
-
-### 第 2 步：核对（含分类核对）
-
-导入完成后用只读 MCP 交叉校验：
-
-```
-1. 调 Apifox 只读 MCP 的「重新拉取 OAS」工具，刷新服务端缓存
-2. 调「读取 OAS」工具，核对 paths 数量与新增接口是否符合预期
-3. **分类核对**：遍历 OAS 中每个 operation 的 tags，确认全部命中 Apifox 原有目录名集合——
-   出现新 tag 名说明归类有误，该接口会被放到错误目录
-```
-
-同时在 Apifox 面板上检查：
-- 原有目录的接口数是否与预期一致
-- 是否出现了新的非预期目录（有 → 归类遗漏，需修归类重新导入）
 
 ---
 
-## 422 排查表
+## 三、六个静默失败坑（全部实测踩过）
 
-| 症状 | 原因 | 解法 |
+### 坑 1｜`$ref` 前缀错：`#/definitions/` 而非 `#/components/schemas/`
+
+**症状**：schema 全进去了、数量对、顶层字段对，但**所有嵌套 `$ref` 在 Apifox 侧变成
+`{"type":"object","properties":{}}` 空对象**。日志 100% 成功。
+
+**根因**：`gen-apifox-enhanced.py` 把 swagger2 的 `definitions` 搬到 OAS3 的 `components.schemas`，
+但没递归改写引用路径。而文档头声明 `openapi: 3.0.3` —— **OAS3 里没有 `#/definitions/` 这个路径**，
+Apifox 解析不到就**静默降级，不报错**。
+
+**发现方式**：反查时读某个 path 的 200 schema，发现 `allOf` 里的 `$ref` 变成了空 object。
+
+**修法**（已在脚本里）：
+```python
+def _rewrite_refs(node):
+    if isinstance(node, dict):
+        for k, v in list(node.items()):
+            if k == '$ref' and isinstance(v, str) and v.startswith('#/definitions/'):
+                node[k] = '#/components/schemas/' + v[len('#/definitions/'):]
+            else: _rewrite_refs(v)
+    elif isinstance(node, list):
+        for it in node: _rewrite_refs(it)
+_rewrite_refs(o3)   # ★ 必须在 o3 完全构造完（return 前）调用
+```
+
+**闸门**：
+```bash
+grep -ohE '"\$ref" *: *"[^"]+"' tmp/apifox-enhanced/*.json | cut -d/ -f1-2 | sort | uniq -c
+# 期望全部 #/components，出现 #/definitions 就别导
+```
+
+---
+
+### 坑 2｜拆批次导致引用跨文档（**最隐蔽**）
+
+**症状**：与坑 1 一样（引用全断成空对象），但 `$ref` 前缀已经是对的。
+
+**根因**：Apifox 的 `import-openapi` **只认「同一次导入的文档内 `components.schemas`
+里定义过的 schema」**，不认项目里已存在的同名 schema。
+
+拆成 `1 schema + 1 operation` 批次时，**op 批次文档里 `schemas=0`**，
+它引用的 `dto.Xxx` 一个都解析不到 → 全部降级。
+
+**怎么发现的**：做了个受控实验 —— 造一个同时含 path 和它引用的 3 个 schema 的文档，
+单独导入 → 引用完整保留。再查 `o-001.json` 的 `components.schemas` 数量 = **0**。
+
+**修法**：`--mode full`（默认）单文档全量，1 个文件装 246 paths + 258 schemas。
+
+| 模式 | 行为 | 何时用 |
 |---|---|---|
-| 2+ 个 operation 一起报 422 | 超过每次 1 个的安全限额（带 requestBody 必炸） | 拆成单 operation |
-| 同一 path 两个 method 一起 422 | 成对调用不支持 | get/post 分两次调用 |
-| `$ref` 相关 422 | 引用的 schema 未导入 | 先导 schema，再导 paths |
-| schema 导入报 422 但内容看起来合法 | 请求里同时带了 paths | schema 导入时 `"paths": {}` 必须为空 |
-| 部分路径持续 422 无明显规律 | 实测存在 | 单独逐个导；仍失败则简化该 op 的 schema 后重试 |
+| `--mode full` | **默认**，1 个文件全量 | 正常情况 |
+| `--mode split` | 1 schema + 1 op 一批 | **已知无效，仅留作对比** |
+| `--mode tag` | 按 tag 分组，每批带全量 schemas | 若 full 因超时失败才试 |
 
-## 分类错误排查表（实测踩过的坑）
+**副作用**：full 模式的文档约 **2 MB**（split 时每 op 只带自己的 path，
+full 里每个 op 都补了 8 个状态码的 example，320×8 累计）。Apifox 接受这个体积。
 
-| 症状 | 原因 | 解法 |
+---
+
+### 坑 3｜文件名前缀：必须 `s-*` 或 `o-*`
+
+**症状**：本地生成成功，但导入日志说「schema: 0 | operation: 1」，实际导入了 **0 个文件**。
+
+**根因**：`apifox-import.mjs` 只扫 `s-*`（schema）和 `o-*`（operation）前缀。
+叫 `full.json` 会被**静默跳过**。
+
+**修法**：全量模式输出 `o-full.json`（**`o-` 前缀**）。
+
+---
+
+### 坑 4｜注解改了但没生效（两轮白跑都是这个）
+
+**这是最容易犯的，因为脚本会说「改了 N 处」。**
+
+#### 4a｜`@ID` 少了 `//` 前缀
+
+```go
+//	@Success	200	{object}	dto.ResponseBody{...}
+@ID			AchievementController_create      ← 少了 //，这是 Go 语句不是 swag 注解
+```
+
+**swag 静默忽略**，`exit=0`、零报错。
+
+**发现方式**：注入后立刻 `grep -A1 -B1` **看渲染出来的行**，不是看「注入 299 条成功」的计数。
+
+#### 4b｜同一 handler 有两个 body 参数，swag 取第一个
+
+```go
+//	@Param		body body object true "achievementRequest"                      ← 旧的，被取用
+//	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
+//	@ID			AchievementController_create
+//	@Param		body body dto.CreateAchievementRequest true "创建成就定义"       ← 新的，被忽略
+```
+
+**症状**：PATCH 类接口都修好了（它们原本只有 `id path`），**POST 类全是空对象**。
+
+**修法**：先删旧行再插新行，或直接替换而非追加。
+
+#### 4c｜注解里要写 `dto.` 前缀
+
+```
+//	@Param		body body CreateTagRequest        ← swag 报 cannot find type definition
+//	@Param		body body dto.CreateTagRequest    ← 正确
+```
+
+**swag 会报错**（`ParseComment error in file ... cannot find type definition`），
+但**只有 `grep` 输出才看得见** —— 必须跑：
+```bash
+grep -icE "unsupported|cannot find|declared multiple" tmp/swag.out   # 必须 0
+```
+
+---
+
+### 坑 5｜`schemaOverwriteBehavior` 对已存在 schema 实际走 `ignored`
+
+**症状**：日志显示 `schema:+0 ~0 (ignored:258)` —— 258 个 schema 全部被忽略，一个没更新。
+
+**结论**：这是 **Apifox 的既定行为**，脚本里的 `OVERWRITE_EXISTING` 对**已存在**的 schema 不生效。
+
+**但它不影响引用解析**（实测：209 个 ignored + 48 个 updated 混着，314 个接口照样全对）。
+
+**所以**：
+- 首次导入新 schema → `schema:+N`（新建）
+- 已存在的 schema → `ignored`，**内容不会更新**
+
+**将来要改 schema 内容，必须先删再导**（只能界面手工删，import 不允许删）。
+
+---
+
+### 坑 6｜tag 名不匹配 → Apifox 自动建新目录
+
+**症状**：原有目录变空，接口散落在同义但不同名的新目录里。
+
+**根因**：Apifox 按 `tags` 字段**精确匹配**已有目录名。
+
+**做法**：
+1. **先拉取 Apifox 已有目录名**（只读 MCP 遍历全部 paths 收集 tags 值）—— 必做，不可跳过
+2. 通读全部接口路径与语义，**自行归类**到已有目录名
+3. 生成脚本里应用这套映射
+
+映射表只在「接口文档本身带正确 tags」时才有意义。真实情况常是没 tags 或不规范，
+此时必须按语义自行归类。
+
+---
+
+## 四、反查验收（唯一可信手段）
+
+### 为什么必须反查
+
+导入日志只反映「HTTP 请求成功」，不反映「Apifox 侧数据结构正确」。六个坑里**有五个日志全绿**。
+
+### 反查方法
+
+```
+只读 MCP → refresh_project_oas → read_project_oas
+```
+
+**注意索引层不含细节**：`read_project_oas` 返回的 `paths` 每项只有
+`{"$ref": "/paths/xxx.json", "get": {"summary": "..."}}` —— **看不到 requestBody、看不到 responses 结构**。
+
+**要读具体 path 文件**：
+```
+read_project_oas_ref_resources → ["/paths/_tag.json"]
+```
+
+（路径里的 `/` 换成 `_`，`{}` 换成 `%7B...%7D`）
+
+### 反查三项（每次必查）
+
+| 项 | 期望 | 位置 |
 |---|---|---|
-| Apifox 出现新的同义不同名目录 | tags 未按 Apifox 原有目录名归类 | 通读接口按语义归类，重新导入；手动删错误目录 |
-| Apifox 原有目录变空（0 个接口） | 接口被分到了新目录 | 同上 |
-| 接口数量对但目录对不上 | 同上 | 同上 |
+| `operationId` 是否符合 `<Controller>_<method>` | 全合规 | path 文件的 `operationId` 字段 |
+| 200 响应的 `data` 是否指向 `$ref` | 不是空 `{}` | `responses.200.content["application/json"].schema` |
+| `requestBody` 是否有字段 | 不是 `{"type":"object","properties":{}}` | `requestBody.content...schema` |
 
-## 实操建议
+### 抽验清单（至少这三个，覆盖三种形态）
 
-- 导入是幂等的（AUTO_MERGE 下同 path+method = 更新），中断后重跑即可，不需要去重。
-- 导入完成前**不要**在 Apifox 里手工改这些接口（会被下次 AUTO_MERGE 覆盖）。
-- 大批量导入（数百 operation）时按域/分批核对「新增/更新」计数，便于中断后定位断点。
-- **重新导入不会自动删除 Apifox 里旧目录**——归类修正后，接口会移到正确目录，但旧目录（空壳）需要手动在 Apifox 面板删除。
-- **首次导入到已有 Apifox 项目时，务必先做分类保护（第 -1 ~ -3 步）**——归类不匹配的代价是大量空目录需要手工清理。
+```jsonc
+// ① 分页接口 —— 验三层嵌套
+GET /achievement  → allOf[$ref ResponsePageBody, {data: allOf[$ref PageBody, {list: items $ref AchievementDto}]}]
+
+// ② 写接口 —— 验 requestBody
+POST /tag         → requestBody.schema.$ref dto.CreateTagRequest，6 个字段
+
+// ③ 大对象 —— 验字段完整性
+GET /user/profile → data.$ref dto.UserProfileDto
+```
+
+### 已知的历史残留（不要试图修）
+
+- `tmp_deploy-pkg_internal_handler.*` 5 个**污染 schema**：早期 swag 扫到 `tmp/deploy-pkg`
+  整项目副本留下的。**只能在 Apifox 界面手工删**，import 不允许删。
+- `/comment/{id}/replies`：本地 swagger 与代码都已无此路径，Apifox 侧是历史残留
+  （导入只更新不删除）。
+
+---
+
+## 五、导入前的完整闸门（复制粘贴用）
+
+```bash
+cd <项目根>
+
+# 1. swag 质量
+"$(go env GOPATH)/bin/swag.exe" init -g cmd/server/main.go -o docs/swagger \
+  --parseDependency --parseInternal --exclude tmp,internal/dto > tmp/swag.out 2>&1
+echo "swag exit=$? (必须 0)"
+grep -icE "unsupported|cannot find|declared multiple" tmp/swag.out   # 必须 0
+
+# 2. swagger 自身健全
+python -c "
+import json,re
+d=json.load(open('docs/swagger/swagger.json',encoding='utf-8'))
+defs=list(d['definitions'])
+print('paths:',len(d['paths']),'defs:',len(defs))
+print('污染:',[x for x in defs if 'tmp' in x] or '无')
+ops=[op.get('operationId','') for p,it in d['paths'].items() for m,op in it.items() if m in ('get','post','put','patch','delete')]
+good=[o for o in ops if re.fullmatch(r'[A-Z]\w+Controller_\w+',o or '')]
+print(f'operationId 合规: {len(good)}/{len(ops)}')
+empty=0
+for p,it in d['paths'].items():
+    for m,op in it.items():
+        if m not in ('post','put','patch'): continue
+        rb=op.get('requestBody') or next(({'content':{'application/json':{'schema':x.get('schema',{})}}} for x in op.get('parameters',[]) if x.get('in')=='body'), None)
+        if not rb: continue
+        sch=rb.get('content',{}).get('application/json',{}).get('schema',{})
+        if sch=={} or (sch.get('type')=='object' and not sch.get('properties') and not sch.get('\$ref')): empty+=1
+print('空 requestBody:',empty)
+"
+
+# 3. 生成 + 批次自洽
+rm -rf tmp/apifox-enhanced
+python scripts/gen-apifox-enhanced.py docs/swagger/swagger.json tmp/apifox-enhanced/
+grep -ohE '"\$ref" *: *"[^"]+"' tmp/apifox-enhanced/*.json | cut -d/ -f1-2 | sort | uniq -c
+# 期望：全部 #/components
+
+# 4. 导入
+node scripts/apifox-import.mjs tmp/apifox-enhanced/
+# 期望：总计 1 | 成功 1 | 失败 0
+```
+
+---
+
+## 六、常见症状 → 病因对照
+
+| 症状 | 病因 | 处置 |
+|---|---|---|
+| 嵌套 `$ref` 全是空 `{}` | 坑 1 或坑 2 | 查 `$ref` 前缀；查 op 批次是否带 schema |
+| 日志「成功 580/580」但 Apifox 没变 | 坑 2 | 改用 `--mode full` |
+| 日志「schema: 0 \| operation: 1」但内容没进去 | 坑 3 | 文件名必须 `o-*` / `s-*` |
+| 注解改了但 swagger 里没变 | 坑 4a/4b | `grep -A1` 看渲染行；查是否两个 body 参数 |
+| swag 报 `cannot find type definition` | 坑 4c | 补 `dto.` 前缀 |
+| `schema:+0 ~0 (ignored:N)` | 坑 5 | 正常行为，不影响引用；要改内容需先删 |
+| 目录变空、接口散落 | 坑 6 | 先拉 Apifox 目录名再归类 |
+| `requestBody` 是空 `{}` | 缺 `@Param body body dto.Xxx` | 补注解（见坑 4） |
+
+---
+
+## 七、配套文档
+
+本 skill 是操作手册。**原理与完整决策记录**见：
+
+- `docs/18-DTO复用规范.md` §五之三 —— Apifox 同步流程与 DTO 规范
+- `docs/16-开发工作流.md` —— 七步标准流程（Step 4 是 Apifox 导入）
+
+---
+
+## 八、一句话总结
+
+> **六个坑的共同特征：日志全部显示成功。**
+>
+> 所以判定的唯一依据是**生成产物**，不是**脚本输出**。
+> 每改一次注解，读一次 swagger.json；每导一次，读一次 Apifox OAS。
