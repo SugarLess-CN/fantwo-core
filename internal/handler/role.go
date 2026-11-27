@@ -46,13 +46,15 @@ func (h *RoleHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		name query string false "角色名过滤 example(管理员)"
+//	@Param		is_active query bool false "是否启用过滤（不传=不过滤） example(true)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.RoleDto}}
 //	@ID			RoleController_findWithPagination
 //	@Router		/role/list [get]
 func (h *RoleHandler) ListPaged(c *gin.Context) {
 	page, limit := queryPage(c)
 	roles, total, e := h.svc.ListRolesPaged(c.Request.Context(), page, limit,
-		c.Query("name"), queryBool(c, "isActive"))
+		c.Query("name"), queryBool(c, "is_active"))
 	if e != nil {
 		response.Fail(c, e)
 		return

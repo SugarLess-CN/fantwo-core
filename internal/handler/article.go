@@ -56,6 +56,7 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Param		category_id query string false "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)"
 //	@Param		tag_id query string false "标签 ID example(1a2b3c4d-0000-4e5f-8a9b-000000000001)"
 //	@Param		type query string false "image/mixed/video，默认 all example(image)"
+//	@Param		sort query string false "排序方式（缺省按 type 的默认排序）example(latest)" enums(latest, popular, sort)
 //	@Param		status query string false "状态筛选，逗号分隔 example(PUBLISHED)"
 //	@Success		200			{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_findAll
@@ -67,6 +68,7 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		CategoryID: c.Query("category_id"),
 		TagID:      c.Query("tag_id"),
 		Type:       c.DefaultQuery("type", "all"),
+		Sort:       c.Query("sort"),
 		Status:     splitIDs(c.Query("status")),
 		Page:       page,
 		Limit:      limit,
@@ -125,6 +127,9 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 //	@Produce	json
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		keyword query string false "搜索关键字 example(风景)"
+//	@Param		category_id query string false "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)"
+//	@Param		sort_by query string false "排序方式（默认 relevance）example(relevance)" enums(relevance, latest, views, likes)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_search
 //	@Router		/article/search [get]
@@ -328,8 +333,14 @@ func (h *ArticleHandler) SetProfilePin(c *gin.Context) {
 // parseTagQuery 解析标签列表查询参数（tag 域复用）。
 func parseTagQuery(c *gin.Context) repository.TagListQuery {
 	page, limit := pageOf(c)
+	// keyword 优先、name 兜底（D8）：前端话题搜索传 keyword，旧调用方传 name，
+	// 两者语义相同（标签名模糊匹配）。不直接删 name —— 删了是单方面 breaking change。
+	name := c.Query("keyword")
+	if name == "" {
+		name = c.Query("name")
+	}
 	return repository.TagListQuery{
-		Name:    c.Query("name"),
+		Name:    name,
 		SortBy:  c.Query("sort_by"),
 		SortOrd: c.DefaultQuery("sort_order", "DESC"),
 		Page:    page,

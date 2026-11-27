@@ -309,12 +309,13 @@ func (h *ArticleHandler) BrowseProgress(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		order query string false "排序方向（默认 newest）example(newest)" enums(newest, oldest)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.BrowseHistoryDto}}
 //	@ID			ArticleController_getUserBrowseHistory
 //	@Router		/article/browse/history [get]
 func (h *ArticleHandler) BrowseHistory(c *gin.Context) {
 	page, limit := pageOf(c)
-	list, total, e := h.svc.UserBrowseHistory(c.Request.Context(), actorOf(c), page, limit)
+	list, total, e := h.svc.UserBrowseHistory(c.Request.Context(), actorOf(c), page, limit, c.Query("order"))
 	if e != nil {
 		ctFail(c, e)
 		return

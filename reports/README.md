@@ -34,6 +34,7 @@
 | 11 | `11-picartgo-接口测试报告.md` | T-39 接口系统性实测：10 条逻辑链 / 86 个接口 / 129 条日志；**发现 P0×2 全部已修**（登出 token 黑名单绕过 `27f06e8`；`PATCH /user/:id` 越权写）+ P1×4 + P2×5 + P3×2；配套流水 `api-test-log.md`、规范 `api-test-spec.md` | ✅ 2026-11-25 |
 | 12 | `12-DTO全覆盖收口.md` | T-40 DTO 全覆盖收口：8 批并行，`data` 未具名 **223（70%）→ 3（0%）**、`definitions` 6→**260**（`dto.*` 256）、契约漂移 30→0、真机 null 归零；dto **17 文件 / 287 类型 / 1468 字段**。**独立复核查出 3 处与「已清零」不一致**（指针形态漂移 3 处、`data.list` 未具名 2 条、`ArticleDto.Content` omitempty 待决策）→ 均转 todo | ✅ 2026-11-25 |
 | 13 | [T37f OAuth 收尾：state 错误码 + SDK 独立化 + 三层测试](13-T37f-OAuth收尾.md) | A 修 state 不可区分（20031）/ B oauthkit 搬 pkg 独立化 / C 三层测试 | 2026-11-25 |
+| 14 | [T-39 JS→Go 字段补齐](14-T39-JS到Go字段补齐.md) | 前端交接单 A~E 五段逐项核对：`UserDto.config`、`UpdateUserConfigRequest` 5→**24** 字段、`RegisterRequest` +邀请码/验证码、`UpdateContactRequest` **补验证码校验**（原可无码改邮箱=账号接管）、9 类接口补查询参数、**4 处** camelCase query 改正名；新建 `cmp-js-go-fields.py` / `verify-t39.py`（22 项） | 2026-11-27 |
 
 ## 当前任务线：配置迁移到 DB
 

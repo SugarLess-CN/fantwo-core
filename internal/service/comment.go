@@ -424,12 +424,56 @@ func (s *CommentService) FindByArticle(ctx context.Context, articleID string, q 
 }
 
 // FindCommentDetail 评论详情（对齐 GET /comment/:id）。
-func (s *CommentService) FindCommentDetail(ctx context.Context, id string, actor Actor) (*CommentView, *errcode.Err) {
+//
+// replies 分页（D7）：page/limit 作用于**回复列表**（评论本身不分页）。
+// 楼层根取 `root_id 或自身 id`，对齐原 JS findCommentDetail 的
+// `const rootId = comment.rootId || comment.id` —— 点开一条回复看到的是它所在楼层的回复。
+// 这样大评论区首屏只取一页回复，不必一次拉全楼。
+func (s *CommentService) FindCommentDetail(ctx context.Context, id string, actor Actor, page, limit int) (*CommentView, *errcode.Err) {
 	c, e := s.getComment(ctx, id)
 	if e != nil {
 		return nil, e
 	}
-	return s.BuildView(ctx, *c, actor), nil
+	v := s.BuildView(ctx, *c, actor)
+
+	rootID := c.ID
+	if c.RootID != nil && *c.RootID != "" {
+		rootID = *c.RootID
+	}
+	page, limit = normPage(page, limit)
+	rows, _, err := s.repo.ListRepliesPaged(ctx, rootID, page, limit)
+	if err != nil {
+		s.log.Error("查询评论回复失败", zap.Error(err))
+		return nil, errcode.ErrInternal
+	}
+	if len(rows) == 0 {
+		return v, nil
+	}
+
+	// 回复的作者与点赞态批量取（与 buildTree 同口径，避免 N+1）
+	authorIDs := make(map[string]bool, len(rows))
+	replyIDs := make([]string, 0, len(rows))
+	for _, r := range rows {
+		authorIDs[r.AuthorID] = true
+		replyIDs = append(replyIDs, r.ID)
+	}
+	authorMap := s.resolveAuthorMap(ctx, authorIDs)
+	likedSet := map[string]bool{}
+	if !actor.Anonymous() {
+		var ids []string
+		if err := s.repo.DB().WithContext(ctx).Model(&model.CommentLike{}).
+			Where("user_id = ? AND comment_id IN ?", actor.UserID, replyIDs).
+			Pluck("comment_id", &ids).Error; err == nil {
+			for _, cid := range ids {
+				likedSet[cid] = true
+			}
+		}
+	}
+	v.Replies = make([]CommentView, 0, len(rows))
+	for _, r := range rows {
+		v.Replies = append(v.Replies, buildCommentView(r, authorMap, likedSet))
+	}
+	return v, nil
 }
 
 // FindAllComments 全部评论（管理端，对齐 GET /comment）。

@@ -435,6 +435,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "latest",
+                            "popular",
+                            "sort"
+                        ],
+                        "type": "string",
+                        "description": "排序方式（缺省按 type 的默认排序）example(latest)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "example": "PUBLISHED",
                         "description": "状态筛选，逗号分隔 example(PUBLISHED)",
@@ -717,6 +728,16 @@ const docTemplate = `{
                         "example": 10,
                         "description": "每页条数 example(10)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "oldest"
+                        ],
+                        "type": "string",
+                        "description": "排序方向（默认 newest）example(newest)",
+                        "name": "order",
                         "in": "query"
                     }
                 ],
@@ -1336,6 +1357,32 @@ const docTemplate = `{
                         "example": 10,
                         "description": "每页条数 example(10)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "风景",
+                        "description": "搜索关键字 example(风景)",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
+                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
+                        "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "relevance",
+                            "latest",
+                            "views",
+                            "likes"
+                        ],
+                        "type": "string",
+                        "description": "排序方式（默认 relevance）example(relevance)",
+                        "name": "sort_by",
                         "in": "query"
                     }
                 ],
@@ -3452,6 +3499,13 @@ const docTemplate = `{
                         "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "只看帖主（文章作者）的评论 example(false)",
+                        "name": "only_author",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3578,6 +3632,13 @@ const docTemplate = `{
                         "example": 10,
                         "description": "每页条数 example(10)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "只看帖主（文章作者）的评论 example(false)",
+                        "name": "only_author",
                         "in": "query"
                     }
                 ],
@@ -3741,6 +3802,20 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "回复页码 example(1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "回复每页条数 example(10)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7393,6 +7468,32 @@ const docTemplate = `{
                         "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "private",
+                            "system",
+                            "notification"
+                        ],
+                        "type": "string",
+                        "example": "notification",
+                        "description": "消息类型，缺省=全部",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "是否已读，缺省=不筛选 example(false)",
+                        "name": "is_read",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "是否全员广播，缺省=不筛选 example(false)",
+                        "name": "is_broadcast",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7750,6 +7851,20 @@ const docTemplate = `{
                         "name": "user_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "eyJpZCI6IjlmMWQyZTM0In0",
+                        "description": "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 20,
+                        "description": "每页条数，默认 20 example(20)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -8076,6 +8191,53 @@ const docTemplate = `{
                         "example": 10,
                         "description": "每页条数 example(10)",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "private",
+                            "system",
+                            "notification"
+                        ],
+                        "type": "string",
+                        "example": "notification",
+                        "description": "消息类型",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "是否已读",
+                        "name": "is_read",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": false,
+                        "description": "是否全员广播",
+                        "name": "is_broadcast",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "活动",
+                        "description": "关键词（匹配正文/标题） example(活动)",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "发送者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "sender_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "1a2b3c4d-5678-4abc-9def-0123456789ab",
+                        "description": "接收者用户 ID example(1a2b3c4d-5678-4abc-9def-0123456789ab)",
+                        "name": "receiver_id",
                         "in": "query"
                     }
                 ],
@@ -10872,6 +11034,20 @@ const docTemplate = `{
                         "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "管理员",
+                        "description": "角色名过滤 example(管理员)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": true,
+                        "description": "是否启用过滤（不传=不过滤） example(true)",
+                        "name": "is_active",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -11357,6 +11533,25 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
+                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
+                        "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "relevance",
+                            "latest",
+                            "views",
+                            "likes"
+                        ],
+                        "type": "string",
+                        "description": "排序方式（默认 relevance）example(relevance)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "example": 1,
                         "description": "页码 example(1)",
@@ -11661,6 +11856,51 @@ const docTemplate = `{
                 ],
                 "summary": "标签列表",
                 "operationId": "TagController_findAll",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码 example(1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标签名关键字（推荐）example(风景)",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标签名关键字（旧名，keyword 为空时兜底）example(风景)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "article_count",
+                        "description": "排序字段 example(article_count)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "DESC",
+                            "ASC"
+                        ],
+                        "type": "string",
+                        "description": "排序方向（默认 DESC）example(DESC)",
+                        "name": "sort_order",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11762,6 +12002,40 @@ const docTemplate = `{
                 ],
                 "summary": "我关注的标签",
                 "operationId": "TagController_getFollowedTags",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码 example(1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "目标用户 ID（缺省看自己）example(64b59ed4-1a2b-4c3d-8e9f-0123456789ab)",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标签名关键字（推荐）example(风景)",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "标签名关键字（旧名，keyword 为空时兜底）example(风景)",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14539,16 +14813,16 @@ const docTemplate = `{
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "修改联系方式",
+                "summary": "修改联系方式（需验证码）",
                 "operationId": "UserController_updateContact",
                 "parameters": [
                     {
-                        "description": "请求体",
+                        "description": "email 或 phone（二选一）+ verification_code",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateProfileRequest"
+                            "$ref": "#/definitions/dto.UpdateContactRequest"
                         }
                     }
                 ],
@@ -17661,6 +17935,11 @@ const docTemplate = `{
                 "counterpart": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
+                "counterpart_id": {
+                    "description": "CounterpartID 对方用户 ID（扁平字符串）。\n\n为什么与 Counterpart 并存：前端 lib/message-socket.ts 按 ` + "`" + `counterpart_id` + "`" + ` 解析，\n而我们原先只给嵌套对象 ` + "`" + `counterpart` + "`" + ` → 前端拿不到 id（docs/28 §六 E 段）。\n保留对象是为向后兼容（已有调用方读 counterpart.nickname 等）；两者恒一致。\n空值时是 \"\"（不是不传）—— 遵守 docs/21 字符串规则；Counterpart 为 nil 时同样 \"\"。",
+                    "type": "string",
+                    "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
+                },
                 "last_message_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
@@ -19568,6 +19847,14 @@ const docTemplate = `{
                     "format": "date-time",
                     "example": "1998-06-01T00:00:00Z"
                 },
+                "config": {
+                    "description": "Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。\n\n为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，\n加一处两个接口同时满足；登录一次就要拿到全部配置，否则前端进设置页要再发一次\nGET /user/config（docs/28 §四 C 段）。\n\n**只在详情类接口填充**（login / profile / user/{id}），列表接口留 nil ——\nUserDto 被 GET /user、关注/粉丝列表复用，N 个用户各带 28 字段配置会让响应体爆炸。\n指针 + omitempty：不加载时整个字段不传（docs/21 规则 ③），不会出现 config: null。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.UserConfigDto"
+                        }
+                    ]
+                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time",
@@ -21066,6 +21353,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "alice@example.com"
                 },
+                "invite_code": {
+                    "type": "string",
+                    "example": "AB12CD"
+                },
                 "nickname": {
                     "type": "string",
                     "example": "爱丽丝"
@@ -21081,6 +21372,10 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "alice"
+                },
+                "verification_code": {
+                    "type": "string",
+                    "example": "123456"
                 }
             }
         },
@@ -22598,6 +22893,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateContactRequest": {
+            "type": "object",
+            "required": [
+                "verification_code"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13800138000"
+                },
+                "verification_code": {
+                    "type": "string",
+                    "example": "123456"
+                }
+            }
+        },
         "dto.UpdateMessageRequest": {
             "type": "object",
             "properties": {
@@ -22870,10 +23185,81 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "article_commission_rate": {
+                    "description": "---- 佣金 5 ----",
                     "type": "number",
                     "example": 0.1
                 },
+                "enable_comment_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "enable_custom_commission": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "enable_email_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_follow_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_invite_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_like_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_message_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_order_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_payment_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_push_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_sms_notification": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "enable_system_notification": {
+                    "description": "---- 通知 11 ----",
+                    "type": "boolean",
+                    "example": true
+                },
+                "hide_collections": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "hide_comments": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "hide_favorites": {
+                    "description": "---- 隐私 6 ----",
+                    "type": "boolean",
+                    "example": false
+                },
+                "hide_followers": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "hide_followings": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "hide_tags": {
                     "type": "boolean",
                     "example": false
                 },
@@ -22885,9 +23271,18 @@ const docTemplate = `{
                     "type": "number",
                     "example": 0.15
                 },
+                "remark": {
+                    "type": "string",
+                    "example": "备注"
+                },
                 "service_commission_rate": {
                     "type": "number",
                     "example": 0.05
+                },
+                "watermark_enabled": {
+                    "description": "---- 其他 2 ----",
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -23729,6 +24124,14 @@ const docTemplate = `{
                     "format": "date-time",
                     "example": "1998-06-01T00:00:00Z"
                 },
+                "config": {
+                    "description": "Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。\n\n为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，\n加一处两个接口同时满足；登录一次就要拿到全部配置，否则前端进设置页要再发一次\nGET /user/config（docs/28 §四 C 段）。\n\n**只在详情类接口填充**（login / profile / user/{id}），列表接口留 nil ——\nUserDto 被 GET /user、关注/粉丝列表复用，N 个用户各带 28 字段配置会让响应体爆炸。\n指针 + omitempty：不加载时整个字段不传（docs/21 规则 ③），不会出现 config: null。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.UserConfigDto"
+                        }
+                    ]
+                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time",
@@ -23863,6 +24266,14 @@ const docTemplate = `{
                 },
                 "certification": {
                     "$ref": "#/definitions/dto.CertificationDto"
+                },
+                "config": {
+                    "description": "Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。\n\n为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，\n加一处两个接口同时满足；登录一次就要拿到全部配置，否则前端进设置页要再发一次\nGET /user/config（docs/28 §四 C 段）。\n\n**只在详情类接口填充**（login / profile / user/{id}），列表接口留 nil ——\nUserDto 被 GET /user、关注/粉丝列表复用，N 个用户各带 28 字段配置会让响应体爆炸。\n指针 + omitempty：不加载时整个字段不传（docs/21 规则 ③），不会出现 config: null。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.UserConfigDto"
+                        }
+                    ]
                 },
                 "created_at": {
                     "type": "string",

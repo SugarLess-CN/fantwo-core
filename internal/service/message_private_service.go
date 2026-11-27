@@ -370,8 +370,11 @@ func (s *PrivateMessageService) Conversations(userID, cursor string, limit int) 
 		}
 		item := ConversationVO{
 			ConversationID: c.ID,
-			UnreadCount:    unreadMap[c.ID],
-			LastMessageAt:  c.LastMessageAt,
+			// counterpart_id 直接取会话对端的 uid（不依赖 users 查询是否命中）：
+			// 对方账号被硬删时 Counterpart 会是 nil，但 ID 仍然是对的 —— 前端靠它路由。
+			CounterpartID: cpID,
+			UnreadCount:   unreadMap[c.ID],
+			LastMessageAt: c.LastMessageAt,
 		}
 		if u, ok := users[cpID]; ok && u != nil {
 			item.Counterpart = briefUser(u, blocked)
@@ -718,6 +721,7 @@ func (s *PrivateMessageService) ConversationSummary(userID, conversationID strin
 	}
 	item := &ConversationVO{
 		ConversationID: conv.ID,
+		CounterpartID:  cpID,
 		UnreadCount:    unreadMap[conv.ID],
 		LastMessageAt:  conv.LastMessageAt,
 	}

@@ -81,6 +81,122 @@ def scan_form_tags():
     return issues
 
 
+# --- 工具盲区补丁（2026-11-27）---
+# 前两轮全站改名只扫了 struct tag（json:/form:），漏掉 handler 里 c.Query("isRead")
+# 这类**硬编码字符串** —— 它们同样是对外 query 契约的一部分，前端传 is_read 才生效。
+# 实测漏了 handler/message_handler.go 的 isRead / isBroadcast 一整轮没被发现。
+#
+# 第二轮补丁（同批）：只扫 `c.Query("x")` 仍然不够 —— 项目里有辅助函数把 key 当**普通字符串参数**
+# 传进去（`queryBoolPtr(c, "isRead")`、`boolQuery(c, "onlyAuthor")`、`queryBool(c, "isActive")`），
+# 正则匹配不到 `c.Query`。实测这样又漏了 2 处（comment.go / role.go）。
+# 因此改为扫**任意函数调用中以字面量形式传给 (c, "key") 的第二个参数** ——
+# 只要形如 `f(c, "someKey")` 就视为 query 契约的一部分。
+QUERY_CALL_RE = re.compile(
+    r'\bc\.(Query|GetQuery|DefaultQuery)\(\s*"([A-Za-z_][A-Za-z0-9_]*)"'
+)
+PARAM_CALL_RE = re.compile(r'\bc\.Param\(\s*"([A-Za-z_][A-Za-z0-9_]*)"')
+# f(c, "key") / f(c, "key", default) —— 辅助函数的 key 实参
+HELPER_KEY_RE = re.compile(
+    r'\b([A-Za-z_]\w*)\(\s*c\s*,\s*"([A-Za-z_][A-Za-z0-9_]*)"'
+)
+# 不算 query 契约的辅助函数（与命名无关：它们是响应/日志等）
+HELPER_ALLOW = set()
+
+
+def scan_handler_query_keys():
+    """扫描 internal/handler/*.go 里的 query / path 参数字面量，要求 snake_case。
+
+    这是 json-naming-check 的**盲区**：参数名不在 struct tag 里，而在函数调用实参里。
+    覆盖三种写法：
+      1. `c.Query("x")` / `c.GetQuery("x")` / `c.DefaultQuery("x", ...)`
+      2. `helper(c, "x")` —— 项目自建的 query 辅助函数（queryBoolPtr / boolQuery / queryBool ...）
+      3. `c.Param("x")` —— 路径参数名同样前后端可见
+
+    为什么只扫字面量：`c.Query(key)` 这种变量传参无法静态判定，留给人工；
+    宁可有盲区也不要误报（误报会让脚本失去可信度）。
+    """
+    issues = []
+    files = sorted(glob.glob('internal/handler/*.go'))
+    for f in files:
+        if f.endswith('_test.go'):
+            continue
+        src = open(f, encoding='utf-8').read()
+        is_comment = _comment_mask(src)  # 每个文件只构建一次掩码（O(n)）
+        for m in QUERY_CALL_RE.finditer(src):
+            name = m.group(2)
+            if not re.search(r'[a-z][A-Z]', name) or is_comment(m.start()):
+                continue
+            issues.append((f, f'(c.{m.group(1)})', 'query', name, camel_to_snake(name),
+                           m.start(2), m.end(2)))
+        for m in HELPER_KEY_RE.finditer(src):
+            helper, name = m.group(1), m.group(2)
+            if helper in HELPER_ALLOW or helper == 'c':
+                continue
+            if not re.search(r'[a-z][A-Z]', name) or is_comment(m.start()):
+                continue
+            issues.append((f, f'({helper})', 'query', name, camel_to_snake(name),
+                           m.start(2), m.end(2)))
+        for m in PARAM_CALL_RE.finditer(src):
+            name = m.group(1)
+            if not re.search(r'[a-z][A-Z]', name) or is_comment(m.start()):
+                continue
+            issues.append((f, '(c.Param)', 'path', name, camel_to_snake(name),
+                           m.start(1), m.end(1)))
+    return issues
+
+
+def _comment_mask(src: str):
+    """返回一个函数：给定位置，判断该位置是否在 Go 注释内。
+
+    为什么不能简单数 `src[:pos].count('/*') > count('*/')`：
+    `/**` 出现在 `//` 行注释里（如 `// 路径对齐 docs/02：/role**、/permission**`）
+    会被误判成块注释开头，之后 whole 文件都被当成注释 —— 实测把 role.go 的
+    `queryBool(c, "isActive")` 漏掉了。
+
+    正确做法：单遍词法扫描，识别 `//` 行注释、`/* */` 块注释、`"..."`、`'...'`、
+    反引号原始字符串，并把注释区间记成掩码。字符串里的 `//` 不算注释。
+    """
+    n = len(src)
+    in_comment = [False] * n
+    i = 0
+    while i < n:
+        ch = src[i]
+        if ch == '"':  # 普通字符串（跳过转义）
+            i += 1
+            while i < n and src[i] != '"':
+                i += 2 if src[i] == '\\' else 1
+            i += 1
+        elif ch == '`':  # 原始字符串
+            i += 1
+            while i < n and src[i] != '`':
+                i += 1
+            i += 1
+        elif ch == "'":  # rune
+            i += 1
+            while i < n and src[i] != "'":
+                i += 2 if src[i] == '\\' else 1
+            i += 1
+        elif ch == '/' and i + 1 < n and src[i + 1] == '/':
+            j = src.find('\n', i)
+            j = n if j < 0 else j
+            for k in range(i, j):
+                in_comment[k] = True
+            i = j
+        elif ch == '/' and i + 1 < n and src[i + 1] == '*':
+            j = src.find('*/', i + 2)
+            j = n if j < 0 else j + 2
+            for k in range(i, j):
+                in_comment[k] = True
+            i = j
+        else:
+            i += 1
+    return lambda pos: in_comment[pos] if 0 <= pos < n else False
+
+
+def _in_comment(src: str, pos: int) -> bool:
+    return _comment_mask(src)(pos)
+
+
 def scan():
     """返回 [(file, type, kind, field_json_name, expected_name, abs_start, abs_end)]"""
     issues = []
@@ -125,24 +241,25 @@ def main():
     ap.add_argument('--list', action='store_true', help='只列违规')
     args = ap.parse_args()
 
-    issues = scan() + scan_form_tags()
+    issues = scan() + scan_form_tags() + scan_handler_query_keys()
     if not issues:
         print('✓ 命名全部合规（全站 snake_case）')
         return 0
 
     by_kind = collections.Counter(i[2] for i in issues)
-    print(f'违规 {len(issues)} 处（出参 {by_kind["out"]} / 入参 {by_kind["in"]}）\n')
+    print(f'违规 {len(issues)} 处（出参 {by_kind["out"]} / 入参 {by_kind["in"]} '
+          f'/ query {by_kind["query"]} / path {by_kind["path"]}）\n')
 
     if args.fix:
         n = apply_fix(issues)
-        print(f'已自动改写 {n} 个 json tag')
+        print(f'已自动改写 {n} 个 json tag（handler 里的 c.Query 实参不自动改，需人工）')
         return 0
 
     shown = collections.defaultdict(list)
     for f, t, k, old, new, _s, _e in issues:
-        shown[t].append(f'{old} → {new}')
+        shown[t].append(f'{old} → {new}  ({f})')
     for t in sorted(shown):
-        kind = classify(t)
+        kind = classify(t) if not t.startswith('(c.') and t != '(form)' else t
         print(f'  [{kind}] {t}')
         for x in shown[t][:6]:
             print(f'        {x}')

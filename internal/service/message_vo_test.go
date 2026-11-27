@@ -188,3 +188,53 @@ func TestMarkMessagesReadResult_EmptyArrays(t *testing.T) {
 		t.Errorf("空数组期望 []，实际: %s", out)
 	}
 }
+
+// TestConversationDto_CounterpartID 会话项的 counterpart_id 契约（docs/28 §六 E 段）。
+//
+// 前端 lib/message-socket.ts 按 `counterpart_id`（字符串）解析，不认嵌套的 counterpart 对象。
+// 两条不变量：
+//  1. 有对方时 counterpart_id 必须等于 counterpart.id（两者恒一致，不能各说一套）
+//  2. 对方为 nil（账号被硬删）时 counterpart_id 必须是 ""，且字段必须存在（不能整个不传）
+func TestConversationDto_CounterpartID(t *testing.T) {
+	// ① 正常情形：对象与扁平 ID 并存且一致
+	item := ConversationVO{
+		ConversationID: "c-1",
+		CounterpartID:  "u-peer",
+		Counterpart: &UserBriefVO{
+			ID: "u-peer", Username: "peer", Nickname: "对方", Avatar: "",
+		},
+		UnreadCount: 3,
+	}
+	out := assertNoNull(t, "ConversationDto", item)
+
+	var got map[string]interface{}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if got["counterpart_id"] != "u-peer" {
+		t.Errorf("counterpart_id 期望字符串 u-peer，实际 %#v", got["counterpart_id"])
+	}
+	obj, ok := got["counterpart"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("counterpart 应为对象，实际 %#v", got["counterpart"])
+	}
+	if obj["id"] != got["counterpart_id"] {
+		t.Errorf("counterpart.id(%v) 与 counterpart_id(%v) 必须一致",
+			obj["id"], got["counterpart_id"])
+	}
+
+	// ② 对方为 nil：counterpart_id 是 "" 且字段存在，counterpart 整个不传
+	bare := ConversationVO{ConversationID: "c-2"}
+	out2 := assertNoNull(t, "ConversationDto/nil-counterpart", bare)
+	var got2 map[string]interface{}
+	_ = json.Unmarshal([]byte(out2), &got2)
+	v, exists := got2["counterpart_id"]
+	if !exists {
+		t.Error("counterpart_id 空时也应存在且为 \"\"（docs/21 字符串规则），实际整个字段缺失")
+	} else if v != "" {
+		t.Errorf("counterpart_id 空时期望 \"\"，实际 %#v", v)
+	}
+	if _, has := got2["counterpart"]; has {
+		t.Error("counterpart 为 nil 时应整个字段不传（omitempty）")
+	}
+}

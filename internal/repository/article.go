@@ -399,14 +399,22 @@ func (r *ArticleRepository) SaveBrowse(ctx context.Context, b *model.BrowseHisto
 }
 
 // ListBrowse 分页取浏览历史（最后浏览时间倒序）。
-func (r *ArticleRepository) ListBrowse(ctx context.Context, userID string, page, limit int) ([]model.BrowseHistory, int64, error) {
+func (r *ArticleRepository) ListBrowse(ctx context.Context, userID string, page, limit int, order string) ([]model.BrowseHistory, int64, error) {
 	base := r.db.WithContext(ctx).Model(&model.BrowseHistory{}).Where("user_id = ?", userID)
 	var total int64
 	if err := base.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
+	// 排序方向：newest（默认，最近浏览在前）/ oldest（最早浏览在前）。
+	// 取值对齐原 JS QueryBrowseHistoryDto.order 的 enum（newest / oldest）。
+	// 其它值一律按 newest —— 与 browser history 的默认行为一致，不让非法参数变成空列表。
+	sqlOrder := "updated_at DESC"
+	if strings.EqualFold(strings.TrimSpace(order), "oldest") {
+		sqlOrder = "updated_at ASC"
+	}
+	offset, size := pageClause(page, limit) // limit<=0 → 默认 10，绝不出 LIMIT 0
 	var rows []model.BrowseHistory
-	err := base.Order("updated_at DESC").Offset((page - 1) * limit).Limit(limit).Find(&rows).Error
+	err := base.Order(sqlOrder).Offset(offset).Limit(size).Find(&rows).Error
 	return rows, total, err
 }
 

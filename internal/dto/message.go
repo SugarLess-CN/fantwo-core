@@ -149,11 +149,18 @@ type PrivateMessageDto struct {
 // counterpart / latestMessage 为指针 + omitempty：对方注销或会话无消息时整个字段不传。
 // lastMessageAt 是时间，空时不传。
 type ConversationDto struct {
-	ConversationID string               `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
-	Counterpart    *MessageUserBriefDto `json:"counterpart,omitempty"`
-	LatestMessage  *PrivateMessageDto   `json:"latest_message,omitempty"`
-	UnreadCount    int64                `json:"unread_count" example:"2"`
-	LastMessageAt  *time.Time           `json:"last_message_at,omitempty" example:"2026-11-25T10:00:00Z"`
+	ConversationID string `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	// CounterpartID 对方用户 ID（扁平字符串）。
+	//
+	// 为什么与 Counterpart 并存：前端 lib/message-socket.ts 按 `counterpart_id` 解析，
+	// 而我们原先只给嵌套对象 `counterpart` → 前端拿不到 id（docs/28 §六 E 段）。
+	// 保留对象是为向后兼容（已有调用方读 counterpart.nickname 等）；两者恒一致。
+	// 空值时是 ""（不是不传）—— 遵守 docs/21 字符串规则；Counterpart 为 nil 时同样 ""。
+	CounterpartID string               `json:"counterpart_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	Counterpart   *MessageUserBriefDto `json:"counterpart,omitempty"`
+	LatestMessage *PrivateMessageDto   `json:"latest_message,omitempty"`
+	UnreadCount   int64                `json:"unread_count" example:"2"`
+	LastMessageAt *time.Time           `json:"last_message_at,omitempty" example:"2026-11-25T10:00:00Z"`
 }
 
 // ConversationListDto 会话列表 data（service.ConversationListVO）。

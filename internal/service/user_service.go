@@ -163,6 +163,7 @@ func (s *UserService) Profile(ctx context.Context, userID string) (*dto.UserProf
 		return nil, errcode.ErrInternal
 	}
 	base := buildUserView(user, true, isMembershipActive(user))
+	base.Config = s.configOf(ctx, userID)
 	out := &dto.UserProfileDto{UserDto: *base}
 	if cert, err := s.d.Users.FindApprovedCert(s.d.DB, userID); err == nil {
 		out.Certification = certDto(cert)
@@ -262,6 +263,76 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 	return buildUserView(user, true, isMembershipActive(user)), nil
 }
 
+// UpdateContactInput 修改联系方式入参（docs/28 §二 A4）。
+//
+// 一次只能改一项：验证码是按 (target, scene) 签发的，一个 code 命不中两个 target。
+type UpdateContactInput struct {
+	Email            string `json:"email"`
+	Phone            string `json:"phone"`
+	VerificationCode string `json:"verification_code"`
+}
+
+// UpdateContact 修改邮箱 / 手机号（PATCH /user/profile/contact）。
+//
+// 改造前该端点用通用 UpdateProfileInput，注释写着「带验证码校验」，**实现里一个字都没有**
+// —— 任何持 token 者可不带验证码把账号邮箱/手机号改成自己的，是账号接管面。
+//
+// 验证码场景必须与签发端点一致，否则验不过：
+//   - 改邮箱 → scene "verification"（POST /user/email/verification 的默认 scene）
+//   - 改手机 → scene "bind_phone"（POST /user/profile/phone/code 的 scene）
+func (s *UserService) UpdateContact(ctx context.Context, userID string, in UpdateContactInput) (*UserView, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, e
+	}
+	// 一次改一项 + 验证码必填。两个都传时无法用一个 code 验两个目标，直接拒。
+	if in.VerificationCode == "" || (in.Email == "" && in.Phone == "") ||
+		(in.Email != "" && in.Phone != "") {
+		return nil, errcode.ErrInvalidParam
+	}
+	codes := NewVerifyCodeStore(s.d.Redis)
+	fields := map[string]interface{}{}
+	if in.Email != "" {
+		if dup, err := s.d.Users.ExistsEmail(s.d.DB, in.Email, userID); err != nil {
+			return nil, errcode.ErrInternal
+		} else if dup {
+			return nil, errcode.ErrEmailExists
+		}
+		ok, err := codes.Verify(ctx, in.Email, "verification", in.VerificationCode)
+		if err != nil {
+			return nil, errcode.ErrInternal
+		}
+		if !ok {
+			return nil, errcode.ErrVerifyCodeInvalid
+		}
+		fields["email"] = in.Email
+	}
+	if in.Phone != "" {
+		if dup, err := s.d.Users.ExistsPhone(s.d.DB, in.Phone, userID); err != nil {
+			return nil, errcode.ErrInternal
+		} else if dup {
+			return nil, errcode.ErrPhoneExists
+		}
+		ok, err := codes.Verify(ctx, in.Phone, "bind_phone", in.VerificationCode)
+		if err != nil {
+			return nil, errcode.ErrInternal
+		}
+		if !ok {
+			return nil, errcode.ErrVerifyCodeInvalid
+		}
+		fields["phone"] = in.Phone
+	}
+	if err := s.d.Users.UpdateFields(s.d.DB, userID, fields); err != nil {
+		return nil, errcode.ErrInternal
+	}
+	user, err := s.d.Users.FindByID(s.d.DB, userID)
+	if err != nil {
+		return nil, errcode.ErrInternal
+	}
+	view := buildUserView(user, true, isMembershipActive(user))
+	view.Config = s.configOf(ctx, userID)
+	return view, nil
+}
+
 // BindPhoneInput 绑定手机号入参。
 type BindPhoneInput struct {
 	Phone string `json:"phone"`
@@ -296,6 +367,9 @@ func (s *UserService) BindPhone(ctx context.Context, userID string, in BindPhone
 }
 
 // FindUser 用户详情（admin/他人视角按可见性返回）。
+//
+// 详情类接口：带上 config（docs/28 §四：列表 N 个用户各带 28 字段配置会让响应体爆炸，
+// 所以只有详情填）。
 func (s *UserService) FindUser(ctx context.Context, id string) (*UserView, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
@@ -307,7 +381,22 @@ func (s *UserService) FindUser(ctx context.Context, id string) (*UserView, *errc
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return buildUserView(user, true, isMembershipActive(user)), nil
+	view := buildUserView(user, true, isMembershipActive(user))
+	view.Config = s.configOf(ctx, id)
+	return view, nil
+}
+
+// configOf 详情类响应用的配置块（失败返回 nil —— 配置读不到不该让资料接口整体失败）。
+//
+// 列表接口**不要调用它**：UserDto 被 GET /user、关注/粉丝列表复用，
+// 每行带 28 字段配置会让响应体按 N 倍膨胀（docs/28 §四）。
+func (s *UserService) configOf(ctx context.Context, userID string) *dto.UserConfigDto {
+	cfg, e := s.GetConfig(ctx, userID)
+	if e != nil {
+		s.d.Logger.Warn("load user config for view failed user=" + userID)
+		return nil
+	}
+	return cfg
 }
 
 // ListUsersInput 用户列表入参。
@@ -501,6 +590,11 @@ func (s *UserService) GetConfig(ctx context.Context, userID string) (*dto.UserCo
 // userConfigDto model.UserProfile → dto.UserConfigDto（空值规则见 docs/21）。
 func userConfigDto(p *model.UserProfile) *dto.UserConfigDto {
 	return &dto.UserConfigDto{
+		// 三个审计字段：声明了就必须填，否则是假契约（前端拿到 "" 会误判为无效记录）。
+		// 时间统一 RFC3339，与 toUserDto 同口径。
+		ID:                        p.ID,
+		CreatedAt:                 p.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:                 p.UpdatedAt.Format(time.RFC3339),
 		UserID:                    p.UserID,
 		ArticleCommissionRate:     p.ArticleCommissionRate,
 		MembershipCommissionRate:  p.MembershipCommissionRate,
@@ -529,22 +623,54 @@ func userConfigDto(p *model.UserProfile) *dto.UserConfigDto {
 	}
 }
 
-// UpdateConfigInput 配置更新（指针语义，nil 不改）。
+// UpdateConfigInput 配置更新入参（指针语义，nil 不改）。
+//
+// 24 个可写字段 = 响应 dto.UserConfigDto 的 28 字段减去 4 个只读字段
+// （id / created_at / updated_at / user_id）。改造前只有 5 个佣金字段 →
+// 前端「能读不能写」：设置页拉到 28 项，保存只能提交 5 项（docs/28 §三 B2）。
 type UpdateConfigInput struct {
+	// 佣金 5
 	ArticleCommissionRate    *float64 `json:"article_commission_rate"`
 	MembershipCommissionRate *float64 `json:"membership_commission_rate"`
 	ProductCommissionRate    *float64 `json:"product_commission_rate"`
 	ServiceCommissionRate    *float64 `json:"service_commission_rate"`
 	EnableCustomCommission   *bool    `json:"enable_custom_commission"`
+
+	// 通知 11
+	EnableSystemNotification  *bool `json:"enable_system_notification"`
+	EnableCommentNotification *bool `json:"enable_comment_notification"`
+	EnableLikeNotification    *bool `json:"enable_like_notification"`
+	EnableFollowNotification  *bool `json:"enable_follow_notification"`
+	EnableMessageNotification *bool `json:"enable_message_notification"`
+	EnableOrderNotification   *bool `json:"enable_order_notification"`
+	EnablePaymentNotification *bool `json:"enable_payment_notification"`
+	EnableInviteNotification  *bool `json:"enable_invite_notification"`
+	EnableEmailNotification   *bool `json:"enable_email_notification"`
+	EnableSmsNotification     *bool `json:"enable_sms_notification"`
+	EnablePushNotification    *bool `json:"enable_push_notification"`
+
+	// 隐私 6
+	HideFavorites   *bool `json:"hide_favorites"`
+	HideComments    *bool `json:"hide_comments"`
+	HideCollections *bool `json:"hide_collections"`
+	HideFollowers   *bool `json:"hide_followers"`
+	HideFollowings  *bool `json:"hide_followings"`
+	HideTags        *bool `json:"hide_tags"`
+
+	// 其他 2
+	WatermarkEnabled *bool   `json:"watermark_enabled"`
+	Remark           *string `json:"remark"`
 }
 
-// UpdateConfig 更新抽成配置。
+// UpdateConfig 更新用户配置（PATCH /user/config，全 24 字段统一入口）。
+//
+// 保留「一个字段都没传 → ErrInvalidParam」：空请求体是客户端 bug，
+// 静默成功会让前端以为保存了。
 func (s *UserService) UpdateConfig(ctx context.Context, userID string, in UpdateConfigInput) *errcode.Err {
 	if _, e := s.GetConfig(ctx, userID); e != nil {
 		return e
 	}
-	fields := commissionFields(in.ArticleCommissionRate, in.MembershipCommissionRate,
-		in.ProductCommissionRate, in.ServiceCommissionRate, in.EnableCustomCommission)
+	fields := configFields(in)
 	if len(fields) == 0 {
 		return errcode.ErrInvalidParam
 	}
@@ -554,23 +680,52 @@ func (s *UserService) UpdateConfig(ctx context.Context, userID string, in Update
 	return nil
 }
 
-// commissionFields 抽成字段映射。
-func commissionFields(a, m, p, sv *float64, enable *bool) map[string]interface{} {
+// configFields 入参 → gorm 列名映射（只映射非 nil）。
+//
+// 逐个手写而不是反射：反射能少 40 行，但把「字段名 → 列名」的对应关系藏起来，
+// 拼错列名时 gorm 会静默忽略该字段（UpdateProfile 走 map，未知键不报错）——
+// 设置页保存了但没生效，是最难查的一类 bug。手写至少能 grep 到。
+func configFields(in UpdateConfigInput) map[string]interface{} {
 	f := map[string]interface{}{}
-	if a != nil {
-		f["article_commission_rate"] = *a
+	setF := func(k string, v *float64) {
+		if v != nil {
+			f[k] = *v
+		}
 	}
-	if m != nil {
-		f["membership_commission_rate"] = *m
+	setB := func(k string, v *bool) {
+		if v != nil {
+			f[k] = *v
+		}
 	}
-	if p != nil {
-		f["product_commission_rate"] = *p
-	}
-	if sv != nil {
-		f["service_commission_rate"] = *sv
-	}
-	if enable != nil {
-		f["enable_custom_commission"] = *enable
+	// 佣金
+	setF("article_commission_rate", in.ArticleCommissionRate)
+	setF("membership_commission_rate", in.MembershipCommissionRate)
+	setF("product_commission_rate", in.ProductCommissionRate)
+	setF("service_commission_rate", in.ServiceCommissionRate)
+	setB("enable_custom_commission", in.EnableCustomCommission)
+	// 通知
+	setB("enable_system_notification", in.EnableSystemNotification)
+	setB("enable_comment_notification", in.EnableCommentNotification)
+	setB("enable_like_notification", in.EnableLikeNotification)
+	setB("enable_follow_notification", in.EnableFollowNotification)
+	setB("enable_message_notification", in.EnableMessageNotification)
+	setB("enable_order_notification", in.EnableOrderNotification)
+	setB("enable_payment_notification", in.EnablePaymentNotification)
+	setB("enable_invite_notification", in.EnableInviteNotification)
+	setB("enable_email_notification", in.EnableEmailNotification)
+	setB("enable_sms_notification", in.EnableSmsNotification)
+	setB("enable_push_notification", in.EnablePushNotification)
+	// 隐私
+	setB("hide_favorites", in.HideFavorites)
+	setB("hide_comments", in.HideComments)
+	setB("hide_collections", in.HideCollections)
+	setB("hide_followers", in.HideFollowers)
+	setB("hide_followings", in.HideFollowings)
+	setB("hide_tags", in.HideTags)
+	// 其他
+	setB("watermark_enabled", in.WatermarkEnabled)
+	if in.Remark != nil {
+		f["remark"] = *in.Remark
 	}
 	return f
 }

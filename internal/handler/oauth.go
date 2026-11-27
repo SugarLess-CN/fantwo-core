@@ -40,8 +40,8 @@ import (
 //
 // **必须与既有 GitHub 端点逐字一致**（前端已按这个结构解析）：
 // user 走 service.ViewUser 脱敏视图、附带 isMember、id 单独给一份（前端历史习惯）。
-func oauthLoginResult(user *model.User, token, refresh string) *dto.LoginResultDto {
-	return service.LoginResult(user, token, refresh)
+func oauthLoginResult(c *gin.Context, svc *service.AuthService, user *model.User, token, refresh string) *dto.LoginResultDto {
+	return svc.LoginResultWithConfig(c.Request.Context(), user, token, refresh)
 }
 
 // ---------------------------------------------------------------------------
@@ -85,7 +85,7 @@ func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, oauthLoginResult(user, token, refresh))
+	response.Success(c, oauthLoginResult(c, h.svc, user, token, refresh))
 }
 
 // WechatWebRedirect GET /user/oauth/wechat/web/callback
@@ -127,7 +127,7 @@ func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, oauthLoginResult(user, token, refresh))
+	response.Success(c, oauthLoginResult(c, h.svc, user, token, refresh))
 }
 
 // ---------------------------------------------------------------------------
@@ -171,7 +171,7 @@ func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, oauthLoginResult(user, token, refresh))
+	response.Success(c, oauthLoginResult(c, h.svc, user, token, refresh))
 }
 
 // QQWebRedirect GET /user/oauth/qq/web/callback
@@ -226,7 +226,7 @@ func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, oauthLoginResult(user, token, refresh))
+	response.Success(c, oauthLoginResult(c, h.svc, user, token, refresh))
 }
 
 // ---------------------------------------------------------------------------

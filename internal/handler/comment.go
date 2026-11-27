@@ -22,7 +22,7 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 		Page:       page,
 		Limit:      limit,
 		SortBy:     c.DefaultQuery("sort_by", "latest"),
-		OnlyAuthor: boolQuery(c, "onlyAuthor"),
+		OnlyAuthor: boolQuery(c, "only_author"), // 旧名 onlyAuthor 已废弃（snake_case 规范）
 		Keyword:    c.Query("keyword"),
 		UserID:     c.Query("user_id"),
 	}
@@ -63,6 +63,7 @@ func (h *CommentHandler) Create(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		only_author query bool false "只看帖主（文章作者）的评论 example(false)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAllComments
 //	@Router		/comment [get]
@@ -84,6 +85,7 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 //	@Param		id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		only_author query bool false "只看帖主（文章作者）的评论 example(false)"
 //	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAll
 //	@Router			/comment/article/{id} [get]
@@ -103,11 +105,14 @@ func (h *CommentHandler) FindByArticle(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		page query int false "回复页码 example(1)"
+//	@Param		limit query int false "回复每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@ID			CommentController_findOne
 //	@Router		/comment/{id} [get]
 func (h *CommentHandler) FindOne(c *gin.Context) {
-	view, e := h.svc.FindCommentDetail(c.Request.Context(), c.Param("id"), actorOf(c))
+	page, limit := pageOf(c)
+	view, e := h.svc.FindCommentDetail(c.Request.Context(), c.Param("id"), actorOf(c), page, limit)
 	if e != nil {
 		ctFail(c, e)
 		return

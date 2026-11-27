@@ -125,6 +125,8 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 //	@Tags		搜索
 //	@Produce	json
 //	@Param		keyword query string false "关键字 example(风景)"
+//	@Param		category_id query string false "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)"
+//	@Param		sort_by query string false "排序方式（默认 relevance）example(relevance)" enums(relevance, latest, views, likes)
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.SearchArticleItemDto}}

@@ -280,6 +280,14 @@ func (s *MessageService) ListByUser(userID string, page, limit int) ([]MessageVO
 	return s.list(userID, repository.MessageFilter{}, page, limit)
 }
 
+// ListByUserFiltered 带过滤条件的「我的消息」（GET /message?type=&is_read=&is_broadcast=）。
+//
+// 与 Search 的差别只在 keyword/sender_id/receiver_id：List 不开放这三项过滤。
+// 过滤逻辑复用同一个 list()，避免两套查询口径漂移。
+func (s *MessageService) ListByUserFiltered(userID string, f repository.MessageFilter, page, limit int) ([]MessageVO, int64, error) {
+	return s.list(userID, f, page, limit)
+}
+
 // Search 高级查询（类型 / 已读 / 广播 / 关键词 / 收发人），对齐 findAll。
 func (s *MessageService) Search(userID, keyword, msgType, senderID, receiverID string, isRead, isBroadcast *bool, page, limit int) ([]MessageVO, int64, error) {
 	return s.list(userID, repository.MessageFilter{

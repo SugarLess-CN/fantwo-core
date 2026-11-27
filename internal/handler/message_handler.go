@@ -32,6 +32,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
+	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -123,6 +124,9 @@ func (h *MessageHandler) Create(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		type query string false "消息类型，缺省=全部" Enums(private, system, notification) example(notification)
+//	@Param		is_read query bool false "是否已读，缺省=不筛选 example(false)"
+//	@Param		is_broadcast query bool false "是否全员广播，缺省=不筛选 example(false)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_findAll
 //	@Router			/message [get]
@@ -132,7 +136,13 @@ func (h *MessageHandler) List(c *gin.Context) {
 		return
 	}
 	page, limit := pageOf(c)
-	list, total, err := h.Svc.ListByUser(uid, page, limit)
+	// 过滤参数与 GET /message/search 同语义（D4/D6：实现已就绪，此前只是 swag 未声明）
+	f := repository.MessageFilter{
+		Type:        c.Query("type"),
+		IsRead:      queryBoolPtr(c, "is_read"),
+		IsBroadcast: queryBoolPtr(c, "is_broadcast"),
+	}
+	list, total, err := h.Svc.ListByUserFiltered(uid, f, page, limit)
 	if err != nil {
 		msgFail(c, err)
 		return
@@ -140,7 +150,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 	response.SuccessPage(c, list, total, page, limit)
 }
 
-// Search GET /message/search：高级查询（type/isRead/isBroadcast/keyword/senderId/receiverId）。
+// Search GET /message/search：高级查询（type/is_read/is_broadcast/keyword/sender_id/receiver_id）。
 //
 //	@Summary	消息高级查询
 //	@Tags		消息
@@ -148,6 +158,12 @@ func (h *MessageHandler) List(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		page query int false "页码 example(1)"
 //	@Param		limit query int false "每页条数 example(10)"
+//	@Param		type query string false "消息类型" Enums(private, system, notification) example(notification)
+//	@Param		is_read query bool false "是否已读" example(false)
+//	@Param		is_broadcast query bool false "是否全员广播" example(false)
+//	@Param		keyword query string false "关键词（匹配正文/标题） example(活动)"
+//	@Param		sender_id query string false "发送者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		receiver_id query string false "接收者用户 ID example(1a2b3c4d-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_search
 //	@Router		/message/search [get]
@@ -157,15 +173,10 @@ func (h *MessageHandler) Search(c *gin.Context) {
 		return
 	}
 	page, limit := pageOf(c)
-	var isRead, isBroadcast *bool
-	if v, exists := c.GetQuery("isRead"); exists {
-		b := parseBool(v)
-		isRead = &b
-	}
-	if v, exists := c.GetQuery("isBroadcast"); exists {
-		b := parseBool(v)
-		isBroadcast = &b
-	}
+	// query 参数一律 snake_case（AGENTS「JSON 字段命名口径」2026-11-27）：
+	// is_read / is_broadcast，与 swag @Param 声明逐字一致。
+	isRead := queryBoolPtr(c, "is_read")
+	isBroadcast := queryBoolPtr(c, "is_broadcast")
 	list, total, err := h.Svc.Search(
 		uid,
 		c.Query("keyword"),
@@ -420,6 +431,8 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		cursor query string false "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)"
+//	@Param		limit query int false "每页条数，默认 20 example(20)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateHistoryDto}
 //	@ID			MessageController_getPrivateConversation
 //	@Router		/message/private/conversations/{user_id}/messages [get]
@@ -599,6 +612,19 @@ func parseBool(v string) bool {
 	default:
 		return false
 	}
+}
+
+// queryBoolPtr 取布尔 query；参数不存在时返回 nil（= 不筛选，区别于传 false）。
+//
+// 为什么要三态：is_read=false 是「只要未读」，参数缺失是「全都要」，两者语义不同，
+// 用 bool 值无法表达，因此返回 *bool（service.MessageFilter.IsRead 也是指针）。
+func queryBoolPtr(c *gin.Context, key string) *bool {
+	v, exists := c.GetQuery(key)
+	if !exists || v == "" {
+		return nil
+	}
+	b := parseBool(v)
+	return &b
 }
 
 // queryInt 取整型 query（缺省返回 def）。

@@ -387,11 +387,11 @@ func (s *ArticleService) UpdateBrowseProgress(ctx context.Context, articleID str
 // UserBrowseHistory 浏览历史列表（对齐 GET /article/browse/history）。
 //
 // 视图结构见 dto.BrowseHistoryDto（service.BrowseHistoryView 是它的别名）。
-func (s *ArticleService) UserBrowseHistory(ctx context.Context, actor Actor, page, limit int) ([]BrowseHistoryView, int64, *errcode.Err) {
+func (s *ArticleService) UserBrowseHistory(ctx context.Context, actor Actor, page, limit int, order string) ([]BrowseHistoryView, int64, *errcode.Err) {
 	if actor.Anonymous() {
 		return nil, 0, errcode.ErrUnauthorized
 	}
-	rows, total, err := s.repo.ListBrowse(ctx, actor.UserID, page, limit)
+	rows, total, err := s.repo.ListBrowse(ctx, actor.UserID, page, limit, order)
 	if err != nil {
 		s.log.Error("查询浏览历史失败", zap.Error(err))
 		return nil, 0, errcode.ErrInternal

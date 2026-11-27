@@ -68,6 +68,17 @@ type UserDto struct {
 	// ---- 数组字段：去掉 omitempty，空时输出 []（不是省略、不是 null）----
 	Roles    []RoleBriefDto `json:"roles"`
 	IsMember bool           `json:"is_member" example:"false"`
+
+	// Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。
+	//
+	// 为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，
+	// 加一处两个接口同时满足；登录一次就要拿到全部配置，否则前端进设置页要再发一次
+	// GET /user/config（docs/28 §四 C 段）。
+	//
+	// **只在详情类接口填充**（login / profile / user/{id}），列表接口留 nil ——
+	// UserDto 被 GET /user、关注/粉丝列表复用，N 个用户各带 28 字段配置会让响应体爆炸。
+	// 指针 + omitempty：不加载时整个字段不传（docs/21 规则 ③），不会出现 config: null。
+	Config *UserConfigDto `json:"config,omitempty"`
 }
 
 // UserProfileDto 当前用户资料（GET /user/profile）。
@@ -141,12 +152,35 @@ type LoginRequest struct {
 }
 
 // RegisterRequest 注册请求体。
+//
+// invite_code / verification_code 两字段对齐 JS 版（docs/28 §三 B1）：
+//   - invite_code：填了就绑定邀请人（等价 POST /invite/use，省一次请求、避免
+//     「注册成功但邀请码失败」的中间态）。**空则不处理**，不破坏现有调用。
+//   - verification_code：填了才校验邮箱验证码（**非空才校验**语义，不是必填）。
+//     想强制必填是产品决策，当前不强制 —— 现有客户端不传仍能注册。
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required" example:"alice"`
-	Nickname string `json:"nickname" example:"爱丽丝"`
-	Password string `json:"password" binding:"required" example:"123456"`
-	Email    string `json:"email" example:"alice@example.com"`
-	Phone    string `json:"phone" example:"13800138000"`
+	Username         string `json:"username" binding:"required" example:"alice"`
+	Nickname         string `json:"nickname" example:"爱丽丝"`
+	Password         string `json:"password" binding:"required" example:"123456"`
+	Email            string `json:"email" example:"alice@example.com"`
+	Phone            string `json:"phone" example:"13800138000"`
+	InviteCode       string `json:"invite_code" example:"AB12CD"`
+	VerificationCode string `json:"verification_code" example:"123456"`
+}
+
+// UpdateContactRequest 修改联系方式（PATCH /user/profile/contact）。
+//
+// 为什么独立成 DTO 而不复用 UpdateProfileRequest：
+// 改联系方式（邮箱/手机号）**必须带验证码**，改昵称不需要。共用一个 DTO 会让
+// 「带验证码」这条安全约束无处安放 —— 改造前正是如此：注释写着有验证码校验，
+// 实现里一个字都没有，等于可无验证码直接把账号绑定改成别人的（账号接管面）。
+//
+// 一次只能改一项：验证码是按 (target, scene) 发的，一个 code 不可能同时命中
+// 新邮箱与新手机号，所以 email 与 phone 只传一个。
+type UpdateContactRequest struct {
+	Email            string `json:"email" example:"alice@example.com"`
+	Phone            string `json:"phone" example:"13800138000"`
+	VerificationCode string `json:"verification_code" binding:"required" example:"123456"`
 }
 
 // RefreshTokenRequest 刷新 access token 请求体（另需 Device-Id 头）。
@@ -313,12 +347,45 @@ type UpdateProfileRequest struct {
 }
 
 // UpdateUserConfigRequest 更新抽成配置（service.UpdateConfigInput，5 指针字段）。
+// UpdateUserConfigRequest 更新用户配置（service.UpdateConfigInput，28 指针字段）。
+//
+// 与响应 UserConfigDto 逐字段对称（docs/28 §三 B2）：改造前只有 5 个佣金字段，
+// 前端「能读不能写」—— 设置页拉到 28 个配置，保存时只能提交其中 5 个。
+//
+// 全部指针 = nil 不改（部分更新语义）。一个字段都不传时 service 返回 10008
+// （保留原有空判：空请求体是客户端 bug，不该静默成功）。
 type UpdateUserConfigRequest struct {
+	// ---- 佣金 5 ----
 	ArticleCommissionRate    *float64 `json:"article_commission_rate" example:"0.10"`
 	MembershipCommissionRate *float64 `json:"membership_commission_rate" example:"0.20"`
 	ProductCommissionRate    *float64 `json:"product_commission_rate" example:"0.15"`
 	ServiceCommissionRate    *float64 `json:"service_commission_rate" example:"0.05"`
 	EnableCustomCommission   *bool    `json:"enable_custom_commission" example:"false"`
+
+	// ---- 通知 11 ----
+	EnableSystemNotification  *bool `json:"enable_system_notification" example:"true"`
+	EnableCommentNotification *bool `json:"enable_comment_notification" example:"true"`
+	EnableLikeNotification    *bool `json:"enable_like_notification" example:"true"`
+	EnableFollowNotification  *bool `json:"enable_follow_notification" example:"true"`
+	EnableMessageNotification *bool `json:"enable_message_notification" example:"true"`
+	EnableOrderNotification   *bool `json:"enable_order_notification" example:"true"`
+	EnablePaymentNotification *bool `json:"enable_payment_notification" example:"true"`
+	EnableInviteNotification  *bool `json:"enable_invite_notification" example:"true"`
+	EnableEmailNotification   *bool `json:"enable_email_notification" example:"true"`
+	EnableSmsNotification     *bool `json:"enable_sms_notification" example:"true"`
+	EnablePushNotification    *bool `json:"enable_push_notification" example:"true"`
+
+	// ---- 隐私 6 ----
+	HideFavorites   *bool `json:"hide_favorites" example:"false"`
+	HideComments    *bool `json:"hide_comments" example:"false"`
+	HideCollections *bool `json:"hide_collections" example:"false"`
+	HideFollowers   *bool `json:"hide_followers" example:"false"`
+	HideFollowings  *bool `json:"hide_followings" example:"false"`
+	HideTags        *bool `json:"hide_tags" example:"false"`
+
+	// ---- 其他 2 ----
+	WatermarkEnabled *bool   `json:"watermark_enabled" example:"false"`
+	Remark           *string `json:"remark" example:"备注"`
 }
 
 // UpdateNotificationRequest 更新通知偏好（service.NotificationInput，11 指针字段）。

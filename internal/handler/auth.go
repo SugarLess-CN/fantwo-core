@@ -57,7 +57,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, service.LoginResult(user, token, refresh))
+	response.Success(c, h.svc.LoginResultWithConfig(c.Request.Context(), user, token, refresh))
 }
 
 // Register POST /user/register（另挂 POST /auth/register）。
@@ -80,6 +80,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	user, e := h.svc.Register(c.Request.Context(), service.RegisterInput{
 		Username: req.Username, Nickname: req.Nickname, Password: req.Password,
 		Email: req.Email, Phone: req.Phone,
+		// 新增两字段必须在这里显式转发 —— 漏了这一段就等于「DTO 加了、service 支持了、
+		// 但请求进不到业务层」（本项目已踩过同类：docs/21 §四之三 契约漂移）。
+		InviteCode:       req.InviteCode,
+		VerificationCode: req.VerificationCode,
 	})
 	if e != nil {
 		response.Fail(c, e)
@@ -203,7 +207,7 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, service.LoginResult(user, token, refresh))
+	response.Success(c, h.svc.LoginResultWithConfig(c.Request.Context(), user, token, refresh))
 }
 
 // SendEmailCode POST /user/email/verification：邮箱验证码。
@@ -330,7 +334,7 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, service.LoginResult(user, token, refresh))
+	response.Success(c, h.svc.LoginResultWithConfig(c.Request.Context(), user, token, refresh))
 }
 
 // GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。

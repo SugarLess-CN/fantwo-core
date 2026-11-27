@@ -24,10 +24,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
+	"github.com/SugarLess-CN/fantwo-core/internal/event"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
+	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -128,15 +130,48 @@ type RegisterInput struct {
 	Password string
 	Email    string
 	Phone    string
+	// InviteCode 邀请码（可空）：非空则注册时直接绑定邀请人，
+	// 等价于注册后再调一次 POST /invite/use，省一次往返、避免
+	// 「注册成功但邀请码失败」的中间态（docs/28 §三 B1）。
+	InviteCode string
+	// VerificationCode 邮箱验证码（可空）：**非空才校验**。
+	// 空值不校验是为了不把现有客户端一次性打成 400；
+	// 要改成「注册必须验邮箱」只需删掉这一层 if（产品决策）。
+	VerificationCode string
 }
 
-// Register 用户注册：唯一性校验 → 建用户 + 默认角色。
+// Register 用户注册：验证码（可选）→ 邀请码预校验 → 唯一性校验 → 建用户 + 默认角色
+// → 消费邀请码。
 func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.User, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
 	if in.Username == "" || in.Password == "" {
 		return nil, errcode.ErrInvalidParam
+	}
+	// 邮箱验证码：只在传了 code 时校验（非空才校验，兼容旧客户端）。
+	if in.VerificationCode != "" {
+		if in.Email == "" {
+			// 传了验证码却没给邮箱 —— 参数自相矛盾，早报错比静默忽略好。
+			return nil, errcode.ErrInvalidParam
+		}
+		if e := s.VerifyCode(ctx, in.Email, "verification", in.VerificationCode); e != nil {
+			return nil, e
+		}
+	}
+	// 邀请码预校验：必须在建号之前判，否则会出现「用户建好了、邀请码是错的」的中间态
+	// —— 这正是 docs/28 推荐「注册时消费邀请码」而不是「注册后再调一次」的理由。
+	// 这里只读不写；真正的状态变更（PENDING→USED + 发 invite.used）在事务提交后做。
+	if in.InviteCode != "" {
+		inv, err := repository.InviteRepo{}.FindByCode(s.d.DB, in.InviteCode)
+		if err != nil {
+			return nil, errcode.ErrInvalidParam.WithKey(i18n.InviteCodeInvalid)
+		}
+		// inviteeID 传空：此刻用户还没建出来，自邀判定（inviter == invitee）不适用，
+		// 其余状态机（不存在 / 已用 / 过期）逐条复用既有纯函数，不复制逻辑。
+		if reject := inviteUseRejection(inv, "", time.Now()); reject != nil {
+			return nil, reject
+		}
 	}
 	// 密码长度校验：对齐原仓库 create-user.dto.ts @MinLength(6)（按 rune 计数）。
 	if utf8.RuneCountInString(in.Password) < 6 {
@@ -187,7 +222,30 @@ func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.Us
 		s.d.Logger.Error("register create", zapErr(err))
 		return nil, errcode.ErrInternal
 	}
+	// 用户已落库，这时才真正消费邀请码（事务外：邀请记录的状态变更不该回滚用户注册
+	// —— 号已经建好了，回滚等于把一个刚注册的用户踢掉）。
+	// 并发抢占（预校验后被别人用掉）在这里会失败：记 warn 不阻断注册，但日志可见。
+	if in.InviteCode != "" {
+		if _, err := NewInviteService(s.d.DB, event.Default(), "", 0).Use(user.ID, in.InviteCode); err != nil {
+			s.d.Logger.Warn("register consume invite code failed user=" + user.ID)
+		}
+	}
 	return user, nil
+}
+
+// LoginResultWithConfig 登录成功的响应（含用户配置）。
+//
+// 为什么不改 LoginResult 的签名：那个纯函数被 handler/oauth.go 的 4 个 OAuth 入口共用，
+// 改签名要跨文件；这里加一个 Deps 版本，登录类入口统一走它。
+//
+// **容错语义**：配置查库失败只留 nil（omitempty 保证字段不出现），
+// **绝不让登录 500** —— 一个设置页用的配置块不该把登录打死。
+// 复用 UserService.configOf 而不是自己写一份 if：那个函数已经是这个语义，
+// 两处各写一份迟早会漂移（一处 warn 一处直接返回 err）。
+func (s *AuthService) LoginResultWithConfig(ctx context.Context, u *model.User, token, refresh string) *dto.LoginResultDto {
+	out := LoginResult(u, token, refresh)
+	out.Config = NewUserService(s.d).configOf(ctx, u.ID)
+	return out
 }
 
 // RefreshInput 刷新入参。

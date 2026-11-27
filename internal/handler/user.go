@@ -67,23 +67,28 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	response.Success(c, view)
 }
 
-// UpdateContact PATCH /user/profile/contact：修改邮箱/手机号（带验证码校验走 BindPhone）。
+// UpdateContact PATCH /user/profile/contact：修改邮箱/手机号（**必须带验证码**）。
 //
-//	@Summary	修改联系方式
+// 与 PATCH /user/profile 的分工：那边改昵称/头像等资料，这边改「能用来登录的标识」。
+// 后者才是账号接管的入口，所以独立端点 + 独立 DTO + 强制验证码。
+//
+//	@Summary	修改联系方式（需验证码）
 //	@Tags		用户管理
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body dto.UpdateProfileRequest true "请求体"
+//	@Param		body body dto.UpdateContactRequest true "email 或 phone（二选一）+ verification_code"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_updateContact
 //	@Router		/user/profile/contact [patch]
 func (h *UserHandler) UpdateContact(c *gin.Context) {
-	var in service.UpdateProfileInput
+	var in dto.UpdateContactRequest
 	if !bindJSON(c, &in) {
 		return
 	}
-	view, e := h.svc.UpdateProfile(c.Request.Context(), middleware.CurrentUserID(c), in)
+	view, e := h.svc.UpdateContact(c.Request.Context(), middleware.CurrentUserID(c), service.UpdateContactInput{
+		Email: in.Email, Phone: in.Phone, VerificationCode: in.VerificationCode,
+	})
 	if e != nil {
 		response.Fail(c, e)
 		return

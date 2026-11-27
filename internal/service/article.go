@@ -516,7 +516,8 @@ type ArticleListQuery struct {
 	AuthorID   string
 	Status     []string
 	Type       string // all / popular / latest / following
-	SortBy     string // 搜索场景：relevance / latest / views / likes
+	SortBy     string // 搜索场景：relevance / latest / views / likes（GET /article/search 的 sort_by）
+	Sort       string // 列表排序：latest / popular / sort（GET /article 的 sort；空=按 Type 默认）
 	Page       int
 	Limit      int
 }
@@ -572,6 +573,22 @@ func (s *ArticleService) List(ctx context.Context, q ArticleListQuery, actor Act
 		case "likes":
 			orderBy = "relevance"
 		}
+	}
+	// GET /article 的 sort（D1）：显式排序优先于 type 的默认排序。
+	//
+	// 取值来自原 JS 版 article.service.ts findAll 的三条排序分支（JS 没有独立的 sort 参数，
+	// 排序语义挂在 type 上；这里把三条分支的排序键单独暴露成 sort，便于话题页/圈子页切换）：
+	//   latest  ← case "latest"      （article.service.ts:741）created_at DESC
+	//   popular ← case "popular"     （getPopularMixedResults，:243）热度/浏览优先
+	//   sort    ← 默认分支            （article.service.ts:743）article.sort DESC + created_at DESC
+	// 未知取值不报错（前端传新枚举不该让列表页 500），静默沿用 type 的默认排序。
+	switch strings.ToLower(q.Sort) {
+	case "latest":
+		orderBy = "latest"
+	case "popular":
+		orderBy = "popular"
+	case "sort":
+		orderBy = "sort"
 	}
 
 	// 匿名列表：排除仅登录可见的文章

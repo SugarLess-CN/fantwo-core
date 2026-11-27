@@ -45,6 +45,12 @@ func (h *TagHandler) Create(c *gin.Context) {
 //	@Summary	标签列表
 //	@Tags		标签
 //	@Produce	json
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		keyword query string false "标签名关键字（推荐）example(风景)"
+//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）example(风景)"
+//	@Param		sort_by query string false "排序字段 example(article_count)"
+//	@Param		sort_order query string false "排序方向（默认 DESC）example(DESC)" enums(DESC, ASC)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@ID			TagController_findAll
 //	@Router		/tag [get]
@@ -99,12 +105,22 @@ func (h *TagHandler) Hot(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		user_id query string false "目标用户 ID（缺省看自己）example(64b59ed4-1a2b-4c3d-8e9f-0123456789ab)"
+//	@Param		keyword query string false "标签名关键字（推荐）example(风景)"
+//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）example(风景)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@ID			TagController_getFollowedTags
 //	@Router		/tag/followed/list [get]
 func (h *TagHandler) FollowedList(c *gin.Context) {
 	page, limit := pageOf(c)
-	list, total, e := h.svc.FollowedList(c.Request.Context(), actorOf(c), c.Query("user_id"), c.Query("name"), page, limit)
+	// keyword 优先、name 兜底（与 parseTagQuery 同口径，D8）
+	name := c.Query("keyword")
+	if name == "" {
+		name = c.Query("name")
+	}
+	list, total, e := h.svc.FollowedList(c.Request.Context(), actorOf(c), c.Query("user_id"), name, page, limit)
 	if e != nil {
 		ctFail(c, e)
 		return

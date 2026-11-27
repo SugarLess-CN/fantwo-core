@@ -105,6 +105,28 @@ func (r *CommentRepository) FindReplies(ctx context.Context, rootIDs []string) (
 	return rows, err
 }
 
+// ListRepliesPaged 某楼层根下的回复分页（GET /comment/:id 的 replies 分页）。
+//
+// rootID 是该楼层根的评论 ID（一级评论传自身 ID，二级回复传它的 root_id ——
+// 与原 JS comment.service.findCommentDetail 的 `rootID = comment.rootID || comment.id` 同口径）。
+// 排序按发表顺序 ASC，与 buildTree 组树顺序一致，避免同一楼层在列表与详情里顺序相反。
+// 分页走 pageClause 统一兜底：limit <= 0 → 默认 10，绝不出 `LIMIT 0`。
+func (r *CommentRepository) ListRepliesPaged(ctx context.Context, rootID string, page, limit int) ([]model.Comment, int64, error) {
+	if rootID == "" {
+		return []model.Comment{}, 0, nil
+	}
+	base := r.db.WithContext(ctx).Model(&model.Comment{}).
+		Where("root_id = ? AND status = ?", rootID, model.CommentStatusPublished)
+	var total int64
+	if err := base.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	offset, size := pageClause(page, limit)
+	var rows []model.Comment
+	err := base.Order("created_at ASC").Offset(offset).Limit(size).Find(&rows).Error
+	return rows, total, err
+}
+
 // Create 落库评论。
 func (r *CommentRepository) Create(ctx context.Context, c *model.Comment) error {
 	return r.db.WithContext(ctx).Create(c).Error
