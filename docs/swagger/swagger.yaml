@@ -3889,6 +3889,374 @@ definitions:
         example: callback-payload-json
         type: string
     type: object
+  dto.QqbotApplicationDetailDto:
+    properties:
+      application:
+        $ref: '#/definitions/dto.QqbotApplicationDto'
+      messages:
+        items:
+          $ref: '#/definitions/dto.QqbotMessageDto'
+        type: array
+      outbox:
+        items:
+          $ref: '#/definitions/dto.QqbotOutboxDto'
+        type: array
+    type: object
+  dto.QqbotApplicationDto:
+    properties:
+      content:
+        example: 邀请码
+        type: string
+      created_at:
+        format: date-time
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      invite_code:
+        description: InviteCode 批准后分配的邀请码（未批准与拒绝时为空串）。
+        example: INVAB12CD34
+        type: string
+      invite_id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        type: string
+      nickname:
+        example: QQ用户
+        type: string
+      open_id:
+        description: OpenID 机器人维度唯一标识。**不是本站用户 ID**，不能拿去查 user 表。
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        type: string
+      qqbot_msg_id:
+        description: QqbotMsgID 触发申请的原始消息 ID（唯一索引，重复推送命中它而不是插两条）。
+        example: ROBOT1.0_aBcDeF1234567890
+        type: string
+      review_note:
+        example: 老用户推荐，通过
+        type: string
+      reviewed_at:
+        description: ReviewedAt 审批时间：未审批时不传该字段。
+        format: date-time
+        type: string
+      reviewer_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
+        type: string
+      status:
+        description: Status 见 model.QqbotAppXxx：PENDING / APPROVED / REJECTED / CANCELLED。
+        example: PENDING
+        type: string
+      union_open_id:
+        example: U1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+    type: object
+  dto.QqbotApproveRequest:
+    properties:
+      note:
+        example: 老用户推荐，通过
+        maxLength: 500
+        type: string
+    type: object
+  dto.QqbotApproveResultDto:
+    properties:
+      application:
+        $ref: '#/definitions/dto.QqbotApplicationDto'
+      outbox_id:
+        description: OutboxID 本次建出来的池任务 ID（审批只建任务不直接发，投递由池子完成）。
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        type: string
+    type: object
+  dto.QqbotBatchApproveRequest:
+    properties:
+      ids:
+        example:
+        - '["64b59ed4-1a2b-4c3d-8e9f-0123456789ab"]'
+        items:
+          type: string
+        maxItems: 100
+        minItems: 1
+        type: array
+      note:
+        example: 批次通过
+        maxLength: 500
+        type: string
+    required:
+    - ids
+    type: object
+  dto.QqbotBatchItemDto:
+    properties:
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      invite_code:
+        example: INVAB12CD34
+        type: string
+      message:
+        example: Success
+        type: string
+      outbox_id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        type: string
+      status_code:
+        example: 0
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.QqbotBatchResultDto:
+    properties:
+      failed:
+        example: 1
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/dto.QqbotBatchItemDto'
+        type: array
+      succeeded:
+        example: 4
+        type: integer
+      total:
+        example: 5
+        type: integer
+    type: object
+  dto.QqbotConversationDto:
+    properties:
+      deferred_count:
+        description: DeferredCount 其中处于 DEFERRED（等用户开口激活窗口）的条数。
+        example: 1
+        type: integer
+      last_direction:
+        description: LastDirection 最后一条消息的方向：INBOUND / OUTBOUND（无消息时为空串）。
+        example: INBOUND
+        type: string
+      last_message:
+        description: LastMessage 最后一条消息内容（空串表示尚无消息）。
+        example: 什么时候能给我邀请码？
+        type: string
+      last_message_at:
+        description: LastMessageAt 最后一条消息时间（无消息时不传）。
+        format: date-time
+        type: string
+      message_count:
+        example: 12
+        type: integer
+      nickname:
+        example: QQ用户
+        type: string
+      open_id:
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        type: string
+      pending_count:
+        description: |-
+          PendingCount 该用户还在池子里没发出去的消息数（含 DEFERRED）——
+          对应「用户没收到」的可观测面。
+        example: 1
+        type: integer
+      unread_count:
+        example: 3
+        type: integer
+    type: object
+  dto.QqbotMessageDto:
+    properties:
+      content:
+        example: 我要一个邀请码
+        type: string
+      created_at:
+        format: date-time
+        type: string
+      direction:
+        description: Direction INBOUND（用户发）/ OUTBOUND（机器人或后台发）。
+        example: INBOUND
+        type: string
+      id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        type: string
+      is_wakeup:
+        example: false
+        type: boolean
+      msg_seq:
+        example: 1
+        type: integer
+      msg_type:
+        description: MsgType 官方 msg_type：0 文本 / 2 markdown / 7 富媒体。
+        example: 0
+        type: integer
+      open_id:
+        description: OpenID 对话方。
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        type: string
+      qqbot_msg_id:
+        description: QqbotMsgID 平台消息 ID（入站即被动回复源；出站为发送响应 id）。
+        example: ROBOT1.0_aBcDeF1234567890
+        type: string
+      reply_msg_id:
+        example: ROBOT1.0_aBcDeF1234567890
+        type: string
+      sender_id:
+        description: SenderID 后台管理员 ID（仅「后台发出的」消息有值）。
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
+        type: string
+    type: object
+  dto.QqbotOutboxDto:
+    properties:
+      attempts:
+        example: 2
+        type: integer
+      content:
+        description: Content 待发文本（**原样返回**：这是排查发件池问题的唯一线索）。
+        example: 您的邀请码是 INVAB12CD34
+        type: string
+      created_at:
+        format: date-time
+        type: string
+      id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        type: string
+      invite_code:
+        description: InviteCode 本任务要发放的邀请码（仅 INVITE_CODE 类型有值，其它为空串）。
+        example: INVAB12CD34
+        type: string
+      kind:
+        description: Kind INVITE_CODE / REJECT / CHAT / AUTO_REPLY。
+        example: INVITE_CODE
+        type: string
+      last_code:
+        example: 40034005
+        type: integer
+      last_error:
+        description: |-
+          LastError / LastCode / LastKind 最后失败详情（LastKind 取 SDK 的 ErrorKind：
+          retryable / window_expired / permanent / config / invalid_argument）。
+        example: reply msg expired
+        type: string
+      last_kind:
+        example: window_expired
+        type: string
+      msg_seq:
+        example: 0
+        type: integer
+      msg_type:
+        example: 0
+        type: integer
+      next_retry_at:
+        format: date-time
+        type: string
+      open_id:
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        type: string
+      ref_id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      reply_msg_at:
+        format: date-time
+        type: string
+      reply_msg_id:
+        description: ReplyMsgID / ReplyMsgAt 被动回复源消息与其到达时间（窗口判定依据）。
+        example: ROBOT1.0_aBcDeF1234567890
+        type: string
+      sender_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
+        type: string
+      sent_at:
+        format: date-time
+        type: string
+      status:
+        example: DEFERRED
+        type: string
+      updated_at:
+        format: date-time
+        type: string
+    type: object
+  dto.QqbotRejectRequest:
+    properties:
+      note:
+        example: 暂未开放申请
+        maxLength: 500
+        type: string
+    type: object
+  dto.QqbotSendMessageRequest:
+    properties:
+      content:
+        example: 你的申请我们收到了，正在处理
+        maxLength: 2000
+        type: string
+      open_id:
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        maxLength: 128
+        type: string
+    required:
+    - content
+    - open_id
+    type: object
+  dto.QqbotStatusDto:
+    properties:
+      app_id:
+        description: AppID 便于运维核对填错（AppID 是公开标识，不敏感）。
+        example: "102065886"
+        type: string
+      configured:
+        description: Configured 凭据是否齐全（app_id + app_secret；webhook 验签另需 bot_secret）。
+        example: true
+        type: boolean
+      enabled:
+        description: Enabled 总开关（qqbot_enabled）。
+        example: true
+        type: boolean
+      missing:
+        description: Missing 缺失的配置 key 列表（空时 []）。
+        items:
+          type: string
+        type: array
+      outbox_deferred:
+        example: 7
+        type: integer
+      outbox_failed:
+        example: 0
+        type: integer
+      outbox_pending:
+        description: 池子积压（运维最关心的一组数字）。
+        example: 2
+        type: integer
+      outbox_sent:
+        example: 128
+        type: integer
+      pending_applications:
+        description: PendingApplications 待审批申请数。
+        example: 3
+        type: integer
+      recent_error:
+        description: RecentError / RecentErrorAt 最近一次投递失败的归类与时间（无失败时不传时间）。
+        example: window_expired
+        type: string
+      recent_error_at:
+        format: date-time
+        type: string
+      token_error:
+        description: TokenError 取 token 失败时的归类标签（retryable / config / unknown…），成功时
+          ""。
+        example: config
+        type: string
+      token_ok:
+        description: TokenOK 拉一次 access_token 是否成功（Enabled=false 或未配置时恒 false）。
+        example: true
+        type: boolean
+      webhook_ready:
+        description: WebhookReady bot_secret 是否已配置（缺它 webhook 一律验签失败）。
+        example: true
+        type: boolean
+    type: object
+  dto.QqbotWebhookValidationDto:
+    properties:
+      plain_token:
+        example: Arq0D5A61EgUu4OxUvOp
+        type: string
+      signature:
+        example: a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff00
+        type: string
+    type: object
   dto.ReadReceiptDto:
     properties:
       conversation_id:
@@ -12469,6 +12837,447 @@ paths:
       summary: 我的菜单树
       tags:
       - 角色
+  /qqbot/applications:
+    get:
+      operationId: QqbotController_listApplications
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: limit
+        type: integer
+      - description: 状态：PENDING/APPROVED/REJECTED/CANCELLED
+        example: PENDING
+        in: query
+        name: status
+        type: string
+      - description: 关键字：open_id/昵称/内容/邀请码
+        example: 邀请码
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.QqbotApplicationDto'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 邀请码申请名单
+      tags:
+      - QQ机器人
+  /qqbot/applications/{id}:
+    get:
+      operationId: QqbotController_getApplication
+      parameters:
+      - description: 申请单 ID
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotApplicationDetailDto'
+              type: object
+        "404":
+          description: 申请单不存在
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 申请详情（含该用户聊天流水与相关池任务）
+      tags:
+      - QQ机器人
+  /qqbot/applications/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      operationId: QqbotController_approveApplication
+      parameters:
+      - description: 申请单 ID
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 审批备注（可空）
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.QqbotApproveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotApproveResultDto'
+              type: object
+        "404":
+          description: 申请单不存在
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "409":
+          description: 该申请已审批过
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 同意申请（分配邀请码并进入发件池）
+      tags:
+      - QQ机器人
+  /qqbot/applications/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      operationId: QqbotController_rejectApplication
+      parameters:
+      - description: 申请单 ID
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 拒绝原因（会拼进给用户的通知）
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.QqbotRejectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotApproveResultDto'
+              type: object
+        "404":
+          description: 申请单不存在
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "409":
+          description: 该申请已审批过
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 拒绝申请（给用户发拒绝通知）
+      tags:
+      - QQ机器人
+  /qqbot/applications/batch-approve:
+    post:
+      consumes:
+      - application/json
+      operationId: QqbotController_batchApprove
+      parameters:
+      - description: 申请单 ID 列表（1~100 条）
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.QqbotBatchApproveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotBatchResultDto'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 批量同意（部分失败也返回 200，逐条看 results）
+      tags:
+      - QQ机器人
+  /qqbot/conversations:
+    get:
+      operationId: QqbotController_listConversations
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.QqbotConversationDto'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 会话列表（按 openid 聚合：最后消息 + 未读 + 待发）
+      tags:
+      - QQ机器人
+  /qqbot/conversations/{openid}/messages:
+    get:
+      operationId: QqbotController_listMessages
+      parameters:
+      - description: 用户 openid（机器人维度唯一）
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        in: path
+        name: openid
+        required: true
+        type: string
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 20
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.QqbotMessageDto'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 某用户的聊天记录
+      tags:
+      - QQ机器人
+  /qqbot/messages/send:
+    post:
+      consumes:
+      - application/json
+      operationId: QqbotController_sendMessage
+      parameters:
+      - description: 收件 openid + 内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.QqbotSendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotOutboxDto'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台给某用户发消息（走发件池）
+      tags:
+      - QQ机器人
+  /qqbot/outbox:
+    get:
+      operationId: QqbotController_listOutbox
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: limit
+        type: integer
+      - description: 状态：PENDING/SENDING/DEFERRED/SENT/FAILED
+        example: DEFERRED
+        in: query
+        name: status
+        type: string
+      - description: 类型：INVITE_CODE/REJECT/CHAT/AUTO_REPLY
+        example: INVITE_CODE
+        in: query
+        name: kind
+        type: string
+      - description: 按收件人过滤
+        example: A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4
+        in: query
+        name: open_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponsePageBody'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/dto.PageBody'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/dto.QqbotOutboxDto'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 发件池列表（含 DEFERRED 积压与 FAILED 死信）
+      tags:
+      - QQ机器人
+  /qqbot/outbox/{id}/retry:
+    post:
+      operationId: QqbotController_retryOutbox
+      parameters:
+      - description: 池任务 ID
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotOutboxDto'
+              type: object
+        "404":
+          description: 池任务不存在
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+      security:
+      - BearerAuth: []
+      summary: 人工重试一条池任务（FAILED/DEFERRED → PENDING 并立即投递）
+      tags:
+      - QQ机器人
+  /qqbot/status:
+    get:
+      operationId: QqbotController_status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.ResponseBody'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.QqbotStatusDto'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 机器人健康检查（配置齐否 + token 可用否 + 池子积压）
+      tags:
+      - QQ机器人
+  /qqbot/webhook:
+    post:
+      consumes:
+      - application/json
+      operationId: QqbotController_webhook
+      parameters:
+      - description: 平台事件体（op=13 地址验证 / op=0 业务事件）
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: op=13 时返回 plain_token+signature；op=0 时返回空对象
+          schema:
+            $ref: '#/definitions/dto.QqbotWebhookValidationDto'
+        "400":
+          description: 事件体结构非法
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "401":
+          description: 签名校验失败
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+        "503":
+          description: 未配置 bot_secret 或总开关关闭
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
+      summary: QQ 机器人回调（平台调用，NoAuth）
+      tags:
+      - QQ机器人
   /report:
     get:
       operationId: ReportController_findAll

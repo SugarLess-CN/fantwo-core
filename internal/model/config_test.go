@@ -44,10 +44,11 @@ func TestIsSensitiveConfigKey(t *testing.T) {
 }
 
 // TestConfigSensitiveKeysWhitelist 校验白名单自身的口径：
-// 每条白名单 key 必然被判为敏感，且白名单恰好就是这 7 项（防止有人只加常量忘加白名单）。
+// 每条白名单 key 必然被判为敏感，且白名单恰好就是这 12 项（防止有人只加常量忘加白名单）。
 //
-// 7 项构成：3 个运行期可改的密钥（s3_access_key / s3_secret_key / search_password，
-// 其中 S3 两项虽为启动期配置但仍要打码）+ 4 个审核 provider 凭据（T-34f）。
+// 12 项构成：3 个运行期可改的密钥（s3_access_key / s3_secret_key / search_password，
+// 其中 S3 两项虽为启动期配置但仍要打码）+ 4 个审核 provider 凭据（T-34f）
+// + 4 个第三方登录凭据（T-37）+ 2 个 QQ 机器人凭据（T-40）。
 func TestConfigSensitiveKeysWhitelist(t *testing.T) {
 	want := []string{
 		"search_password",
@@ -62,6 +63,9 @@ func TestConfigSensitiveKeysWhitelist(t *testing.T) {
 		"wechat_app_secret",
 		"qq_web_appkey",
 		"github_client_secret",
+		// T-40 QQ 官方机器人：AppSecret / BotSecret 两个凭据打码（AppID 不打码）
+		"qqbot_app_secret",
+		"qqbot_bot_secret",
 	}
 	if len(ConfigSensitiveKeys) != len(want) {
 		t.Fatalf("ConfigSensitiveKeys 条数 = %d, want %d: %v", len(ConfigSensitiveKeys), len(want), ConfigSensitiveKeys)
@@ -152,11 +156,17 @@ func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
 // = 56
 // + 16（T-37b：第三方登录 —— 微信 web 4 + 微信 app 2 + QQ web 4 + QQ app 1 + GitHub 5）
 // = 72
+//   - 6（T-40：QQ 官方机器人 —— enabled / app_id / app_secret / bot_secret /
+//     invite_auto_reply / invite_command）
+//     注意：api_base 与 token_url **刻意不进种子**（pkg/qqbot 已有代码默认值，
+//     且 qqbot_token_url 会命中 `_token` 命名兜底被误判为敏感 —— 详见种子清单注释）
+//
+// = 78
 //
 // 任何增删都应是有意为之 —— 数字对不上时先看 DefaultConfigSeeds 的取舍说明，别直接改这个常量。
 func TestDefaultConfigSeedsCount(t *testing.T) {
-	if got := len(DefaultConfigSeeds()); got != 72 {
-		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 72（增删种子请同步更新取舍说明与算式）", got)
+	if got := len(DefaultConfigSeeds()); got != 78 {
+		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 78（增删种子请同步更新取舍说明与算式）", got)
 	}
 }
 

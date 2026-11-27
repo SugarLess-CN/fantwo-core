@@ -1051,3 +1051,67 @@ func TestQQParseTokenBodyJSONUnknownFields(t *testing.T) {
 		}
 	})
 }
+
+// 参数校验口径回归（lead 2026-11-25 裁定，规则见 docs/14 §7.1.2 禁令 3）：
+// 调用方传空值 = 调用方编程错误（改代码），平台判定失败 = 引导用户重新授权。
+// 两者处置相反，混用会让调用方对空值做无意义的重新授权引导。
+//
+// 每条都同时断言「正面是 ErrInvalidArgument」+「反面不是另一个哨兵」——
+// 只断言正面的话，未来有人顺手改回去测试照样绿，这个纠正就白做了。
+func TestQQInvalidArgumentSemantics(t *testing.T) {
+	t.Run("AuthURL 空 state", func(t *testing.T) {
+		p := newQQ(ChannelWeb, qqWebConfig())
+		for _, state := range []string{"", "   ", "\t\n"} {
+			_, err := p.AuthURL(state)
+			if !errors.Is(err, ErrInvalidArgument) {
+				t.Errorf("state=%q → err = %v, want ErrInvalidArgument（调用方漏了 CSRF 保护）", state, err)
+			}
+			// 反面断言：不能让调用方误判成「用户没授权范围」→ 多余的重新授权引导
+			if errors.Is(err, ErrScopeMissing) {
+				t.Error("空 state 被判成 ErrScopeMissing 会让调用方引导用户重新授权 —— 那是错的")
+			}
+			// 也不该是「平台不支持此渠道」
+			if errors.Is(err, ErrAuthURLUnsupported) {
+				t.Error("空 state 被判成 ErrAuthURLUnsupported —— 那是错的")
+			}
+		}
+		// 非空 state 必须照常出 URL（别把拦得过头）
+		if _, err := p.AuthURL("STATE"); err != nil {
+			t.Errorf("正常 state 不应报错：%v", err)
+		}
+	})
+
+	t.Run("Exchange 空 code", func(t *testing.T) {
+		m := newQQMockServer(t)
+		p := m.provider(ChannelWeb, qqWebConfig())
+		for _, code := range []string{"", "   "} {
+			_, err := p.Exchange(context.Background(), code)
+			if !errors.Is(err, ErrInvalidArgument) {
+				t.Errorf("code=%q → err = %v, want ErrInvalidArgument（调用方错误）", code, err)
+			}
+			// 关键反面断言：ErrCodeInvalid 对应「平台说 code 无效/已用」，
+			// 判成它会让调用方引导用户重新授权 —— 空 code 再授权还是空，死循环。
+			if errors.Is(err, ErrCodeInvalid) {
+				t.Error("空 code 被判成 ErrCodeInvalid 会让调用方引导用户重新授权 —— 那是错的")
+			}
+		}
+		// 不许打上游：空 code 白耗一次配额
+		if m.lastTokenQuery != nil {
+			t.Error("空 code 不应请求上游")
+		}
+	})
+
+	t.Run("平台真的回 100019 时仍用 ErrCodeInvalid", func(t *testing.T) {
+		// 反面保护：不能把「平台侧语义」一起改掉了
+		m := newQQMockServer(t)
+		m.tokenBody = "error=100019&error_description=code to access token error"
+		p := m.provider(ChannelWeb, qqWebConfig())
+		_, err := p.Exchange(context.Background(), "REAL-CODE")
+		if !errors.Is(err, ErrCodeInvalid) {
+			t.Errorf("err = %v, want ErrCodeInvalid（平台侧判定，不是参数错误）", err)
+		}
+		if errors.Is(err, ErrInvalidArgument) {
+			t.Error("平台回 100019 不该被判成 ErrInvalidArgument")
+		}
+	})
+}

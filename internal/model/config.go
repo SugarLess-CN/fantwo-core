@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/SugarLess-CN/fantwo-core/pkg/oauthkit"
+	"github.com/SugarLess-CN/fantwo-core/pkg/qqbot"
 )
 
 // 配置值类型（原 config.type，默认 string）。
@@ -33,6 +34,8 @@ const (
 	ConfigGroupStorage       = "storage"
 	ConfigGroupCDN           = "cdn"
 	ConfigGroupOAuth         = "oauth"
+	// ConfigGroupQqbot QQ 官方机器人（凭据 + 文案 + 关键字）。
+	ConfigGroupQqbot = "qqbot"
 )
 
 // 敏感词配置键：敏感词以 JSON 数组字符串存在该 key 下（对齐原 getSensitiveWords）。
@@ -164,6 +167,10 @@ var ConfigSensitiveKeys = []string{
 	oauthkit.ConfigKeyWechatAppSecret,
 	oauthkit.ConfigKeyQQWebAppKey,
 	oauthkit.ConfigKeyGitHubClientSecret,
+	// QQ 官方机器人（T-40）：AppSecret 与 BotSecret 两个凭据全部打码。
+	// 唯一定义源是 qqbot.SensitiveConfigKeys；AppID 不打码（它本身出现在回调请求头 X-Bot-Appid 里）。
+	qqbot.CfgAppSecret,
+	qqbot.CfgBotSecret,
 }
 
 // sensitiveConfigKeywords IsSensitiveConfigKey 的命名兜底关键词（小写，子串匹配）。
@@ -345,5 +352,29 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{oauthkit.ConfigKeyGitHubRedirectURI, "", "GitHub OAuth 回调地址", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubScope, "read:user user:email", "GitHub 授权作用域", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubSuccessURL, "", "GitHub 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
+
+		// ---- QQ 官方机器人（BOT API v2，docs/29）----
+		// 键名唯一定义源见 pkg/qqbot/config_keys.go，这里只引用常量（不裸写字符串）。
+		//
+		// 为什么 enabled 默认 false：填了 appid/secret 不等于想开；且 webhook 是公网暴露面，
+		// 默认关着让运维显式打开。关闭时 Client 的所有发送返回 ErrNotConfigured，
+		// 池任务按 KindConfig 进入死信而不是空转重试。
+		//
+		// 为什么 api_base / token_url 也写种子：联调期要指到 mock（本机 http 端口），
+		// 写进库后改一行不重启即生效，不必改环境变量重启进程。
+		{qqbot.CfgEnabled, "false", "QQ 机器人总开关（关闭时不发任何消息）", ConfigTypeBoolean, ConfigGroupQqbot, false},
+		{qqbot.CfgAppID, "", "QQ 机器人 AppID（开放平台管理端获取）", ConfigTypeString, ConfigGroupQqbot, false},
+		{qqbot.CfgAppSecret, "", "QQ 机器人 ClientSecret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupQqbot, false},
+		{qqbot.CfgBotSecret, "", "QQ 机器人 webhook 签名密钥 BotSecret（敏感：与 ClientSecret 是两个不同凭据）", ConfigTypeString, ConfigGroupQqbot, false},
+		// qqbot_api_base / qqbot_token_url **刻意不进种子**：
+		//   ① 它们在 pkg/qqbot 里已有代码默认值（DefaultAPIBase / DefaultTokenURL），
+		//      业务读取用 cfgString(key, default) 兜底，不建种子也不影响行为；
+		//   ② 更关键：qqbot_token_url 含子串 `_token`，会被 IsSensitiveConfigKey 的
+		//      **命名兜底**判成敏感 —— 但它是 URL 不是凭据，打码没意义；
+		//      而 TestConfigSensitiveKeysCoverSeeds 的不变量要求「判敏感必须在白名单」，
+		//      硬把它塞进白名单又会让后台把地址打码成 `***`，更难运维。
+		// 结论：不进种子，键仍可用（手工入 DB 后台不展示、代码照读）。
+		{qqbot.CfgInviteAutoReply, "已收到你的邀请码申请，管理员审核后会把邀请码发给你。", "收到邀请码申请时的自动回复文案", ConfigTypeString, ConfigGroupQqbot, false},
+		{qqbot.CfgInviteCommand, "邀请码", "识别为邀请码申请的关键字（内容包含即命中）", ConfigTypeString, ConfigGroupQqbot, false},
 	}
 }

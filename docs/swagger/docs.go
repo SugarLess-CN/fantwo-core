@@ -10592,6 +10592,758 @@ const docTemplate = `{
                 }
             }
         },
+        "/qqbot/applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "邀请码申请名单",
+                "operationId": "QqbotController_listApplications",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "每页条数",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "PENDING",
+                        "description": "状态：PENDING/APPROVED/REJECTED/CANCELLED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "邀请码",
+                        "description": "关键字：open_id/昵称/内容/邀请码",
+                        "name": "keyword",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.QqbotApplicationDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/applications/batch-approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "批量同意（部分失败也返回 200，逐条看 results）",
+                "operationId": "QqbotController_batchApprove",
+                "parameters": [
+                    {
+                        "description": "申请单 ID 列表（1~100 条）",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QqbotBatchApproveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotBatchResultDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/applications/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "申请详情（含该用户聊天流水与相关池任务）",
+                "operationId": "QqbotController_getApplication",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab",
+                        "description": "申请单 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotApplicationDetailDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "申请单不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/applications/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "同意申请（分配邀请码并进入发件池）",
+                "operationId": "QqbotController_approveApplication",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab",
+                        "description": "申请单 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "审批备注（可空）",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QqbotApproveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotApproveResultDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "申请单不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    },
+                    "409": {
+                        "description": "该申请已审批过",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/applications/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "拒绝申请（给用户发拒绝通知）",
+                "operationId": "QqbotController_rejectApplication",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab",
+                        "description": "申请单 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "拒绝原因（会拼进给用户的通知）",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QqbotRejectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotApproveResultDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "申请单不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    },
+                    "409": {
+                        "description": "该申请已审批过",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/conversations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "会话列表（按 openid 聚合：最后消息 + 未读 + 待发）",
+                "operationId": "QqbotController_listConversations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "每页条数",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.QqbotConversationDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/conversations/{openid}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "某用户的聊天记录",
+                "operationId": "QqbotController_listMessages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4",
+                        "description": "用户 openid（机器人维度唯一）",
+                        "name": "openid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 20,
+                        "description": "每页条数",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.QqbotMessageDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/messages/send": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "后台给某用户发消息（走发件池）",
+                "operationId": "QqbotController_sendMessage",
+                "parameters": [
+                    {
+                        "description": "收件 openid + 内容",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QqbotSendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotOutboxDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/outbox": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "发件池列表（含 DEFERRED 积压与 FAILED 死信）",
+                "operationId": "QqbotController_listOutbox",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "description": "每页条数",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "DEFERRED",
+                        "description": "状态：PENDING/SENDING/DEFERRED/SENT/FAILED",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "INVITE_CODE",
+                        "description": "类型：INVITE_CODE/REJECT/CHAT/AUTO_REPLY",
+                        "name": "kind",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4",
+                        "description": "按收件人过滤",
+                        "name": "open_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponsePageBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/dto.PageBody"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/dto.QqbotOutboxDto"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/outbox/{id}/retry": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "人工重试一条池任务（FAILED/DEFERRED → PENDING 并立即投递）",
+                "operationId": "QqbotController_retryOutbox",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
+                        "description": "池任务 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotOutboxDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "池任务不存在",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "机器人健康检查（配置齐否 + token 可用否 + 池子积压）",
+                "operationId": "QqbotController_status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.ResponseBody"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.QqbotStatusDto"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/qqbot/webhook": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QQ机器人"
+                ],
+                "summary": "QQ 机器人回调（平台调用，NoAuth）",
+                "operationId": "QqbotController_webhook",
+                "parameters": [
+                    {
+                        "description": "平台事件体（op=13 地址验证 / op=0 业务事件）",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "op=13 时返回 plain_token+signature；op=0 时返回空对象",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QqbotWebhookValidationDto"
+                        }
+                    },
+                    "400": {
+                        "description": "事件体结构非法",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    },
+                    "401": {
+                        "description": "签名校验失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    },
+                    "503": {
+                        "description": "未配置 bot_secret 或总开关关闭",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
+                        }
+                    }
+                }
+            }
+        },
         "/report": {
             "get": {
                 "security": [
@@ -21420,6 +22172,496 @@ const docTemplate = `{
                 "payload": {
                     "type": "string",
                     "example": "callback-payload-json"
+                }
+            }
+        },
+        "dto.QqbotApplicationDetailDto": {
+            "type": "object",
+            "properties": {
+                "application": {
+                    "$ref": "#/definitions/dto.QqbotApplicationDto"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QqbotMessageDto"
+                    }
+                },
+                "outbox": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QqbotOutboxDto"
+                    }
+                }
+            }
+        },
+        "dto.QqbotApplicationDto": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "邀请码"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "invite_code": {
+                    "description": "InviteCode 批准后分配的邀请码（未批准与拒绝时为空串）。",
+                    "type": "string",
+                    "example": "INVAB12CD34"
+                },
+                "invite_id": {
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "QQ用户"
+                },
+                "open_id": {
+                    "description": "OpenID 机器人维度唯一标识。**不是本站用户 ID**，不能拿去查 user 表。",
+                    "type": "string",
+                    "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                },
+                "qqbot_msg_id": {
+                    "description": "QqbotMsgID 触发申请的原始消息 ID（唯一索引，重复推送命中它而不是插两条）。",
+                    "type": "string",
+                    "example": "ROBOT1.0_aBcDeF1234567890"
+                },
+                "review_note": {
+                    "type": "string",
+                    "example": "老用户推荐，通过"
+                },
+                "reviewed_at": {
+                    "description": "ReviewedAt 审批时间：未审批时不传该字段。",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "reviewer_id": {
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+                },
+                "status": {
+                    "description": "Status 见 model.QqbotAppXxx：PENDING / APPROVED / REJECTED / CANCELLED。",
+                    "type": "string",
+                    "example": "PENDING"
+                },
+                "union_open_id": {
+                    "type": "string",
+                    "example": "U1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.QqbotApproveRequest": {
+            "type": "object",
+            "properties": {
+                "note": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "老用户推荐，通过"
+                }
+            }
+        },
+        "dto.QqbotApproveResultDto": {
+            "type": "object",
+            "properties": {
+                "application": {
+                    "$ref": "#/definitions/dto.QqbotApplicationDto"
+                },
+                "outbox_id": {
+                    "description": "OutboxID 本次建出来的池任务 ID（审批只建任务不直接发，投递由池子完成）。",
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
+                }
+            }
+        },
+        "dto.QqbotBatchApproveRequest": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"64b59ed4-1a2b-4c3d-8e9f-0123456789ab\"]"
+                    ]
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "批次通过"
+                }
+            }
+        },
+        "dto.QqbotBatchItemDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "invite_code": {
+                    "type": "string",
+                    "example": "INVAB12CD34"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                },
+                "outbox_id": {
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
+                },
+                "status_code": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.QqbotBatchResultDto": {
+            "type": "object",
+            "properties": {
+                "failed": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QqbotBatchItemDto"
+                    }
+                },
+                "succeeded": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "dto.QqbotConversationDto": {
+            "type": "object",
+            "properties": {
+                "deferred_count": {
+                    "description": "DeferredCount 其中处于 DEFERRED（等用户开口激活窗口）的条数。",
+                    "type": "integer",
+                    "example": 1
+                },
+                "last_direction": {
+                    "description": "LastDirection 最后一条消息的方向：INBOUND / OUTBOUND（无消息时为空串）。",
+                    "type": "string",
+                    "example": "INBOUND"
+                },
+                "last_message": {
+                    "description": "LastMessage 最后一条消息内容（空串表示尚无消息）。",
+                    "type": "string",
+                    "example": "什么时候能给我邀请码？"
+                },
+                "last_message_at": {
+                    "description": "LastMessageAt 最后一条消息时间（无消息时不传）。",
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "message_count": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "QQ用户"
+                },
+                "open_id": {
+                    "type": "string",
+                    "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                },
+                "pending_count": {
+                    "description": "PendingCount 该用户还在池子里没发出去的消息数（含 DEFERRED）——\n对应「用户没收到」的可观测面。",
+                    "type": "integer",
+                    "example": 1
+                },
+                "unread_count": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "dto.QqbotMessageDto": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "example": "我要一个邀请码"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "direction": {
+                    "description": "Direction INBOUND（用户发）/ OUTBOUND（机器人或后台发）。",
+                    "type": "string",
+                    "example": "INBOUND"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
+                },
+                "is_wakeup": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "msg_seq": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "msg_type": {
+                    "description": "MsgType 官方 msg_type：0 文本 / 2 markdown / 7 富媒体。",
+                    "type": "integer",
+                    "example": 0
+                },
+                "open_id": {
+                    "description": "OpenID 对话方。",
+                    "type": "string",
+                    "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                },
+                "qqbot_msg_id": {
+                    "description": "QqbotMsgID 平台消息 ID（入站即被动回复源；出站为发送响应 id）。",
+                    "type": "string",
+                    "example": "ROBOT1.0_aBcDeF1234567890"
+                },
+                "reply_msg_id": {
+                    "type": "string",
+                    "example": "ROBOT1.0_aBcDeF1234567890"
+                },
+                "sender_id": {
+                    "description": "SenderID 后台管理员 ID（仅「后台发出的」消息有值）。",
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+                }
+            }
+        },
+        "dto.QqbotOutboxDto": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "content": {
+                    "description": "Content 待发文本（**原样返回**：这是排查发件池问题的唯一线索）。",
+                    "type": "string",
+                    "example": "您的邀请码是 INVAB12CD34"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
+                },
+                "invite_code": {
+                    "description": "InviteCode 本任务要发放的邀请码（仅 INVITE_CODE 类型有值，其它为空串）。",
+                    "type": "string",
+                    "example": "INVAB12CD34"
+                },
+                "kind": {
+                    "description": "Kind INVITE_CODE / REJECT / CHAT / AUTO_REPLY。",
+                    "type": "string",
+                    "example": "INVITE_CODE"
+                },
+                "last_code": {
+                    "type": "integer",
+                    "example": 40034005
+                },
+                "last_error": {
+                    "description": "LastError / LastCode / LastKind 最后失败详情（LastKind 取 SDK 的 ErrorKind：\nretryable / window_expired / permanent / config / invalid_argument）。",
+                    "type": "string",
+                    "example": "reply msg expired"
+                },
+                "last_kind": {
+                    "type": "string",
+                    "example": "window_expired"
+                },
+                "msg_seq": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "msg_type": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "next_retry_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "open_id": {
+                    "type": "string",
+                    "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                },
+                "ref_id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "reply_msg_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "reply_msg_id": {
+                    "description": "ReplyMsgID / ReplyMsgAt 被动回复源消息与其到达时间（窗口判定依据）。",
+                    "type": "string",
+                    "example": "ROBOT1.0_aBcDeF1234567890"
+                },
+                "sender_id": {
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+                },
+                "sent_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "DEFERRED"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "dto.QqbotRejectRequest": {
+            "type": "object",
+            "properties": {
+                "note": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "暂未开放申请"
+                }
+            }
+        },
+        "dto.QqbotSendMessageRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "open_id"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "example": "你的申请我们收到了，正在处理"
+                },
+                "open_id": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "example": "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4"
+                }
+            }
+        },
+        "dto.QqbotStatusDto": {
+            "type": "object",
+            "properties": {
+                "app_id": {
+                    "description": "AppID 便于运维核对填错（AppID 是公开标识，不敏感）。",
+                    "type": "string",
+                    "example": "102065886"
+                },
+                "configured": {
+                    "description": "Configured 凭据是否齐全（app_id + app_secret；webhook 验签另需 bot_secret）。",
+                    "type": "boolean",
+                    "example": true
+                },
+                "enabled": {
+                    "description": "Enabled 总开关（qqbot_enabled）。",
+                    "type": "boolean",
+                    "example": true
+                },
+                "missing": {
+                    "description": "Missing 缺失的配置 key 列表（空时 []）。",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outbox_deferred": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "outbox_failed": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "outbox_pending": {
+                    "description": "池子积压（运维最关心的一组数字）。",
+                    "type": "integer",
+                    "example": 2
+                },
+                "outbox_sent": {
+                    "type": "integer",
+                    "example": 128
+                },
+                "pending_applications": {
+                    "description": "PendingApplications 待审批申请数。",
+                    "type": "integer",
+                    "example": 3
+                },
+                "recent_error": {
+                    "description": "RecentError / RecentErrorAt 最近一次投递失败的归类与时间（无失败时不传时间）。",
+                    "type": "string",
+                    "example": "window_expired"
+                },
+                "recent_error_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "token_error": {
+                    "description": "TokenError 取 token 失败时的归类标签（retryable / config / unknown…），成功时 \"\"。",
+                    "type": "string",
+                    "example": "config"
+                },
+                "token_ok": {
+                    "description": "TokenOK 拉一次 access_token 是否成功（Enabled=false 或未配置时恒 false）。",
+                    "type": "boolean",
+                    "example": true
+                },
+                "webhook_ready": {
+                    "description": "WebhookReady bot_secret 是否已配置（缺它 webhook 一律验签失败）。",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.QqbotWebhookValidationDto": {
+            "type": "object",
+            "properties": {
+                "plain_token": {
+                    "type": "string",
+                    "example": "Arq0D5A61EgUu4OxUvOp"
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "a1b2c3d4e5f60718293a4b5c6d7e8f90112233445566778899aabbccddeeff00"
                 }
             }
         },

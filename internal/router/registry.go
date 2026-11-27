@@ -41,6 +41,9 @@ func RegisterAll(v1 *gin.RouterGroup, opt Option) {
 	RegisterPaymentRoutes(v1, opt)
 	RegisterAuditRoutes(v1, opt)
 
+	// QQ 机器人域（T-41b：申请审批 / 发件池 / 后台会话）
+	RegisterQqbotRoutes(v1, opt)
+
 	// API 文档（骨架层；swagger.enabled=true 才注册，见 swagger_routes.go）
 	// Swagger 由 router.New 挂载在根路径 /swagger/*any（此处不再挂 /api/v1/swagger 别名）
 }

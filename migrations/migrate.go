@@ -30,6 +30,7 @@ func Run(db *gorm.DB) error {
 		MigrateTrade,   // 交易域：订单/支付/佣金流水/审核记录/队列去重
 		MigrateInfra,   // 基础设施域：系统配置 + 上传文件
 		MigrateMessage, // 消息域：站内消息/已读回执/私信会话/私信
+		MigrateQqbot,   // QQ 机器人域：邀请码申请单/会话流水/发件池（T-40）
 	} {
 		if err := m(db); err != nil {
 			return err
