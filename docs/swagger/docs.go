@@ -203,7 +203,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "成就 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -248,7 +248,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -296,7 +296,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -352,7 +352,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "成就 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -395,42 +395,42 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码，默认 1 example(1)",
+                        "description": "页码，默认 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数，默认 10 example(10)",
+                        "description": "每页条数，默认 10",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "秋日",
-                        "description": "标题关键字 example(秋日)",
+                        "description": "标题关键字",
                         "name": "title",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
-                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
+                        "description": "分类 ID",
                         "name": "category_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "1a2b3c4d-0000-4e5f-8a9b-000000000001",
-                        "description": "标签 ID example(1a2b3c4d-0000-4e5f-8a9b-000000000001)",
+                        "description": "标签 ID",
                         "name": "tag_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "image",
-                        "description": "image/mixed/video，默认 all example(image)",
+                        "description": "image/mixed/video，默认 all",
                         "name": "type",
                         "in": "query"
                     },
@@ -441,14 +441,15 @@ const docTemplate = `{
                             "sort"
                         ],
                         "type": "string",
-                        "description": "排序方式（缺省按 type 的默认排序）example(latest)",
+                        "example": "latest",
+                        "description": "排序方式（缺省按 type 的默认排序）",
                         "name": "sort",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "PUBLISHED",
-                        "description": "状态筛选，逗号分隔 example(PUBLISHED)",
+                        "description": "状态筛选，逗号分隔",
                         "name": "status",
                         "in": "query"
                     }
@@ -566,14 +567,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -719,14 +720,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
@@ -736,7 +737,8 @@ const docTemplate = `{
                             "oldest"
                         ],
                         "type": "string",
-                        "description": "排序方向（默认 newest）example(newest)",
+                        "example": "newest",
+                        "description": "排序方向（默认 newest）",
                         "name": "order",
                         "in": "query"
                     }
@@ -874,7 +876,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "articleId",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -919,7 +921,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "articleId",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -966,14 +968,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1034,14 +1036,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1102,14 +1104,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1205,14 +1207,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1303,7 +1305,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1348,28 +1350,28 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "搜索关键字 example(风景)",
+                        "description": "搜索关键字",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
-                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
+                        "description": "分类 ID",
                         "name": "category_id",
                         "in": "query"
                     },
@@ -1381,7 +1383,8 @@ const docTemplate = `{
                             "likes"
                         ],
                         "type": "string",
-                        "description": "排序方式（默认 relevance）example(relevance)",
+                        "example": "relevance",
+                        "description": "排序方式（默认 relevance）",
                         "name": "sort_by",
                         "in": "query"
                     }
@@ -1437,7 +1440,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1488,7 +1491,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1542,7 +1545,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1607,7 +1610,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1662,7 +1665,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1715,7 +1718,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1762,7 +1765,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1809,7 +1812,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1854,7 +1857,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1901,7 +1904,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1951,7 +1954,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2007,7 +2010,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2057,7 +2060,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2099,7 +2102,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2149,7 +2152,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2200,7 +2203,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2469,7 +2472,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "轮播 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2514,7 +2517,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "轮播 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2562,7 +2565,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "轮播 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2709,7 +2712,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "分类 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2754,7 +2757,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "分类 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2802,7 +2805,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "分类 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2858,42 +2861,42 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "按作者过滤 example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "按作者过滤",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "按名称搜索 example(风景)",
+                        "description": "按名称搜索",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "created_at",
-                        "description": "排序字段 example(created_at)",
+                        "description": "排序字段",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "desc",
-                        "description": "排序方向 ASC / DESC（默认 DESC） example(desc)",
+                        "description": "排序方向 ASC / DESC（默认 DESC）",
                         "name": "sort_order",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3003,7 +3006,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "articleId",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -3050,7 +3053,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "articleId",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -3097,7 +3100,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3142,7 +3145,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3190,7 +3193,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3246,7 +3249,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3254,7 +3257,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -3299,7 +3302,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3307,7 +3310,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "article_id",
                         "in": "path",
                         "required": true
@@ -3354,7 +3357,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "合集 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3362,14 +3365,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3433,7 +3436,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3489,21 +3492,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
                         "example": false,
-                        "description": "只看帖主（文章作者）的评论 example(false)",
+                        "description": "只看帖主（文章作者）的评论",
                         "name": "only_author",
                         "in": "query"
                     }
@@ -3615,7 +3618,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3623,21 +3626,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
                         "example": false,
-                        "description": "只看帖主（文章作者）的评论 example(false)",
+                        "description": "只看帖主（文章作者）的评论",
                         "name": "only_author",
                         "in": "query"
                     }
@@ -3693,7 +3696,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3735,14 +3738,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3798,7 +3801,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3806,14 +3809,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "回复页码 example(1)",
+                        "description": "回复页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "回复每页条数 example(10)",
+                        "description": "回复每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3857,7 +3860,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "评论 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "评论 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3911,7 +3914,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3967,7 +3970,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4017,7 +4020,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4243,7 +4246,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "upload",
-                        "description": "分组名 example(upload)",
+                        "description": "分组名",
                         "name": "group",
                         "in": "path",
                         "required": true
@@ -4294,7 +4297,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "upload",
-                        "description": "分组名 example(upload)",
+                        "description": "分组名",
                         "name": "group",
                         "in": "path",
                         "required": true
@@ -4353,7 +4356,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "upload_max_image_size",
-                        "description": "配置键 example(upload_max_image_size)",
+                        "description": "配置键",
                         "name": "key",
                         "in": "path",
                         "required": true
@@ -4692,7 +4695,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "配置 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4737,7 +4740,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "配置 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4785,7 +4788,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4844,7 +4847,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "文章 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5025,14 +5028,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -5297,14 +5300,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -5411,7 +5414,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "activityId",
                         "name": "activity_id",
                         "in": "path",
                         "required": true
@@ -5498,7 +5501,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5543,7 +5546,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5591,7 +5594,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5783,7 +5786,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "decorationId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "decorationId",
                         "name": "decoration_id",
                         "in": "path",
                         "required": true
@@ -5830,7 +5833,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "装饰品 ID",
                         "name": "decoration_id",
                         "in": "path",
                         "required": true
@@ -5966,7 +5969,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -6028,7 +6031,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "装饰品 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6073,7 +6076,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "装饰品 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6121,7 +6124,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6451,7 +6454,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "表情包 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "表情包 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6496,7 +6499,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6544,7 +6547,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6603,7 +6606,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6659,7 +6662,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6667,7 +6670,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "emojiId",
                         "name": "emoji_id",
                         "in": "path",
                         "required": true
@@ -6715,7 +6718,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6723,7 +6726,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "emojiId",
                         "name": "emoji_id",
                         "in": "path",
                         "required": true
@@ -6898,7 +6901,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "表情 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6943,7 +6946,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6991,7 +6994,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7047,7 +7050,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "表情 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7092,7 +7095,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7139,7 +7142,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7411,7 +7414,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "邀请码 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "邀请码 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7458,14 +7461,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
@@ -7484,14 +7487,14 @@ const docTemplate = `{
                     {
                         "type": "boolean",
                         "example": false,
-                        "description": "是否已读，缺省=不筛选 example(false)",
+                        "description": "是否已读，缺省=不筛选",
                         "name": "is_read",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
                         "example": false,
-                        "description": "是否全员广播，缺省=不筛选 example(false)",
+                        "description": "是否全员广播，缺省=不筛选",
                         "name": "is_broadcast",
                         "in": "query"
                     }
@@ -7656,7 +7659,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -7710,7 +7713,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -7794,14 +7797,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "eyJpZCI6IjlmMWQyZTM0In0",
-                        "description": "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)",
+                        "description": "游标（上一页最后一条的 cursor）",
                         "name": "cursor",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数，默认 20 example(10)",
+                        "description": "每页条数，默认 20",
                         "name": "limit",
                         "in": "query"
                     }
@@ -7847,7 +7850,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -7855,14 +7858,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "eyJpZCI6IjlmMWQyZTM0In0",
-                        "description": "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)",
+                        "description": "游标（上一页最后一条的 cursor）",
                         "name": "cursor",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 20,
-                        "description": "每页条数，默认 20 example(20)",
+                        "description": "每页条数，默认 20",
                         "name": "limit",
                         "in": "query"
                     }
@@ -7908,7 +7911,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -8012,7 +8015,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8072,7 +8075,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "接收者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "接收者用户 ID",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -8182,14 +8185,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
@@ -8222,21 +8225,21 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "活动",
-                        "description": "关键词（匹配正文/标题） example(活动)",
+                        "description": "关键词（匹配正文/标题）",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "发送者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "发送者用户 ID",
                         "name": "sender_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "1a2b3c4d-5678-4abc-9def-0123456789ab",
-                        "description": "接收者用户 ID example(1a2b3c4d-5678-4abc-9def-0123456789ab)",
+                        "description": "接收者用户 ID",
                         "name": "receiver_id",
                         "in": "query"
                     }
@@ -8334,7 +8337,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8379,7 +8382,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8427,7 +8430,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8483,7 +8486,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8539,42 +8542,42 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "PUBLISHED",
-                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)",
+                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "image",
-                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)",
+                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "买家用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "买家用户 ID",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "订单号模糊搜索 example(风景)",
+                        "description": "订单号模糊搜索",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -8749,7 +8752,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "PA20261127000001",
-                        "description": "orderNo example(PA20261127000001)",
+                        "description": "orderNo",
                         "name": "order_no",
                         "in": "path",
                         "required": true
@@ -8836,35 +8839,35 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "PUBLISHED",
-                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)",
+                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "image",
-                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)",
+                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "订单号模糊搜索 example(风景)",
+                        "description": "订单号模糊搜索",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -8962,7 +8965,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "订单 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9015,7 +9018,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9075,7 +9078,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "订单 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9267,7 +9270,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "orderId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "orderId",
                         "name": "order_id",
                         "in": "path",
                         "required": true
@@ -9314,7 +9317,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9412,14 +9415,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -9609,7 +9612,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "权限 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9654,7 +9657,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "权限 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9702,7 +9705,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "权限 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9753,14 +9756,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "image",
-                        "description": "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE example(image)",
+                        "description": "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "名称关键字 example(风景)",
+                        "description": "名称关键字",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -9853,7 +9856,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "活动 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9898,7 +9901,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9946,7 +9949,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10002,7 +10005,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "活动 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10265,7 +10268,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "activityId",
                         "name": "activity_id",
                         "in": "path",
                         "required": true
@@ -10312,14 +10315,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10380,14 +10383,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10448,7 +10451,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -10495,7 +10498,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -10503,14 +10506,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10746,7 +10749,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "举报 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10791,7 +10794,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "举报 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10839,7 +10842,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "举报 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11024,28 +11027,28 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "管理员",
-                        "description": "角色名过滤 example(管理员)",
+                        "description": "角色名过滤",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
                         "example": true,
-                        "description": "是否启用过滤（不传=不过滤） example(true)",
+                        "description": "是否启用过滤（不传=不过滤）",
                         "name": "is_active",
                         "in": "query"
                     }
@@ -11106,7 +11109,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11151,7 +11154,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11199,7 +11202,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11255,7 +11258,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "源角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "源角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11311,7 +11314,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11359,7 +11362,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11418,7 +11421,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11477,7 +11480,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "角色 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11528,14 +11531,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "关键字 example(风景)",
+                        "description": "关键字",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
-                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
+                        "description": "分类 ID",
                         "name": "category_id",
                         "in": "query"
                     },
@@ -11547,21 +11550,22 @@ const docTemplate = `{
                             "likes"
                         ],
                         "type": "string",
-                        "description": "排序方式（默认 relevance）example(relevance)",
+                        "example": "relevance",
+                        "description": "排序方式（默认 relevance）",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -11812,14 +11816,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "2026-01-01",
-                        "description": "起始日期 YYYY-MM-DD example(2026-01-01)",
+                        "description": "起始日期 YYYY-MM-DD",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "2026-12-31",
-                        "description": "结束日期 YYYY-MM-DD example(2026-12-31)",
+                        "description": "结束日期 YYYY-MM-DD",
                         "name": "end_date",
                         "in": "query"
                     }
@@ -11860,33 +11864,35 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标签名关键字（推荐）example(风景)",
+                        "example": "风景",
+                        "description": "标签名关键字（推荐）",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标签名关键字（旧名，keyword 为空时兜底）example(风景)",
+                        "example": "风景",
+                        "description": "标签名关键字（旧名，keyword 为空时兜底）",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "article_count",
-                        "description": "排序字段 example(article_count)",
+                        "description": "排序字段",
                         "name": "sort_by",
                         "in": "query"
                     },
@@ -11896,7 +11902,8 @@ const docTemplate = `{
                             "ASC"
                         ],
                         "type": "string",
-                        "description": "排序方向（默认 DESC）example(DESC)",
+                        "example": "DESC",
+                        "description": "排序方向（默认 DESC）",
                         "name": "sort_order",
                         "in": "query"
                     }
@@ -12006,32 +12013,35 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "目标用户 ID（缺省看自己）example(64b59ed4-1a2b-4c3d-8e9f-0123456789ab)",
+                        "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab",
+                        "description": "目标用户 ID（缺省看自己）",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标签名关键字（推荐）example(风景)",
+                        "example": "风景",
+                        "description": "标签名关键字（推荐）",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标签名关键字（旧名，keyword 为空时兜底）example(风景)",
+                        "example": "风景",
+                        "description": "标签名关键字（旧名，keyword 为空时兜底）",
                         "name": "name",
                         "in": "query"
                     }
@@ -12151,7 +12161,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "标签 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12196,7 +12206,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "标签 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12244,7 +12254,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "标签 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12300,7 +12310,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "标签 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12345,7 +12355,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12392,14 +12402,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -12593,7 +12603,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "article",
-                        "description": "场景：article/avatar/comment example(article)",
+                        "description": "场景：article/avatar/comment",
                         "name": "scene",
                         "in": "formData"
                     }
@@ -12642,7 +12652,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "上传记录 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12689,7 +12699,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "本批上限（默认 100） example(10)",
+                        "description": "本批上限（默认 100）",
                         "name": "limit",
                         "in": "query"
                     }
@@ -12870,7 +12880,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "上传记录 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12918,21 +12928,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码，默认 1 example(1)",
+                        "description": "页码，默认 1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数，默认 10 example(10)",
+                        "description": "每页条数，默认 10",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "风景",
-                        "description": "用户名关键字 example(风景)",
+                        "description": "用户名关键字",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -13170,21 +13180,21 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "PUBLISHED",
-                        "description": "申请状态 example(PUBLISHED)",
+                        "description": "申请状态",
                         "name": "status",
                         "in": "query"
                     }
@@ -13248,7 +13258,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "申请 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -13304,7 +13314,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "申请 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -13448,7 +13458,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "userId",
                         "name": "user_id",
                         "in": "path",
                         "required": true
@@ -13933,7 +13943,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "uuid-1",
-                        "description": "设备标识，缺省 default example(uuid-1)",
+                        "description": "设备标识，缺省 default",
                         "name": "Device-Id",
                         "in": "header"
                     },
@@ -14185,7 +14195,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "wechat",
-                        "description": "平台 wechat / qq / github example(wechat)",
+                        "description": "平台 wechat / qq / github",
                         "name": "provider",
                         "in": "path",
                         "required": true
@@ -14193,7 +14203,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "web",
-                        "description": "渠道 web / app example(web)",
+                        "description": "渠道 web / app",
                         "name": "channel",
                         "in": "path",
                         "required": true
@@ -14867,14 +14877,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -14935,7 +14945,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "productId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "productId",
                         "name": "product_id",
                         "in": "path",
                         "required": true
@@ -15077,7 +15087,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "uuid-1",
-                        "description": "设备标识 example(uuid-1)",
+                        "description": "设备标识",
                         "name": "Device-Id",
                         "in": "header",
                         "required": true
@@ -15229,14 +15239,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15396,14 +15406,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15512,7 +15522,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "用户 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15563,7 +15573,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "用户 ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15617,7 +15627,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15673,7 +15683,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15715,14 +15725,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15778,7 +15788,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15820,14 +15830,14 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 1,
-                        "description": "页码 example(1)",
+                        "description": "页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "example": 10,
-                        "description": "每页条数 example(10)",
+                        "description": "每页条数",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15883,7 +15893,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15930,7 +15940,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15977,7 +15987,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
-                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "description": "id",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -17299,6 +17309,11 @@ const docTemplate = `{
         "dto.CertificationDto": {
             "type": "object",
             "properties": {
+                "certified_at": {
+                    "description": "CertifiedAt 认证时间（JS 契约字段 certified_at）。\n\n⚠️ model.UserCertification **没有 certified_at 列**（只有 reviewed_at）。\n这里映射 reviewed_at —— 审核动作发生的时间，APPROVED 时它就是认证生效时间，\n语义最接近，且取的是真实数据、不是硬造出来的值。\n若将来要区分「认证通过时间」与「最后一次审核时间」（先拒后过的场景两者不同），\n必须给表加列，届时这里改读新列。",
+                    "type": "string",
+                    "format": "date-time"
+                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time"
@@ -18704,6 +18719,11 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "alice"
+                },
+                "verification_code": {
+                    "description": "VerificationCode 邮箱验证码（可空）：**非空才校验**，与 RegisterRequest 同语义。\n管理端建号一般不走验证码，所以不设为必填。",
+                    "type": "string",
+                    "example": "123456"
                 },
                 "wallet": {
                     "type": "number",
@@ -23301,6 +23321,21 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/bg.png"
                 },
+                "ban_reason": {
+                    "description": "BanReason 封禁原因（仅在封禁时有意义）。",
+                    "type": "string",
+                    "example": "违规内容"
+                },
+                "banned": {
+                    "description": "---- 封禁 2 ----\nBanned 封禁时间戳（RFC3339）。传值=封禁并撤销全部 token；传空串=解封。",
+                    "type": "string",
+                    "example": "2026-11-27T10:00:00Z"
+                },
+                "birth_date": {
+                    "description": "BirthDate 生日（\"2006-01-02\"）。",
+                    "type": "string",
+                    "example": "1998-06-01"
+                },
                 "description": {
                     "type": "string",
                     "example": "一句话说明"
@@ -23309,11 +23344,43 @@ const docTemplate = `{
                     "type": "string",
                     "example": "male"
                 },
+                "invite_code": {
+                    "description": "---- 邀请 1 ----",
+                    "type": "string",
+                    "example": "AB12CD"
+                },
+                "membership_end_date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "membership_level": {
+                    "description": "---- 会员 5 ----",
+                    "type": "integer",
+                    "example": 1
+                },
+                "membership_level_name": {
+                    "type": "string",
+                    "example": "黄金会员"
+                },
+                "membership_start_date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "membership_status": {
+                    "type": "string",
+                    "example": "ACTIVE"
+                },
                 "nickname": {
+                    "description": "---- 资料 6 ----",
                     "type": "string",
                     "example": "爱丽丝"
                 },
+                "password": {
+                    "type": "string",
+                    "example": "newpass123"
+                },
                 "role_ids": {
+                    "description": "---- 管理 3 ----",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -23322,6 +23389,11 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "ACTIVE"
+                },
+                "username": {
+                    "description": "---- 身份 3 ----",
+                    "type": "string",
+                    "example": "alice"
                 },
                 "wallet": {
                     "type": "number",

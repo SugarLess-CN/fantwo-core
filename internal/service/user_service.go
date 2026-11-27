@@ -18,6 +18,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
 	"gorm.io/gorm"
 )
@@ -433,6 +434,8 @@ type CreateUserInput struct {
 	RoleIDs    []string `json:"role_ids"`
 	Wallet     float64  `json:"wallet"`
 	InviteCode string   `json:"invite_code"`
+	// VerificationCode 邮箱验证码（可空）：**非空才校验**，与 RegisterInput 同语义。
+	VerificationCode string `json:"verification_code"`
 }
 
 // CreateUser 管理员创建用户（可指定角色/初始余额）。
@@ -452,6 +455,9 @@ func (s *UserService) CreateUser(ctx context.Context, in CreateUserInput) (*User
 	user, e := auth.Register(ctx, RegisterInput{
 		Username: in.Username, Nickname: in.Nickname, Password: in.Password,
 		Email: in.Email, Phone: in.Phone,
+		// 邀请码与验证码必须显式转发（T-39a 教训：漏了这一段 = DTO 加了也没用）
+		InviteCode:       in.InviteCode,
+		VerificationCode: in.VerificationCode,
 	})
 	if e != nil {
 		return nil, e
@@ -475,17 +481,47 @@ func (s *UserService) CreateUser(ctx context.Context, in CreateUserInput) (*User
 	return buildUserView(user, false, isMembershipActive(user)), nil
 }
 
-// UpdateUserInput 管理员更新用户入参。
+// UpdateUserInput 管理员更新用户入参（20 字段，指针语义 nil 不改）。
+//
+// 与 dto.UpdateUserRequest 逐字段对齐。改造前只有 9 个资料字段 ——
+// **封禁 / 会员调整 / 密码重置这些管理端真正要用的能力都写不了**（docs/28 §八）。
 type UpdateUserInput struct {
-	Nickname    *string  `json:"nickname"`
-	Avatar      *string  `json:"avatar"`
-	Description *string  `json:"description"`
-	Background  *string  `json:"background"`
-	Address     *string  `json:"address"`
-	Gender      *string  `json:"gender"`
-	RoleIDs     []string `json:"role_ids"`
-	Wallet      *float64 `json:"wallet"`
-	Status      *string  `json:"status"`
+	// 身份 3
+	Username  *string `json:"username"`
+	Password  *string `json:"password"`
+	BirthDate *string `json:"birth_date"`
+	// 资料 6
+	Nickname    *string `json:"nickname"`
+	Avatar      *string `json:"avatar"`
+	Description *string `json:"description"`
+	Background  *string `json:"background"`
+	Address     *string `json:"address"`
+	Gender      *string `json:"gender"`
+	// 管理 3
+	RoleIDs []string `json:"role_ids"`
+	Wallet  *float64 `json:"wallet"`
+	Status  *string  `json:"status"`
+	// 邀请 1
+	InviteCode *string `json:"invite_code"`
+	// 封禁 2
+	Banned    *string `json:"banned"`
+	BanReason *string `json:"ban_reason"`
+	// 会员 5
+	MembershipLevel     *int    `json:"membership_level"`
+	MembershipLevelName *string `json:"membership_level_name"`
+	MembershipStatus    *string `json:"membership_status"`
+	MembershipStartDate *string `json:"membership_start_date"`
+	MembershipEndDate   *string `json:"membership_end_date"`
+}
+
+// parseFlexTime 宽松时间解析：RFC3339 优先，退化到 date-only。
+//
+// 管理端入参既有 "2026-11-27T10:00:00Z"（JS 的 ISO 串）也有 "2026-11-27"。
+func parseFlexTime(v string) (time.Time, error) {
+	if t, err := time.Parse(time.RFC3339, v); err == nil {
+		return t, nil
+	}
+	return time.Parse("2006-01-02", v)
 }
 
 // UpdateUser 管理员更新用户（资料 + 角色 + 状态）。
@@ -502,6 +538,33 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	}
 	wasComplete := isProfileComplete(before)
 	fields := map[string]interface{}{}
+	// ---- 身份 3 ----
+	if in.Username != nil && *in.Username != "" {
+		dup, err := s.d.Users.ExistsUsername(s.d.DB, *in.Username, id)
+		if err != nil {
+			return nil, errcode.ErrInternal
+		}
+		if dup {
+			return nil, errcode.ErrUsernameExists
+		}
+		fields["username"] = *in.Username
+	}
+	if in.Password != nil && *in.Password != "" {
+		// 管理员重置密码：绝不能明文落库。与注册走同一个 hashPassword（bcrypt cost 10）。
+		hash, err := hashPassword(*in.Password)
+		if err != nil {
+			return nil, errcode.ErrInternal
+		}
+		fields["password"] = hash
+	}
+	if in.BirthDate != nil && *in.BirthDate != "" {
+		t, err := time.Parse("2006-01-02", *in.BirthDate)
+		if err != nil {
+			return nil, errcode.ErrInvalidParam
+		}
+		fields["birth_date"] = t
+	}
+	// ---- 资料 6 ----
 	if in.Nickname != nil {
 		fields["nickname"] = *in.Nickname
 	}
@@ -520,15 +583,90 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	if in.Gender != nil && *in.Gender != "" {
 		fields["gender"] = *in.Gender
 	}
+	// ---- 管理 3 ----
 	if in.Wallet != nil {
 		fields["wallet"] = *in.Wallet
 	}
 	if in.Status != nil && *in.Status != "" {
 		fields["status"] = *in.Status
 	}
+	if in.InviteCode != nil {
+		fields["invite_code"] = *in.InviteCode
+	}
+	// ---- 封禁 / 解封 2 ----
+	// banned 传非空 = 封禁（顺带写 status + ban_reason）；传空串 = 解封（banned 置 NULL + status 回 ACTIVE）。
+	// ban_reason 允许单独改（不动封禁状态），所以两段分开写。
+	var revokeAllAt time.Time
+	if in.Banned != nil {
+		if *in.Banned == "" {
+			fields["banned"] = nil // gorm map 写 nil → SQL NULL
+			if in.Status == nil {
+				fields["status"] = model.UserStatusActive
+			}
+		} else {
+			t, perr := parseFlexTime(*in.Banned)
+			if perr != nil {
+				return nil, errcode.ErrInvalidParam
+			}
+			fields["banned"] = t
+			// 撤 token 的时刻必须 >= 现在，否则封禁形同虚设：
+			// 中间件判 `token.iat < logoutAllAt` 才拒。管理员若传一个**过去**的时间
+			// （如「2020-01-01 就该封了」这种补录语义），现有 token 的 iat 全都晚于它
+			// → status 写成了 BANNED 但 token 照样能用。实测复现过。
+			revokeAllAt = t
+			if now := time.Now(); revokeAllAt.Before(now) {
+				revokeAllAt = now
+			}
+			if in.Status == nil {
+				fields["status"] = model.UserStatusBanned
+			}
+			if in.BanReason != nil {
+				fields["ban_reason"] = *in.BanReason
+			}
+		}
+	} else if in.BanReason != nil {
+		fields["ban_reason"] = *in.BanReason
+	}
+	// ---- 会员 5 ----
+	if in.MembershipLevel != nil {
+		fields["membership_level"] = *in.MembershipLevel
+	}
+	if in.MembershipLevelName != nil {
+		fields["membership_level_name"] = *in.MembershipLevelName
+	}
+	if in.MembershipStatus != nil && *in.MembershipStatus != "" {
+		fields["membership_status"] = *in.MembershipStatus
+	}
+	for k, v := range map[string]*string{
+		"membership_start_date": in.MembershipStartDate,
+		"membership_end_date":   in.MembershipEndDate,
+	} {
+		if v == nil {
+			continue
+		}
+		if *v == "" {
+			fields[k] = nil // 传空串 = 清空该时间
+			continue
+		}
+		t, perr := parseFlexTime(*v)
+		if perr != nil {
+			return nil, errcode.ErrInvalidParam
+		}
+		fields[k] = t
+	}
+	// 一个字段都没有 → 空请求体是客户端 bug，静默成功会让管理员以为改过了。
+	if len(fields) == 0 && len(in.RoleIDs) == 0 {
+		return nil, errcode.ErrInvalidParam
+	}
 	if len(fields) > 0 {
 		if err := s.d.Users.UpdateFields(s.d.DB, id, fields); err != nil {
 			return nil, errcode.ErrInternal
+		}
+	}
+	// 封禁落库成功后才撤 token：顺序反过来会出现「token 已撤、封禁没写进去」的窗口。
+	if !revokeAllAt.IsZero() {
+		if err := authtoken.SetLogoutAll(ctx, s.d.AuthTok, id, revokeAllAt); err != nil {
+			s.d.Logger.Warn("ban revoke tokens failed user=" + id)
 		}
 	}
 	if len(in.RoleIDs) > 0 {
@@ -551,7 +689,9 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	if !wasComplete && isProfileComplete(user) {
 		publishProfileCompleted(id)
 	}
-	return buildUserView(user, true, isMembershipActive(user)), nil
+	view := buildUserView(user, true, isMembershipActive(user))
+	view.Config = s.configOf(ctx, id) // 详情类返回，与 GET /user/{id} 一致
+	return view, nil
 }
 
 // RemoveUser 删除用户（软删）。

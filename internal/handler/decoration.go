@@ -69,7 +69,7 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "装饰品 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@ID			DecorationController_findOne
 //	@Router		/decoration/{id} [get]
@@ -89,7 +89,7 @@ func (h *OpsHandler) DecorationGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.DecorationInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@ID			DecorationController_update
@@ -114,7 +114,7 @@ func (h *OpsHandler) DecorationUpdate(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "装饰品 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@ID			DecorationController_remove
 //	@Router		/decoration/{id} [delete]
@@ -155,7 +155,7 @@ func (h *OpsHandler) DecorationMyList(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDecorationDto}}
 //	@ID			DecorationController_getUserDecorations
 //	@Router		/decoration/user/{user_id} [get]
@@ -220,7 +220,7 @@ func (h *OpsHandler) DecorationMyCurrent(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		decoration_id path string true "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		decoration_id path string true "装饰品 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@ID			DecorationController_useDecoration
 //	@Router		/decoration/use/{decoration_id} [post]
@@ -244,7 +244,7 @@ func (h *OpsHandler) DecorationUse(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		decoration_id path string true "decorationId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		decoration_id path string true "decorationId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@ID			DecorationController_unuseDecoration
 //	@Router		/decoration/unuse/{decoration_id} [post]
@@ -369,8 +369,8 @@ func (h *OpsHandler) DecorationActivityCreate(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.DecorationActivityDto}}
 //	@ID			DecorationController_findAllActivities
 //	@Router		/decoration/activity [get]
@@ -390,7 +390,7 @@ func (h *OpsHandler) DecorationActivityList(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationActivityDto}
 //	@ID			DecorationController_findOneActivity
 //	@Router		/decoration/activity/{id} [get]
@@ -410,7 +410,7 @@ func (h *OpsHandler) DecorationActivityGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.DecorationActivityInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationActivityDto}
 //	@ID			DecorationController_updateActivity
@@ -435,7 +435,7 @@ func (h *OpsHandler) DecorationActivityUpdate(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@ID			DecorationController_removeActivity
 //	@Router		/decoration/activity/{id} [delete]
@@ -475,7 +475,7 @@ func (h *OpsHandler) DecorationMyActivityProgress(c *gin.Context) {
 //	@Tags		装饰品
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		activity_id path string true "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		activity_id path string true "activityId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDecorationDto}
 //	@ID			DecorationController_claimActivityReward
 //	@Router		/decoration/activity/claim/{activity_id} [post]

@@ -574,7 +574,10 @@ func certDto(c *model.UserCertification) *dto.CertificationDto {
 		Slogan:           strOrEmpty(c.Slogan),
 		ReviewReason:     strOrEmpty(c.ReviewReason),
 		ReviewedAt:       timePtrRFC3339(c.ReviewedAt),
-		CreatedAt:        c.CreatedAt.Format(time.RFC3339),
+		// CertifiedAt 映射 reviewed_at：model.UserCertification 没有 certified_at 列，
+		// 而 APPROVED 时 reviewed_at 就是认证生效时间（详见 dto.CertificationDto 注释）。
+		CertifiedAt: timePtrRFC3339(c.ReviewedAt),
+		CreatedAt:   c.CreatedAt.Format(time.RFC3339),
 	}
 }
 

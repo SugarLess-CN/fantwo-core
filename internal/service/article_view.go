@@ -85,6 +85,11 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 	favorited, _ := s.repo.FavoritedSet(ctx, actor.UserID, ids)
 	disliked, _ := s.repo.DislikedSet(ctx, actor.UserID, ids)
 
+	// 表情统计与当前用户表态（批量，避免列表页 N+1）。
+	// 查不到时给「全 0 对象」+ ""，绝不留给 nil map 被序列化成 null（docs/21）。
+	rStats, _ := s.repo.ReactionStatsMap(ctx, ids)
+	rMine, _ := s.repo.ReactionSet(ctx, actor.UserID, ids)
+
 	// 下载资源（对齐原 article.downloads）：一次批量查，避免列表页 N+1。
 	dlMap := map[string][]model.Download{}
 	if m, err := s.repo.FindDownloadsByArticles(ctx, ids); err == nil {
@@ -133,6 +138,9 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 			UpdatedAt:         r.UpdatedAt,
 			// 下载资源：空时 []，不是 null（docs/21 §一 规则 ②）。
 			Downloads: fromDownloadModels(dlMap[r.ID]),
+			// 表情统计：空时是全 0 对象；user_reaction 空时是 ""（都不是 null）。
+			ReactionStats: orEmptyReactionStats(rStats[r.ID]),
+			UserReaction:  rMine[r.ID],
 			// download_count 对齐原版 @AfterLoad：等于 downloads 数组长度，动态计算不入库。
 			DownloadCount: len(dlMap[r.ID]),
 		}
@@ -169,4 +177,35 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 		out = append(out, v)
 	}
 	return out
+}
+
+// orEmptyReactionStats 合并「全 0 底」与「真实计数」。
+//
+// 无论传入 nil 还是部分键，返回的都是 7 键齐全的对象 —— 前端不必做存在性判断。
+func orEmptyReactionStats(actual map[string]int) map[string]int {
+	stats := emptyReactionStats()
+	for k, v := range actual {
+		stats[k] = v
+	}
+	return stats
+}
+
+// emptyReactionStats 全 0 表情统计对象（7 个固定键）。
+//
+// 为什么必须是「全 0 对象」而不是空 map / nil：
+//   - nil map 会被 json.Marshal 输出 null，违反 docs/21「对外 JSON 不许出现 null」；
+//   - 空 map {} 虽然合法，但前端 `stats.like` 会拿到 undefined，
+//     而契约是「键固定为 like/love/haha/wow/sad/angry/dislike」。
+//
+// 对齐原版 article-presentation.service.ts:380 buildEmptyReactionStats()。
+func emptyReactionStats() map[string]int {
+	return map[string]int{
+		model.ReactionLike:    0,
+		model.ReactionLove:    0,
+		model.ReactionHaha:    0,
+		model.ReactionWow:     0,
+		model.ReactionSad:     0,
+		model.ReactionAngry:   0,
+		model.ReactionDislike: 0,
+	}
 }

@@ -90,7 +90,7 @@ type UserProfileDto struct {
 	Certification *CertificationDto `json:"certification,omitempty"`
 }
 
-// CertificationDto 认证记录视图（service.certView，10 字段）。
+// CertificationDto 认证记录视图（service.certDto，11 字段）。
 type CertificationDto struct {
 	ID     string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
@@ -104,7 +104,15 @@ type CertificationDto struct {
 	ReviewReason     string `json:"review_reason"`
 	// 时间：空时不传
 	ReviewedAt *string `json:"reviewed_at,omitempty" format:"date-time"`
-	CreatedAt  string  `json:"created_at" format:"date-time"`
+	// CertifiedAt 认证时间（JS 契约字段 certified_at）。
+	//
+	// ⚠️ model.UserCertification **没有 certified_at 列**（只有 reviewed_at）。
+	// 这里映射 reviewed_at —— 审核动作发生的时间，APPROVED 时它就是认证生效时间，
+	// 语义最接近，且取的是真实数据、不是硬造出来的值。
+	// 若将来要区分「认证通过时间」与「最后一次审核时间」（先拒后过的场景两者不同），
+	// 必须给表加列，届时这里改读新列。
+	CertifiedAt *string `json:"certified_at,omitempty" format:"date-time"`
+	CreatedAt   string  `json:"created_at" format:"date-time"`
 }
 
 // UserConfigDto 用户配置（GET /user/config，model.UserProfile 对外字段）。
@@ -451,19 +459,51 @@ type CreateUserRequest struct {
 	RoleIDs    []string `json:"role_ids"`
 	Wallet     float64  `json:"wallet" example:"0"`
 	InviteCode string   `json:"invite_code" example:"AB12CD"`
+	// VerificationCode 邮箱验证码（可空）：**非空才校验**，与 RegisterRequest 同语义。
+	// 管理端建号一般不走验证码，所以不设为必填。
+	VerificationCode string `json:"verification_code" example:"123456"`
 }
 
-// UpdateUserRequest 管理员更新用户（service.UpdateUserInput，9 字段）。
+// UpdateUserRequest 管理员更新用户（service.UpdateUserInput，20 字段）。
+//
+// 全部指针 = nil 不改；一个字段都没传时 service 返回 10008。
+// 与 JS 版 DtoUpdateUserDto 对齐（docs/28 §八 最后一轮）：改造前只有 9 个资料字段，
+// **封禁 / 会员 / 密码重置这些管理端真正要用的能力都写不了**。
 type UpdateUserRequest struct {
-	Nickname    *string  `json:"nickname" example:"爱丽丝"`
-	Avatar      *string  `json:"avatar" example:"https://cdn.example.com/a.png"`
-	Description *string  `json:"description" example:"一句话说明"`
-	Background  *string  `json:"background" example:"https://cdn.example.com/bg.png"`
-	Address     *string  `json:"address" example:"杭州"`
-	Gender      *string  `json:"gender" example:"male"`
-	RoleIDs     []string `json:"role_ids"`
-	Wallet      *float64 `json:"wallet" example:"100.50"`
-	Status      *string  `json:"status" example:"ACTIVE"`
+	// ---- 身份 3 ----
+	Username *string `json:"username" example:"alice"` // 唯一性冲突返回 20004
+	Password *string `json:"password" example:"newpass123"`
+	// BirthDate 生日（"2006-01-02"）。
+	BirthDate *string `json:"birth_date" example:"1998-06-01"`
+
+	// ---- 资料 6 ----
+	Nickname    *string `json:"nickname" example:"爱丽丝"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Description *string `json:"description" example:"一句话说明"`
+	Background  *string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Address     *string `json:"address" example:"杭州"`
+	Gender      *string `json:"gender" example:"male"`
+
+	// ---- 管理 3 ----
+	RoleIDs []string `json:"role_ids"`
+	Wallet  *float64 `json:"wallet" example:"100.50"`
+	Status  *string  `json:"status" example:"ACTIVE"`
+
+	// ---- 邀请 1 ----
+	InviteCode *string `json:"invite_code" example:"AB12CD"`
+
+	// ---- 封禁 2 ----
+	// Banned 封禁时间戳（RFC3339）。传值=封禁并撤销全部 token；传空串=解封。
+	Banned *string `json:"banned" example:"2026-11-27T10:00:00Z"`
+	// BanReason 封禁原因（仅在封禁时有意义）。
+	BanReason *string `json:"ban_reason" example:"违规内容"`
+
+	// ---- 会员 5 ----
+	MembershipLevel     *int    `json:"membership_level" example:"1"`
+	MembershipLevelName *string `json:"membership_level_name" example:"黄金会员"`
+	MembershipStatus    *string `json:"membership_status" example:"ACTIVE"`
+	MembershipStartDate *string `json:"membership_start_date" format:"date-time"`
+	MembershipEndDate   *string `json:"membership_end_date" format:"date-time"`
 }
 
 // MembershipCheckDto 会员状态检查（2 字段）。

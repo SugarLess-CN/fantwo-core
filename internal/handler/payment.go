@@ -123,7 +123,7 @@ func (h *PaymentHandler) NotifyEpay(c *gin.Context) {
 //	@Tags		支付
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PaymentDto}
 //	@ID			PaymentController_findPaymentRecord
 //	@Router		/payment/record/{id} [get]
@@ -143,7 +143,7 @@ func (h *PaymentHandler) Record(c *gin.Context) {
 //	@Tags			支付
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param		order_id path string true "orderId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		order_id path string true "orderId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success		200	{object}	dto.ResponseBody{data=dto.PaymentDto}
 //	@ID			PaymentController_findPaymentByOrderId
 //	@Router			/payment/order/{order_id} [get]
@@ -162,8 +162,8 @@ func (h *PaymentHandler) ByOrder(c *gin.Context) {
 //	@Tags		支付
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PaymentDto}}
 //	@ID			PaymentController_findUserPayments
 //	@Router		/payment/user [get]

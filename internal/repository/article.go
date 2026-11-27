@@ -572,3 +572,68 @@ func (r *ArticleRepository) FindDownloadsByArticles(ctx context.Context, article
 	}
 	return out, nil
 }
+
+// ---------- 表情统计（批量，避免列表页 N+1） ----------
+
+// ReactionStatsRow 单篇文章的单个表情计数（GROUP BY 结果行）。
+type ReactionStatsRow struct {
+	ArticleID    string `gorm:"column:article_id"`
+	ReactionType string `gorm:"column:reaction_type"`
+	Count        int    `gorm:"column:cnt"`
+}
+
+// ReactionStatsMap 批量统计多篇文章的各表情计数。
+//
+// 返回 map[articleID]map[reactionType]count。未命中的文章不在 map 里 ——
+// 调用方用 emptyReactionStats() 兜底成「全 0 对象」而不是 null（对齐原
+// buildEmptyReactionStats() 与 docs/21）。
+func (r *ArticleRepository) ReactionStatsMap(ctx context.Context, articleIDs []string) (map[string]map[string]int, error) {
+	out := make(map[string]map[string]int, len(articleIDs))
+	if len(articleIDs) == 0 {
+		return out, nil
+	}
+	var rows []ReactionStatsRow
+	err := r.db.WithContext(ctx).Model(&model.ArticleLike{}).
+		Select("article_id, reaction_type, COUNT(*) AS cnt").
+		Where("article_id IN ?", articleIDs).
+		Group("article_id, reaction_type").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		m, ok := out[row.ArticleID]
+		if !ok {
+			m = make(map[string]int, 7)
+			out[row.ArticleID] = m
+		}
+		m[row.ReactionType] = row.Count
+	}
+	return out, nil
+}
+
+// ReactionSet 批量取「当前用户对多篇文章的表情类型」。
+//
+// 返回 map[articleID]reactionType。未命中表示没表态（调用方给 ""，不是 null）。
+func (r *ArticleRepository) ReactionSet(ctx context.Context, userID string, articleIDs []string) (map[string]string, error) {
+	out := make(map[string]string, len(articleIDs))
+	if userID == "" || len(articleIDs) == 0 {
+		return out, nil
+	}
+	type row struct {
+		ArticleID    string `gorm:"column:article_id"`
+		ReactionType string `gorm:"column:reaction_type"`
+	}
+	var rows []row
+	err := r.db.WithContext(ctx).Model(&model.ArticleLike{}).
+		Select("article_id, reaction_type").
+		Where("user_id = ? AND article_id IN ?", userID, articleIDs).
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		out[row.ArticleID] = row.ReactionType
+	}
+	return out, nil
+}

@@ -38,7 +38,7 @@ type loginRequest struct {
 //	@Tags			用户认证
 //	@Accept			json
 //	@Produce		json
-//	@Param		Device-Id header string false "设备标识，缺省 default example(uuid-1)"
+//	@Param		Device-Id header string false "设备标识，缺省 default" example(uuid-1)
 //	@Param			body body dto.LoginRequest	true	"登录参数"
 //	@Success		200			{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Failure		401			{object}	dto.ResponseBody
@@ -99,7 +99,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Tags			用户认证
 //	@Accept			json
 //	@Produce		json
-//	@Param		Device-Id header string true "设备标识 example(uuid-1)"
+//	@Param		Device-Id header string true "设备标识" example(uuid-1)
 //	@Param			body body dto.RefreshTokenRequest	true	"刷新令牌请求体"
 //	@Success		200			{object}	dto.ResponseBody{data=dto.RefreshTokenResultDto}
 //	@Failure		401			{object}	dto.ResponseBody

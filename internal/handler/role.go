@@ -44,10 +44,10 @@ func (h *RoleHandler) List(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
-//	@Param		name query string false "角色名过滤 example(管理员)"
-//	@Param		is_active query bool false "是否启用过滤（不传=不过滤） example(true)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
+//	@Param		name query string false "角色名过滤" example(管理员)
+//	@Param		is_active query bool false "是否启用过滤（不传=不过滤）" example(true)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.RoleDto}}
 //	@ID			RoleController_findWithPagination
 //	@Router		/role/list [get]
@@ -86,7 +86,7 @@ func (h *RoleHandler) Active(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDetailDto}
 //	@ID			RoleController_findOne
 //	@Router		/role/{id} [get]
@@ -130,7 +130,7 @@ func (h *RoleHandler) Create(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdateRoleRequest true "更新角色入参（全部指针语义，nil=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@ID			RoleController_update
@@ -154,7 +154,7 @@ func (h *RoleHandler) Update(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			RoleController_remove
 //	@Router		/role/{id} [delete]
@@ -172,7 +172,7 @@ func (h *RoleHandler) Remove(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "源角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "源角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.CopyRoleRequest true "复制角色入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleDto}
 //	@ID			RoleController_copyRole
@@ -197,7 +197,7 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.AssignPermissionsRequest true "权限 ID 全量重写"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RolePermissionsAssignedDto}
 //	@ID			RoleController_assignPermissions
@@ -222,7 +222,7 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.ToggleRoleStatusRequest true "启用/禁用（nil 按 true）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleStatusDto}
 //	@ID			RoleController_toggleStatus
@@ -251,7 +251,7 @@ func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.AssignMenusRequest true "菜单键全量重写"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleMenusAssignedDto}
 //	@ID			RoleController_bindMenus
@@ -275,7 +275,7 @@ func (h *RoleHandler) AssignMenus(c *gin.Context) {
 //	@Tags		角色
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "角色 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.RoleMenusDto}
 //	@ID			RoleController_getMenus
 //	@Router		/role/{id}/menus [get]
@@ -366,7 +366,7 @@ func (h *PermissionHandler) Tree(c *gin.Context) {
 //	@Tags		权限
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "权限 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@ID			PermissionController_findOne
 //	@Router		/permission/{id} [get]
@@ -410,7 +410,7 @@ func (h *PermissionHandler) Create(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "权限 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.PermissionRequest true "权限点入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PermissionDto}
 //	@ID			PermissionController_update
@@ -434,7 +434,7 @@ func (h *PermissionHandler) Update(c *gin.Context) {
 //	@Tags		权限
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "权限 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			PermissionController_remove
 //	@Router		/permission/{id} [delete]

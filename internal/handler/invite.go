@@ -139,7 +139,7 @@ func (h *OpsHandler) InviteEarnings(c *gin.Context) {
 //	@Tags		邀请
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "邀请码 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "邀请码 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@ID			InviteController_getInviteDetail
 //	@Router		/invite/{id} [get]

@@ -122,11 +122,11 @@ func (h *MessageHandler) Create(c *gin.Context) {
 //	@Tags			消息
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Param		type query string false "消息类型，缺省=全部" Enums(private, system, notification) example(notification)
-//	@Param		is_read query bool false "是否已读，缺省=不筛选 example(false)"
-//	@Param		is_broadcast query bool false "是否全员广播，缺省=不筛选 example(false)"
+//	@Param		is_read query bool false "是否已读，缺省=不筛选" example(false)
+//	@Param		is_broadcast query bool false "是否全员广播，缺省=不筛选" example(false)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_findAll
 //	@Router			/message [get]
@@ -156,14 +156,14 @@ func (h *MessageHandler) List(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Param		type query string false "消息类型" Enums(private, system, notification) example(notification)
 //	@Param		is_read query bool false "是否已读" example(false)
 //	@Param		is_broadcast query bool false "是否全员广播" example(false)
-//	@Param		keyword query string false "关键词（匹配正文/标题） example(活动)"
-//	@Param		sender_id query string false "发送者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
-//	@Param		receiver_id query string false "接收者用户 ID example(1a2b3c4d-5678-4abc-9def-0123456789ab)"
+//	@Param		keyword query string false "关键词（匹配正文/标题）" example(活动)
+//	@Param		sender_id query string false "发送者用户 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
+//	@Param		receiver_id query string false "接收者用户 ID" example(1a2b3c4d-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_search
 //	@Router		/message/search [get]
@@ -199,7 +199,7 @@ func (h *MessageHandler) Search(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@ID			MessageController_findOne
 //	@Router		/message/{id} [get]
@@ -223,7 +223,7 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdateMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@ID			MessageController_update
@@ -252,7 +252,7 @@ func (h *MessageHandler) Update(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			MessageController_remove
 //	@Router		/message/{id} [delete]
@@ -274,7 +274,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.MarkAllReadRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			MessageController_markAsRead
@@ -376,7 +376,7 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param		user_id path string true "接收者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "接收者用户 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.SendPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@Failure	403	{object}	dto.ResponseBody
@@ -406,8 +406,8 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 //	@Tags			消息
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param		cursor query string false "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)"
-//	@Param		limit query int false "每页条数，默认 20 example(10)"
+//	@Param		cursor query string false "游标（上一页最后一条的 cursor）" example(eyJpZCI6IjlmMWQyZTM0In0)
+//	@Param		limit query int false "每页条数，默认 20" example(10)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConversationListDto}
 //	@ID			MessageController_getPrivateConversations
 //	@Router			/message/private/conversations [get]
@@ -430,9 +430,9 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
-//	@Param		cursor query string false "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)"
-//	@Param		limit query int false "每页条数，默认 20 example(20)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
+//	@Param		cursor query string false "游标（上一页最后一条的 cursor）" example(eyJpZCI6IjlmMWQyZTM0In0)
+//	@Param		limit query int false "每页条数，默认 20" example(20)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateHistoryDto}
 //	@ID			MessageController_getPrivateConversation
 //	@Router		/message/private/conversations/{user_id}/messages [get]
@@ -455,7 +455,7 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReadResultDto}
 //	@ID			MessageController_markPrivateConversationRead
@@ -507,7 +507,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.RecallPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@ID			MessageController_recallPrivateMessage
@@ -533,7 +533,7 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.BlockUserRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@ID			MessageController_blockPrivateUser
@@ -563,7 +563,7 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@ID			MessageController_unblockPrivateUser
 //	@Router		/message/private/block/{user_id} [delete]

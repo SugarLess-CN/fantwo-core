@@ -61,9 +61,9 @@ func (h *CommentHandler) Create(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
-//	@Param		only_author query bool false "只看帖主（文章作者）的评论 example(false)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
+//	@Param		only_author query bool false "只看帖主（文章作者）的评论" example(false)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAllComments
 //	@Router		/comment [get]
@@ -82,10 +82,10 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 //	@Summary		文章评论列表
 //	@Tags			评论
 //	@Produce		json
-//	@Param		id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
-//	@Param		only_author query bool false "只看帖主（文章作者）的评论 example(false)"
+//	@Param		id path string true "文章 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
+//	@Param		only_author query bool false "只看帖主（文章作者）的评论" example(false)
 //	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAll
 //	@Router			/comment/article/{id} [get]
@@ -104,9 +104,9 @@ func (h *CommentHandler) FindByArticle(c *gin.Context) {
 //	@Summary	评论详情
 //	@Tags		评论
 //	@Produce	json
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
-//	@Param		page query int false "回复页码 example(1)"
-//	@Param		limit query int false "回复每页条数 example(10)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
+//	@Param		page query int false "回复页码" example(1)
+//	@Param		limit query int false "回复每页条数" example(10)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@ID			CommentController_findOne
 //	@Router		/comment/{id} [get]
@@ -127,7 +127,7 @@ func (h *CommentHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdateCommentRequest true "待更新字段（部分更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@ID			CommentController_update
@@ -153,7 +153,7 @@ func (h *CommentHandler) Update(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.SetCommentPinRequest true "是否置顶"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommentPinResultDto}
 //	@ID			CommentController_setPin
@@ -178,7 +178,7 @@ func (h *CommentHandler) SetPin(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "评论 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "评论 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Failure	403	{object}	ResponseBody
 //	@ID			CommentController_remove
@@ -198,7 +198,7 @@ func (h *CommentHandler) Remove(c *gin.Context) {
 //	@Tags		评论
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommentLikeResultDto}
 //	@ID			CommentController_like
 //	@Router		/comment/{id}/like [post]
@@ -216,8 +216,8 @@ func (h *CommentHandler) Like(c *gin.Context) {
 //	@Summary	用户评论列表
 //	@Tags		评论
 //	@Produce	json
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_getUserComments
 //	@Router		/comment/user/{user_id} [get]
@@ -236,7 +236,7 @@ func (h *CommentHandler) UserComments(c *gin.Context) {
 //	@Summary	文章评论数
 //	@Tags		评论
 //	@Produce	json
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CountDto}
 //	@ID			CommentController_getCommentCount
 //	@Router		/comment/article/{id}/count [get]

@@ -45,12 +45,12 @@ func (h *TagHandler) Create(c *gin.Context) {
 //	@Summary	标签列表
 //	@Tags		标签
 //	@Produce	json
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
-//	@Param		keyword query string false "标签名关键字（推荐）example(风景)"
-//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）example(风景)"
-//	@Param		sort_by query string false "排序字段 example(article_count)"
-//	@Param		sort_order query string false "排序方向（默认 DESC）example(DESC)" enums(DESC, ASC)
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
+//	@Param		keyword query string false "标签名关键字（推荐）" example(风景)
+//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）" example(风景)
+//	@Param		sort_by query string false "排序字段" example(article_count)
+//	@Param		sort_order query string false "排序方向（默认 DESC）" enums(DESC, ASC) example(DESC)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@ID			TagController_findAll
 //	@Router		/tag [get]
@@ -105,11 +105,11 @@ func (h *TagHandler) Hot(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
-//	@Param		user_id query string false "目标用户 ID（缺省看自己）example(64b59ed4-1a2b-4c3d-8e9f-0123456789ab)"
-//	@Param		keyword query string false "标签名关键字（推荐）example(风景)"
-//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）example(风景)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
+//	@Param		user_id query string false "目标用户 ID（缺省看自己）" example(64b59ed4-1a2b-4c3d-8e9f-0123456789ab)
+//	@Param		keyword query string false "标签名关键字（推荐）" example(风景)
+//	@Param		name query string false "标签名关键字（旧名，keyword 为空时兜底）" example(风景)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
 //	@ID			TagController_getFollowedTags
 //	@Router		/tag/followed/list [get]
@@ -133,7 +133,7 @@ func (h *TagHandler) FollowedList(c *gin.Context) {
 //	@Summary	标签详情
 //	@Tags		标签
 //	@Produce	json
-//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "标签 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_findOne
 //	@Router		/tag/{id} [get]
@@ -153,7 +153,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "标签 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdateTagRequest true "tagRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_update
@@ -178,7 +178,7 @@ func (h *TagHandler) Update(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "标签 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			TagController_remove
 //	@Router		/tag/{id} [delete]
@@ -197,7 +197,7 @@ func (h *TagHandler) Remove(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "标签 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@ID			TagController_follow
 //	@Router		/tag/{id}/follow [post]
@@ -216,7 +216,7 @@ func (h *TagHandler) Follow(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@ID			TagController_unfollow
 //	@Router		/tag/{id}/follow [delete]

@@ -103,8 +103,8 @@ func (h *OpsHandler) PointsBalance(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@ID			PointsController_getTransactions
 //	@Router		/points/transactions [get]
@@ -135,8 +135,8 @@ func (h *OpsHandler) PointsTransactions(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@ID			PointsController_getAllTransactions
 //	@Router		/points/transactions/all [get]
@@ -163,9 +163,9 @@ func (h *OpsHandler) PointsTxAll(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.PointsTransactionDto}}
 //	@ID			PointsController_getUserTransactions
 //	@Router		/points/users/{user_id}/transactions [get]
@@ -192,7 +192,7 @@ func (h *OpsHandler) PointsUserTransactions(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		user_id path string true "userId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsBalanceDto}
 //	@ID			PointsController_getUserBalance
 //	@Router		/points/users/{user_id}/balance [get]
@@ -252,7 +252,7 @@ func (h *OpsHandler) PointsMyTasks(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		activity_id path string true "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		activity_id path string true "activityId" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsTaskDto}
 //	@ID			PointsController_getMyTaskProgress
 //	@Router		/points/tasks/my/{activity_id} [get]
@@ -299,8 +299,8 @@ func (h *OpsHandler) PointsActivityCreate(c *gin.Context) {
 //	@Summary	积分活动列表
 //	@Tags		积分
 //	@Produce	json
-//	@Param		type query string false "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE example(image)"
-//	@Param		keyword query string false "名称关键字 example(风景)"
+//	@Param		type query string false "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE" example(image)
+//	@Param		keyword query string false "名称关键字" example(风景)
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.PointsActivityDto}
 //	@ID			PointsController_findAllActivities
 //	@Router		/points/activities [get]
@@ -318,7 +318,7 @@ func (h *OpsHandler) PointsActivityList(c *gin.Context) {
 //	@Summary	积分活动详情
 //	@Tags		积分
 //	@Produce	json
-//	@Param		id path string true "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "活动 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDto}
 //	@ID			PointsController_findOneActivity
 //	@Router		/points/activities/{id} [get]
@@ -338,7 +338,7 @@ func (h *OpsHandler) PointsActivityGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdatePointsActivityRequest true "活动入参（未传字段保持不变）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDto}
 //	@ID			PointsController_updateActivity
@@ -363,7 +363,7 @@ func (h *OpsHandler) PointsActivityUpdate(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsActivityDeleteResultDto}
 //	@ID			PointsController_removeActivity
 //	@Router		/points/activities/{id} [delete]
@@ -381,7 +381,7 @@ func (h *OpsHandler) PointsActivityDelete(c *gin.Context) {
 //	@Tags		积分
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "活动 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ClaimPointsResultDto}
 //	@ID			PointsController_claimTaskReward
 //	@Router		/points/activities/{id}/claim [post]

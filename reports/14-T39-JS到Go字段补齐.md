@@ -304,3 +304,156 @@ remark=''  hide_c=false                   ← config 已复原
 ### 5.5 未提交的并发改动说明
 
 本轮 3 成员并行改的是**互斥文件集**，lead 已用 `verify-t39.py`（读产物不读意图）与**独立真机复验**（不复用成员结论）双重确认，全部通过后统一提交。
+---
+
+# 第二轮（收尾）
+
+## 六、第二轮改了什么
+
+| 文件 | 改动 |
+|---|---|
+| `internal/dto/user.go` | `UpdateUserRequest` 9 → **20 字段**；`CreateUserRequest` 8 → 9（`verification_code`）；`CertificationDto` +`certified_at` |
+| `internal/service/user_service.go` | `UpdateUserInput` 20 字段；`UpdateUser` 覆盖全部（含 `hashPassword` / `ExistsUsername` / `SetLogoutAll` / `AssignRoleToUser`） |
+| `internal/service/user_actions_service.go` | `certified_at` 映射 `reviewed_at`（model 无 `certified_at` 列） |
+| `internal/dto/article.go` | `reaction_stats` / `user_reaction` 的注释补充 |
+| `internal/repository/article.go` | 新增 `ReactionStatsMap` / `ReactionSet`（批量，避免 N+1） |
+| `internal/service/article_view.go` | 新增 `emptyReactionStats()` / `orEmptyReactionStats()`；`BuildViews` 填充两字段 |
+| `scripts/fix-param-example.py`（新建） | 把 `example(...)` 从描述引号内移到引号外，**259 处** |
+
+## 七、第二轮修掉的两个既有缺陷
+
+### 7.1 `reaction_stats` 恒为 `null`（docs/21 违规）
+
+`dto.ArticleDto.ReactionStats map[string]int` 注释写着「无表态时是全 0 对象，不是 null」，
+但**全仓没有任何组装点** → nil map 被 `json.Marshal` 输出 `null`。
+同源的 `user_reaction` 也从未填充（空 string 不违反 docs/21，但同样是假契约）。
+
+修法：
+- `ReactionStatsMap(ctx, ids)` —— `GROUP BY article_id, reaction_type`，一次查全部
+- `ReactionSet(ctx, userID, ids)` —— 当前用户对这批文章的表态
+- `emptyReactionStats()` —— 7 个固定键全 0（对齐原 `buildEmptyReactionStats()`）
+- `orEmptyReactionStats(actual)` —— 全 0 底 + 真实计数合并，**永远 7 键齐全**
+
+真机：
+```
+无表态 → {"angry":0,"dislike":0,"haha":0,"like":0,"love":0,"sad":0,"wow":0}  user_reaction=''
+点赞 love → 同上但 love:1                                              user_reaction='love'
+null 计数: 0
+```
+
+### 7.2 `example(...)` 写在描述引号内是错的（259 处）
+
+swag v1.16 的 `findAttr`（`operation.go:495`）用 `\s+example\(.*\)` 提取属性，**要求 example 前有空白**：
+
+| 写法 | 结果 |
+|---|---|
+| `"标签名关键字（推荐）example(风景)"` | `）` 后无空格 → **完全匹配不到** → example 丢失（实测 6 个参数） |
+| `"搜索关键字 example(风景)"` | 能提取，但 `example(风景)` **文字残留在 description**（259 处） |
+| `"标签名关键字（推荐）" example(风景)` | ✅ 两者都对 |
+
+`scripts/fix-param-example.py` 全局修正 259 处。修正后：
+
+```
+非 body 参数 269 | 有 example 267 | 无 2  （2 个是 file 类型，本就无法给示例）
+description 残留 example( 的: 0   (改前 259)
+```
+
+## 八、第二轮验证
+
+```
+$ gofmt -l internal/ migrations/ cmd/   → 空
+$ go build ./...                        → exit=0
+$ go vet ./...                          → 零输出
+$ go test ./... -count=1                → 16 包全绿
+$ swag init ... --exclude tmp,internal/dto → exit=0, 危险词=0, paths=246 defs=291
+$ python scripts/verify-t39.py          → 22 通过 / 0 未通过
+$ python scripts/json-naming-check.py   → ✓ 全站 snake_case
+$ python scripts/cmp-js-go-fields.py    → 字段缺失 35 → 3
+```
+
+**最终 3 个「残留」全是误报**：`Decoration` 的 `ACHIEVEMENT_BADGE`/`AVATAR_FRAME`/`COMMENT_BUBBLE`
+—— JS schema 生成器把 `type` 字段的**枚举值当成了属性名**。我们用 `type` 字段表达，语义正确。
+
+## 九、第二轮遗留
+
+**dto-modeler 报告失败（无 closing message）**，但代码完整。lead 逐项独立验收：
+
+```
+UpdateUser 的 fields 覆盖 17 个键 + membership_start/end（map 字面量）+ role_ids（AssignRoleToUser）= 20 ✓
+password → hashPassword（无明文落库）✓
+username → ExistsUsername + ErrUsernameExists ✓
+banned  → SetLogoutAll（封禁撤全部 token）✓
+空请求 → len(fields)==0 && len(RoleIDs)==0 ✓
+```
+
+**未做的真机验证**（成员失败前没跑）：封禁后旧 token 是否立刻失效、改密码后新旧密码行为。
+lead 已跑 `config` / `sort` / `order` / `replies` / `tag keyword` / `message type` /
+`is_read` / `UpdateContact` 八组真机，**未单独验 `PATCH /user/{id}` 的封禁链路** —— 这是本轮唯一
+没走到真机的改动，风险点是 `SetLogoutAll` 的 redis key 与中间件读取是否同源（代码路径看起来一致，
+但没实测）。记入 todo 作为下轮首验项。
+
+## 十、第二轮补验：封禁链路（发现并修掉一个真漏洞）
+
+dto-modeler 失败前没跑封禁真机，lead 补验，**查出一个设计缺陷**。
+
+### 10.1 先验代码路径（都正确）
+
+```
+封禁写入 → status=BANNED / banned=时间 / ban_reason 全部落库 ✓
+SetLogoutAll → Redis key `user:<id>:logout_all` 确实写入 ✓
+中间件 JWTAuthV2 → 判 `claims.IssuedAt.Before(logoutAllAt.Add(1s))` 才拒 ✓
+```
+
+### 10.2 第一次测试「失败」，实为测试参数错
+
+用 `banned="2026-11-27T10:00:00Z"` 封禁 → token 仍可用。
+
+查 Redis + 解 JWT 才发现：
+
+```
+logout_all = 1795773600 = 10:00:00   ← 我传的时间
+token iat  = 1795773641 = 10:00:41   ← 登录比封禁「晚」41 秒
+判 iat < logout_all → false → 不拒
+```
+
+**代码没错，是我传的时间比 token 签发还早。** 用当前时间重测 → `20001 auth.need_login`，通过。
+
+### 10.3 但这暴露了真漏洞：传「过去时间」可绕过封禁
+
+管理员若传 `banned="2020-01-01"`（补录语义：「这人早该封了」），
+`status` 写成 `BANNED`，但**所有现存 token 都还有效** —— 封禁形同虚设。
+
+实测复现：
+```
+PATCH /user/{id} {"banned":"2020-01-01T00:00:00Z"}
+库内: BANNED banned=2020-01-01 00:00:00+00   ← 状态对
+该用户 token 调 /user/profile → status_code: 0  ← ✗ 仍可用
+```
+
+### 10.4 修法
+
+撤 token 的时刻取 `max(封禁时间, now)`：
+
+```go
+revokeAllAt = t
+if now := time.Now(); revokeAllAt.Before(now) {
+    revokeAllAt = now
+}
+```
+
+**`banned` 字段仍写管理员传入的原值**（那是「封禁生效日期」，语义上就是过去时间），
+**只有撤 token 的时刻取 max** —— 两个语义分开，不混用。
+
+修复后复测（同样传 2020-01-01）：
+```
+库内: BANNED banned=2020-01-01 00:00:00+00   ← 保持原值
+该用户 token 调 /user/profile → status_code: 20001 → ✓ 已失效
+```
+
+### 10.5 这条的教训
+
+**「正向用例通过」不等于安全**：第一次测封禁看起来「代码是对的、我参数错了」，
+但同一份代码在「传过去时间」这个**完全合法的输入**下就是漏洞。
+`max(传入, now)` 这种兜底必须在写代码时就想清楚，不能靠测试发现。
+
+测试数据已清（用户 + Redis key 全删，0 残留）。

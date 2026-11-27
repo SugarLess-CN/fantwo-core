@@ -272,8 +272,8 @@ func (h *AuthHandler) OAuthBindingList(c *gin.Context) {
 //	@Summary	解绑第三方账号
 //	@Tags		用户认证
 //	@Produce	json
-//	@Param		provider path string true "平台 wechat / qq / github example(wechat)"
-//	@Param		channel path string true "渠道 web / app example(web)"
+//	@Param		provider path string true "平台 wechat / qq / github" example(wechat)
+//	@Param		channel path string true "渠道 web / app" example(web)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthBindingListDto}
 //	@Router		/user/oauth/bindings/{provider}/{channel} [delete]
 //	@ID			OAuthBindingController_unbind

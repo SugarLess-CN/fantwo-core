@@ -83,7 +83,7 @@ func (h *OpsHandler) AchievementStats(c *gin.Context) {
 //	@Summary	成就详情
 //	@Tags		成就
 //	@Produce	json
-//	@Param		id path string true "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "成就 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@ID			AchievementController_findOne
 //	@Router		/achievement/{id} [get]
@@ -103,7 +103,7 @@ func (h *OpsHandler) AchievementGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Param		body body dto.UpdateAchievementRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@ID			AchievementController_update
@@ -128,7 +128,7 @@ func (h *OpsHandler) AchievementUpdate(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "id" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			AchievementController_remove
 //	@Router		/achievement/{id} [delete]
@@ -146,7 +146,7 @@ func (h *OpsHandler) AchievementDelete(c *gin.Context) {
 //	@Tags		成就
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "成就 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementClaimResultDto}
 //	@ID			AchievementController_claimReward
 //	@Router		/achievement/{id}/claim [post]

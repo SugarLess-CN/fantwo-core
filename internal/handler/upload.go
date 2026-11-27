@@ -47,8 +47,8 @@ func NewUploadHandler(svc *infra.Infra) *UploadHandler { return &UploadHandler{s
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码 example(1)"
-//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		page query int false "页码" example(1)
+//	@Param		limit query int false "每页条数" example(10)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UploadDto}}
 //	@ID			UploadController_findAll
 //	@Router		/upload [get]
@@ -90,7 +90,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "上传记录 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UploadDto}
 //	@ID			UploadController_getFileInfo
 //	@Router		/upload/info/{id} [get]
@@ -127,7 +127,7 @@ func (h *UploadHandler) Config(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		file formData file true "文件本体"
-//	@Param		scene formData string false "场景：article/avatar/comment example(article)"
+//	@Param		scene formData string false "场景：article/avatar/comment" example(article)
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.UploadDto}
 //	@ID			UploadController_uploadFile
 //	@Router		/upload/file [post]
@@ -310,7 +310,7 @@ func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		limit query int false "本批上限（默认 100） example(10)"
+//	@Param		limit query int false "本批上限（默认 100）" example(10)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MigrationFillResultDto}
 //	@ID			UploadController_fillMissingMetadata
 //	@Router		/upload/migration/metadata [post]
@@ -330,7 +330,7 @@ func (h *UploadHandler) MigrationMetadata(c *gin.Context) {
 //	@Tags		上传
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		id path string true "上传记录 ID" example(9f1d2e34-5678-4abc-9def-0123456789ab)
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@ID			UploadController_remove
 //	@Router		/upload/{id} [delete]
