@@ -24,23 +24,23 @@ package dto
 // （SDK 生成器会为它生成必填类型，前端运行时判空逻辑全落空）。
 type OrderDto struct {
 	ID        string `json:"id" example:"3c4d5e6f-7a8b-4c9d-8e0f-112233445566"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
 	// UserID 买家用户 ID。
-	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	// AuthorID 卖家用户 ID。
 	//
 	// ⚠️ 会员订单（type=MEMBERSHIP）这里是**平台单哨兵值字面量 "1"**，
 	// 不是真实用户 ID（对齐原仓库 authorId=1 的约定，见 order_service.go 的
 	// CreateMembershipOrder）。前端若用它反查用户会 404，需按 type 分支处理。
 	// 已知问题 P3，本轮保持不动。
-	AuthorID string `json:"authorId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	AuthorID string `json:"author_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	// ArticleID 文章 ID（仅 type=ARTICLE 的订单有值）。
-	ArticleID string `json:"articleId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ArticleID string `json:"article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 
 	// OrderNo 订单号：ORDER + 毫秒时间戳 + 3 位随机（共 21 字符）。
-	OrderNo string `json:"orderNo" example:"ORDER1764050000000123"`
+	OrderNo string `json:"order_no" example:"ORDER1764050000000123"`
 
 	Type string `json:"type" enums:"MEMBERSHIP,PRODUCT,SERVICE,ARTICLE" example:"MEMBERSHIP"`
 
@@ -53,14 +53,14 @@ type OrderDto struct {
 	Amount float64 `json:"amount" example:"19.9"`
 
 	// PaymentMethod 支付方式；未支付时为空串（不是 null）。
-	PaymentMethod string `json:"paymentMethod" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"BALANCE"`
+	PaymentMethod string `json:"payment_method" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"BALANCE"`
 	// PaymentOrderNo 第三方支付订单号；未支付时为空串。
-	PaymentOrderNo string `json:"paymentOrderNo" example:"2026112522001445361234567890"`
+	PaymentOrderNo string `json:"payment_order_no" example:"2026112522001445361234567890"`
 
 	Status string `json:"status" enums:"PENDING,PAID,CANCELLED,REFUNDED" example:"PENDING"`
 
 	// PaidAt 支付时间；未支付时不传该字段（不是 null）。
-	PaidAt *string `json:"paidAt,omitempty" format:"date-time" example:"2026-11-25T10:05:00Z"`
+	PaidAt *string `json:"paid_at,omitempty" format:"date-time" example:"2026-11-25T10:05:00Z"`
 
 	// Details 订单详情（jsonb 透传）。内容随 type 变化：
 	// 文章单含 articleId/articleTitle/remark，会员单含 plan/duration/basePrice/
@@ -76,7 +76,7 @@ type OrderDto struct {
 //
 // 与 service.CreateArticleOrder 的入参逐字对应（handler 就绑这个类型）。
 type CreateArticleOrderRequest struct {
-	ArticleID string `json:"articleId" binding:"required" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ArticleID string `json:"article_id" binding:"required" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Remark    string `json:"remark" example:"请尽快开通"`
 }
 
@@ -108,7 +108,7 @@ type OrderRefundRequest struct {
 // （/user/wallet/balance 的契约），而本端点返回 userId + wallet 两个字段。
 // 字段名是 wallet 不是 balance —— 既有契约，改名会破前端。
 type OrderWalletDto struct {
-	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	// Wallet 钱包余额，**单位：元**（model.UserPaymentView.Wallet 是 decimal(10,2)）。
 	Wallet float64 `json:"wallet" example:"100.5"`
 }

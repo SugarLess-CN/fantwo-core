@@ -176,7 +176,7 @@ func dispatchGetHistory(ctx *ws.MsgContext, svc *service.MessageService, raw jso
 		"list": list,
 		"meta": map[string]interface{}{
 			"total": total, "page": page, "limit": limit,
-			"totalPages": (total + int64(limit) - 1) / int64(limit),
+			"total_pages": (total + int64(limit) - 1) / int64(limit),
 		},
 	}
 	ctx.Emit(ws.EventHistory, payload)
@@ -302,9 +302,9 @@ func dispatchReadMessage(ctx *ws.MsgContext, svc *service.MessageService, raw js
 	if err := svc.MarkAsRead(ctx.User.ID, in.MessageID); err != nil {
 		return nil, ws.ErrCodeMarkReadFail
 	}
-	ctx.Emit(ws.EventRead, map[string]interface{}{"messageId": in.MessageID})
+	ctx.Emit(ws.EventRead, map[string]interface{}{"message_id": in.MessageID})
 	if count, err := svc.UnreadCount(ctx.User.ID); err == nil {
 		ctx.Emit(ws.EventUnreadCount, count)
 	}
-	return map[string]interface{}{"messageId": in.MessageID}, ""
+	return map[string]interface{}{"message_id": in.MessageID}, ""
 }

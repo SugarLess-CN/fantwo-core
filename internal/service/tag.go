@@ -46,11 +46,11 @@ type TagView struct {
 	Background   *string   `json:"background,omitempty"`
 	Cover        *string   `json:"cover,omitempty"`
 	Sort         int       `json:"sort"`
-	ArticleCount int       `json:"articleCount"`
-	FollowCount  int       `json:"followCount"`
-	IsFollowed   bool      `json:"isFollowed"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ArticleCount int       `json:"article_count"`
+	FollowCount  int       `json:"follow_count"`
+	IsFollowed   bool      `json:"is_followed"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // TagService 标签业务逻辑（对齐原 NestJS TagService）。

@@ -202,7 +202,7 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@Router		/role/{id}/permissions [post]
 func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 	var in struct {
-		PermissionIDs []string `json:"permissionIds"`
+		PermissionIDs []string `json:"permission_ids"`
 	}
 	if !bindJSON(c, &in) {
 		return
@@ -229,7 +229,7 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@Router		/role/{id}/status [patch]
 func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 	var in struct {
-		IsActive *bool `json:"isActive"`
+		IsActive *bool `json:"is_active"`
 	}
 	if !bindJSON(c, &in) {
 		return

@@ -182,9 +182,9 @@ func shouldDispatchReportAction(action string) bool {
 // ReportStatistics 举报统计（对齐原 getStatistics）。
 type ReportStatistics struct {
 	Total      int64            `json:"total"`
-	ByStatus   map[string]int64 `json:"byStatus"`
-	ByType     []GroupCount     `json:"byType"`
-	ByCategory []GroupCount     `json:"byCategory"`
+	ByStatus   map[string]int64 `json:"by_status"`
+	ByType     []GroupCount     `json:"by_type"`
+	ByCategory []GroupCount     `json:"by_category"`
 }
 
 // GroupCount 分组计数。

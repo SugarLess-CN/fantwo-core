@@ -19,8 +19,8 @@ import (
 // CreateCommentRequest 创建评论。
 type CreateCommentRequest struct {
 	Content   string     `json:"content" binding:"required"`
-	ArticleID string     `json:"articleId" binding:"required"`
-	ParentID  *string    `json:"parentId"`
+	ArticleID string     `json:"article_id" binding:"required"`
+	ParentID  *string    `json:"parent_id"`
 	Images    StringList `json:"images"`
 }
 
@@ -28,12 +28,12 @@ type CreateCommentRequest struct {
 type UpdateCommentRequest struct {
 	Content  *string    `json:"content"`
 	Images   StringList `json:"images"`
-	IsPinned *bool      `json:"isPinned"` // 仅文章作者或管理员可设置
+	IsPinned *bool      `json:"is_pinned"` // 仅文章作者或管理员可设置
 }
 
 // SetCommentPinRequest 置顶评论。
 type SetCommentPinRequest struct {
-	IsPinned *bool `json:"isPinned" binding:"required"`
+	IsPinned *bool `json:"is_pinned" binding:"required"`
 }
 
 // CommentListQuery 评论列表查询参数。

@@ -108,7 +108,7 @@ type MarkMessagesReadResultVO = dto.MarkMessagesReadResultDto
 // SendPrivateInput 发送私信入参（对齐 SendPrivateMessageDto）。
 type SendPrivateInput struct {
 	Content     string                 `json:"content"`
-	MessageKind string                 `json:"messageKind"`
+	MessageKind string                 `json:"message_kind"`
 	Payload     map[string]interface{} `json:"payload"`
 }
 

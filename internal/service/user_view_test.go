@@ -51,7 +51,7 @@ func TestMaskEmailEdgeCases(t *testing.T) {
 // 防的 bug：新增字段写成 snake_case 混进响应，前端按 camelCase 取值为 undefined。
 // 2026-11-25：改为断言真实 json.Marshal 结果（旧版走已删除的 toMap），
 // 顺带断言 roles 序列化成 [] 而不是 null。
-func TestUserViewJSONKeysCamelCase(t *testing.T) {
+func TestUserViewJSONKeysSnakeCase(t *testing.T) {
 	nick, avatar, desc := "小画家", "https://cdn/a.png", "简介"
 	u := &model.User{
 		Username: "alice", Nickname: &nick, Avatar: &avatar, Description: &desc,
@@ -66,13 +66,14 @@ func TestUserViewJSONKeysCamelCase(t *testing.T) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		t.Fatalf("反序列化失败: %v", err)
 	}
+	// 2026-11-27 规范：对外 JSON 一律 snake_case
 	for k := range m {
-		if strings.Contains(k, "_") {
-			t.Errorf("响应键 %q 不是 camelCase（snake_case 会破坏前端契约）", k)
+		if k != strings.ToLower(k) {
+			t.Errorf("响应键 %q 含大写字母（对外 JSON 必须 snake_case）", k)
 		}
 	}
-	for _, required := range []string{"id", "username", "nickname", "avatar", "isMember",
-		"articleCount", "followerCount", "membershipLevelName", "roles"} {
+	for _, required := range []string{"id", "username", "nickname", "avatar", "is_member",
+		"article_count", "follower_count", "membership_level_name", "roles"} {
 		if _, ok := m[required]; !ok {
 			t.Errorf("缺少必备字段 %q", required)
 		}

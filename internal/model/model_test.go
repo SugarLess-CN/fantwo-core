@@ -288,14 +288,14 @@ func TestBaseModel_GormTags(t *testing.T) {
 	}
 }
 
-// TestBaseModel_CamelCaseJSON 对外 JSON 字段名必须是 camelCase。
-// 口径见 AGENTS.md：数据库列 snake_case、对外 JSON camelCase。
-func TestBaseModel_CamelCaseJSON(t *testing.T) {
+// TestBaseModel_SnakeCaseJSON 对外 JSON 字段名必须是 snake_case。
+// 口径见 AGENTS.md（2026-11-27）：入参、出参、数据库列三层统一 snake_case。
+func TestBaseModel_SnakeCaseJSON(t *testing.T) {
 	typ := reflect.TypeOf(BaseModel{})
 	want := map[string]string{
 		"ID":        "id",
-		"CreatedAt": "createdAt",
-		"UpdatedAt": "updatedAt",
+		"CreatedAt": "created_at",
+		"UpdatedAt": "updated_at",
 	}
 	for field, wantJSON := range want {
 		f, ok := typ.FieldByName(field)
@@ -304,7 +304,7 @@ func TestBaseModel_CamelCaseJSON(t *testing.T) {
 			continue
 		}
 		if got := f.Tag.Get("json"); got != wantJSON {
-			t.Errorf("%s 的 json tag：得到 %q，期望 %q（对外必须 camelCase）", field, got, wantJSON)
+			t.Errorf("%s 的 json tag：得到 %q，期望 %q（对外必须 snake_case）", field, got, wantJSON)
 		}
 	}
 	// 软删列不对外暴露

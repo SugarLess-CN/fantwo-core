@@ -109,7 +109,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req struct {
-		RefreshToken string `json:"refreshToken"`
+		RefreshToken string `json:"refresh_token"`
 	}
 	if !bindJSON(c, &req) {
 		return
@@ -257,7 +257,7 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req struct {
 		Email       string `json:"email"`
 		Code        string `json:"code"`
-		NewPassword string `json:"newPassword"`
+		NewPassword string `json:"new_password"`
 	}
 	if !bindJSON(c, &req) {
 		return
@@ -280,8 +280,8 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	var req struct {
-		OldPassword string `json:"oldPassword"`
-		NewPassword string `json:"newPassword"`
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
 	}
 	if !bindJSON(c, &req) {
 		return

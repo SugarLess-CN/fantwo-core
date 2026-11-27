@@ -21,7 +21,7 @@ func TestUserEventSubscribersNoPanic(t *testing.T) {
 	cases := []interface{}{
 		event.ReportHandledPayload{Action: "BAN_USER", ReportedUserID: "u-1", HandlerID: "admin"},
 		&event.ReportHandledPayload{Action: "NONE", ReportedUserID: "u-2"},
-		map[string]interface{}{"action": "BAN_USER", "reportedUserId": "u-3"},
+		map[string]interface{}{"action": "BAN_USER", "reported_user_id": "u-3"},
 		event.InviteUsedPayload{InviterID: "u-4", InviteeID: "u-5", InviteCode: "ABC"},
 		&event.InviteUsedPayload{InviterID: "u-6", InviteeID: "u-7"},
 		map[string]interface{}{"inviter_id": "u-8", "invitee_id": "u-9", "invite_code": "XYZ"},
@@ -91,7 +91,7 @@ func TestViewUserNoNullFields(t *testing.T) {
 	strs := map[string]string{
 		"nickname": v.Nickname, "avatar": v.Avatar, "description": v.Description,
 		"background": v.Background, "address": v.Address, "email": v.Email,
-		"phone": v.Phone, "myInviteCode": v.MyInviteCode,
+		"phone": v.Phone, "my_invite_code": v.MyInviteCode,
 	}
 	for name, val := range strs {
 		if val != "" {

@@ -72,12 +72,12 @@ func (m *MessageJSON) Scan(src interface{}) error {
 // 已读状态直接落在本表 is_read。
 type Message struct {
 	BaseModel
-	SenderID    string      `gorm:"type:varchar(36);index" json:"senderId"`
-	ReceiverID  *string     `gorm:"type:varchar(36);index" json:"receiverId"`
+	SenderID    string      `gorm:"type:varchar(36);index" json:"sender_id"`
+	ReceiverID  *string     `gorm:"type:varchar(36);index" json:"receiver_id"`
 	Content     string      `gorm:"type:text;not null" json:"content"`
 	Type        string      `gorm:"type:varchar(20);not null;default:private;index" json:"type"` // private|system|notification
-	IsRead      bool        `gorm:"not null;default:false" json:"isRead"`
-	IsBroadcast bool        `gorm:"not null;default:false;index" json:"isBroadcast"`
+	IsRead      bool        `gorm:"not null;default:false" json:"is_read"`
+	IsBroadcast bool        `gorm:"not null;default:false;index" json:"is_broadcast"`
 	Title       *string     `gorm:"type:varchar(255)" json:"title"`
 	Metadata    MessageJSON `gorm:"type:jsonb" json:"metadata"`
 }
@@ -90,8 +90,8 @@ func (Message) TableName() string { return "message" }
 // （原源端 insert().orIgnore() 语义）。
 type MessageRead struct {
 	BaseModel
-	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_message_read_user_msg" json:"userId"`
-	MessageID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_message_read_user_msg" json:"messageId"`
+	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_message_read_user_msg" json:"user_id"`
+	MessageID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_message_read_user_msg" json:"message_id"`
 }
 
 // TableName 表名对齐原 @Entity("message_read")。
@@ -103,10 +103,10 @@ func (MessageRead) TableName() string { return "message_read" }
 // 保证同一对用户只有一行（原 findOrCreateConversation 的 sort 语义）。
 type PrivateConversation struct {
 	BaseModel
-	UserOneID     string     `gorm:"type:varchar(36);not null;uniqueIndex:uk_conversation_pair" json:"userOneId"`
-	UserTwoID     string     `gorm:"type:varchar(36);not null;uniqueIndex:uk_conversation_pair" json:"userTwoId"`
-	LastMessageID *string    `gorm:"type:varchar(36)" json:"lastMessageId"`
-	LastMessageAt *time.Time `gorm:"index" json:"lastMessageAt"`
+	UserOneID     string     `gorm:"type:varchar(36);not null;uniqueIndex:uk_conversation_pair" json:"user_one_id"`
+	UserTwoID     string     `gorm:"type:varchar(36);not null;uniqueIndex:uk_conversation_pair" json:"user_two_id"`
+	LastMessageID *string    `gorm:"type:varchar(36)" json:"last_message_id"`
+	LastMessageAt *time.Time `gorm:"index" json:"last_message_at"`
 }
 
 // TableName 表名对齐原 @Entity("private_conversation")。
@@ -119,16 +119,16 @@ func (PrivateConversation) TableName() string { return "private_conversation" }
 // ——前端靠 is_recalled 渲染「已撤回」占位。
 type PrivateMessage struct {
 	BaseModel
-	ConversationID string      `gorm:"type:varchar(36);not null;index:idx_pm_conv_created,priority:1" json:"conversationId"`
-	SenderID       string      `gorm:"type:varchar(36);not null" json:"senderId"`
-	ReceiverID     string      `gorm:"type:varchar(36);not null;index:idx_pm_receiver_read,priority:1" json:"receiverId"`
-	MessageKind    string      `gorm:"type:varchar(20);not null;default:text" json:"messageKind"` // text|image|file|card
+	ConversationID string      `gorm:"type:varchar(36);not null;index:idx_pm_conv_created,priority:1" json:"conversation_id"`
+	SenderID       string      `gorm:"type:varchar(36);not null" json:"sender_id"`
+	ReceiverID     string      `gorm:"type:varchar(36);not null;index:idx_pm_receiver_read,priority:1" json:"receiver_id"`
+	MessageKind    string      `gorm:"type:varchar(20);not null;default:text" json:"message_kind"` // text|image|file|card
 	Content        string      `gorm:"type:text" json:"content"`
 	Payload        MessageJSON `gorm:"type:jsonb" json:"payload"`
-	ReadAt         *time.Time  `gorm:"index:idx_pm_receiver_read,priority:2" json:"readAt"`
-	RecalledAt     *time.Time  `json:"recalledAt"`
-	RecalledByID   *string     `gorm:"type:varchar(36)" json:"recalledById"`
-	RecallReason   *string     `gorm:"type:varchar(255)" json:"recallReason"`
+	ReadAt         *time.Time  `gorm:"index:idx_pm_receiver_read,priority:2" json:"read_at"`
+	RecalledAt     *time.Time  `json:"recalled_at"`
+	RecalledByID   *string     `gorm:"type:varchar(36)" json:"recalled_by_id"`
+	RecallReason   *string     `gorm:"type:varchar(255)" json:"recall_reason"`
 }
 
 // TableName 表名对齐原 @Entity("private_message")。

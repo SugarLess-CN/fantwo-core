@@ -41,50 +41,50 @@ type UsersStat struct {
 	Total         int64 `json:"total"`
 	Active        int64 `json:"active"`
 	Banned        int64 `json:"banned"`
-	ActiveMembers int64 `json:"activeMembers"`
-	TodayNew      int64 `json:"todayNew"`
+	ActiveMembers int64 `json:"active_members"`
+	TodayNew      int64 `json:"today_new"`
 }
 
 // 今日活跃：原实现无「活跃」字段，这里以「今日有登录/签到」近似为今日新增 + 签到数，
 // 见 TodayActive 注释；保持与前端约定的字段存在性。
 type ContentStat struct {
 	Articles          int64 `json:"articles"`
-	PublishedArticles int64 `json:"publishedArticles"`
-	PendingArticles   int64 `json:"pendingArticles"`
+	PublishedArticles int64 `json:"published_articles"`
+	PendingArticles   int64 `json:"pending_articles"`
 	Comments          int64 `json:"comments"`
-	PublishedComments int64 `json:"publishedComments"`
+	PublishedComments int64 `json:"published_comments"`
 	Collections       int64 `json:"collections"`
-	PublicCollections int64 `json:"publicCollections"`
-	TodayArticles     int64 `json:"todayArticles"`
-	TodayComments     int64 `json:"todayComments"`
+	PublicCollections int64 `json:"public_collections"`
+	TodayArticles     int64 `json:"today_articles"`
+	TodayComments     int64 `json:"today_comments"`
 }
 
 // OrdersStat 订单组。
 type OrdersStat struct {
-	PaidCount        int64   `json:"paidCount"`
-	PaidRevenue      float64 `json:"paidRevenue"`
-	TodayPaidCount   int64   `json:"todayPaidCount"`
-	TodayPaidRevenue float64 `json:"todayPaidRevenue"`
+	PaidCount        int64   `json:"paid_count"`
+	PaidRevenue      float64 `json:"paid_revenue"`
+	TodayPaidCount   int64   `json:"today_paid_count"`
+	TodayPaidRevenue float64 `json:"today_paid_revenue"`
 }
 
 // ModerationStat 审核组。
 type ModerationStat struct {
-	PendingReports    int64 `json:"pendingReports"`
-	ProcessingReports int64 `json:"processingReports"`
-	PendingArticles   int64 `json:"pendingArticles"`
+	PendingReports    int64 `json:"pending_reports"`
+	ProcessingReports int64 `json:"processing_reports"`
+	PendingArticles   int64 `json:"pending_articles"`
 }
 
 // EngagementStat 互动组。
 type EngagementStat struct {
-	ArticleViews     int64 `json:"articleViews"`
-	ArticleLikes     int64 `json:"articleLikes"`
-	ArticleFavorites int64 `json:"articleFavorites"`
-	ArticleShares    int64 `json:"articleShares"`
-	ArticleComments  int64 `json:"articleComments"`
-	CommentLikes     int64 `json:"commentLikes"`
-	CommentReplies   int64 `json:"commentReplies"`
-	CollectionViews  int64 `json:"collectionViews"`
-	CollectionItems  int64 `json:"collectionItems"`
+	ArticleViews     int64 `json:"article_views"`
+	ArticleLikes     int64 `json:"article_likes"`
+	ArticleFavorites int64 `json:"article_favorites"`
+	ArticleShares    int64 `json:"article_shares"`
+	ArticleComments  int64 `json:"article_comments"`
+	CommentLikes     int64 `json:"comment_likes"`
+	CommentReplies   int64 `json:"comment_replies"`
+	CollectionViews  int64 `json:"collection_views"`
+	CollectionItems  int64 `json:"collection_items"`
 }
 
 // Overview 后台统计概览（GET /statistics/overview，权限 statistics:read | system:monitor）。
@@ -281,8 +281,8 @@ type TrendPoint struct {
 	Users       int64   `json:"users"`
 	Articles    int64   `json:"articles"`
 	Comments    int64   `json:"comments"`
-	PaidOrders  int64   `json:"paidOrders"`
-	PaidRevenue float64 `json:"paidRevenue"`
+	PaidOrders  int64   `json:"paid_orders"`
+	PaidRevenue float64 `json:"paid_revenue"`
 }
 
 // TrendsResult 趋势响应。

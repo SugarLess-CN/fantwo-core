@@ -36,23 +36,23 @@ const (
 // AuditConfig 审核配置（config 表聚合）。
 type AuditConfig struct {
 	Provider       string `json:"provider"`
-	CommentEnabled bool   `json:"commentEnabled"`
-	AvatarEnabled  bool   `json:"avatarEnabled"`
-	ImageEnabled   bool   `json:"imageEnabled"`
-	ArticleEnabled bool   `json:"articleEnabled"`
-	AutoBlock      bool   `json:"autoBlock"`
-	ReviewMode     string `json:"reviewMode"`  // auto / manual
+	CommentEnabled bool   `json:"comment_enabled"`
+	AvatarEnabled  bool   `json:"avatar_enabled"`
+	ImageEnabled   bool   `json:"image_enabled"`
+	ArticleEnabled bool   `json:"article_enabled"`
+	AutoBlock      bool   `json:"auto_block"`
+	ReviewMode     string `json:"review_mode"` // auto / manual
 	Sensitivity    string `json:"sensitivity"` // low / medium / high（对齐原仓库默认 medium）
 	// Tencent 腾讯云 CMS
-	TencentSecretID  string `json:"tencentSecretId"`
+	TencentSecretID  string `json:"tencent_secret_id"`
 	TencentSecretKey string `json:"-"`
-	TencentRegion    string `json:"tencentRegion"`
-	TencentTextBiz   string `json:"tencentTextBiz"`
-	TencentImageBiz  string `json:"tencentImageBiz"`
+	TencentRegion    string `json:"tencent_region"`
+	TencentTextBiz   string `json:"tencent_text_biz"`
+	TencentImageBiz  string `json:"tencent_image_biz"`
 	// Aliyun 阿里云 green
-	AliyunAccessKeyID     string `json:"aliyunAccessKeyId"`
+	AliyunAccessKeyID     string `json:"aliyun_access_key_id"`
 	AliyunAccessKeySecret string `json:"-"`
-	AliyunRegion          string `json:"aliyunRegion"`
+	AliyunRegion          string `json:"aliyun_region"`
 }
 
 // AuditResult 统一审核结果。
@@ -62,7 +62,7 @@ type AuditResult struct {
 	Label      string  `json:"label"`
 	Reason     string  `json:"reason"`
 	Score      float64 `json:"score"`
-	DetailJSON string  `json:"detailJson"`
+	DetailJSON string  `json:"detail_json"`
 }
 
 // AuditService 审核业务。
@@ -266,7 +266,7 @@ func (s *AuditService) aliyunText(cfg *AuditConfig, scene, content, userID strin
 	_ = json.Unmarshal([]byte(raw), &body)
 	if body.Data.Reason != "" {
 		var reason struct {
-			RiskLevel string `json:"riskLevel"`
+			RiskLevel string `json:"risk_level"`
 		}
 		if json.Unmarshal([]byte(body.Data.Reason), &reason) == nil && reason.RiskLevel == "high" {
 			res.Passed = false
@@ -297,7 +297,7 @@ func (s *AuditService) aliyunImage(cfg *AuditConfig, scene, imageURL, userID str
 	res.DetailJSON = raw
 	var body struct {
 		Data struct {
-			RiskLevel string  `json:"riskLevel"`
+			RiskLevel string  `json:"risk_level"`
 			Score     float64 `json:"score"`
 			Result    []struct {
 				Label string `json:"label"`
@@ -569,10 +569,10 @@ func (s *AuditService) emitStatusChanged(r *model.AuditRecord) {
 type PendingArticleItem struct {
 	ID         string    `json:"id"`
 	Title      string    `json:"title"`
-	AuthorID   string    `json:"authorId"`
-	CategoryID *string   `json:"categoryId"`
+	AuthorID   string    `json:"author_id"`
+	CategoryID *string   `json:"category_id"`
 	Status     string    `json:"status"`
-	CreatedAt  time.Time `json:"createdAt"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 // ListPendingArticles 待审核文章分页（articles 表局部视图）。

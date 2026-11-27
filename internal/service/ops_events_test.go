@@ -123,13 +123,13 @@ func TestResolveAchievementProgress(t *testing.T) {
 		{
 			name:    "article.receivedLike map 带 userId 也必须放弃",
 			topic:   event.EventArticleReceivedLike,
-			payload: map[string]interface{}{"userId": "liker-1", "articleId": "a-1"},
+			payload: map[string]interface{}{"user_id": "liker-1", "article_id": "a-1"},
 			wantOK:  false,
 		},
 		{
 			name:      "article.receivedLike map 带 authorId 正常推进",
 			topic:     event.EventArticleReceivedLike,
-			payload:   map[string]interface{}{"author_id": "author-3", "likerId": "liker-1"},
+			payload:   map[string]interface{}{"author_id": "author-3", "liker_id": "liker-1"},
 			wantUser:  "author-3",
 			wantCodes: event.AchievementTriggers[event.EventArticleReceivedLike],
 			wantOK:    true,
@@ -161,7 +161,7 @@ func TestResolveAchievementProgress(t *testing.T) {
 		{
 			name:      "user.receivedFollow map 用 targetUserId 优先于 userId",
 			topic:     event.EventUserReceivedFollow,
-			payload:   map[string]interface{}{"userId": "wrong-1", "targetUserId": "target-2"},
+			payload:   map[string]interface{}{"user_id": "wrong-1", "target_user_id": "target-2"},
 			wantUser:  "target-2",
 			wantCodes: event.AchievementTriggers[event.EventUserReceivedFollow],
 			wantOK:    true,
@@ -271,7 +271,7 @@ func TestResolveAchievementProgress(t *testing.T) {
 		{
 			name:    "未知事件 → 不可推进",
 			topic:   "no.such.event",
-			payload: map[string]interface{}{"userId": "u-1"},
+			payload: map[string]interface{}{"user_id": "u-1"},
 			wantOK:  false,
 		},
 	}
@@ -311,7 +311,7 @@ func TestPayloadFieldStringNormalization(t *testing.T) {
 		UserID string `json:"user_id"`
 	}
 	type ptrTagPayload struct {
-		UID *string `json:"userId"`
+		UID *string `json:"user_id"`
 	}
 	uid := "u-ptr"
 
@@ -321,18 +321,18 @@ func TestPayloadFieldStringNormalization(t *testing.T) {
 		key     string
 		want    string
 	}{
-		{"本域结构体 camelCase", event.ArticleCreatedPayload{UserID: "u-1"}, "userId", "u-1"},
-		{"结构体指针", &event.ArticleCreatedPayload{UserID: "u-2"}, "userId", "u-2"},
+		{"本域结构体 camelCase", event.ArticleCreatedPayload{UserID: "u-1"}, "user_id", "u-1"},
+		{"结构体指针", &event.ArticleCreatedPayload{UserID: "u-2"}, "user_id", "u-2"},
 		{"Key 大驼峰", event.ArticleCreatedPayload{UserID: "u-3"}, "UserID", "u-3"},
 		{"Key 下划线", event.ArticleCreatedPayload{UserID: "u-4"}, "user_id", "u-4"},
-		{"其它域结构体（json tag snake）", otherDomainPayload{UserID: "u-5"}, "userId", "u-5"},
-		{"map[string]interface{} camel", map[string]interface{}{"userId": "u-6"}, "userId", "u-6"},
-		{"map[string]interface{} snake", map[string]interface{}{"user_id": "u-7"}, "userId", "u-7"},
-		{"map[string]string", map[string]string{"userId": "u-8"}, "userId", "u-8"},
-		{"指针字段", ptrTagPayload{UID: &uid}, "userId", "u-ptr"},
-		{"键不存在", map[string]interface{}{"other": "x"}, "userId", ""},
-		{"nil 载荷", nil, "userId", ""},
-		{"nil 指针载荷", (*event.ArticleCreatedPayload)(nil), "userId", ""},
+		{"其它域结构体（json tag snake）", otherDomainPayload{UserID: "u-5"}, "user_id", "u-5"},
+		{"map[string]interface{} camel", map[string]interface{}{"user_id": "u-6"}, "user_id", "u-6"},
+		{"map[string]interface{} snake", map[string]interface{}{"user_id": "u-7"}, "user_id", "u-7"},
+		{"map[string]string", map[string]string{"user_id": "u-8"}, "user_id", "u-8"},
+		{"指针字段", ptrTagPayload{UID: &uid}, "user_id", "u-ptr"},
+		{"键不存在", map[string]interface{}{"other": "x"}, "user_id", ""},
+		{"nil 载荷", nil, "user_id", ""},
+		{"nil 指针载荷", (*event.ArticleCreatedPayload)(nil), "user_id", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -463,32 +463,32 @@ func TestAchievementSubscribeRegistersAllTopics(t *testing.T) {
 //  3. 实现了 fmt.Stringer 的自定义 ID 类型应能取出。
 func TestPayloadFieldStringExoticKinds(t *testing.T) {
 	t.Run("[]byte 字段", func(t *testing.T) {
-		payload := map[string]interface{}{"userId": []byte("u-bytes")}
-		if got := payloadFieldString(payload, "userId"); got != "u-bytes" {
+		payload := map[string]interface{}{"user_id": []byte("u-bytes")}
+		if got := payloadFieldString(payload, "user_id"); got != "u-bytes" {
 			t.Errorf("[]byte 取值 = %q, want u-bytes", got)
 		}
 	})
 	t.Run("int 字段不 panic 且返回空", func(t *testing.T) {
-		payload := map[string]interface{}{"userId": 123}
-		if got := payloadFieldString(payload, "userId"); got != "" {
+		payload := map[string]interface{}{"user_id": 123}
+		if got := payloadFieldString(payload, "user_id"); got != "" {
 			t.Errorf("int 字段应返回空串，实际 %q", got)
 		}
 	})
 	t.Run("非字符串 Key 的 map", func(t *testing.T) {
 		payload := map[int]string{1: "u-1"}
-		if got := payloadFieldString(payload, "userId"); got != "" {
+		if got := payloadFieldString(payload, "user_id"); got != "" {
 			t.Errorf("非字符串 Key 的 map 应返回空串，实际 %q", got)
 		}
 	})
 	t.Run("数组载荷", func(t *testing.T) {
-		if got := payloadFieldString([]string{"u-1"}, "userId"); got != "" {
+		if got := payloadFieldString([]string{"u-1"}, "user_id"); got != "" {
 			t.Errorf("数组载荷应返回空串，实际 %q", got)
 		}
 	})
 	t.Run("嵌套指针链", func(t *testing.T) {
 		p := &event.ArticleCreatedPayload{UserID: "u-nested"}
 		pp := &p
-		if got := payloadFieldString(pp, "userId"); got != "u-nested" {
+		if got := payloadFieldString(pp, "user_id"); got != "u-nested" {
 			t.Errorf("多重指针取值 = %q, want u-nested", got)
 		}
 	})

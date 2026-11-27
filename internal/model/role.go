@@ -19,10 +19,10 @@ const (
 type Role struct {
 	BaseModel
 	Name        string  `gorm:"column:name;type:varchar(64);uniqueIndex;not null" json:"name"`
-	DisplayName *string `gorm:"column:display_name;type:varchar(64)" json:"displayName"`
+	DisplayName *string `gorm:"column:display_name;type:varchar(64)" json:"display_name"`
 	Description *string `gorm:"column:description;type:varchar(255)" json:"description"`
-	IsActive    bool    `gorm:"column:is_active;default:true" json:"isActive"`
-	IsSystem    bool    `gorm:"column:is_system;default:false" json:"isSystem"`
+	IsActive    bool    `gorm:"column:is_active;default:true" json:"is_active"`
+	IsSystem    bool    `gorm:"column:is_system;default:false" json:"is_system"`
 
 	// Permissions 角色权限（join 表 role_permissions，eager 语义由 repository 预加载）。
 	Permissions []Permission `gorm:"many2many:role_permissions;" json:"permissions,omitempty"`
@@ -44,9 +44,9 @@ func (Permission) TableName() string { return "permission" }
 // RolePermission 角色-权限关联表（GORM many2many 的显式模型，
 // 与 Role.Permissions 的 join 表同名同列；提供精确的 AutoMigrate 列定义）。
 type RolePermission struct {
-	RoleID       string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"roleId"`
-	PermissionID string    `gorm:"column:permission_id;type:varchar(36);primaryKey" json:"permissionId"`
-	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
+	RoleID       string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"role_id"`
+	PermissionID string    `gorm:"column:permission_id;type:varchar(36);primaryKey" json:"permission_id"`
+	CreatedAt    time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
 
 // TableName 表名。
@@ -54,9 +54,9 @@ func (RolePermission) TableName() string { return "role_permissions" }
 
 // RoleMenu 角色-菜单关联表（PUT /admin/roles/{id}/menus 的落点）。
 type RoleMenu struct {
-	RoleID    string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"roleId"`
-	MenuKey   string    `gorm:"column:menu_key;type:varchar(128);primaryKey" json:"menuKey"`
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
+	RoleID    string    `gorm:"column:role_id;type:varchar(36);primaryKey" json:"role_id"`
+	MenuKey   string    `gorm:"column:menu_key;type:varchar(128);primaryKey" json:"menu_key"`
+	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 }
 
 // TableName 表名。

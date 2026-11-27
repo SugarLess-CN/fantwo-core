@@ -76,13 +76,13 @@ type UnreadCountVO = dto.UnreadCountDto
 
 // CreateMessageInput 创建消息入参（对齐 CreateMessageDto）。
 type CreateMessageInput struct {
-	SenderID    string                 `json:"senderId"`
-	ReceiverID  string                 `json:"receiverId"`
-	ReceiverIDs []string               `json:"receiverIds"`
+	SenderID    string                 `json:"sender_id"`
+	ReceiverID  string                 `json:"receiver_id"`
+	ReceiverIDs []string               `json:"receiver_ids"`
 	Content     string                 `json:"content"`
 	Title       string                 `json:"title"`
 	Type        string                 `json:"type"`
-	IsBroadcast bool                   `json:"isBroadcast"`
+	IsBroadcast bool                   `json:"is_broadcast"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
@@ -91,20 +91,20 @@ type UpdateMessageInput struct {
 	Content     *string                 `json:"content"`
 	Title       *string                 `json:"title"`
 	Type        *string                 `json:"type"`
-	IsRead      *bool                   `json:"isRead"`
-	IsBroadcast *bool                   `json:"isBroadcast"`
+	IsRead      *bool                   `json:"is_read"`
+	IsBroadcast *bool                   `json:"is_broadcast"`
 	Metadata    *map[string]interface{} `json:"metadata"`
 }
 
 // MarkAllReadInput 全部已读入参（对齐 MarkAllReadDto）。
 type MarkAllReadInput struct {
 	Type        string `json:"type"`
-	IsBroadcast bool   `json:"isBroadcast"`
+	IsBroadcast bool   `json:"is_broadcast"`
 }
 
 // BatchMessageInput 批量操作入参（对齐 BatchMessageDto）。
 type BatchMessageInput struct {
-	MessageIDs []string `json:"messageIds" binding:"required"`
+	MessageIDs []string `json:"message_ids" binding:"required"`
 	Action     string   `json:"action" binding:"required"`
 }
 

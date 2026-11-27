@@ -30,27 +30,27 @@ import "time"
 // PATCH /decoration/{id}，以及 UserDecorationDto 里的 decoration 嵌套。
 type DecorationDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
 	Name          string  `json:"name" example:"金色边框"`
 	Type          string  `json:"type" example:"AVATAR_FRAME"` // AVATAR_FRAME / COMMENT_BUBBLE / ACHIEVEMENT_BADGE
 	Description   string  `json:"description" example:"限时活动的头像框"`
-	ImageURL      string  `json:"imageUrl" example:"https://cdn.example.com/deco/frame.png"`
-	PreviewURL    string  `json:"previewUrl" example:"https://cdn.example.com/deco/frame-preview.png"`
-	Rarity        string  `json:"rarity" example:"COMMON"`         // COMMON / RARE / EPIC / LEGENDARY
-	BubbleColor   string  `json:"bubbleColor" example:"#FFD700"`   // 仅评论气泡用
-	ObtainMethod  string  `json:"obtainMethod" example:"PURCHASE"` // PURCHASE / ACTIVITY / GIFT / ACHIEVEMENT / DEFAULT
-	IsPurchasable bool    `json:"isPurchasable" example:"true"`
+	ImageURL      string  `json:"image_url" example:"https://cdn.example.com/deco/frame.png"`
+	PreviewURL    string  `json:"preview_url" example:"https://cdn.example.com/deco/frame-preview.png"`
+	Rarity        string  `json:"rarity" example:"COMMON"`          // COMMON / RARE / EPIC / LEGENDARY
+	BubbleColor   string  `json:"bubble_color" example:"#FFD700"`   // 仅评论气泡用
+	ObtainMethod  string  `json:"obtain_method" example:"PURCHASE"` // PURCHASE / ACTIVITY / GIFT / ACHIEVEMENT / DEFAULT
+	IsPurchasable bool    `json:"is_purchasable" example:"true"`
 	Price         float64 `json:"price" example:"9.9"`
-	IsPermanent   bool    `json:"isPermanent" example:"false"`
-	ValidDays     int     `json:"validDays" example:"30"`
+	IsPermanent   bool    `json:"is_permanent" example:"false"`
+	ValidDays     int     `json:"valid_days" example:"30"`
 	Sort          int     `json:"sort" example:"0"`
 	Status        string  `json:"status" example:"ACTIVE"` // ACTIVE / INACTIVE
 
 	// 归属来源（反查唯一来源；非来源方向时为空串，不是 null）
-	ActivityID    string `json:"activityId" example:""`
-	AchievementID string `json:"achievementId" example:""`
+	ActivityID    string `json:"activity_id" example:""`
+	AchievementID string `json:"achievement_id" example:""`
 }
 
 // ---------------------------------------------------------------------------
@@ -65,21 +65,21 @@ type DecorationDto struct {
 // 补不到时整个字段不传（不是在列表里塞 null）。这样前端画头像框不用二次请求。
 type UserDecorationDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
-	UserID         string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	DecorationID   string `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
-	ObtainMethod   string `json:"obtainMethod" example:"PURCHASE"`
-	IsPermanent    bool   `json:"isPermanent" example:"false"`
-	IsUsing        bool   `json:"isUsing" example:"true"`
-	GiftFromUserID string `json:"giftFromUserId" example:""`
-	OrderID        string `json:"orderId" example:""`
-	ActivityID     string `json:"activityId" example:""`
+	UserID         string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	DecorationID   string `json:"decoration_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ObtainMethod   string `json:"obtain_method" example:"PURCHASE"`
+	IsPermanent    bool   `json:"is_permanent" example:"false"`
+	IsUsing        bool   `json:"is_using" example:"true"`
+	GiftFromUserID string `json:"gift_from_user_id" example:""`
+	OrderID        string `json:"order_id" example:""`
+	ActivityID     string `json:"activity_id" example:""`
 	Remark         string `json:"remark" example:""`
 
 	// 时间：空时整个字段不传（永久持有 / 未领奖时库里是 NULL）
-	ExpiresAt *string `json:"expiresAt,omitempty" format:"date-time" example:"2026-12-25T10:00:00Z"`
+	ExpiresAt *string `json:"expires_at,omitempty" format:"date-time" example:"2026-12-25T10:00:00Z"`
 
 	// 嵌套装饰品定义（service 批量补填；补不到时不传）
 	Decoration *DecorationDto `json:"decoration,omitempty"`
@@ -90,8 +90,8 @@ type UserDecorationDto struct {
 // 两个字段都是**对象 + omitempty**：没佩戴时整个字段不传，
 // 改前是 `*model.UserDecoration` 的 nil，序列化成 `"avatarFrame": null`。
 type CurrentDecorationsDto struct {
-	AvatarFrame   *UserDecorationDto `json:"avatarFrame,omitempty"`
-	CommentBubble *UserDecorationDto `json:"commentBubble,omitempty"`
+	AvatarFrame   *UserDecorationDto `json:"avatar_frame,omitempty"`
+	CommentBubble *UserDecorationDto `json:"comment_bubble,omitempty"`
 }
 
 // ---------------------------------------------------------------------------
@@ -104,31 +104,31 @@ type CurrentDecorationsDto struct {
 // POST /decoration/activity、PATCH /decoration/activity/{id}。
 type DecorationActivityDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
 	Name         string `json:"name" example:"双十一点赞活动"`
 	Description  string `json:"description" example:"累计 100 赞得限定头像框"`
 	Type         string `json:"type" example:"LIKE"` // LIKE / COMMENT / SHARE / RECHARGE / SIGN_IN / CUSTOM
-	DecorationID string `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
-	ArticleID    string `json:"articleId" example:""`
+	DecorationID string `json:"decoration_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ArticleID    string `json:"article_id" example:""`
 
-	RequiredLikes      int     `json:"requiredLikes" example:"100"`
-	RequiredComments   int     `json:"requiredComments" example:"0"`
-	RequiredShares     int     `json:"requiredShares" example:"0"`
-	RequiredRecharge   float64 `json:"requiredRecharge" example:"0"`
-	RequiredSignInDays int     `json:"requiredSignInDays" example:"0"`
+	RequiredLikes      int     `json:"required_likes" example:"100"`
+	RequiredComments   int     `json:"required_comments" example:"0"`
+	RequiredShares     int     `json:"required_shares" example:"0"`
+	RequiredRecharge   float64 `json:"required_recharge" example:"0"`
+	RequiredSignInDays int     `json:"required_sign_in_days" example:"0"`
 
-	IsPermanent bool `json:"isPermanent" example:"false"`
-	ValidDays   int  `json:"validDays" example:"30"`
+	IsPermanent bool `json:"is_permanent" example:"false"`
+	ValidDays   int  `json:"valid_days" example:"30"`
 
 	// 活动起止时间：库里 NOT NULL（创建时必有值），故用 string 而非 omitempty 指针
-	StartTime string `json:"startTime" format:"date-time" example:"2026-11-01T00:00:00Z"`
-	EndTime   string `json:"endTime" format:"date-time" example:"2027-11-01T00:00:00Z"`
+	StartTime string `json:"start_time" format:"date-time" example:"2026-11-01T00:00:00Z"`
+	EndTime   string `json:"end_time" format:"date-time" example:"2027-11-01T00:00:00Z"`
 
 	Status           string `json:"status" example:"ACTIVE"` // ACTIVE / INACTIVE / ENDED
-	ParticipantCount int64  `json:"participantCount" example:"128"`
-	CompletedCount   int64  `json:"completedCount" example:"36"`
+	ParticipantCount int64  `json:"participant_count" example:"128"`
+	CompletedCount   int64  `json:"completed_count" example:"36"`
 }
 
 // UserActivityProgressDto 用户活动进度对外视图（model.UserActivityProgress，14 业务字段 + id/时间）。
@@ -136,24 +136,24 @@ type DecorationActivityDto struct {
 // 用于：GET /decoration/activity/progress/my（数组元素）。
 type UserActivityProgressDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
-	UserID     string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ActivityID string `json:"activityId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	UserID     string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ActivityID string `json:"activity_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
 
-	CurrentLikes      int     `json:"currentLikes" example:"88"`
-	CurrentComments   int     `json:"currentComments" example:"12"`
-	CurrentShares     int     `json:"currentShares" example:"0"`
-	CurrentRecharge   float64 `json:"currentRecharge" example:"0"`
-	CurrentSignInDays int     `json:"currentSignInDays" example:"0"`
+	CurrentLikes      int     `json:"current_likes" example:"88"`
+	CurrentComments   int     `json:"current_comments" example:"12"`
+	CurrentShares     int     `json:"current_shares" example:"0"`
+	CurrentRecharge   float64 `json:"current_recharge" example:"0"`
+	CurrentSignInDays int     `json:"current_sign_in_days" example:"0"`
 
-	IsCompleted bool `json:"isCompleted" example:"false"`
-	IsRewarded  bool `json:"isRewarded" example:"false"`
+	IsCompleted bool `json:"is_completed" example:"false"`
+	IsRewarded  bool `json:"is_rewarded" example:"false"`
 
 	// 时间：空时整个字段不传（未完成 / 未领奖时库里是 NULL）
-	CompletedAt *string `json:"completedAt,omitempty" format:"date-time"`
-	RewardedAt  *string `json:"rewardedAt,omitempty" format:"date-time"`
+	CompletedAt *string `json:"completed_at,omitempty" format:"date-time"`
+	RewardedAt  *string `json:"rewarded_at,omitempty" format:"date-time"`
 }
 
 // ---------------------------------------------------------------------------
@@ -168,15 +168,15 @@ type DecorationInputRequest struct {
 	Name          *string  `json:"name" example:"金色边框"`
 	Type          *string  `json:"type" example:"AVATAR_FRAME"`
 	Description   *string  `json:"description" example:"限时活动的头像框"`
-	ImageURL      *string  `json:"imageUrl" example:"https://cdn.example.com/deco/frame.png"`
-	PreviewURL    *string  `json:"previewUrl" example:"https://cdn.example.com/deco/frame-preview.png"`
+	ImageURL      *string  `json:"image_url" example:"https://cdn.example.com/deco/frame.png"`
+	PreviewURL    *string  `json:"preview_url" example:"https://cdn.example.com/deco/frame-preview.png"`
 	Rarity        *string  `json:"rarity" example:"COMMON"`
-	BubbleColor   *string  `json:"bubbleColor" example:"#FFD700"`
-	ObtainMethod  *string  `json:"obtainMethod" example:"PURCHASE"`
-	IsPurchasable *bool    `json:"isPurchasable" example:"true"`
+	BubbleColor   *string  `json:"bubble_color" example:"#FFD700"`
+	ObtainMethod  *string  `json:"obtain_method" example:"PURCHASE"`
+	IsPurchasable *bool    `json:"is_purchasable" example:"true"`
 	Price         *float64 `json:"price" example:"9.9"`
-	IsPermanent   *bool    `json:"isPermanent" example:"false"`
-	ValidDays     *int     `json:"validDays" example:"30"`
+	IsPermanent   *bool    `json:"is_permanent" example:"false"`
+	ValidDays     *int     `json:"valid_days" example:"30"`
 	Sort          *int     `json:"sort" example:"0"`
 	Status        *string  `json:"status" example:"ACTIVE"`
 }
@@ -186,29 +186,29 @@ type DecorationActivityInputRequest struct {
 	Name               *string    `json:"name" example:"双十一点赞活动"`
 	Description        *string    `json:"description" example:"累计 100 赞得限定头像框"`
 	Type               *string    `json:"type" example:"LIKE"`
-	DecorationID       *string    `json:"decorationId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
-	ArticleID          *string    `json:"articleId"`
-	RequiredLikes      *int       `json:"requiredLikes" example:"100"`
-	RequiredComments   *int       `json:"requiredComments" example:"0"`
-	RequiredShares     *int       `json:"requiredShares" example:"0"`
-	RequiredRecharge   *float64   `json:"requiredRecharge" example:"0"`
-	RequiredSignInDays *int       `json:"requiredSignInDays" example:"0"`
-	IsPermanent        *bool      `json:"isPermanent" example:"false"`
-	ValidDays          *int       `json:"validDays" example:"30"`
-	StartTime          *time.Time `json:"startTime" format:"date-time" example:"2026-11-01T00:00:00Z"`
-	EndTime            *time.Time `json:"endTime" format:"date-time" example:"2027-11-01T00:00:00Z"`
+	DecorationID       *string    `json:"decoration_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ArticleID          *string    `json:"article_id"`
+	RequiredLikes      *int       `json:"required_likes" example:"100"`
+	RequiredComments   *int       `json:"required_comments" example:"0"`
+	RequiredShares     *int       `json:"required_shares" example:"0"`
+	RequiredRecharge   *float64   `json:"required_recharge" example:"0"`
+	RequiredSignInDays *int       `json:"required_sign_in_days" example:"0"`
+	IsPermanent        *bool      `json:"is_permanent" example:"false"`
+	ValidDays          *int       `json:"valid_days" example:"30"`
+	StartTime          *time.Time `json:"start_time" format:"date-time" example:"2026-11-01T00:00:00Z"`
+	EndTime            *time.Time `json:"end_time" format:"date-time" example:"2027-11-01T00:00:00Z"`
 	Status             *string    `json:"status" example:"ACTIVE"`
 }
 
 // PurchaseDecorationRequest 购买装饰品（decorationId 必填）。
 type PurchaseDecorationRequest struct {
-	DecorationID string `json:"decorationId" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	DecorationID string `json:"decoration_id" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
 }
 
 // GiftDecorationRequest 赠送装饰品（toUserId + decorationId 必填，message 可选）。
 type GiftDecorationRequest struct {
-	ToUserID     string `json:"toUserId" binding:"required" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	DecorationID string `json:"decorationId" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	ToUserID     string `json:"to_user_id" binding:"required" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	DecorationID string `json:"decoration_id" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
 	Message      string `json:"message" example:"生日快乐！"`
 }
 

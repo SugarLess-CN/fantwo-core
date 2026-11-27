@@ -30,8 +30,8 @@ package dto
 // 「上线/下线」= isActive；「有效期」= validDays（0 表示永久）。不在此处虚构字段。
 type PointsActivityDto struct {
 	ID        string `json:"id" example:"5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
 	Code        string `json:"code" example:"DAILY_LOGIN"`
 	Name        string `json:"name" example:"每日登录"`
@@ -41,18 +41,18 @@ type PointsActivityDto struct {
 	Type string `json:"type" enums:"INSTANT,DAILY,WEEKLY,MONTHLY,ONCE" example:"DAILY"`
 
 	// RewardPoints 奖励积分（整数，不是金额，无精度问题）。
-	RewardPoints int `json:"rewardPoints" example:"10"`
-	TargetCount  int `json:"targetCount" example:"1"`
+	RewardPoints int `json:"reward_points" example:"10"`
+	TargetCount  int `json:"target_count" example:"1"`
 	// DailyLimit / TotalLimit 为 0 表示不限制。
-	DailyLimit int `json:"dailyLimit" example:"0"`
-	TotalLimit int `json:"totalLimit" example:"0"`
+	DailyLimit int `json:"daily_limit" example:"0"`
+	TotalLimit int `json:"total_limit" example:"0"`
 	// ValidDays 积分有效期天数，0 表示永久。
-	ValidDays int `json:"validDays" example:"0"`
+	ValidDays int `json:"valid_days" example:"0"`
 
 	Icon string `json:"icon" example:"https://cdn.example.com/points/login.png"`
 	Link string `json:"link" example:"/points"`
 	// IsActive 是否启用（等价于「活动是否上线」）。
-	IsActive bool `json:"isActive" example:"true"`
+	IsActive bool `json:"is_active" example:"true"`
 	Sort     int  `json:"sort" example:"1"`
 }
 
@@ -66,14 +66,14 @@ type CreatePointsActivityRequest struct {
 	Name         *string `json:"name" example:"每日登录"`
 	Description  *string `json:"description" example:"每天首次登录获得积分"`
 	Type         *string `json:"type" enums:"INSTANT,DAILY,WEEKLY,MONTHLY,ONCE" example:"DAILY"`
-	RewardPoints *int    `json:"rewardPoints" example:"10"`
-	TargetCount  *int    `json:"targetCount" example:"1"`
-	DailyLimit   *int    `json:"dailyLimit" example:"0"`
-	TotalLimit   *int    `json:"totalLimit" example:"0"`
-	ValidDays    *int    `json:"validDays" example:"0"`
+	RewardPoints *int    `json:"reward_points" example:"10"`
+	TargetCount  *int    `json:"target_count" example:"1"`
+	DailyLimit   *int    `json:"daily_limit" example:"0"`
+	TotalLimit   *int    `json:"total_limit" example:"0"`
+	ValidDays    *int    `json:"valid_days" example:"0"`
 	Icon         *string `json:"icon"`
 	Link         *string `json:"link"`
-	IsActive     *bool   `json:"isActive" example:"true"`
+	IsActive     *bool   `json:"is_active" example:"true"`
 	Sort         *int    `json:"sort" example:"1"`
 }
 
@@ -107,10 +107,10 @@ type PointsActivityDeleteResultDto struct {
 // 除此之外 WalletTransactionDto 属 user 域（/user/wallet/transactions），已冻结。
 type PointsTransactionDto struct {
 	ID        string `json:"id" example:"7a2b3c4d-5e6f-4a8b-9c0d-112233445566"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
-	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 
 	// Amount 变动数量（正数增加、负数减少），单位是积分不是金额。
 	Amount int `json:"amount" example:"10"`
@@ -119,13 +119,13 @@ type PointsTransactionDto struct {
 
 	Type        string `json:"type" enums:"EARN,SPEND,ADMIN_ADJUST,EXPIRE,REFUND" example:"EARN"`
 	Source      string `json:"source" example:"DAILY_LOGIN"`
-	RelatedType string `json:"relatedType" example:"sign_in"`
-	RelatedID   string `json:"relatedId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	RelatedType string `json:"related_type" example:"sign_in"`
+	RelatedID   string `json:"related_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	// Description 中文业务描述（data 内容，不翻译）。
 	Description string `json:"description" example:"每日登录奖励"`
 
 	// ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。
-	ExpiredAt *string `json:"expiredAt,omitempty" format:"date-time"`
+	ExpiredAt *string `json:"expired_at,omitempty" format:"date-time"`
 
 	// Expired 过期积分是否已被回收（EXPIRE 清扫任务用）。
 	Expired bool `json:"expired" example:"false"`
@@ -140,7 +140,7 @@ type PointsTransactionDto struct {
 // 不复用 dto.WalletBalanceDto：那个是钱包余额（float64 元），这里是积分（int），
 // 且响应多一个 userId 字段（管理端按 userId 查任意用户余额时必需）。
 type PointsBalanceDto struct {
-	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Points int    `json:"points" example:"320"`
 }
 
@@ -149,7 +149,7 @@ type PointsChangeResultDto struct {
 	// Amount 本次变动数量（发放为正、消费为负）。
 	Amount int `json:"amount" example:"10"`
 	// CurrentPoints 变动后的余额。
-	CurrentPoints int `json:"currentPoints" example:"320"`
+	CurrentPoints int `json:"current_points" example:"320"`
 	// Transaction 本次对应的流水；无流水时不传该字段（不是 null）。
 	Transaction *PointsTransactionDto `json:"transaction,omitempty"`
 }
@@ -166,22 +166,22 @@ type ClaimPointsResultDto = PointsChangeResultDto
 // 用于 GET /points/tasks/my（数组）与 GET /points/tasks/my/{activityId}（单条）。
 type PointsTaskDto struct {
 	ID        string `json:"id" example:"b1c2d3e4-5f60-4718-8293-0a1b2c3d4e5f"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
-	UserID     string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ActivityID string `json:"activityId" example:"5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"`
+	UserID     string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ActivityID string `json:"activity_id" example:"5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"`
 
-	CurrentCount int  `json:"currentCount" example:"2"`
-	TargetCount  int  `json:"targetCount" example:"3"`
-	IsCompleted  bool `json:"isCompleted" example:"false"`
+	CurrentCount int  `json:"current_count" example:"2"`
+	TargetCount  int  `json:"target_count" example:"3"`
+	IsCompleted  bool `json:"is_completed" example:"false"`
 	// CompletedAt 完成时间；未完成时不传（不是 null）。
-	CompletedAt *string `json:"completedAt,omitempty" format:"date-time"`
+	CompletedAt *string `json:"completed_at,omitempty" format:"date-time"`
 
-	RewardPoints int  `json:"rewardPoints" example:"10"`
-	IsRewarded   bool `json:"isRewarded" example:"false"`
+	RewardPoints int  `json:"reward_points" example:"10"`
+	IsRewarded   bool `json:"is_rewarded" example:"false"`
 	// RewardedAt 领取时间；未领取时不传（不是 null）。
-	RewardedAt *string `json:"rewardedAt,omitempty" format:"date-time"`
+	RewardedAt *string `json:"rewarded_at,omitempty" format:"date-time"`
 }
 
 // ---------------------------------------------------------------------------
@@ -197,14 +197,14 @@ type PointsStatsTransactionsDto struct {
 
 // PointsStatsPointsDto 积分总量（单位：积分）。
 type PointsStatsPointsDto struct {
-	TotalEarned   int64 `json:"totalEarned" example:"1280"`
-	TotalSpent    int64 `json:"totalSpent" example:"320"`
-	InCirculation int64 `json:"inCirculation" example:"960"`
+	TotalEarned   int64 `json:"total_earned" example:"1280"`
+	TotalSpent    int64 `json:"total_spent" example:"320"`
+	InCirculation int64 `json:"in_circulation" example:"960"`
 }
 
 // PointsStatsUsersDto 用户维度计数。
 type PointsStatsUsersDto struct {
-	ActiveUsers int64 `json:"activeUsers" example:"42"`
+	ActiveUsers int64 `json:"active_users" example:"42"`
 }
 
 // PointsStatsActivitiesDto 活动维度计数。
@@ -218,11 +218,11 @@ type PointsStatsActivitiesDto struct {
 // CompletionRate / ClaimRate 是**字符串**（两位小数，如 "9.52"），
 // 对齐原仓库 ((a/b)*100).toFixed(2) 的输出；不是数字，改动会破前端契约（P3 已知一致性问题）。
 type PointsStatsTasksDto struct {
-	TotalRecords   int64  `json:"totalRecords" example:"64"`
+	TotalRecords   int64  `json:"total_records" example:"64"`
 	Completed      int64  `json:"completed" example:"32"`
 	Claimed        int64  `json:"claimed" example:"28"`
-	CompletionRate string `json:"completionRate" example:"50.00"`
-	ClaimRate      string `json:"claimRate" example:"87.50"`
+	CompletionRate string `json:"completion_rate" example:"50.00"`
+	ClaimRate      string `json:"claim_rate" example:"87.50"`
 }
 
 // PointsSourceStatDto 按来源聚合的积分获取统计。
@@ -241,7 +241,7 @@ type PointsStatisticsDto struct {
 	Tasks        PointsStatsTasksDto        `json:"tasks"`
 
 	// BySource 按来源统计的获取明细；空时输出 []（不是 null）。
-	BySource []PointsSourceStatDto `json:"bySource"`
+	BySource []PointsSourceStatDto `json:"by_source"`
 }
 
 // ---------------------------------------------------------------------------
@@ -256,10 +256,10 @@ type AddPointsRequest struct {
 	Amount      int    `json:"amount" binding:"required" example:"100"`
 	Source      string `json:"source" binding:"required" example:"ADMIN_ADJUST"`
 	Description string `json:"description" example:"活动补发"`
-	RelatedType string `json:"relatedType" example:"order"`
-	RelatedID   string `json:"relatedId" example:"ORDER1234567890123456"`
+	RelatedType string `json:"related_type" example:"order"`
+	RelatedID   string `json:"related_id" example:"ORDER1234567890123456"`
 	// ValidDays 积分有效期天数，0 表示永久。
-	ValidDays int `json:"validDays" example:"0"`
+	ValidDays int `json:"valid_days" example:"0"`
 }
 
 // SpendPointsRequest 消费积分请求体（POST /points/spend）。
@@ -270,6 +270,6 @@ type SpendPointsRequest struct {
 	Amount      int    `json:"amount" binding:"required" example:"50"`
 	Source      string `json:"source" binding:"required" example:"EXCHANGE"`
 	Description string `json:"description" example:"兑换表情包"`
-	RelatedType string `json:"relatedType" example:"emoji_pack"`
-	RelatedID   string `json:"relatedId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	RelatedType string `json:"related_type" example:"emoji_pack"`
+	RelatedID   string `json:"related_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 }

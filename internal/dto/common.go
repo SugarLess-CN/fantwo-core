@@ -69,7 +69,7 @@ type PageMeta struct {
 	Total      int64 `json:"total" example:"128"`
 	Page       int   `json:"page" example:"1"`
 	Limit      int   `json:"limit" example:"20"`
-	TotalPages int64 `json:"totalPages" example:"7"`
+	TotalPages int64 `json:"total_pages" example:"7"`
 }
 
 // SuccessDto 只回 {"success":true} 的动作类接口 data（登出、解绑、删除等）。

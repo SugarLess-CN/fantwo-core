@@ -28,23 +28,23 @@ package dto
 // 这一层只是把时间转成 RFC3339 文本。
 type EmojiDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
 	Name     string `json:"name" example:"开心"`
 	URL      string `json:"url" example:"https://cdn.example.com/emoji/happy.png"`
 	Code     string `json:"code" example:":smile:"`
 	Type     string `json:"type" example:"user"` // system / user
-	UserID   string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID   string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Category string `json:"category" example:"表情"`
 	Tags     string `json:"tags" example:"开心,日常"` // 逗号分隔（原实现如此）
-	UseCount int64  `json:"useCount" example:"128"`
-	IsPublic bool   `json:"isPublic" example:"true"`
+	UseCount int64  `json:"use_count" example:"128"`
+	IsPublic bool   `json:"is_public" example:"true"`
 	Status   string `json:"status" example:"active"` // active / inactive / deleted
 	Width    int    `json:"width" example:"240"`
 	Height   int    `json:"height" example:"240"`
-	FileSize int64  `json:"fileSize" example:"8192"`
-	MimeType string `json:"mimeType" example:"image/png"`
+	FileSize int64  `json:"file_size" example:"8192"`
+	MimeType string `json:"mime_type" example:"image/png"`
 }
 
 // ---------------------------------------------------------------------------
@@ -57,14 +57,14 @@ type EmojiDto struct {
 // POST /emoji/packs、PATCH /emoji/packs/{id}。
 type EmojiPackDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
 	Name        string `json:"name" example:"日常表情包"`
 	Description string `json:"description" example:"聊天常用的 12 个表情"`
-	CoverURL    string `json:"coverUrl" example:"https://cdn.example.com/emoji/cover.png"`
-	UserID      string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	IsPublic    bool   `json:"isPublic" example:"true"`
+	CoverURL    string `json:"cover_url" example:"https://cdn.example.com/emoji/cover.png"`
+	UserID      string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	IsPublic    bool   `json:"is_public" example:"true"`
 	Status      string `json:"status" example:"active"`
 }
 
@@ -73,11 +73,11 @@ type EmojiPackDto struct {
 // 用于：POST /emoji/packs/{id}/emojis、PATCH /emoji/packs/{id}/emojis/{emojiId}。
 type EmojiPackItemDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:05Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:05Z"`
 
-	PackID  string `json:"packId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	EmojiID string `json:"emojiId" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	PackID  string `json:"pack_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	EmojiID string `json:"emoji_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
 	Sort    int    `json:"sort" example:"0"`
 }
 
@@ -105,11 +105,11 @@ type EmojiInputRequest struct {
 	Type     *string `json:"type" example:"user"` // 只有管理员可传 system
 	Category *string `json:"category" example:"表情"`
 	Tags     *string `json:"tags" example:"开心,日常"`
-	IsPublic *bool   `json:"isPublic" example:"true"`
+	IsPublic *bool   `json:"is_public" example:"true"`
 	Width    *int    `json:"width" example:"240"`
 	Height   *int    `json:"height" example:"240"`
-	FileSize *int64  `json:"fileSize" example:"8192"`
-	MimeType *string `json:"mimeType" example:"image/png"`
+	FileSize *int64  `json:"file_size" example:"8192"`
+	MimeType *string `json:"mime_type" example:"image/png"`
 	Status   *string `json:"status" example:"active"`
 }
 
@@ -117,14 +117,14 @@ type EmojiInputRequest struct {
 type EmojiPackInputRequest struct {
 	Name        *string `json:"name" example:"日常表情包"`
 	Description *string `json:"description" example:"聊天常用的 12 个表情"`
-	CoverURL    *string `json:"coverUrl" example:"https://cdn.example.com/emoji/cover.png"`
-	IsPublic    *bool   `json:"isPublic" example:"true"`
+	CoverURL    *string `json:"cover_url" example:"https://cdn.example.com/emoji/cover.png"`
+	IsPublic    *bool   `json:"is_public" example:"true"`
 	Status      *string `json:"status" example:"active"`
 }
 
 // EmojiPackAddEmojiRequest 向表情包添加表情（emojiId 必填）。
 type EmojiPackAddEmojiRequest struct {
-	EmojiID string `json:"emojiId" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	EmojiID string `json:"emoji_id" binding:"required" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
 }
 
 // EmojiPackUpdateEmojiRequest 调整包内表情排序（sort 可传 0，故不加 required）。

@@ -183,7 +183,7 @@ func TestSuccessPage(t *testing.T) {
 	m := decode(t, w)
 	data := m["data"].(map[string]interface{})
 	meta := data["meta"].(map[string]interface{})
-	if got := meta["totalPages"].(float64); got != 2 {
+	if got := meta["total_pages"].(float64); got != 2 {
 		t.Errorf("totalPages：得到 %v，期望 2（11 条 / 每页 10 = 2 页）", got)
 	}
 }

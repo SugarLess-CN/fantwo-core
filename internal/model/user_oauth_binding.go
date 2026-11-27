@@ -45,7 +45,7 @@ const (
 type UserOAuthBinding struct {
 	BaseModel
 	// UserID 本站用户 ID。
-	UserID string `gorm:"column:user_id;type:varchar(36);index:idx_oauth_user" json:"userId"`
+	UserID string `gorm:"column:user_id;type:varchar(36);index:idx_oauth_user" json:"user_id"`
 	// Provider wechat / qq / github。
 	Provider string `gorm:"column:provider;type:varchar(32);not null;uniqueIndex:uk_oauth_provider_openid,priority:1" json:"provider"`
 	// Channel web / app。与 provider 一起决定「用的是哪套 appid」。
@@ -54,11 +54,11 @@ type UserOAuthBinding struct {
 	OpenID string `gorm:"column:openid;type:varchar(191);not null;uniqueIndex:uk_oauth_provider_openid,priority:2" json:"openid"`
 	// UnionID 跨应用统一标识。微信/QQ 可空；GitHub 恒空。
 	// 登录查找优先用它，保证同一人跨端不分裂成两个账号。
-	UnionID *string `gorm:"column:unionid;type:varchar(191);index:idx_oauth_unionid" json:"unionId"`
+	UnionID *string `gorm:"column:unionid;type:varchar(191);index:idx_oauth_unionid" json:"union_id"`
 	// Nickname 平台昵称快照（仅展示用途，不参与登录判断）。
 	Nickname string `gorm:"column:nickname;type:varchar(255)" json:"nickname"`
 	// AvatarURL 平台头像快照。
-	AvatarURL string `gorm:"column:avatar_url;type:varchar(512)" json:"avatarUrl"`
+	AvatarURL string `gorm:"column:avatar_url;type:varchar(512)" json:"avatar_url"`
 }
 
 // TableName 表名。

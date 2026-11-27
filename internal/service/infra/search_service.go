@@ -318,7 +318,7 @@ func (s *Searcher) Ping(ctx context.Context) error {
 type StatusResult struct {
 	Enabled   bool   `json:"enabled"`
 	Index     string `json:"index,omitempty"`
-	Exists    bool   `json:"indexExists"`
+	Exists    bool   `json:"index_exists"`
 	Documents int64  `json:"documents"`
 	Message   string `json:"message,omitempty"`
 	Error     string `json:"error,omitempty"`

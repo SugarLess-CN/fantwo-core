@@ -15295,7 +15295,7 @@ const docTemplate = `{
         "dto.AchievementClaimResultDto": {
             "type": "object",
             "properties": {
-                "decorationId": {
+                "decoration_id": {
                     "type": "string"
                 },
                 "exp": {
@@ -15332,7 +15332,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "claimedAt": {
+                "claimed_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -15344,7 +15344,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "completedAt": {
+                "completed_at": {
                     "description": "时间：空时不传（未完成无 completedAt，未领取无 claimedAt）",
                     "type": "string",
                     "format": "date-time"
@@ -15357,7 +15357,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -15393,14 +15393,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "COMMON"
                 },
-                "rewardDecorationId": {
+                "reward_decoration_id": {
                     "type": "string"
                 },
-                "rewardExp": {
+                "reward_exp": {
                     "type": "integer",
                     "example": 5
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer",
                     "example": 10
                 },
@@ -15412,7 +15412,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "ARTICLE"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -15429,7 +15429,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3
                 },
-                "completionRate": {
+                "completion_rate": {
                     "type": "string",
                     "example": "15.00"
                 },
@@ -15454,11 +15454,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "活动补发"
                 },
-                "relatedId": {
+                "related_id": {
                     "type": "string",
                     "example": "ORDER1234567890123456"
                 },
-                "relatedType": {
+                "related_type": {
                     "type": "string",
                     "example": "order"
                 },
@@ -15466,7 +15466,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "ADMIN_ADJUST"
                 },
-                "validDays": {
+                "valid_days": {
                     "description": "ValidDays 积分有效期天数，0 表示永久。",
                     "type": "integer",
                     "example": 0
@@ -15476,27 +15476,27 @@ const docTemplate = `{
         "dto.AdvertisementConfigDto": {
             "type": "object",
             "properties": {
-                "articleBottom": {
+                "article_bottom": {
                     "type": "string",
                     "example": ""
                 },
-                "articleBottomLink": {
+                "article_bottom_link": {
                     "type": "string",
                     "example": ""
                 },
-                "articleSidebar": {
+                "article_sidebar": {
                     "type": "string",
                     "example": ""
                 },
-                "articleSidebarLink": {
+                "article_sidebar_link": {
                     "type": "string",
                     "example": ""
                 },
-                "articleTop": {
+                "article_top": {
                     "type": "string",
                     "example": ""
                 },
-                "articleTopLink": {
+                "article_top_link": {
                     "type": "string",
                     "example": ""
                 },
@@ -15504,15 +15504,15 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "globalNotice": {
+                "global_notice": {
                     "type": "string",
                     "example": ""
                 },
-                "homeBanner": {
+                "home_banner": {
                     "type": "string",
                     "example": "https://cdn.example.com/banner.png"
                 },
-                "homeBannerLink": {
+                "home_banner_link": {
                     "type": "string",
                     "example": "https://example.com/promo"
                 },
@@ -15538,10 +15538,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "organizationName": {
+                "organization_name": {
                     "type": "string"
                 },
-                "realName": {
+                "real_name": {
                     "type": "string"
                 },
                 "slogan": {
@@ -15561,7 +15561,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
@@ -15569,7 +15569,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "我的收藏"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -15578,7 +15578,7 @@ const docTemplate = `{
         "dto.ArticleCollectionInfoDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -15631,29 +15631,29 @@ const docTemplate = `{
         "dto.ArticleDto": {
             "type": "object",
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string",
                     "example": ""
                 },
-                "allowReprint": {
+                "allow_reprint": {
                     "type": "boolean",
                     "example": false
                 },
                 "author": {
                     "$ref": "#/definitions/dto.AuthorBriefDto"
                 },
-                "authorId": {
+                "author_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "category": {
                     "$ref": "#/definitions/dto.CategoryBriefDto"
                 },
-                "categoryId": {
+                "category_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
-                "commentCount": {
+                "comment_count": {
                     "type": "integer",
                     "example": 0
                 },
@@ -15664,19 +15664,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/cover.jpg"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "downloadCount": {
+                "download_count": {
                     "type": "integer",
                     "example": 0
                 },
-                "favoriteCount": {
+                "favorite_count": {
                     "type": "integer",
                     "example": 1
                 },
-                "featuredAt": {
+                "featured_at": {
                     "type": "string"
                 },
                 "id": {
@@ -15689,23 +15689,23 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "isDisliked": {
+                "is_disliked": {
                     "type": "boolean",
                     "example": false
                 },
-                "isFavorited": {
+                "is_favorited": {
                     "type": "boolean",
                     "example": false
                 },
-                "isFeatured": {
+                "is_featured": {
                     "type": "boolean",
                     "example": false
                 },
-                "isLiked": {
+                "is_liked": {
                     "type": "boolean",
                     "example": false
                 },
-                "isPinnedOnProfile": {
+                "is_pinned_on_profile": {
                     "type": "boolean",
                     "example": false
                 },
@@ -15713,26 +15713,26 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3
                 },
-                "listRequireLogin": {
+                "list_require_login": {
                     "type": "boolean",
                     "example": false
                 },
-                "pinnedAt": {
+                "pinned_at": {
                     "type": "string"
                 },
-                "requireFollow": {
+                "require_follow": {
                     "type": "boolean",
                     "example": false
                 },
-                "requireLogin": {
+                "require_login": {
                     "type": "boolean",
                     "example": false
                 },
-                "requireMembership": {
+                "require_membership": {
                     "type": "boolean",
                     "example": false
                 },
-                "requirePayment": {
+                "require_payment": {
                     "type": "boolean",
                     "example": false
                 },
@@ -15766,15 +15766,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "image"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "videoUrl": {
+                "video_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/v.mp4"
                 },
-                "viewPrice": {
+                "view_price": {
                     "type": "number",
                     "example": 0
                 },
@@ -15787,7 +15787,7 @@ const docTemplate = `{
         "dto.ArticleLikeResultDto": {
             "type": "object",
             "properties": {
-                "isLiked": {
+                "is_liked": {
                     "type": "boolean",
                     "example": true
                 },
@@ -15795,7 +15795,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 13
                 },
-                "reactionType": {
+                "reaction_type": {
                     "type": "string",
                     "example": "like"
                 }
@@ -15804,11 +15804,11 @@ const docTemplate = `{
         "dto.ArticleLikeStatusDto": {
             "type": "object",
             "properties": {
-                "isLiked": {
+                "is_liked": {
                     "type": "boolean",
                     "example": false
                 },
-                "reactionType": {
+                "reaction_type": {
                     "type": "string",
                     "example": "like"
                 }
@@ -15817,7 +15817,7 @@ const docTemplate = `{
         "dto.ArticleReactionRequest": {
             "type": "object",
             "properties": {
-                "reactionType": {
+                "reaction_type": {
                     "type": "string",
                     "enum": [
                         "like",
@@ -15868,7 +15868,7 @@ const docTemplate = `{
         "dto.AssignPermissionsRequest": {
             "type": "object",
             "properties": {
-                "permissionIds": {
+                "permission_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -15898,34 +15898,34 @@ const docTemplate = `{
         "dto.AuditConfigDto": {
             "type": "object",
             "properties": {
-                "aliyunAccessKeyId": {
+                "aliyun_access_key_id": {
                     "description": "Aliyun 阿里云 green（凭据字段不下发，见类型注释）。",
                     "type": "string",
                     "example": ""
                 },
-                "aliyunRegion": {
+                "aliyun_region": {
                     "type": "string",
                     "example": "cn-shanghai"
                 },
-                "articleEnabled": {
+                "article_enabled": {
                     "type": "boolean",
                     "example": true
                 },
-                "autoBlock": {
+                "auto_block": {
                     "description": "AutoBlock 命中后的处置：true = 硬拦截（action=block，passed=false）；\nfalse = 放行但转人工（action=review，passed=true）。",
                     "type": "boolean",
                     "example": true
                 },
-                "avatarEnabled": {
+                "avatar_enabled": {
                     "type": "boolean",
                     "example": true
                 },
-                "commentEnabled": {
+                "comment_enabled": {
                     "description": "四类内容的审核开关（false = 该类型不送审，直接放行）。",
                     "type": "boolean",
                     "example": true
                 },
-                "imageEnabled": {
+                "image_enabled": {
                     "type": "boolean",
                     "example": true
                 },
@@ -15939,7 +15939,7 @@ const docTemplate = `{
                     ],
                     "example": "none"
                 },
-                "reviewMode": {
+                "review_mode": {
                     "description": "ReviewMode 审核模式：auto / manual。",
                     "type": "string",
                     "enum": [
@@ -15958,20 +15958,20 @@ const docTemplate = `{
                     ],
                     "example": "medium"
                 },
-                "tencentImageBiz": {
+                "tencent_image_biz": {
                     "type": "string",
                     "example": "image_zh"
                 },
-                "tencentRegion": {
+                "tencent_region": {
                     "type": "string",
                     "example": "ap-guangzhou"
                 },
-                "tencentSecretId": {
+                "tencent_secret_id": {
                     "description": "Tencent 腾讯云 CMS（凭据字段不下发，见类型注释）。",
                     "type": "string",
                     "example": ""
                 },
-                "tencentTextBiz": {
+                "tencent_text_biz": {
                     "type": "string",
                     "example": "text_zh"
                 }
@@ -16016,7 +16016,7 @@ const docTemplate = `{
                     ],
                     "example": "pass"
                 },
-                "detailJson": {
+                "detail_json": {
                     "description": "DetailJSON 云服务商原始响应（jsonb 文本透传）；无则空串。",
                     "type": "string",
                     "example": ""
@@ -16045,7 +16045,7 @@ const docTemplate = `{
         "dto.AuditReviewResultDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
@@ -16061,12 +16061,12 @@ const docTemplate = `{
                     ],
                     "example": "APPROVED"
                 },
-                "reviewedAt": {
+                "reviewed_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:05:00Z"
                 },
-                "reviewedBy": {
+                "reviewed_by": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -16095,7 +16095,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "isFollowed": {
+                "is_followed": {
                     "type": "boolean",
                     "example": false
                 },
@@ -16112,7 +16112,7 @@ const docTemplate = `{
         "dto.BannerDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -16123,15 +16123,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/banner.png"
                 },
-                "linkUrl": {
+                "link_url": {
                     "type": "string",
                     "example": "https://example.com/activity"
                 },
-                "sortOrder": {
+                "sort_order": {
                     "type": "integer",
                     "example": 1
                 },
@@ -16143,7 +16143,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "双十一活动"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -16152,10 +16152,10 @@ const docTemplate = `{
         "dto.BatchDeleteBrowseRequest": {
             "type": "object",
             "required": [
-                "articleIds"
+                "article_ids"
             ],
             "properties": {
-                "articleIds": {
+                "article_ids": {
                     "type": "array",
                     "maxItems": 100,
                     "minItems": 1,
@@ -16187,7 +16187,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "action",
-                "messageIds"
+                "message_ids"
             ],
             "properties": {
                 "action": {
@@ -16198,7 +16198,7 @@ const docTemplate = `{
                     ],
                     "example": "read"
                 },
-                "messageIds": {
+                "message_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -16222,7 +16222,7 @@ const docTemplate = `{
         "dto.BlockResultDto": {
             "type": "object",
             "properties": {
-                "blockedUserId": {
+                "blocked_user_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
@@ -16244,10 +16244,10 @@ const docTemplate = `{
         "dto.BlockedUserDto": {
             "type": "object",
             "properties": {
-                "blockedUser": {
+                "blocked_user": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -16278,7 +16278,7 @@ const docTemplate = `{
                 "article": {
                     "$ref": "#/definitions/dto.ArticleDto"
                 },
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -16290,11 +16290,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 80
                 },
-                "viewCount": {
+                "view_count": {
                     "type": "integer",
                     "example": 2
                 },
-                "viewedAt": {
+                "viewed_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 }
@@ -16303,7 +16303,7 @@ const docTemplate = `{
         "dto.BrowseProgressDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -16336,19 +16336,19 @@ const docTemplate = `{
         "dto.BrowseStatsDto": {
             "type": "object",
             "properties": {
-                "avgDuration": {
+                "avg_duration": {
                     "type": "number",
                     "example": 95.3
                 },
-                "avgProgress": {
+                "avg_progress": {
                     "type": "number",
                     "example": 62.5
                 },
-                "totalArticles": {
+                "total_articles": {
                     "type": "integer",
                     "example": 12
                 },
-                "totalViews": {
+                "total_views": {
                     "type": "integer",
                     "example": 37
                 }
@@ -16382,7 +16382,7 @@ const docTemplate = `{
         "dto.CategoryDto": {
             "type": "object",
             "properties": {
-                "articleCount": {
+                "article_count": {
                     "type": "integer",
                     "example": 128
                 },
@@ -16402,14 +16402,14 @@ const docTemplate = `{
                 "cover": {
                     "type": "string"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "description": {
                     "type": "string"
                 },
-                "followCount": {
+                "follow_count": {
                     "type": "integer",
                     "example": 16
                 },
@@ -16424,7 +16424,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "风景摄影"
                 },
-                "parentId": {
+                "parent_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -16436,7 +16436,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "ENABLED"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -16445,7 +16445,7 @@ const docTemplate = `{
         "dto.CertificationDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -16457,18 +16457,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "organizationName": {
+                "organization_name": {
                     "type": "string"
                 },
-                "realName": {
+                "real_name": {
                     "description": "字符串值类型：空时 \"\"（docs/21-JSON序列化规范.md）",
                     "type": "string",
                     "example": "张三"
                 },
-                "reviewReason": {
+                "review_reason": {
                     "type": "string"
                 },
-                "reviewedAt": {
+                "reviewed_at": {
                     "description": "时间：空时不传",
                     "type": "string",
                     "format": "date-time"
@@ -16485,7 +16485,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "CREATOR"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -16499,7 +16499,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
-                "currentPoints": {
+                "current_points": {
                     "description": "CurrentPoints 变动后的余额。",
                     "type": "integer",
                     "example": 320
@@ -16561,11 +16561,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
-                "itemCount": {
+                "item_count": {
                     "type": "integer",
                     "example": 15
                 },
@@ -16584,7 +16584,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.CollectionCheckBriefDto"
                     }
                 },
-                "inCollection": {
+                "in_collection": {
                     "type": "boolean",
                     "example": true
                 }
@@ -16601,7 +16601,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/cover.png"
                 },
-                "createdAt": {
+                "created_at": {
                     "description": "时间必有值（DB 记录的 created_at / updated_at），用 RFC3339 字符串。",
                     "type": "string",
                     "format": "date-time",
@@ -16616,11 +16616,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
-                "itemCount": {
+                "item_count": {
                     "type": "integer",
                     "example": 15
                 },
@@ -16638,12 +16638,12 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -16664,7 +16664,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/cover.png"
                 },
-                "createdAt": {
+                "created_at": {
                     "description": "时间必有值（DB 记录的 created_at / updated_at），用 RFC3339 字符串。",
                     "type": "string",
                     "format": "date-time",
@@ -16679,11 +16679,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
-                "itemCount": {
+                "item_count": {
                     "type": "integer",
                     "example": 15
                 },
@@ -16695,12 +16695,12 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -16721,11 +16721,11 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -16757,14 +16757,14 @@ const docTemplate = `{
         "dto.CommentDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "author": {
                     "$ref": "#/definitions/dto.AuthorBriefDto"
                 },
-                "authorId": {
+                "author_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
@@ -16772,7 +16772,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "拍得真好"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -16790,11 +16790,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "isLiked": {
+                "is_liked": {
                     "type": "boolean",
                     "example": false
                 },
-                "isPinned": {
+                "is_pinned": {
                     "type": "boolean",
                     "example": false
                 },
@@ -16802,7 +16802,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 2
                 },
-                "parentId": {
+                "parent_id": {
                     "description": "被回复的评论 ID / 楼层根评论 ID；一级评论两者均为 \"\"。",
                     "type": "string",
                     "example": ""
@@ -16813,11 +16813,11 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.CommentDto"
                     }
                 },
-                "replyCount": {
+                "reply_count": {
                     "type": "integer",
                     "example": 0
                 },
-                "rootId": {
+                "root_id": {
                     "type": "string",
                     "example": ""
                 },
@@ -16825,7 +16825,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "PUBLISHED"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 }
@@ -16834,7 +16834,7 @@ const docTemplate = `{
         "dto.CommentLikeResultDto": {
             "type": "object",
             "properties": {
-                "isLiked": {
+                "is_liked": {
                     "type": "boolean",
                     "example": true
                 }
@@ -16847,7 +16847,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "5c6d7e8f-0000-4a1b-9c2d-000000000003"
                 },
-                "isPinned": {
+                "is_pinned": {
                     "type": "boolean",
                     "example": true
                 }
@@ -16856,23 +16856,23 @@ const docTemplate = `{
         "dto.CommissionConfigDto": {
             "type": "object",
             "properties": {
-                "articleCommissionRate": {
+                "article_commission_rate": {
                     "type": "number",
                     "example": 10
                 },
-                "enableCustomCommission": {
+                "enable_custom_commission": {
                     "type": "boolean",
                     "example": false
                 },
-                "membershipCommissionRate": {
+                "membership_commission_rate": {
                     "type": "number",
                     "example": 5
                 },
-                "productCommissionRate": {
+                "product_commission_rate": {
                     "type": "number",
                     "example": 5
                 },
-                "serviceCommissionRate": {
+                "service_commission_rate": {
                     "type": "number",
                     "example": 5
                 }
@@ -16906,7 +16906,7 @@ const docTemplate = `{
         "dto.ConfigDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-23T10:00:00Z"
                 },
@@ -16918,7 +16918,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "storage"
                 },
-                "hasValue": {
+                "has_value": {
                     "description": "HasValue 后端是否已配置（DB 值非空）。敏感项 value 被打码后仍能靠它判断「有没有配」。",
                     "type": "boolean",
                     "example": true
@@ -16940,7 +16940,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "startupOnly": {
+                "startup_only": {
                     "description": "StartupOnly 启动期配置：改了必须重启才生效，管理端应置灰只读（四个写入口也会硬拒）。\n与 Masked 互不排斥 —— s3_access_key 两者同为 true（写路径拒、读路径仍打码）。",
                     "type": "boolean",
                     "example": true
@@ -16955,7 +16955,7 @@ const docTemplate = `{
                     ],
                     "example": "string"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-23T10:00:00Z"
                 },
@@ -17017,8 +17017,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "key",
-                "mimeType",
-                "originalName",
+                "mime_type",
+                "original_name",
                 "size",
                 "url"
             ],
@@ -17031,11 +17031,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "uploads/2026/11/25/a.jpg"
                 },
-                "mimeType": {
+                "mime_type": {
                     "type": "string",
                     "example": "image/jpeg"
                 },
-                "originalName": {
+                "original_name": {
                     "type": "string",
                     "example": "photo.jpg"
                 },
@@ -17056,21 +17056,21 @@ const docTemplate = `{
         "dto.ConversationDto": {
             "type": "object",
             "properties": {
-                "conversationId": {
+                "conversation_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
                 "counterpart": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "lastMessageAt": {
+                "last_message_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "latestMessage": {
+                "latest_message": {
                     "$ref": "#/definitions/dto.PrivateMessageDto"
                 },
-                "unreadCount": {
+                "unread_count": {
                     "type": "integer",
                     "example": 2
                 }
@@ -17096,7 +17096,7 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "编辑（副本）"
                 },
@@ -17145,14 +17145,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "COMMON"
                 },
-                "rewardDecorationId": {
+                "reward_decoration_id": {
                     "type": "string"
                 },
-                "rewardExp": {
+                "reward_exp": {
                     "type": "integer",
                     "example": 5
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer",
                     "example": 10
                 },
@@ -17168,10 +17168,10 @@ const docTemplate = `{
         "dto.CreateArticleOrderRequest": {
             "type": "object",
             "required": [
-                "articleId"
+                "article_id"
             ],
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
@@ -17187,13 +17187,13 @@ const docTemplate = `{
                 "title"
             ],
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string"
                 },
-                "allowReprint": {
+                "allow_reprint": {
                     "type": "boolean"
                 },
-                "categoryId": {
+                "category_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
@@ -17218,25 +17218,25 @@ const docTemplate = `{
                         "[\"https://cdn.example.com/1.jpg\"]"
                     ]
                 },
-                "isFeatured": {
+                "is_featured": {
                     "type": "boolean"
                 },
-                "isPinnedOnProfile": {
+                "is_pinned_on_profile": {
                     "type": "boolean"
                 },
-                "listRequireLogin": {
+                "list_require_login": {
                     "type": "boolean"
                 },
-                "requireFollow": {
+                "require_follow": {
                     "type": "boolean"
                 },
-                "requireLogin": {
+                "require_login": {
                     "type": "boolean"
                 },
-                "requireMembership": {
+                "require_membership": {
                     "type": "boolean"
                 },
-                "requirePayment": {
+                "require_payment": {
                     "type": "boolean"
                 },
                 "sort": {
@@ -17256,13 +17256,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "一句话摘要"
                 },
-                "tagIds": {
+                "tag_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "tagNames": {
+                "tag_names": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -17284,10 +17284,10 @@ const docTemplate = `{
                     ],
                     "example": "image"
                 },
-                "videoUrl": {
+                "video_url": {
                     "type": "string"
                 },
-                "viewPrice": {
+                "view_price": {
                     "type": "number",
                     "example": 0
                 }
@@ -17299,14 +17299,14 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/banner.png"
                 },
-                "linkUrl": {
+                "link_url": {
                     "type": "string"
                 },
-                "sortOrder": {
+                "sort_order": {
                     "type": "integer",
                     "example": 1
                 },
@@ -17348,7 +17348,7 @@ const docTemplate = `{
                     "maxLength": 50,
                     "example": "风景摄影"
                 },
-                "parentId": {
+                "parent_id": {
                     "type": "string"
                 },
                 "sort": {
@@ -17383,7 +17383,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "风景合集"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
@@ -17401,11 +17401,11 @@ const docTemplate = `{
         "dto.CreateCommentRequest": {
             "type": "object",
             "required": [
-                "articleId",
+                "article_id",
                 "content"
             ],
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -17419,7 +17419,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "parentId": {
+                "parent_id": {
                     "type": "string",
                     "example": "5c6d7e8f-0000-4a1b-9c2d-000000000003"
                 }
@@ -17456,7 +17456,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "你关注的作者发布了新作品"
                 },
-                "isBroadcast": {
+                "is_broadcast": {
                     "type": "boolean",
                     "example": false
                 },
@@ -17464,17 +17464,17 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
-                "receiverId": {
+                "receiver_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
-                "receiverIds": {
+                "receiver_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "senderId": {
+                "sender_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
@@ -17496,16 +17496,16 @@ const docTemplate = `{
         "dto.CreatePaymentRequest": {
             "type": "object",
             "required": [
-                "orderId",
-                "paymentMethod"
+                "order_id",
+                "payment_method"
             ],
             "properties": {
-                "orderId": {
+                "order_id": {
                     "description": "OrderID 待支付的订单 ID（必须是本人的、非 PAID 的订单）。",
                     "type": "string",
                     "example": "3c4d5e6f-7a8b-4c9d-8e0f-112233445566"
                 },
-                "paymentMethod": {
+                "payment_method": {
                     "description": "PaymentMethod 支付渠道；渠道开关由系统配置表控制，未开启返回「Payment channel disabled」。",
                     "type": "string",
                     "enum": [
@@ -17516,7 +17516,7 @@ const docTemplate = `{
                     ],
                     "example": "ALIPAY"
                 },
-                "returnUrl": {
+                "return_url": {
                     "description": "ReturnURL 支付完成后的前端跳转地址（可选；缺省用配置 default_return_url）。",
                     "type": "string",
                     "example": "https://example.com/pay/return"
@@ -17541,16 +17541,16 @@ const docTemplate = `{
                     "type": "number",
                     "example": 80.6
                 },
-                "codeUrl": {
+                "code_url": {
                     "description": "CodeURL 二维码内容（微信 Native）。",
                     "type": "string",
                     "example": "weixin://wxpay/bizpayurl?pr=xxxxxx"
                 },
-                "paymentId": {
+                "payment_id": {
                     "type": "string",
                     "example": "4d5e6f70-8a9b-4c0d-9e1f-223344556677"
                 },
-                "paymentMethod": {
+                "payment_method": {
                     "type": "string",
                     "enum": [
                         "ALIPAY",
@@ -17560,7 +17560,7 @@ const docTemplate = `{
                     ],
                     "example": "ALIPAY"
                 },
-                "paymentUrl": {
+                "payment_url": {
                     "description": "PaymentURL 跳转支付地址（支付宝 / 易支付）。",
                     "type": "string",
                     "example": "https://openapi.alipay.com/gateway.do?..."
@@ -17579,7 +17579,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "DAILY_LOGIN"
                 },
-                "dailyLimit": {
+                "daily_limit": {
                     "type": "integer",
                     "example": 0
                 },
@@ -17590,7 +17590,7 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
@@ -17601,7 +17601,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "每日登录"
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer",
                     "example": 10
                 },
@@ -17609,11 +17609,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "targetCount": {
+                "target_count": {
                     "type": "integer",
                     "example": 1
                 },
-                "totalLimit": {
+                "total_limit": {
                     "type": "integer",
                     "example": 0
                 },
@@ -17628,7 +17628,7 @@ const docTemplate = `{
                     ],
                     "example": "DAILY"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 0
                 }
@@ -17653,13 +17653,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "垃圾广告"
                 },
-                "reportedArticleId": {
+                "reported_article_id": {
                     "type": "string"
                 },
-                "reportedCommentId": {
+                "reported_comment_id": {
                     "type": "string"
                 },
-                "reportedUserId": {
+                "reported_user_id": {
                     "type": "string"
                 },
                 "type": {
@@ -17678,15 +17678,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "内容编辑角色"
                 },
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "编辑"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
-                "isSystem": {
+                "is_system": {
                     "type": "boolean",
                     "example": false
                 },
@@ -17694,7 +17694,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "editor"
                 },
-                "permissionIds": {
+                "permission_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -17743,7 +17743,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "alice@example.com"
                 },
-                "inviteCode": {
+                "invite_code": {
                     "type": "string"
                 },
                 "nickname": {
@@ -17758,7 +17758,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "13800138000"
                 },
-                "roleIds": {
+                "role_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -17777,10 +17777,10 @@ const docTemplate = `{
         "dto.CurrentDecorationsDto": {
             "type": "object",
             "properties": {
-                "avatarFrame": {
+                "avatar_frame": {
                     "$ref": "#/definitions/dto.UserDecorationDto"
                 },
-                "commentBubble": {
+                "comment_bubble": {
                     "$ref": "#/definitions/dto.UserDecorationDto"
                 }
             }
@@ -17788,7 +17788,7 @@ const docTemplate = `{
         "dto.CursorMetaDto": {
             "type": "object",
             "properties": {
-                "hasMore": {
+                "has_more": {
                     "type": "boolean",
                     "example": true
                 },
@@ -17796,7 +17796,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 20
                 },
-                "nextCursor": {
+                "next_cursor": {
                     "type": "string",
                     "example": "eyJ0aW1lIjoiMjAyNi0xMS0yNVQxMDowMDowMFoiLCJpZCI6ImFiYyJ9"
                 }
@@ -17805,20 +17805,20 @@ const docTemplate = `{
         "dto.DecorationActivityDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": ""
                 },
-                "completedCount": {
+                "completed_count": {
                     "type": "integer",
                     "example": 36
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "decorationId": {
+                "decoration_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
@@ -17826,7 +17826,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "累计 100 赞得限定头像框"
                 },
-                "endTime": {
+                "end_time": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2027-11-01T00:00:00Z"
@@ -17835,7 +17835,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPermanent": {
+                "is_permanent": {
                     "type": "boolean",
                     "example": false
                 },
@@ -17843,31 +17843,31 @@ const docTemplate = `{
                     "type": "string",
                     "example": "双十一点赞活动"
                 },
-                "participantCount": {
+                "participant_count": {
                     "type": "integer",
                     "example": 128
                 },
-                "requiredComments": {
+                "required_comments": {
                     "type": "integer",
                     "example": 0
                 },
-                "requiredLikes": {
+                "required_likes": {
                     "type": "integer",
                     "example": 100
                 },
-                "requiredRecharge": {
+                "required_recharge": {
                     "type": "number",
                     "example": 0
                 },
-                "requiredShares": {
+                "required_shares": {
                     "type": "integer",
                     "example": 0
                 },
-                "requiredSignInDays": {
+                "required_sign_in_days": {
                     "type": "integer",
                     "example": 0
                 },
-                "startTime": {
+                "start_time": {
                     "description": "活动起止时间：库里 NOT NULL（创建时必有值），故用 string 而非 omitempty 指针",
                     "type": "string",
                     "format": "date-time",
@@ -17883,12 +17883,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "LIKE"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 30
                 }
@@ -17897,10 +17897,10 @@ const docTemplate = `{
         "dto.DecorationActivityInputRequest": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string"
                 },
-                "decorationId": {
+                "decoration_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
@@ -17908,12 +17908,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "累计 100 赞得限定头像框"
                 },
-                "endTime": {
+                "end_time": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2027-11-01T00:00:00Z"
                 },
-                "isPermanent": {
+                "is_permanent": {
                     "type": "boolean",
                     "example": false
                 },
@@ -17921,27 +17921,27 @@ const docTemplate = `{
                     "type": "string",
                     "example": "双十一点赞活动"
                 },
-                "requiredComments": {
+                "required_comments": {
                     "type": "integer",
                     "example": 0
                 },
-                "requiredLikes": {
+                "required_likes": {
                     "type": "integer",
                     "example": 100
                 },
-                "requiredRecharge": {
+                "required_recharge": {
                     "type": "number",
                     "example": 0
                 },
-                "requiredShares": {
+                "required_shares": {
                     "type": "integer",
                     "example": 0
                 },
-                "requiredSignInDays": {
+                "required_sign_in_days": {
                     "type": "integer",
                     "example": 0
                 },
-                "startTime": {
+                "start_time": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-01T00:00:00Z"
@@ -17954,7 +17954,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "LIKE"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 30
                 }
@@ -17963,21 +17963,21 @@ const docTemplate = `{
         "dto.DecorationDto": {
             "type": "object",
             "properties": {
-                "achievementId": {
+                "achievement_id": {
                     "type": "string",
                     "example": ""
                 },
-                "activityId": {
+                "activity_id": {
                     "description": "归属来源（反查唯一来源；非来源方向时为空串，不是 null）",
                     "type": "string",
                     "example": ""
                 },
-                "bubbleColor": {
+                "bubble_color": {
                     "description": "仅评论气泡用",
                     "type": "string",
                     "example": "#FFD700"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -17990,15 +17990,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/deco/frame.png"
                 },
-                "isPermanent": {
+                "is_permanent": {
                     "type": "boolean",
                     "example": false
                 },
-                "isPurchasable": {
+                "is_purchasable": {
                     "type": "boolean",
                     "example": true
                 },
@@ -18006,12 +18006,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "金色边框"
                 },
-                "obtainMethod": {
+                "obtain_method": {
                     "description": "PURCHASE / ACTIVITY / GIFT / ACHIEVEMENT / DEFAULT",
                     "type": "string",
                     "example": "PURCHASE"
                 },
-                "previewUrl": {
+                "preview_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/deco/frame-preview.png"
                 },
@@ -18038,12 +18038,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "AVATAR_FRAME"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 30
                 }
@@ -18052,7 +18052,7 @@ const docTemplate = `{
         "dto.DecorationInputRequest": {
             "type": "object",
             "properties": {
-                "bubbleColor": {
+                "bubble_color": {
                     "type": "string",
                     "example": "#FFD700"
                 },
@@ -18060,15 +18060,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "限时活动的头像框"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/deco/frame.png"
                 },
-                "isPermanent": {
+                "is_permanent": {
                     "type": "boolean",
                     "example": false
                 },
-                "isPurchasable": {
+                "is_purchasable": {
                     "type": "boolean",
                     "example": true
                 },
@@ -18076,11 +18076,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "金色边框"
                 },
-                "obtainMethod": {
+                "obtain_method": {
                     "type": "string",
                     "example": "PURCHASE"
                 },
-                "previewUrl": {
+                "preview_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/deco/frame-preview.png"
                 },
@@ -18104,7 +18104,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "AVATAR_FRAME"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 30
                 }
@@ -18144,15 +18144,15 @@ const docTemplate = `{
         "dto.DeletionRequestResultDto": {
             "type": "object",
             "properties": {
-                "coolingDays": {
+                "cooling_days": {
                     "type": "integer",
                     "example": 7
                 },
-                "deletionPending": {
+                "deletion_pending": {
                     "type": "boolean",
                     "example": true
                 },
-                "scheduledAt": {
+                "scheduled_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -18165,14 +18165,14 @@ const docTemplate = `{
         "dto.DeletionStatusDto": {
             "type": "object",
             "properties": {
-                "deletionPending": {
+                "deletion_pending": {
                     "type": "boolean",
                     "example": false
                 },
                 "reason": {
                     "type": "string"
                 },
-                "scheduledAt": {
+                "scheduled_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -18185,7 +18185,7 @@ const docTemplate = `{
         "dto.DislikeResultDto": {
             "type": "object",
             "properties": {
-                "isDisliked": {
+                "is_disliked": {
                     "type": "boolean",
                     "example": true
                 }
@@ -18202,12 +18202,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": ":smile:"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "fileSize": {
+                "file_size": {
                     "type": "integer",
                     "example": 8192
                 },
@@ -18219,11 +18219,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
-                "mimeType": {
+                "mime_type": {
                     "type": "string",
                     "example": "image/png"
                 },
@@ -18246,7 +18246,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "user"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
@@ -18255,11 +18255,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/emoji/happy.png"
                 },
-                "useCount": {
+                "use_count": {
                     "type": "integer",
                     "example": 128
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -18289,7 +18289,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": ":smile:"
                 },
-                "fileSize": {
+                "file_size": {
                     "type": "integer",
                     "example": 8192
                 },
@@ -18297,11 +18297,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 240
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
-                "mimeType": {
+                "mime_type": {
                     "type": "string",
                     "example": "image/png"
                 },
@@ -18335,10 +18335,10 @@ const docTemplate = `{
         "dto.EmojiPackAddEmojiRequest": {
             "type": "object",
             "required": [
-                "emojiId"
+                "emoji_id"
             ],
             "properties": {
-                "emojiId": {
+                "emoji_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 }
@@ -18361,11 +18361,11 @@ const docTemplate = `{
         "dto.EmojiPackDto": {
             "type": "object",
             "properties": {
-                "coverUrl": {
+                "cover_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/emoji/cover.png"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -18378,7 +18378,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
@@ -18390,12 +18390,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "active"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -18404,7 +18404,7 @@ const docTemplate = `{
         "dto.EmojiPackInputRequest": {
             "type": "object",
             "properties": {
-                "coverUrl": {
+                "cover_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/emoji/cover.png"
                 },
@@ -18412,7 +18412,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "聊天常用的 12 个表情"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean",
                     "example": true
                 },
@@ -18429,12 +18429,12 @@ const docTemplate = `{
         "dto.EmojiPackItemDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "emojiId": {
+                "emoji_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
@@ -18442,7 +18442,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "packId": {
+                "pack_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -18450,7 +18450,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 0
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
@@ -18518,7 +18518,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "favoritedAt": {
+                "favorited_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -18527,11 +18527,11 @@ const docTemplate = `{
         "dto.FavoriteItemDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "authorId": {
+                "author_id": {
                     "type": "string"
                 },
                 "cover": {
@@ -18539,7 +18539,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/c.png"
                 },
-                "favoritedAt": {
+                "favorited_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -18555,11 +18555,11 @@ const docTemplate = `{
         "dto.FavoriteResultDto": {
             "type": "object",
             "properties": {
-                "favoriteCount": {
+                "favorite_count": {
                     "type": "integer",
                     "example": 6
                 },
-                "isFavorited": {
+                "is_favorited": {
                     "type": "boolean",
                     "example": true
                 }
@@ -18568,7 +18568,7 @@ const docTemplate = `{
         "dto.FavoriteStatusDto": {
             "type": "object",
             "properties": {
-                "isFavorited": {
+                "is_favorited": {
                     "type": "boolean",
                     "example": true
                 }
@@ -18599,11 +18599,11 @@ const docTemplate = `{
         "dto.GiftDecorationRequest": {
             "type": "object",
             "required": [
-                "decorationId",
-                "toUserId"
+                "decoration_id",
+                "to_user_id"
             ],
             "properties": {
-                "decorationId": {
+                "decoration_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
@@ -18611,7 +18611,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "生日快乐！"
                 },
-                "toUserId": {
+                "to_user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -18701,11 +18701,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "creator"
                 },
-                "isCreator": {
+                "is_creator": {
                     "type": "boolean",
                     "example": true
                 },
-                "isOfficial": {
+                "is_official": {
                     "type": "boolean",
                     "example": false
                 },
@@ -18717,7 +18717,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "CREATOR"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -18726,16 +18726,16 @@ const docTemplate = `{
         "dto.InviteDto": {
             "type": "object",
             "properties": {
-                "commissionRate": {
+                "commission_rate": {
                     "description": "CommissionRate 分成比例（0-1 的小数，不是百分数）",
                     "type": "number",
                     "example": 0.05
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "expiredAt": {
+                "expired_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -18743,18 +18743,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "inviteCode": {
+                "invite_code": {
                     "type": "string",
                     "example": "INVAB12CD34"
                 },
-                "inviteUrl": {
+                "invite_url": {
                     "type": "string",
                     "example": "http://localhost:3000/register?code=INVAB12CD34"
                 },
-                "inviteeId": {
+                "invitee_id": {
                     "type": "string"
                 },
-                "inviterId": {
+                "inviter_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -18769,11 +18769,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "GENERAL"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "usedAt": {
+                "used_at": {
                     "description": "时间：usedAt / expiredAt 空时不传",
                     "type": "string",
                     "format": "date-time"
@@ -18783,7 +18783,7 @@ const docTemplate = `{
         "dto.InviteStatsDto": {
             "type": "object",
             "properties": {
-                "commissionCount": {
+                "commission_count": {
                     "type": "integer",
                     "example": 12
                 },
@@ -18791,7 +18791,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "paidEarnings": {
+                "paid_earnings": {
                     "type": "number",
                     "example": 54.45
                 },
@@ -18799,7 +18799,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 3
                 },
-                "pendingEarnings": {
+                "pending_earnings": {
                     "type": "number",
                     "example": 4.95
                 },
@@ -18807,7 +18807,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 12
                 },
-                "totalEarnings": {
+                "total_earnings": {
                     "type": "number",
                     "example": 59.4
                 },
@@ -18841,7 +18841,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "杭州"
                 },
-                "articleCount": {
+                "article_count": {
                     "type": "integer",
                     "example": 12
                 },
@@ -18853,13 +18853,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/bg.png"
                 },
-                "birthDate": {
+                "birth_date": {
                     "description": "---- 时间字段：空时不传（时间没有\"空\"的自然表示，见规范 §一）----",
                     "type": "string",
                     "format": "date-time",
                     "example": "1998-06-01T00:00:00Z"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -18876,11 +18876,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 430
                 },
-                "followerCount": {
+                "follower_count": {
                     "type": "integer",
                     "example": 128
                 },
-                "followingCount": {
+                "following_count": {
                     "type": "integer",
                     "example": 36
                 },
@@ -18892,15 +18892,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "inviteCount": {
+                "invite_count": {
                     "type": "integer",
                     "example": 0
                 },
-                "inviteEarnings": {
+                "invite_earnings": {
                     "type": "number",
                     "example": 0
                 },
-                "isMember": {
+                "is_member": {
                     "type": "boolean",
                     "example": false
                 },
@@ -18912,23 +18912,23 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 512
                 },
-                "membershipEndDate": {
+                "membership_end_date": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "membershipLevel": {
+                "membership_level": {
                     "type": "integer",
                     "example": 1
                 },
-                "membershipLevelName": {
+                "membership_level_name": {
                     "type": "string",
                     "example": "普通用户"
                 },
-                "membershipStatus": {
+                "membership_status": {
                     "type": "string",
                     "example": "INACTIVE"
                 },
-                "myInviteCode": {
+                "my_invite_code": {
                     "type": "string",
                     "example": "AB12CD"
                 },
@@ -18945,7 +18945,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 320
                 },
-                "refreshToken": {
+                "refresh_token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIs..."
                 },
@@ -18977,13 +18977,13 @@ const docTemplate = `{
         "dto.MarkMessagesReadResultDto": {
             "type": "object",
             "properties": {
-                "messageIds": {
+                "message_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "readAt": {
+                "read_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -18998,11 +18998,11 @@ const docTemplate = `{
         "dto.MembershipCheckDto": {
             "type": "object",
             "properties": {
-                "isMember": {
+                "is_member": {
                     "type": "boolean",
                     "example": true
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -19044,15 +19044,15 @@ const docTemplate = `{
         "dto.MessageDto": {
             "type": "object",
             "properties": {
-                "articleId": {
+                "article_id": {
                     "description": "透传载荷：运行时不定的业务结构，保留 map / interface{} 原类型，空时整个不传。\n注意：interface{} 字段**不能带 example**，swag 会报\n\"any is unsupported type in example value\"（实测踩到）。"
                 },
-                "commentId": {},
+                "comment_id": {},
                 "content": {
                     "type": "string",
                     "example": "你关注的作者发布了新作品"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -19060,11 +19060,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isBroadcast": {
+                "is_broadcast": {
                     "type": "boolean",
                     "example": false
                 },
-                "isRead": {
+                "is_read": {
                     "description": "布尔：false 有意义，不加 omitempty",
                     "type": "boolean",
                     "example": false
@@ -19074,23 +19074,23 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
-                "notificationType": {},
+                "notification_type": {},
                 "receiver": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "receiverId": {
+                "receiver_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
                 "sender": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "senderId": {
+                "sender_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "targetId": {},
-                "targetType": {},
+                "target_id": {},
+                "target_type": {},
                 "title": {
                     "type": "string",
                     "example": "系统通知"
@@ -19104,7 +19104,7 @@ const docTemplate = `{
                     ],
                     "example": "notification"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 }
@@ -19121,7 +19121,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "isBlocked": {
+                "is_blocked": {
                     "type": "boolean",
                     "example": false
                 },
@@ -19161,7 +19161,7 @@ const docTemplate = `{
         "dto.MigrationProcessRequest": {
             "type": "object",
             "properties": {
-                "dryRun": {
+                "dry_run": {
                     "type": "boolean",
                     "example": false
                 },
@@ -19174,7 +19174,7 @@ const docTemplate = `{
         "dto.MigrationProcessResultDto": {
             "type": "object",
             "properties": {
-                "dryRun": {
+                "dry_run": {
                     "type": "boolean",
                     "example": false
                 },
@@ -19213,7 +19213,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 118
                 },
-                "processedPercent": {
+                "processed_percent": {
                     "type": "string",
                     "example": "98.33"
                 },
@@ -19229,11 +19229,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 110
                 },
-                "withOriginal": {
+                "with_original": {
                     "type": "integer",
                     "example": 118
                 },
-                "withThumbnails": {
+                "with_thumbnails": {
                     "type": "integer",
                     "example": 118
                 }
@@ -19257,11 +19257,11 @@ const docTemplate = `{
         "dto.OAuthBindingDto": {
             "type": "object",
             "properties": {
-                "avatarUrl": {
+                "avatar_url": {
                     "type": "string",
                     "example": "https://thirdwx.qlogo.cn/..."
                 },
-                "boundAt": {
+                "bound_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -19324,7 +19324,7 @@ const docTemplate = `{
                 "provider"
             ],
             "properties": {
-                "accessToken": {
+                "access_token": {
                     "type": "string"
                 },
                 "channel": {
@@ -19334,7 +19334,7 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
-                "openId": {
+                "open_id": {
                     "type": "string"
                 },
                 "provider": {
@@ -19367,17 +19367,17 @@ const docTemplate = `{
                     "type": "number",
                     "example": 19.9
                 },
-                "articleId": {
+                "article_id": {
                     "description": "ArticleID 文章 ID（仅 type=ARTICLE 的订单有值）。",
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "authorId": {
+                "author_id": {
                     "description": "AuthorID 卖家用户 ID。\n\n⚠️ 会员订单（type=MEMBERSHIP）这里是**平台单哨兵值字面量 \"1\"**，\n不是真实用户 ID（对齐原仓库 authorId=1 的约定，见 order_service.go 的\nCreateMembershipOrder）。前端若用它反查用户会 404，需按 type 分支处理。\n已知问题 P3，本轮保持不动。",
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -19391,18 +19391,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "3c4d5e6f-7a8b-4c9d-8e0f-112233445566"
                 },
-                "orderNo": {
+                "order_no": {
                     "description": "OrderNo 订单号：ORDER + 毫秒时间戳 + 3 位随机（共 21 字符）。",
                     "type": "string",
                     "example": "ORDER1764050000000123"
                 },
-                "paidAt": {
+                "paid_at": {
                     "description": "PaidAt 支付时间；未支付时不传该字段（不是 null）。",
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:05:00Z"
                 },
-                "paymentMethod": {
+                "payment_method": {
                     "description": "PaymentMethod 支付方式；未支付时为空串（不是 null）。",
                     "type": "string",
                     "enum": [
@@ -19413,7 +19413,7 @@ const docTemplate = `{
                     ],
                     "example": "BALANCE"
                 },
-                "paymentOrderNo": {
+                "payment_order_no": {
                     "description": "PaymentOrderNo 第三方支付订单号；未支付时为空串。",
                     "type": "string",
                     "example": "2026112522001445361234567890"
@@ -19448,12 +19448,12 @@ const docTemplate = `{
                     ],
                     "example": "MEMBERSHIP"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "description": "UserID 买家用户 ID。",
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
@@ -19472,7 +19472,7 @@ const docTemplate = `{
         "dto.OrderWalletDto": {
             "type": "object",
             "properties": {
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -19507,7 +19507,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 128
                 },
-                "totalPages": {
+                "total_pages": {
                     "type": "integer",
                     "example": 7
                 }
@@ -19521,7 +19521,7 @@ const docTemplate = `{
                     "type": "number",
                     "example": 19.9
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -19531,7 +19531,7 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
-                "errorMessage": {
+                "error_message": {
                     "description": "ErrorMessage 落账失败原因（英文，仅内部诊断用）；正常时为空串。",
                     "type": "string",
                     "example": ""
@@ -19540,17 +19540,17 @@ const docTemplate = `{
                     "type": "string",
                     "example": "4d5e6f70-8a9b-4c0d-9e1f-223344556677"
                 },
-                "orderId": {
+                "order_id": {
                     "type": "string",
                     "example": "3c4d5e6f-7a8b-4c9d-8e0f-112233445566"
                 },
-                "paidAt": {
+                "paid_at": {
                     "description": "PaidAt 支付成功时间；未成功时不传该字段（不是 null）。",
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:05:00Z"
                 },
-                "paymentMethod": {
+                "payment_method": {
                     "description": "PaymentMethod 支付渠道。",
                     "type": "string",
                     "enum": [
@@ -19571,17 +19571,17 @@ const docTemplate = `{
                     ],
                     "example": "PENDING"
                 },
-                "thirdPartyOrderNo": {
+                "third_party_order_no": {
                     "description": "ThirdPartyOrderNo 第三方支付订单号；未回调时为空串（不是 null）。",
                     "type": "string",
                     "example": "2026112522001445361234567890"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -19590,15 +19590,15 @@ const docTemplate = `{
         "dto.PendingArticleItemDto": {
             "type": "object",
             "properties": {
-                "authorId": {
+                "author_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "categoryId": {
+                "category_id": {
                     "type": "string",
                     "example": ""
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -19623,7 +19623,7 @@ const docTemplate = `{
         "dto.PermissionDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 },
@@ -19639,7 +19639,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "article:create"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 }
@@ -19692,12 +19692,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "DAILY_LOGIN"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "dailyLimit": {
+                "daily_limit": {
                     "description": "DailyLimit / TotalLimit 为 0 表示不限制。",
                     "type": "integer",
                     "example": 0
@@ -19714,7 +19714,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 },
-                "isActive": {
+                "is_active": {
                     "description": "IsActive 是否启用（等价于「活动是否上线」）。",
                     "type": "boolean",
                     "example": true
@@ -19727,7 +19727,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "每日登录"
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "description": "RewardPoints 奖励积分（整数，不是金额，无精度问题）。",
                     "type": "integer",
                     "example": 10
@@ -19736,11 +19736,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "targetCount": {
+                "target_count": {
                     "type": "integer",
                     "example": 1
                 },
-                "totalLimit": {
+                "total_limit": {
                     "type": "integer",
                     "example": 0
                 },
@@ -19756,12 +19756,12 @@ const docTemplate = `{
                     ],
                     "example": "DAILY"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "validDays": {
+                "valid_days": {
                     "description": "ValidDays 积分有效期天数，0 表示永久。",
                     "type": "integer",
                     "example": 0
@@ -19775,7 +19775,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 320
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -19789,7 +19789,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 10
                 },
-                "currentPoints": {
+                "current_points": {
                     "description": "CurrentPoints 变动后的余额。",
                     "type": "integer",
                     "example": 320
@@ -19827,7 +19827,7 @@ const docTemplate = `{
                 "activities": {
                     "$ref": "#/definitions/dto.PointsStatsActivitiesDto"
                 },
-                "bySource": {
+                "by_source": {
                     "description": "BySource 按来源统计的获取明细；空时输出 []（不是 null）。",
                     "type": "array",
                     "items": {
@@ -19864,15 +19864,15 @@ const docTemplate = `{
         "dto.PointsStatsPointsDto": {
             "type": "object",
             "properties": {
-                "inCirculation": {
+                "in_circulation": {
                     "type": "integer",
                     "example": 960
                 },
-                "totalEarned": {
+                "total_earned": {
                     "type": "integer",
                     "example": 1280
                 },
-                "totalSpent": {
+                "total_spent": {
                     "type": "integer",
                     "example": 320
                 }
@@ -19881,7 +19881,7 @@ const docTemplate = `{
         "dto.PointsStatsTasksDto": {
             "type": "object",
             "properties": {
-                "claimRate": {
+                "claim_rate": {
                     "type": "string",
                     "example": "87.50"
                 },
@@ -19893,11 +19893,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 32
                 },
-                "completionRate": {
+                "completion_rate": {
                     "type": "string",
                     "example": "50.00"
                 },
-                "totalRecords": {
+                "total_records": {
                     "type": "integer",
                     "example": 64
                 }
@@ -19923,7 +19923,7 @@ const docTemplate = `{
         "dto.PointsStatsUsersDto": {
             "type": "object",
             "properties": {
-                "activeUsers": {
+                "active_users": {
                     "type": "integer",
                     "example": 42
                 }
@@ -19932,21 +19932,21 @@ const docTemplate = `{
         "dto.PointsTaskDto": {
             "type": "object",
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string",
                     "example": "5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 },
-                "completedAt": {
+                "completed_at": {
                     "description": "CompletedAt 完成时间；未完成时不传（不是 null）。",
                     "type": "string",
                     "format": "date-time"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "currentCount": {
+                "current_count": {
                     "type": "integer",
                     "example": 2
                 },
@@ -19954,33 +19954,33 @@ const docTemplate = `{
                     "type": "string",
                     "example": "b1c2d3e4-5f60-4718-8293-0a1b2c3d4e5f"
                 },
-                "isCompleted": {
+                "is_completed": {
                     "type": "boolean",
                     "example": false
                 },
-                "isRewarded": {
+                "is_rewarded": {
                     "type": "boolean",
                     "example": false
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer",
                     "example": 10
                 },
-                "rewardedAt": {
+                "rewarded_at": {
                     "description": "RewardedAt 领取时间；未领取时不传（不是 null）。",
                     "type": "string",
                     "format": "date-time"
                 },
-                "targetCount": {
+                "target_count": {
                     "type": "integer",
                     "example": 3
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -19999,7 +19999,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 320
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -20014,7 +20014,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "expiredAt": {
+                "expired_at": {
                     "description": "ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。",
                     "type": "string",
                     "format": "date-time"
@@ -20023,11 +20023,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "7a2b3c4d-5e6f-4a8b-9c0d-112233445566"
                 },
-                "relatedId": {
+                "related_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "relatedType": {
+                "related_type": {
                     "type": "string",
                     "example": "sign_in"
                 },
@@ -20046,12 +20046,12 @@ const docTemplate = `{
                     ],
                     "example": "EARN"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -20060,12 +20060,12 @@ const docTemplate = `{
         "dto.PresignRequest": {
             "type": "object",
             "required": [
-                "contentType",
+                "content_type",
                 "filename",
                 "size"
             ],
             "properties": {
-                "contentType": {
+                "content_type": {
                     "type": "string",
                     "example": "image/jpeg"
                 },
@@ -20082,11 +20082,11 @@ const docTemplate = `{
         "dto.PresignResultDto": {
             "type": "object",
             "properties": {
-                "accessUrl": {
+                "access_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/uploads/2026/11/25/a.jpg"
                 },
-                "expiresIn": {
+                "expires_in": {
                     "type": "integer",
                     "example": 3600
                 },
@@ -20094,7 +20094,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "uploads/2026/11/25/a.jpg"
                 },
-                "uploadUrl": {
+                "upload_url": {
                     "type": "string",
                     "example": "https://minio.example.com/picart/uploads/...\u0026X-Amz-Signature=..."
                 }
@@ -20121,11 +20121,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "在吗"
                 },
-                "conversationId": {
+                "conversation_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
@@ -20133,15 +20133,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isRead": {
+                "is_read": {
                     "type": "boolean",
                     "example": false
                 },
-                "isRecalled": {
+                "is_recalled": {
                     "type": "boolean",
                     "example": false
                 },
-                "messageKind": {
+                "message_kind": {
                     "type": "string",
                     "enum": [
                         "text",
@@ -20156,32 +20156,32 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
-                "readAt": {
+                "read_at": {
                     "description": "时间 / 可选字符串：空时整个不传（未读、未撤回没有自然的空表示）",
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "recallReason": {
+                "recall_reason": {
                     "type": "string"
                 },
-                "recalledAt": {
+                "recalled_at": {
                     "type": "string",
                     "example": "2026-11-25T10:05:00Z"
                 },
-                "recalledById": {
+                "recalled_by_id": {
                     "type": "string"
                 },
                 "receiver": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "receiverId": {
+                "receiver_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
                 "sender": {
                     "$ref": "#/definitions/dto.MessageUserBriefDto"
                 },
-                "senderId": {
+                "sender_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
@@ -20190,7 +20190,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "private"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 }
@@ -20199,7 +20199,7 @@ const docTemplate = `{
         "dto.PrivateReadBatchRequest": {
             "type": "object",
             "properties": {
-                "messageIds": {
+                "message_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -20214,7 +20214,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPinnedOnProfile": {
+                "is_pinned_on_profile": {
                     "type": "boolean",
                     "example": true
                 }
@@ -20230,10 +20230,10 @@ const docTemplate = `{
         "dto.PurchaseDecorationRequest": {
             "type": "object",
             "required": [
-                "decorationId"
+                "decoration_id"
             ],
             "properties": {
-                "decorationId": {
+                "decoration_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 }
@@ -20242,10 +20242,10 @@ const docTemplate = `{
         "dto.QqAppLoginRequest": {
             "type": "object",
             "properties": {
-                "accessToken": {
+                "access_token": {
                     "type": "string"
                 },
-                "openId": {
+                "open_id": {
                     "type": "string"
                 },
                 "payload": {
@@ -20256,26 +20256,26 @@ const docTemplate = `{
         "dto.ReadReceiptDto": {
             "type": "object",
             "properties": {
-                "conversationId": {
+                "conversation_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
-                "messageIds": {
+                "message_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "readAt": {
+                "read_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "receiverId": {
+                "receiver_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
-                "senderId": {
+                "sender_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 }
@@ -20284,21 +20284,21 @@ const docTemplate = `{
         "dto.ReadResultDto": {
             "type": "object",
             "properties": {
-                "conversationId": {
+                "conversation_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
-                "counterpartId": {
+                "counterpart_id": {
                     "type": "string",
                     "example": "1a2b3c4d-5678-4abc-9def-0123456789ab"
                 },
-                "messageIds": {
+                "message_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "readAt": {
+                "read_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
                 }
@@ -20316,10 +20316,10 @@ const docTemplate = `{
         "dto.RefreshTokenRequest": {
             "type": "object",
             "required": [
-                "refreshToken"
+                "refresh_token"
             ],
             "properties": {
-                "refreshToken": {
+                "refresh_token": {
                     "type": "string"
                 }
             }
@@ -20364,10 +20364,10 @@ const docTemplate = `{
         "dto.ReorderCollectionItemsRequest": {
             "type": "object",
             "required": [
-                "articleIds"
+                "article_ids"
             ],
             "properties": {
-                "articleIds": {
+                "article_ids": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -20391,19 +20391,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "spam"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "description": {
                     "type": "string"
                 },
-                "handledAt": {
+                "handled_at": {
                     "description": "时间：handledAt 未处理时不传",
                     "type": "string",
                     "format": "date-time"
                 },
-                "handlerId": {
+                "handler_id": {
                     "type": "string"
                 },
                 "id": {
@@ -20414,16 +20414,16 @@ const docTemplate = `{
                     "type": "string",
                     "example": "垃圾广告"
                 },
-                "reportedArticleId": {
+                "reported_article_id": {
                     "type": "string"
                 },
-                "reportedCommentId": {
+                "reported_comment_id": {
                     "type": "string"
                 },
-                "reportedUserId": {
+                "reported_user_id": {
                     "type": "string"
                 },
-                "reporterId": {
+                "reporter_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
@@ -20438,7 +20438,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "article"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -20447,20 +20447,20 @@ const docTemplate = `{
         "dto.ReportStatisticsDto": {
             "type": "object",
             "properties": {
-                "byCategory": {
+                "by_category": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.GroupCountDto"
                     }
                 },
-                "byStatus": {
+                "by_status": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
                         "format": "int64"
                     }
                 },
-                "byType": {
+                "by_type": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.GroupCountDto"
@@ -20542,7 +20542,7 @@ const docTemplate = `{
         "dto.RoleBriefDto": {
             "type": "object",
             "properties": {
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "普通用户"
                 },
@@ -20559,7 +20559,7 @@ const docTemplate = `{
         "dto.RoleDetailDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 },
@@ -20567,7 +20567,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "内容编辑角色"
                 },
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "编辑"
                 },
@@ -20575,11 +20575,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
-                "isSystem": {
+                "is_system": {
                     "description": "IsSystem 系统内置角色不可删除（DeleteRole 会拒绝）。",
                     "type": "boolean",
                     "example": false
@@ -20601,7 +20601,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.PermissionDto"
                     }
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 }
@@ -20610,7 +20610,7 @@ const docTemplate = `{
         "dto.RoleDto": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 },
@@ -20618,7 +20618,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "内容编辑角色"
                 },
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "编辑"
                 },
@@ -20626,11 +20626,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
-                "isSystem": {
+                "is_system": {
                     "description": "IsSystem 系统内置角色不可删除（DeleteRole 会拒绝）。",
                     "type": "boolean",
                     "example": false
@@ -20645,7 +20645,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.PermissionDto"
                     }
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2026-11-19T10:00:00Z"
                 }
@@ -20660,7 +20660,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "roleId": {
+                "role_id": {
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 }
@@ -20669,7 +20669,7 @@ const docTemplate = `{
         "dto.RoleMenusDto": {
             "type": "object",
             "properties": {
-                "allMenus": {
+                "all_menus": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -20681,7 +20681,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "roleId": {
+                "role_id": {
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 }
@@ -20690,19 +20690,19 @@ const docTemplate = `{
         "dto.RolePermissionsAssignedDto": {
             "type": "object",
             "properties": {
-                "affectedUsers": {
+                "affected_users": {
                     "type": "integer",
                     "example": 37
                 },
-                "permVersionBumped": {
+                "perm_version_bumped": {
                     "type": "boolean",
                     "example": true
                 },
-                "permissionCount": {
+                "permission_count": {
                     "type": "integer",
                     "example": 12
                 },
-                "roleId": {
+                "role_id": {
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 }
@@ -20715,7 +20715,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": false
                 },
@@ -20728,14 +20728,14 @@ const docTemplate = `{
         "dto.SearchArticleItemDto": {
             "type": "object",
             "properties": {
-                "authorId": {
+                "author_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "categoryId": {
+                "category_id": {
                     "type": "string"
                 },
-                "commentCount": {
+                "comment_count": {
                     "type": "integer",
                     "example": 5
                 },
@@ -20743,11 +20743,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/c.png"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "favoriteCount": {
+                "favorite_count": {
                     "type": "integer",
                     "example": 3
                 },
@@ -20774,7 +20774,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "article"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -20802,7 +20802,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "articles"
                 },
-                "indexExists": {
+                "index_exists": {
                     "type": "boolean",
                     "example": true
                 },
@@ -20814,7 +20814,7 @@ const docTemplate = `{
         "dto.SearchSyncCountDto": {
             "type": "object",
             "properties": {
-                "totalSynced": {
+                "total_synced": {
                     "type": "integer",
                     "example": 1280
                 }
@@ -20834,7 +20834,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "totalSynced": {
+                "total_synced": {
                     "type": "integer",
                     "example": 1280
                 }
@@ -20847,7 +20847,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "在吗"
                 },
-                "messageKind": {
+                "message_kind": {
                     "type": "string",
                     "enum": [
                         "text",
@@ -20956,10 +20956,10 @@ const docTemplate = `{
         "dto.SetCommentPinRequest": {
             "type": "object",
             "required": [
-                "isPinned"
+                "is_pinned"
             ],
             "properties": {
-                "isPinned": {
+                "is_pinned": {
                     "type": "boolean",
                     "example": true
                 }
@@ -20968,10 +20968,10 @@ const docTemplate = `{
         "dto.SetFeaturedRequest": {
             "type": "object",
             "required": [
-                "isFeatured"
+                "is_featured"
             ],
             "properties": {
-                "isFeatured": {
+                "is_featured": {
                     "type": "boolean",
                     "example": true
                 }
@@ -20984,7 +20984,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isFeatured": {
+                "is_featured": {
                     "type": "boolean",
                     "example": true
                 }
@@ -20993,10 +20993,10 @@ const docTemplate = `{
         "dto.SetProfilePinRequest": {
             "type": "object",
             "required": [
-                "isPinned"
+                "is_pinned"
             ],
             "properties": {
-                "isPinned": {
+                "is_pinned": {
                     "type": "boolean",
                     "example": true
                 }
@@ -21018,15 +21018,15 @@ const docTemplate = `{
         "dto.SignInRecordDto": {
             "type": "object",
             "properties": {
-                "consecutiveDays": {
+                "consecutive_days": {
                     "type": "integer",
                     "example": 8
                 },
-                "isAuto": {
+                "is_auto": {
                     "type": "boolean",
                     "example": false
                 },
-                "signInDate": {
+                "sign_in_date": {
                     "type": "string",
                     "example": "2026-11-25"
                 }
@@ -21039,7 +21039,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": false
                 },
-                "consecutiveDays": {
+                "consecutive_days": {
                     "type": "integer",
                     "example": 8
                 },
@@ -21047,15 +21047,15 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 5
                 },
-                "leveledUp": {
+                "leveled_up": {
                     "type": "boolean",
                     "example": false
                 },
-                "pointsGranted": {
+                "points_granted": {
                     "type": "integer",
                     "example": 10
                 },
-                "signInDate": {
+                "sign_in_date": {
                     "type": "string",
                     "example": "2026-11-25"
                 },
@@ -21068,19 +21068,19 @@ const docTemplate = `{
         "dto.SignInStatsDto": {
             "type": "object",
             "properties": {
-                "consecutiveDays": {
+                "consecutive_days": {
                     "type": "integer",
                     "example": 8
                 },
-                "lastSignInDate": {
+                "last_sign_in_date": {
                     "type": "string",
                     "example": "2026-11-25"
                 },
-                "signedToday": {
+                "signed_today": {
                     "type": "boolean",
                     "example": true
                 },
-                "totalDays": {
+                "total_days": {
                     "type": "integer",
                     "example": 32
                 }
@@ -21101,11 +21101,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "兑换表情包"
                 },
-                "relatedId": {
+                "related_id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
-                "relatedType": {
+                "related_type": {
                     "type": "string",
                     "example": "emoji_pack"
                 },
@@ -21130,27 +21130,27 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 9800
                 },
-                "pendingArticles": {
+                "pending_articles": {
                     "type": "integer",
                     "example": 24
                 },
-                "publicCollections": {
+                "public_collections": {
                     "type": "integer",
                     "example": 96
                 },
-                "publishedArticles": {
+                "published_articles": {
                     "type": "integer",
                     "example": 2800
                 },
-                "publishedComments": {
+                "published_comments": {
                     "type": "integer",
                     "example": 9500
                 },
-                "todayArticles": {
+                "today_articles": {
                     "type": "integer",
                     "example": 12
                 },
-                "todayComments": {
+                "today_comments": {
                     "type": "integer",
                     "example": 86
                 }
@@ -21159,39 +21159,39 @@ const docTemplate = `{
         "dto.StatisticsEngagementDto": {
             "type": "object",
             "properties": {
-                "articleComments": {
+                "article_comments": {
                     "type": "integer",
                     "example": 9800
                 },
-                "articleFavorites": {
+                "article_favorites": {
                     "type": "integer",
                     "example": 2100
                 },
-                "articleLikes": {
+                "article_likes": {
                     "type": "integer",
                     "example": 8600
                 },
-                "articleShares": {
+                "article_shares": {
                     "type": "integer",
                     "example": 320
                 },
-                "articleViews": {
+                "article_views": {
                     "type": "integer",
                     "example": 128000
                 },
-                "collectionItems": {
+                "collection_items": {
                     "type": "integer",
                     "example": 1280
                 },
-                "collectionViews": {
+                "collection_views": {
                     "type": "integer",
                     "example": 5600
                 },
-                "commentLikes": {
+                "comment_likes": {
                     "type": "integer",
                     "example": 1500
                 },
-                "commentReplies": {
+                "comment_replies": {
                     "type": "integer",
                     "example": 2400
                 }
@@ -21200,15 +21200,15 @@ const docTemplate = `{
         "dto.StatisticsModerationDto": {
             "type": "object",
             "properties": {
-                "pendingArticles": {
+                "pending_articles": {
                     "type": "integer",
                     "example": 24
                 },
-                "pendingReports": {
+                "pending_reports": {
                     "type": "integer",
                     "example": 7
                 },
-                "processingReports": {
+                "processing_reports": {
                     "type": "integer",
                     "example": 2
                 }
@@ -21217,19 +21217,19 @@ const docTemplate = `{
         "dto.StatisticsOrdersDto": {
             "type": "object",
             "properties": {
-                "paidCount": {
+                "paid_count": {
                     "type": "integer",
                     "example": 320
                 },
-                "paidRevenue": {
+                "paid_revenue": {
                     "type": "number",
                     "example": 12672.5
                 },
-                "todayPaidCount": {
+                "today_paid_count": {
                     "type": "integer",
                     "example": 5
                 },
-                "todayPaidRevenue": {
+                "today_paid_revenue": {
                     "type": "number",
                     "example": 396
                 }
@@ -21277,7 +21277,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 860
                 },
-                "activeMembers": {
+                "active_members": {
                     "type": "integer",
                     "example": 96
                 },
@@ -21285,7 +21285,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 12
                 },
-                "todayNew": {
+                "today_new": {
                     "type": "integer",
                     "example": 8
                 },
@@ -21324,7 +21324,7 @@ const docTemplate = `{
         "dto.TagDto": {
             "type": "object",
             "properties": {
-                "articleCount": {
+                "article_count": {
                     "type": "integer",
                     "example": 42
                 },
@@ -21339,7 +21339,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/cover.jpg"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -21348,7 +21348,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "前端相关"
                 },
-                "followCount": {
+                "follow_count": {
                     "type": "integer",
                     "example": 8
                 },
@@ -21356,7 +21356,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isFollowed": {
+                "is_followed": {
                     "type": "boolean",
                     "example": true
                 },
@@ -21368,7 +21368,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 9
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 }
@@ -21386,7 +21386,7 @@ const docTemplate = `{
         "dto.ToggleRoleStatusRequest": {
             "type": "object",
             "properties": {
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": false
                 }
@@ -21407,11 +21407,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2026-11-25"
                 },
-                "paidOrders": {
+                "paid_orders": {
                     "type": "integer",
                     "example": 5
                 },
-                "paidRevenue": {
+                "paid_revenue": {
                     "type": "number",
                     "example": 396
                 },
@@ -21481,13 +21481,13 @@ const docTemplate = `{
                 "rarity": {
                     "type": "string"
                 },
-                "rewardDecorationId": {
+                "reward_decoration_id": {
                     "type": "string"
                 },
-                "rewardExp": {
+                "reward_exp": {
                     "type": "integer"
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer"
                 },
                 "sort": {
@@ -21501,13 +21501,13 @@ const docTemplate = `{
         "dto.UpdateArticleRequest": {
             "type": "object",
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string"
                 },
-                "allowReprint": {
+                "allow_reprint": {
                     "type": "boolean"
                 },
-                "categoryId": {
+                "category_id": {
                     "type": "string"
                 },
                 "content": {
@@ -21528,25 +21528,25 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "isFeatured": {
+                "is_featured": {
                     "type": "boolean"
                 },
-                "isPinnedOnProfile": {
+                "is_pinned_on_profile": {
                     "type": "boolean"
                 },
-                "listRequireLogin": {
+                "list_require_login": {
                     "type": "boolean"
                 },
-                "requireFollow": {
+                "require_follow": {
                     "type": "boolean"
                 },
-                "requireLogin": {
+                "require_login": {
                     "type": "boolean"
                 },
-                "requireMembership": {
+                "require_membership": {
                     "type": "boolean"
                 },
-                "requirePayment": {
+                "require_payment": {
                     "type": "boolean"
                 },
                 "sort": {
@@ -21564,13 +21564,13 @@ const docTemplate = `{
                 "summary": {
                     "type": "string"
                 },
-                "tagIds": {
+                "tag_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "tagNames": {
+                "tag_names": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -21588,10 +21588,10 @@ const docTemplate = `{
                         "video"
                     ]
                 },
-                "videoUrl": {
+                "video_url": {
                     "type": "string"
                 },
-                "viewPrice": {
+                "view_price": {
                     "type": "number"
                 }
             }
@@ -21602,13 +21602,13 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string"
                 },
-                "linkUrl": {
+                "link_url": {
                     "type": "string"
                 },
-                "sortOrder": {
+                "sort_order": {
                     "type": "integer"
                 },
                 "status": {
@@ -21643,7 +21643,7 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50
                 },
-                "parentId": {
+                "parent_id": {
                     "type": "string"
                 },
                 "sort": {
@@ -21671,7 +21671,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "新描述"
                 },
-                "isPublic": {
+                "is_public": {
                     "type": "boolean"
                 },
                 "name": {
@@ -21697,7 +21697,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "isPinned": {
+                "is_pinned": {
                     "type": "boolean",
                     "example": false
                 }
@@ -21710,10 +21710,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "改后的正文"
                 },
-                "isBroadcast": {
+                "is_broadcast": {
                     "type": "boolean"
                 },
-                "isRead": {
+                "is_read": {
                     "type": "boolean"
                 },
                 "metadata": {
@@ -21741,7 +21741,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "DAILY_LOGIN"
                 },
-                "dailyLimit": {
+                "daily_limit": {
                     "type": "integer",
                     "example": 0
                 },
@@ -21752,7 +21752,7 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
@@ -21763,7 +21763,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "每日登录"
                 },
-                "rewardPoints": {
+                "reward_points": {
                     "type": "integer",
                     "example": 10
                 },
@@ -21771,11 +21771,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "targetCount": {
+                "target_count": {
                     "type": "integer",
                     "example": 1
                 },
-                "totalLimit": {
+                "total_limit": {
                     "type": "integer",
                     "example": 0
                 },
@@ -21790,7 +21790,7 @@ const docTemplate = `{
                     ],
                     "example": "DAILY"
                 },
-                "validDays": {
+                "valid_days": {
                     "type": "integer",
                     "example": 0
                 }
@@ -21809,7 +21809,7 @@ const docTemplate = `{
                 "background": {
                     "type": "string"
                 },
-                "birthDate": {
+                "birth_date": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -21855,15 +21855,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "内容编辑角色"
                 },
-                "displayName": {
+                "display_name": {
                     "type": "string",
                     "example": "编辑"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean",
                     "example": true
                 },
-                "isSystem": {
+                "is_system": {
                     "type": "boolean",
                     "example": false
                 },
@@ -21871,7 +21871,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "editor"
                 },
-                "permissionIds": {
+                "permission_ids": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -21907,19 +21907,19 @@ const docTemplate = `{
         "dto.UpdateUserConfigRequest": {
             "type": "object",
             "properties": {
-                "articleCommissionRate": {
+                "article_commission_rate": {
                     "type": "number"
                 },
-                "enableCustomCommission": {
+                "enable_custom_commission": {
                     "type": "boolean"
                 },
-                "membershipCommissionRate": {
+                "membership_commission_rate": {
                     "type": "number"
                 },
-                "productCommissionRate": {
+                "product_commission_rate": {
                     "type": "number"
                 },
-                "serviceCommissionRate": {
+                "service_commission_rate": {
                     "type": "number"
                 }
             }
@@ -21927,11 +21927,11 @@ const docTemplate = `{
         "dto.UploadAnimatedOptsDto": {
             "type": "object",
             "properties": {
-                "originalKeepsAnimation": {
+                "original_keeps_animation": {
                     "type": "boolean",
                     "example": true
                 },
-                "staticThumb": {
+                "static_thumb": {
                     "type": "boolean",
                     "example": true
                 }
@@ -21944,7 +21944,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "pass"
                 },
-                "detailJson": {
+                "detail_json": {
                     "type": "string"
                 },
                 "label": {
@@ -21981,11 +21981,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "webp"
                 },
-                "maxWidth": {
+                "max_width": {
                     "type": "integer",
                     "example": 1920
                 },
-                "preserveAnimation": {
+                "preserve_animation": {
                     "type": "boolean",
                     "example": true
                 },
@@ -21993,7 +21993,7 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 75
                 },
-                "skipPrecompressMimeTypes": {
+                "skip_precompress_mime_types": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -22012,11 +22012,11 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "maxHeight": {
+                "max_height": {
                     "type": "integer",
                     "example": 1080
                 },
-                "maxWidth": {
+                "max_width": {
                     "type": "integer",
                     "example": 1920
                 }
@@ -22025,7 +22025,7 @@ const docTemplate = `{
         "dto.UploadConfigDto": {
             "type": "object",
             "properties": {
-                "allowedMimeTypes": {
+                "allowed_mime_types": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "array",
@@ -22037,7 +22037,7 @@ const docTemplate = `{
                 "compression": {
                     "$ref": "#/definitions/dto.UploadCompressionDto"
                 },
-                "imageProcessing": {
+                "image_processing": {
                     "$ref": "#/definitions/dto.UploadImageProcessingDto"
                 },
                 "limits": {
@@ -22049,7 +22049,7 @@ const docTemplate = `{
                 "storage": {
                     "$ref": "#/definitions/dto.UploadStorageDto"
                 },
-                "videoProcessing": {
+                "video_processing": {
                     "$ref": "#/definitions/dto.UploadVideoProcessingDto"
                 },
                 "watermark": {
@@ -22060,14 +22060,14 @@ const docTemplate = `{
         "dto.UploadDto": {
             "type": "object",
             "properties": {
-                "auditResult": {
+                "audit_result": {
                     "$ref": "#/definitions/dto.UploadAuditResultDto"
                 },
-                "auditStatus": {
+                "audit_status": {
                     "type": "string",
                     "example": "approved"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -22084,7 +22084,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "mimeType": {
+                "mime_type": {
                     "type": "string",
                     "example": "image/jpeg"
                 },
@@ -22096,7 +22096,7 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "originalName": {
+                "original_name": {
                     "type": "string",
                     "example": "photo.jpg"
                 },
@@ -22108,7 +22108,7 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "referenceCount": {
+                "reference_count": {
                     "type": "integer",
                     "example": 1
                 },
@@ -22131,7 +22131,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.UploadThumbnailDto"
                     }
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
@@ -22140,14 +22140,14 @@ const docTemplate = `{
                     "type": "string",
                     "example": "http://127.0.0.1:4011/uploads/2026/11/25/9f8c7b6a5d4e3f2a1b0c.jpg"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "videoCompressionJob": {
+                "video_compression_job": {
                     "$ref": "#/definitions/dto.UploadVideoJobDto"
                 },
-                "videoCompressionStatus": {
+                "video_compression_status": {
                     "type": "string",
                     "example": "completed"
                 },
@@ -22163,7 +22163,7 @@ const docTemplate = `{
                 "animated": {
                     "$ref": "#/definitions/dto.UploadAnimatedOptsDto"
                 },
-                "compressionEnabled": {
+                "compression_enabled": {
                     "type": "boolean",
                     "example": true
                 },
@@ -22171,15 +22171,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "webp"
                 },
-                "keepOriginal": {
+                "keep_original": {
                     "type": "boolean",
                     "example": true
                 },
-                "maxHeight": {
+                "max_height": {
                     "type": "integer",
                     "example": 2160
                 },
-                "maxWidth": {
+                "max_width": {
                     "type": "integer",
                     "example": 3840
                 },
@@ -22192,11 +22192,11 @@ const docTemplate = `{
         "dto.UploadLimitsDto": {
             "type": "object",
             "properties": {
-                "maxFileCount": {
+                "max_file_count": {
                     "type": "integer",
                     "example": 10
                 },
-                "maxSize": {
+                "max_size": {
                     "$ref": "#/definitions/dto.UploadSizeLimitsDto"
                 }
             }
@@ -22229,11 +22229,11 @@ const docTemplate = `{
         "dto.UploadQueueDto": {
             "type": "object",
             "properties": {
-                "taskType": {
+                "task_type": {
                     "type": "string",
                     "example": "video:compress"
                 },
-                "videoCompression": {
+                "video_compression": {
                     "type": "string",
                     "example": "video:compression"
                 }
@@ -22246,7 +22246,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "picart"
                 },
-                "cdnDomain": {
+                "cdn_domain": {
                     "type": "string",
                     "example": "https://cdn.example.com"
                 },
@@ -22254,7 +22254,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "minio.example.com:9000"
                 },
-                "forcePathStyle": {
+                "force_path_style": {
                     "type": "boolean",
                     "example": true
                 },
@@ -22342,26 +22342,26 @@ const docTemplate = `{
         "dto.UploadVideoJobDto": {
             "type": "object",
             "properties": {
-                "completedAt": {
+                "completed_at": {
                     "type": "integer",
                     "example": 1795540389000
                 },
-                "compressedSize": {
+                "compressed_size": {
                     "type": "integer",
                     "example": 3145728
                 },
-                "compressionRatio": {
+                "compression_ratio": {
                     "type": "number",
                     "example": 70
                 },
                 "error": {
                     "type": "string"
                 },
-                "originalSize": {
+                "original_size": {
                     "type": "integer",
                     "example": 10485760
                 },
-                "startedAt": {
+                "started_at": {
                     "type": "integer",
                     "example": 1795540372656
                 }
@@ -22370,11 +22370,11 @@ const docTemplate = `{
         "dto.UploadVideoProcessingDto": {
             "type": "object",
             "properties": {
-                "audioBitrate": {
+                "audio_bitrate": {
                     "type": "string",
                     "example": "128k"
                 },
-                "compressionEnabled": {
+                "compression_enabled": {
                     "type": "boolean",
                     "example": true
                 },
@@ -22382,15 +22382,15 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 23
                 },
-                "maxHeight": {
+                "max_height": {
                     "type": "integer",
                     "example": 1080
                 },
-                "maxWidth": {
+                "max_width": {
                     "type": "integer",
                     "example": 1920
                 },
-                "minCompressSize": {
+                "min_compress_size": {
                     "type": "integer",
                     "example": 10
                 },
@@ -22398,7 +22398,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "medium"
                 },
-                "videoBitrate": {
+                "video_bitrate": {
                     "type": "string",
                     "example": "5000k"
                 }
@@ -22419,13 +22419,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "bottom-right"
                 },
-                "skipScenes": {
+                "skip_scenes": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "textTemplate": {
+                "text_template": {
                     "type": "string",
                     "example": "PicArt"
                 }
@@ -22434,10 +22434,10 @@ const docTemplate = `{
         "dto.UseInviteRequest": {
             "type": "object",
             "required": [
-                "inviteCode"
+                "invite_code"
             ],
             "properties": {
-                "inviteCode": {
+                "invite_code": {
                     "type": "string",
                     "example": "INVAB12CD34"
                 }
@@ -22446,37 +22446,37 @@ const docTemplate = `{
         "dto.UserActivityProgressDto": {
             "type": "object",
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
-                "completedAt": {
+                "completed_at": {
                     "description": "时间：空时整个字段不传（未完成 / 未领奖时库里是 NULL）",
                     "type": "string",
                     "format": "date-time"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
                 },
-                "currentComments": {
+                "current_comments": {
                     "type": "integer",
                     "example": 12
                 },
-                "currentLikes": {
+                "current_likes": {
                     "type": "integer",
                     "example": 88
                 },
-                "currentRecharge": {
+                "current_recharge": {
                     "type": "number",
                     "example": 0
                 },
-                "currentShares": {
+                "current_shares": {
                     "type": "integer",
                     "example": 0
                 },
-                "currentSignInDays": {
+                "current_sign_in_days": {
                     "type": "integer",
                     "example": 0
                 },
@@ -22484,24 +22484,24 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isCompleted": {
+                "is_completed": {
                     "type": "boolean",
                     "example": false
                 },
-                "isRewarded": {
+                "is_rewarded": {
                     "type": "boolean",
                     "example": false
                 },
-                "rewardedAt": {
+                "rewarded_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -22510,83 +22510,83 @@ const docTemplate = `{
         "dto.UserConfigDto": {
             "type": "object",
             "properties": {
-                "articleCommissionRate": {
+                "article_commission_rate": {
                     "type": "number",
                     "example": 10
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "enableCommentNotification": {
+                "enable_comment_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableCustomCommission": {
+                "enable_custom_commission": {
                     "type": "boolean",
                     "example": false
                 },
-                "enableEmailNotification": {
+                "enable_email_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableFollowNotification": {
+                "enable_follow_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableInviteNotification": {
+                "enable_invite_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableLikeNotification": {
+                "enable_like_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableMessageNotification": {
+                "enable_message_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableOrderNotification": {
+                "enable_order_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enablePaymentNotification": {
+                "enable_payment_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enablePushNotification": {
+                "enable_push_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableSmsNotification": {
+                "enable_sms_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "enableSystemNotification": {
+                "enable_system_notification": {
                     "type": "boolean",
                     "example": true
                 },
-                "hideCollections": {
+                "hide_collections": {
                     "type": "boolean",
                     "example": false
                 },
-                "hideComments": {
+                "hide_comments": {
                     "type": "boolean",
                     "example": false
                 },
-                "hideFavorites": {
+                "hide_favorites": {
                     "type": "boolean",
                     "example": false
                 },
-                "hideFollowers": {
+                "hide_followers": {
                     "type": "boolean",
                     "example": false
                 },
-                "hideFollowings": {
+                "hide_followings": {
                     "type": "boolean",
                     "example": false
                 },
-                "hideTags": {
+                "hide_tags": {
                     "type": "boolean",
                     "example": false
                 },
@@ -22594,30 +22594,30 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "membershipCommissionRate": {
+                "membership_commission_rate": {
                     "type": "number",
                     "example": 5
                 },
-                "productCommissionRate": {
+                "product_commission_rate": {
                     "type": "number",
                     "example": 5
                 },
                 "remark": {
                     "type": "string"
                 },
-                "serviceCommissionRate": {
+                "service_commission_rate": {
                     "type": "number",
                     "example": 5
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "watermarkEnabled": {
+                "watermark_enabled": {
                     "type": "boolean",
                     "example": false
                 }
@@ -22626,11 +22626,11 @@ const docTemplate = `{
         "dto.UserDecorationDto": {
             "type": "object",
             "properties": {
-                "activityId": {
+                "activity_id": {
                     "type": "string",
                     "example": ""
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -22643,17 +22643,17 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "decorationId": {
+                "decoration_id": {
                     "type": "string",
                     "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
                 },
-                "expiresAt": {
+                "expires_at": {
                     "description": "时间：空时整个字段不传（永久持有 / 未领奖时库里是 NULL）",
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-12-25T10:00:00Z"
                 },
-                "giftFromUserId": {
+                "gift_from_user_id": {
                     "type": "string",
                     "example": ""
                 },
@@ -22661,19 +22661,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "isPermanent": {
+                "is_permanent": {
                     "type": "boolean",
                     "example": false
                 },
-                "isUsing": {
+                "is_using": {
                     "type": "boolean",
                     "example": true
                 },
-                "obtainMethod": {
+                "obtain_method": {
                     "type": "string",
                     "example": "PURCHASE"
                 },
-                "orderId": {
+                "order_id": {
                     "type": "string",
                     "example": ""
                 },
@@ -22681,12 +22681,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": ""
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:05Z"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }
@@ -22699,7 +22699,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "杭州"
                 },
-                "articleCount": {
+                "article_count": {
                     "type": "integer",
                     "example": 12
                 },
@@ -22711,13 +22711,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/bg.png"
                 },
-                "birthDate": {
+                "birth_date": {
                     "description": "---- 时间字段：空时不传（时间没有\"空\"的自然表示，见规范 §一）----",
                     "type": "string",
                     "format": "date-time",
                     "example": "1998-06-01T00:00:00Z"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -22734,11 +22734,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 430
                 },
-                "followerCount": {
+                "follower_count": {
                     "type": "integer",
                     "example": 128
                 },
-                "followingCount": {
+                "following_count": {
                     "type": "integer",
                     "example": 36
                 },
@@ -22750,15 +22750,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "inviteCount": {
+                "invite_count": {
                     "type": "integer",
                     "example": 0
                 },
-                "inviteEarnings": {
+                "invite_earnings": {
                     "type": "number",
                     "example": 0
                 },
-                "isMember": {
+                "is_member": {
                     "type": "boolean",
                     "example": false
                 },
@@ -22770,23 +22770,23 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 512
                 },
-                "membershipEndDate": {
+                "membership_end_date": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "membershipLevel": {
+                "membership_level": {
                     "type": "integer",
                     "example": 1
                 },
-                "membershipLevelName": {
+                "membership_level_name": {
                     "type": "string",
                     "example": "普通用户"
                 },
-                "membershipStatus": {
+                "membership_status": {
                     "type": "string",
                     "example": "INACTIVE"
                 },
-                "myInviteCode": {
+                "my_invite_code": {
                     "type": "string",
                     "example": "AB12CD"
                 },
@@ -22831,7 +22831,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "杭州"
                 },
-                "articleCount": {
+                "article_count": {
                     "type": "integer",
                     "example": 12
                 },
@@ -22843,7 +22843,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/bg.png"
                 },
-                "birthDate": {
+                "birth_date": {
                     "description": "---- 时间字段：空时不传（时间没有\"空\"的自然表示，见规范 §一）----",
                     "type": "string",
                     "format": "date-time",
@@ -22852,7 +22852,7 @@ const docTemplate = `{
                 "certification": {
                     "$ref": "#/definitions/dto.CertificationDto"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
@@ -22869,11 +22869,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 430
                 },
-                "followerCount": {
+                "follower_count": {
                     "type": "integer",
                     "example": 128
                 },
-                "followingCount": {
+                "following_count": {
                     "type": "integer",
                     "example": 36
                 },
@@ -22885,15 +22885,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "inviteCount": {
+                "invite_count": {
                     "type": "integer",
                     "example": 0
                 },
-                "inviteEarnings": {
+                "invite_earnings": {
                     "type": "number",
                     "example": 0
                 },
-                "isMember": {
+                "is_member": {
                     "type": "boolean",
                     "example": false
                 },
@@ -22905,23 +22905,23 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 512
                 },
-                "membershipEndDate": {
+                "membership_end_date": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "membershipLevel": {
+                "membership_level": {
                     "type": "integer",
                     "example": 1
                 },
-                "membershipLevelName": {
+                "membership_level_name": {
                     "type": "string",
                     "example": "普通用户"
                 },
-                "membershipStatus": {
+                "membership_status": {
                     "type": "string",
                     "example": "INACTIVE"
                 },
-                "myInviteCode": {
+                "my_invite_code": {
                     "type": "string",
                     "example": "AB12CD"
                 },
@@ -22975,7 +22975,7 @@ const docTemplate = `{
                     "type": "number",
                     "example": 100.5
                 },
-                "byType": {
+                "by_type": {
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/dto.WalletTxSummaryDto"
@@ -22990,15 +22990,15 @@ const docTemplate = `{
                     "type": "number",
                     "example": 100
                 },
-                "balanceAfter": {
+                "balance_after": {
                     "type": "number",
                     "example": 100.5
                 },
-                "balanceBefore": {
+                "balance_before": {
                     "type": "number",
                     "example": 0.5
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -23010,10 +23010,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
-                "orderId": {
+                "order_id": {
                     "type": "string"
                 },
-                "paymentId": {
+                "payment_id": {
                     "type": "string"
                 },
                 "remark": {
@@ -23023,11 +23023,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "RECHARGE"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string",
                     "format": "date-time"
                 },
-                "userId": {
+                "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 }

@@ -25,10 +25,10 @@ type MigrationStatsResult struct {
 	Images         int64  `json:"images"`
 	Processed      int64  `json:"processed"`
 	Unprocessed    int64  `json:"unprocessed"`
-	WithThumbnails int64  `json:"withThumbnails"`
-	WithOriginal   int64  `json:"withOriginal"`
+	WithThumbnails int64  `json:"with_thumbnails"`
+	WithOriginal   int64  `json:"with_original"`
 	Watermarked    int64  `json:"watermarked"`
-	ProcessedPct   string `json:"processedPercent"`
+	ProcessedPct   string `json:"processed_percent"`
 }
 
 // MigrationProcessResult 批量处理结果（对齐 processUncompressedImages 返回）。
@@ -37,7 +37,7 @@ type MigrationProcessResult struct {
 	Processed int      `json:"processed"`
 	Failed    int      `json:"failed"`
 	Skipped   int      `json:"skipped"`
-	DryRun    bool     `json:"dryRun"`
+	DryRun    bool     `json:"dry_run"`
 	Errors    []string `json:"errors,omitempty"`
 }
 

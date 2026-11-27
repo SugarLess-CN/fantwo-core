@@ -221,8 +221,8 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
 	var req struct {
-		AccessToken string                 `json:"accessToken"`
-		OpenID      string                 `json:"openId"`
+		AccessToken string                 `json:"access_token"`
+		OpenID      string                 `json:"open_id"`
 		Payload     map[string]interface{} `json:"payload"`
 	}
 	if !bindJSON(c, &req) {

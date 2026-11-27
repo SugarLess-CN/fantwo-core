@@ -11,7 +11,7 @@ definitions:
     type: object
   dto.AchievementClaimResultDto:
     properties:
-      decorationId:
+      decoration_id:
         type: string
       exp:
         example: 5
@@ -37,7 +37,7 @@ definitions:
       claimed:
         example: false
         type: boolean
-      claimedAt:
+      claimed_at:
         format: date-time
         type: string
       code:
@@ -46,7 +46,7 @@ definitions:
       completed:
         example: false
         type: boolean
-      completedAt:
+      completed_at:
         description: 时间：空时不传（未完成无 completedAt，未领取无 claimedAt）
         format: date-time
         type: string
@@ -54,7 +54,7 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.AchievementConditionDto'
         description: Condition 完成条件（必有，jsonb 默认零值 {type:"",target:0}）
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
@@ -81,12 +81,12 @@ definitions:
       rarity:
         example: COMMON
         type: string
-      rewardDecorationId:
+      reward_decoration_id:
         type: string
-      rewardExp:
+      reward_exp:
         example: 5
         type: integer
-      rewardPoints:
+      reward_points:
         example: 10
         type: integer
       sort:
@@ -95,7 +95,7 @@ definitions:
       type:
         example: ARTICLE
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
     type: object
@@ -107,7 +107,7 @@ definitions:
       completed:
         example: 3
         type: integer
-      completionRate:
+      completion_rate:
         example: "15.00"
         type: string
       total:
@@ -122,16 +122,16 @@ definitions:
       description:
         example: 活动补发
         type: string
-      relatedId:
+      related_id:
         example: ORDER1234567890123456
         type: string
-      relatedType:
+      related_type:
         example: order
         type: string
       source:
         example: ADMIN_ADJUST
         type: string
-      validDays:
+      valid_days:
         description: ValidDays 积分有效期天数，0 表示永久。
         example: 0
         type: integer
@@ -141,34 +141,34 @@ definitions:
     type: object
   dto.AdvertisementConfigDto:
     properties:
-      articleBottom:
+      article_bottom:
         example: ""
         type: string
-      articleBottomLink:
+      article_bottom_link:
         example: ""
         type: string
-      articleSidebar:
+      article_sidebar:
         example: ""
         type: string
-      articleSidebarLink:
+      article_sidebar_link:
         example: ""
         type: string
-      articleTop:
+      article_top:
         example: ""
         type: string
-      articleTopLink:
+      article_top_link:
         example: ""
         type: string
       enabled:
         example: false
         type: boolean
-      globalNotice:
+      global_notice:
         example: ""
         type: string
-      homeBanner:
+      home_banner:
         example: https://cdn.example.com/banner.png
         type: string
-      homeBannerLink:
+      home_banner_link:
         example: https://example.com/promo
         type: string
       raw:
@@ -184,9 +184,9 @@ definitions:
         items:
           type: string
         type: array
-      organizationName:
+      organization_name:
         type: string
-      realName:
+      real_name:
         type: string
       slogan:
         example: 官方认证 · 签约摄影师
@@ -202,19 +202,19 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
       name:
         example: 我的收藏
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.ArticleCollectionInfoDto:
     properties:
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       collections:
@@ -251,23 +251,23 @@ definitions:
     type: object
   dto.ArticleDto:
     properties:
-      activityId:
+      activity_id:
         example: ""
         type: string
-      allowReprint:
+      allow_reprint:
         example: false
         type: boolean
       author:
         $ref: '#/definitions/dto.AuthorBriefDto'
-      authorId:
+      author_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       category:
         $ref: '#/definitions/dto.CategoryBriefDto'
-      categoryId:
+      category_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
-      commentCount:
+      comment_count:
         example: 0
         type: integer
       content:
@@ -275,16 +275,16 @@ definitions:
       cover:
         example: https://cdn.example.com/cover.jpg
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
-      downloadCount:
+      download_count:
         example: 0
         type: integer
-      favoriteCount:
+      favorite_count:
         example: 1
         type: integer
-      featuredAt:
+      featured_at:
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
@@ -293,39 +293,39 @@ definitions:
         items:
           type: string
         type: array
-      isDisliked:
+      is_disliked:
         example: false
         type: boolean
-      isFavorited:
+      is_favorited:
         example: false
         type: boolean
-      isFeatured:
+      is_featured:
         example: false
         type: boolean
-      isLiked:
+      is_liked:
         example: false
         type: boolean
-      isPinnedOnProfile:
+      is_pinned_on_profile:
         example: false
         type: boolean
       likes:
         example: 3
         type: integer
-      listRequireLogin:
+      list_require_login:
         example: false
         type: boolean
-      pinnedAt:
+      pinned_at:
         type: string
-      requireFollow:
+      require_follow:
         example: false
         type: boolean
-      requireLogin:
+      require_login:
         example: false
         type: boolean
-      requireMembership:
+      require_membership:
         example: false
         type: boolean
-      requirePayment:
+      require_payment:
         example: false
         type: boolean
       shares:
@@ -350,13 +350,13 @@ definitions:
       type:
         example: image
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         type: string
-      videoUrl:
+      video_url:
         example: https://cdn.example.com/v.mp4
         type: string
-      viewPrice:
+      view_price:
         example: 0
         type: number
       views:
@@ -365,28 +365,28 @@ definitions:
     type: object
   dto.ArticleLikeResultDto:
     properties:
-      isLiked:
+      is_liked:
         example: true
         type: boolean
       likes:
         example: 13
         type: integer
-      reactionType:
+      reaction_type:
         example: like
         type: string
     type: object
   dto.ArticleLikeStatusDto:
     properties:
-      isLiked:
+      is_liked:
         example: false
         type: boolean
-      reactionType:
+      reaction_type:
         example: like
         type: string
     type: object
   dto.ArticleReactionRequest:
     properties:
-      reactionType:
+      reaction_type:
         enum:
         - like
         - love
@@ -424,7 +424,7 @@ definitions:
     type: object
   dto.AssignPermissionsRequest:
     properties:
-      permissionIds:
+      permission_ids:
         example:
         - '["article:create"'
         - '"article:update"]'
@@ -444,30 +444,30 @@ definitions:
     type: object
   dto.AuditConfigDto:
     properties:
-      aliyunAccessKeyId:
+      aliyun_access_key_id:
         description: Aliyun 阿里云 green（凭据字段不下发，见类型注释）。
         example: ""
         type: string
-      aliyunRegion:
+      aliyun_region:
         example: cn-shanghai
         type: string
-      articleEnabled:
+      article_enabled:
         example: true
         type: boolean
-      autoBlock:
+      auto_block:
         description: |-
           AutoBlock 命中后的处置：true = 硬拦截（action=block，passed=false）；
           false = 放行但转人工（action=review，passed=true）。
         example: true
         type: boolean
-      avatarEnabled:
+      avatar_enabled:
         example: true
         type: boolean
-      commentEnabled:
+      comment_enabled:
         description: 四类内容的审核开关（false = 该类型不送审，直接放行）。
         example: true
         type: boolean
-      imageEnabled:
+      image_enabled:
         example: true
         type: boolean
       provider:
@@ -478,7 +478,7 @@ definitions:
         - tencent
         example: none
         type: string
-      reviewMode:
+      review_mode:
         description: ReviewMode 审核模式：auto / manual。
         enum:
         - auto
@@ -493,17 +493,17 @@ definitions:
         - high
         example: medium
         type: string
-      tencentImageBiz:
+      tencent_image_biz:
         example: image_zh
         type: string
-      tencentRegion:
+      tencent_region:
         example: ap-guangzhou
         type: string
-      tencentSecretId:
+      tencent_secret_id:
         description: Tencent 腾讯云 CMS（凭据字段不下发，见类型注释）。
         example: ""
         type: string
-      tencentTextBiz:
+      tencent_text_biz:
         example: text_zh
         type: string
     type: object
@@ -535,7 +535,7 @@ definitions:
         - block
         example: pass
         type: string
-      detailJson:
+      detail_json:
         description: DetailJSON 云服务商原始响应（jsonb 文本透传）；无则空串。
         example: ""
         type: string
@@ -557,7 +557,7 @@ definitions:
     type: object
   dto.AuditReviewResultDto:
     properties:
-      articleId:
+      article_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reason:
@@ -569,11 +569,11 @@ definitions:
         - REJECTED
         example: APPROVED
         type: string
-      reviewedAt:
+      reviewed_at:
         example: "2026-11-25T10:05:00Z"
         format: date-time
         type: string
-      reviewedBy:
+      reviewed_by:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -593,7 +593,7 @@ definitions:
       id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      isFollowed:
+      is_followed:
         example: false
         type: boolean
       nickname:
@@ -605,7 +605,7 @@ definitions:
     type: object
   dto.BannerDto:
     properties:
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
@@ -613,13 +613,13 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      imageUrl:
+      image_url:
         example: https://cdn.example.com/banner.png
         type: string
-      linkUrl:
+      link_url:
         example: https://example.com/activity
         type: string
-      sortOrder:
+      sort_order:
         example: 1
         type: integer
       status:
@@ -628,20 +628,20 @@ definitions:
       title:
         example: 双十一活动
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
     type: object
   dto.BatchDeleteBrowseRequest:
     properties:
-      articleIds:
+      article_ids:
         items:
           type: string
         maxItems: 100
         minItems: 1
         type: array
     required:
-    - articleIds
+    - article_ids
     type: object
   dto.BatchDeleteResultDto:
     properties:
@@ -663,13 +663,13 @@ definitions:
         - delete
         example: read
         type: string
-      messageIds:
+      message_ids:
         items:
           type: string
         type: array
     required:
     - action
-    - messageIds
+    - message_ids
     type: object
   dto.BindPhoneResultDto:
     properties:
@@ -682,7 +682,7 @@ definitions:
     type: object
   dto.BlockResultDto:
     properties:
-      blockedUserId:
+      blocked_user_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
       success:
@@ -697,9 +697,9 @@ definitions:
     type: object
   dto.BlockedUserDto:
     properties:
-      blockedUser:
+      blocked_user:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       id:
@@ -720,7 +720,7 @@ definitions:
     properties:
       article:
         $ref: '#/definitions/dto.ArticleDto'
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       duration:
@@ -729,16 +729,16 @@ definitions:
       progress:
         example: 80
         type: integer
-      viewCount:
+      view_count:
         example: 2
         type: integer
-      viewedAt:
+      viewed_at:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
   dto.BrowseProgressDto:
     properties:
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       duration:
@@ -762,16 +762,16 @@ definitions:
     type: object
   dto.BrowseStatsDto:
     properties:
-      avgDuration:
+      avg_duration:
         example: 95.3
         type: number
-      avgProgress:
+      avg_progress:
         example: 62.5
         type: number
-      totalArticles:
+      total_articles:
         example: 12
         type: integer
-      totalViews:
+      total_views:
         example: 37
         type: integer
     type: object
@@ -795,7 +795,7 @@ definitions:
     type: object
   dto.CategoryDto:
     properties:
-      articleCount:
+      article_count:
         example: 128
         type: integer
       avatar:
@@ -809,12 +809,12 @@ definitions:
         type: array
       cover:
         type: string
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
         type: string
-      followCount:
+      follow_count:
         example: 16
         type: integer
       id:
@@ -825,7 +825,7 @@ definitions:
       name:
         example: 风景摄影
         type: string
-      parentId:
+      parent_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       sort:
@@ -834,13 +834,13 @@ definitions:
       status:
         example: ENABLED
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
     type: object
   dto.CertificationDto:
     properties:
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
@@ -849,15 +849,15 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      organizationName:
+      organization_name:
         type: string
-      realName:
+      real_name:
         description: 字符串值类型：空时 ""（docs/21-JSON序列化规范.md）
         example: 张三
         type: string
-      reviewReason:
+      review_reason:
         type: string
-      reviewedAt:
+      reviewed_at:
         description: 时间：空时不传
         format: date-time
         type: string
@@ -870,7 +870,7 @@ definitions:
       type:
         example: CREATOR
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -880,7 +880,7 @@ definitions:
         description: Amount 本次变动数量（发放为正、消费为负）。
         example: 10
         type: integer
-      currentPoints:
+      current_points:
         description: CurrentPoints 变动后的余额。
         example: 320
         type: integer
@@ -921,10 +921,10 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
-      itemCount:
+      item_count:
         example: 15
         type: integer
       name:
@@ -937,7 +937,7 @@ definitions:
         items:
           $ref: '#/definitions/dto.CollectionCheckBriefDto'
         type: array
-      inCollection:
+      in_collection:
         example: true
         type: boolean
     type: object
@@ -949,7 +949,7 @@ definitions:
       cover:
         example: https://cdn.example.com/cover.png
         type: string
-      createdAt:
+      created_at:
         description: 时间必有值（DB 记录的 created_at / updated_at），用 RFC3339 字符串。
         example: "2026-11-25T10:00:00Z"
         format: date-time
@@ -963,10 +963,10 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
-      itemCount:
+      item_count:
         example: 15
         type: integer
       items:
@@ -979,11 +979,11 @@ definitions:
       sort:
         example: 3
         type: integer
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       views:
@@ -998,7 +998,7 @@ definitions:
       cover:
         example: https://cdn.example.com/cover.png
         type: string
-      createdAt:
+      created_at:
         description: 时间必有值（DB 记录的 created_at / updated_at），用 RFC3339 字符串。
         example: "2026-11-25T10:00:00Z"
         format: date-time
@@ -1012,10 +1012,10 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
-      itemCount:
+      item_count:
         example: 15
         type: integer
       name:
@@ -1024,11 +1024,11 @@ definitions:
       sort:
         example: 3
         type: integer
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       views:
@@ -1044,10 +1044,10 @@ definitions:
           内嵌文章：对象，空时整个字段不传（docs/21 §一）。
           类型是 dto.ArticleDto（service.ArticleView 的别名）—— 与 article 域共用一份定义，
           不在这里重复声明字段（那样两边一改就打架）。
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -1070,18 +1070,18 @@ definitions:
     type: object
   dto.CommentDto:
     properties:
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       author:
         $ref: '#/definitions/dto.AuthorBriefDto'
-      authorId:
+      author_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       content:
         example: 拍得真好
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       floor:
@@ -1094,16 +1094,16 @@ definitions:
         items:
           type: string
         type: array
-      isLiked:
+      is_liked:
         example: false
         type: boolean
-      isPinned:
+      is_pinned:
         example: false
         type: boolean
       likes:
         example: 2
         type: integer
-      parentId:
+      parent_id:
         description: 被回复的评论 ID / 楼层根评论 ID；一级评论两者均为 ""。
         example: ""
         type: string
@@ -1111,22 +1111,22 @@ definitions:
         items:
           $ref: '#/definitions/dto.CommentDto'
         type: array
-      replyCount:
+      reply_count:
         example: 0
         type: integer
-      rootId:
+      root_id:
         example: ""
         type: string
       status:
         example: PUBLISHED
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
   dto.CommentLikeResultDto:
     properties:
-      isLiked:
+      is_liked:
         example: true
         type: boolean
     type: object
@@ -1135,25 +1135,25 @@ definitions:
       id:
         example: 5c6d7e8f-0000-4a1b-9c2d-000000000003
         type: string
-      isPinned:
+      is_pinned:
         example: true
         type: boolean
     type: object
   dto.CommissionConfigDto:
     properties:
-      articleCommissionRate:
+      article_commission_rate:
         example: 10
         type: number
-      enableCustomCommission:
+      enable_custom_commission:
         example: false
         type: boolean
-      membershipCommissionRate:
+      membership_commission_rate:
         example: 5
         type: number
-      productCommissionRate:
+      product_commission_rate:
         example: 5
         type: number
-      serviceCommissionRate:
+      service_commission_rate:
         example: 5
         type: number
     type: object
@@ -1177,7 +1177,7 @@ definitions:
     type: object
   dto.ConfigDto:
     properties:
-      createdAt:
+      created_at:
         example: "2026-11-23T10:00:00Z"
         type: string
       description:
@@ -1186,7 +1186,7 @@ definitions:
       group:
         example: storage
         type: string
-      hasValue:
+      has_value:
         description: HasValue 后端是否已配置（DB 值非空）。敏感项 value 被打码后仍能靠它判断「有没有配」。
         example: true
         type: boolean
@@ -1203,7 +1203,7 @@ definitions:
       public:
         example: false
         type: boolean
-      startupOnly:
+      startup_only:
         description: |-
           StartupOnly 启动期配置：改了必须重启才生效，管理端应置灰只读（四个写入口也会硬拒）。
           与 Masked 互不排斥 —— s3_access_key 两者同为 true（写路径拒、读路径仍打码）。
@@ -1217,7 +1217,7 @@ definitions:
         - json
         example: string
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-23T10:00:00Z"
         type: string
       value:
@@ -1267,10 +1267,10 @@ definitions:
       key:
         example: uploads/2026/11/25/a.jpg
         type: string
-      mimeType:
+      mime_type:
         example: image/jpeg
         type: string
-      originalName:
+      original_name:
         example: photo.jpg
         type: string
       scene:
@@ -1284,24 +1284,24 @@ definitions:
         type: string
     required:
     - key
-    - mimeType
-    - originalName
+    - mime_type
+    - original_name
     - size
     - url
     type: object
   dto.ConversationDto:
     properties:
-      conversationId:
+      conversation_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
       counterpart:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      lastMessageAt:
+      last_message_at:
         example: "2026-11-25T10:00:00Z"
         type: string
-      latestMessage:
+      latest_message:
         $ref: '#/definitions/dto.PrivateMessageDto'
-      unreadCount:
+      unread_count:
         example: 2
         type: integer
     type: object
@@ -1316,7 +1316,7 @@ definitions:
     type: object
   dto.CopyRoleRequest:
     properties:
-      displayName:
+      display_name:
         example: 编辑（副本）
         type: string
       name:
@@ -1352,12 +1352,12 @@ definitions:
       rarity:
         example: COMMON
         type: string
-      rewardDecorationId:
+      reward_decoration_id:
         type: string
-      rewardExp:
+      reward_exp:
         example: 5
         type: integer
-      rewardPoints:
+      reward_points:
         example: 10
         type: integer
       sort:
@@ -1368,22 +1368,22 @@ definitions:
     type: object
   dto.CreateArticleOrderRequest:
     properties:
-      articleId:
+      article_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       remark:
         example: 请尽快开通
         type: string
     required:
-    - articleId
+    - article_id
     type: object
   dto.CreateArticleRequest:
     properties:
-      activityId:
+      activity_id:
         type: string
-      allowReprint:
+      allow_reprint:
         type: boolean
-      categoryId:
+      category_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
       content:
@@ -1400,19 +1400,19 @@ definitions:
         items:
           type: string
         type: array
-      isFeatured:
+      is_featured:
         type: boolean
-      isPinnedOnProfile:
+      is_pinned_on_profile:
         type: boolean
-      listRequireLogin:
+      list_require_login:
         type: boolean
-      requireFollow:
+      require_follow:
         type: boolean
-      requireLogin:
+      require_login:
         type: boolean
-      requireMembership:
+      require_membership:
         type: boolean
-      requirePayment:
+      require_payment:
         type: boolean
       sort:
         type: integer
@@ -1427,11 +1427,11 @@ definitions:
       summary:
         example: 一句话摘要
         type: string
-      tagIds:
+      tag_ids:
         items:
           type: string
         type: array
-      tagNames:
+      tag_names:
         example:
         - '["风景"]'
         items:
@@ -1447,9 +1447,9 @@ definitions:
         - video
         example: image
         type: string
-      videoUrl:
+      video_url:
         type: string
-      viewPrice:
+      view_price:
         example: 0
         type: number
     required:
@@ -1459,12 +1459,12 @@ definitions:
     properties:
       description:
         type: string
-      imageUrl:
+      image_url:
         example: https://cdn.example.com/banner.png
         type: string
-      linkUrl:
+      link_url:
         type: string
-      sortOrder:
+      sort_order:
         example: 1
         type: integer
       status:
@@ -1492,7 +1492,7 @@ definitions:
         example: 风景摄影
         maxLength: 50
         type: string
-      parentId:
+      parent_id:
         type: string
       sort:
         example: 1
@@ -1517,7 +1517,7 @@ definitions:
       description:
         example: 风景合集
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
       name:
@@ -1532,7 +1532,7 @@ definitions:
     type: object
   dto.CreateCommentRequest:
     properties:
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       content:
@@ -1542,11 +1542,11 @@ definitions:
         items:
           type: string
         type: array
-      parentId:
+      parent_id:
         example: 5c6d7e8f-0000-4a1b-9c2d-000000000003
         type: string
     required:
-    - articleId
+    - article_id
     - content
     type: object
   dto.CreateMembershipOrderRequest:
@@ -1572,20 +1572,20 @@ definitions:
       content:
         example: 你关注的作者发布了新作品
         type: string
-      isBroadcast:
+      is_broadcast:
         example: false
         type: boolean
       metadata:
         additionalProperties: true
         type: object
-      receiverId:
+      receiver_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
-      receiverIds:
+      receiver_ids:
         items:
           type: string
         type: array
-      senderId:
+      sender_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       title:
@@ -1601,11 +1601,11 @@ definitions:
     type: object
   dto.CreatePaymentRequest:
     properties:
-      orderId:
+      order_id:
         description: OrderID 待支付的订单 ID（必须是本人的、非 PAID 的订单）。
         example: 3c4d5e6f-7a8b-4c9d-8e0f-112233445566
         type: string
-      paymentMethod:
+      payment_method:
         description: PaymentMethod 支付渠道；渠道开关由系统配置表控制，未开启返回「Payment channel disabled」。
         enum:
         - ALIPAY
@@ -1614,7 +1614,7 @@ definitions:
         - BALANCE
         example: ALIPAY
         type: string
-      returnUrl:
+      return_url:
         description: ReturnURL 支付完成后的前端跳转地址（可选；缺省用配置 default_return_url）。
         example: https://example.com/pay/return
         type: string
@@ -1627,8 +1627,8 @@ definitions:
         example: alipay
         type: string
     required:
-    - orderId
-    - paymentMethod
+    - order_id
+    - payment_method
     type: object
   dto.CreatePaymentResultDto:
     properties:
@@ -1636,14 +1636,14 @@ definitions:
         description: Balance 仅余额支付返回：支付后的钱包余额，**单位：元**。
         example: 80.6
         type: number
-      codeUrl:
+      code_url:
         description: CodeURL 二维码内容（微信 Native）。
         example: weixin://wxpay/bizpayurl?pr=xxxxxx
         type: string
-      paymentId:
+      payment_id:
         example: 4d5e6f70-8a9b-4c0d-9e1f-223344556677
         type: string
-      paymentMethod:
+      payment_method:
         enum:
         - ALIPAY
         - WECHAT
@@ -1651,7 +1651,7 @@ definitions:
         - BALANCE
         example: ALIPAY
         type: string
-      paymentUrl:
+      payment_url:
         description: PaymentURL 跳转支付地址（支付宝 / 易支付）。
         example: https://openapi.alipay.com/gateway.do?...
         type: string
@@ -1665,7 +1665,7 @@ definitions:
       code:
         example: DAILY_LOGIN
         type: string
-      dailyLimit:
+      daily_limit:
         example: 0
         type: integer
       description:
@@ -1673,7 +1673,7 @@ definitions:
         type: string
       icon:
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
       link:
@@ -1681,16 +1681,16 @@ definitions:
       name:
         example: 每日登录
         type: string
-      rewardPoints:
+      reward_points:
         example: 10
         type: integer
       sort:
         example: 1
         type: integer
-      targetCount:
+      target_count:
         example: 1
         type: integer
-      totalLimit:
+      total_limit:
         example: 0
         type: integer
       type:
@@ -1702,7 +1702,7 @@ definitions:
         - ONCE
         example: DAILY
         type: string
-      validDays:
+      valid_days:
         example: 0
         type: integer
     type: object
@@ -1716,11 +1716,11 @@ definitions:
       reason:
         example: 垃圾广告
         type: string
-      reportedArticleId:
+      reported_article_id:
         type: string
-      reportedCommentId:
+      reported_comment_id:
         type: string
-      reportedUserId:
+      reported_user_id:
         type: string
       type:
         example: article
@@ -1735,19 +1735,19 @@ definitions:
       description:
         example: 内容编辑角色
         type: string
-      displayName:
+      display_name:
         example: 编辑
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
-      isSystem:
+      is_system:
         example: false
         type: boolean
       name:
         example: editor
         type: string
-      permissionIds:
+      permission_ids:
         items:
           type: string
         type: array
@@ -1780,7 +1780,7 @@ definitions:
       email:
         example: alice@example.com
         type: string
-      inviteCode:
+      invite_code:
         type: string
       nickname:
         example: 爱丽丝
@@ -1791,7 +1791,7 @@ definitions:
       phone:
         example: "13800138000"
         type: string
-      roleIds:
+      role_ids:
         items:
           type: string
         type: array
@@ -1807,73 +1807,73 @@ definitions:
     type: object
   dto.CurrentDecorationsDto:
     properties:
-      avatarFrame:
+      avatar_frame:
         $ref: '#/definitions/dto.UserDecorationDto'
-      commentBubble:
+      comment_bubble:
         $ref: '#/definitions/dto.UserDecorationDto'
     type: object
   dto.CursorMetaDto:
     properties:
-      hasMore:
+      has_more:
         example: true
         type: boolean
       limit:
         example: 20
         type: integer
-      nextCursor:
+      next_cursor:
         example: eyJ0aW1lIjoiMjAyNi0xMS0yNVQxMDowMDowMFoiLCJpZCI6ImFiYyJ9
         type: string
     type: object
   dto.DecorationActivityDto:
     properties:
-      articleId:
+      article_id:
         example: ""
         type: string
-      completedCount:
+      completed_count:
         example: 36
         type: integer
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      decorationId:
+      decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
       description:
         example: 累计 100 赞得限定头像框
         type: string
-      endTime:
+      end_time:
         example: "2027-11-01T00:00:00Z"
         format: date-time
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPermanent:
+      is_permanent:
         example: false
         type: boolean
       name:
         example: 双十一点赞活动
         type: string
-      participantCount:
+      participant_count:
         example: 128
         type: integer
-      requiredComments:
+      required_comments:
         example: 0
         type: integer
-      requiredLikes:
+      required_likes:
         example: 100
         type: integer
-      requiredRecharge:
+      required_recharge:
         example: 0
         type: number
-      requiredShares:
+      required_shares:
         example: 0
         type: integer
-      requiredSignInDays:
+      required_sign_in_days:
         example: 0
         type: integer
-      startTime:
+      start_time:
         description: 活动起止时间：库里 NOT NULL（创建时必有值），故用 string 而非 omitempty 指针
         example: "2026-11-01T00:00:00Z"
         format: date-time
@@ -1886,50 +1886,50 @@ definitions:
         description: LIKE / COMMENT / SHARE / RECHARGE / SIGN_IN / CUSTOM
         example: LIKE
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
-      validDays:
+      valid_days:
         example: 30
         type: integer
     type: object
   dto.DecorationActivityInputRequest:
     properties:
-      articleId:
+      article_id:
         type: string
-      decorationId:
+      decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
       description:
         example: 累计 100 赞得限定头像框
         type: string
-      endTime:
+      end_time:
         example: "2027-11-01T00:00:00Z"
         format: date-time
         type: string
-      isPermanent:
+      is_permanent:
         example: false
         type: boolean
       name:
         example: 双十一点赞活动
         type: string
-      requiredComments:
+      required_comments:
         example: 0
         type: integer
-      requiredLikes:
+      required_likes:
         example: 100
         type: integer
-      requiredRecharge:
+      required_recharge:
         example: 0
         type: number
-      requiredShares:
+      required_shares:
         example: 0
         type: integer
-      requiredSignInDays:
+      required_sign_in_days:
         example: 0
         type: integer
-      startTime:
+      start_time:
         example: "2026-11-01T00:00:00Z"
         format: date-time
         type: string
@@ -1939,24 +1939,24 @@ definitions:
       type:
         example: LIKE
         type: string
-      validDays:
+      valid_days:
         example: 30
         type: integer
     type: object
   dto.DecorationDto:
     properties:
-      achievementId:
+      achievement_id:
         example: ""
         type: string
-      activityId:
+      activity_id:
         description: 归属来源（反查唯一来源；非来源方向时为空串，不是 null）
         example: ""
         type: string
-      bubbleColor:
+      bubble_color:
         description: 仅评论气泡用
         example: '#FFD700'
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -1966,23 +1966,23 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      imageUrl:
+      image_url:
         example: https://cdn.example.com/deco/frame.png
         type: string
-      isPermanent:
+      is_permanent:
         example: false
         type: boolean
-      isPurchasable:
+      is_purchasable:
         example: true
         type: boolean
       name:
         example: 金色边框
         type: string
-      obtainMethod:
+      obtain_method:
         description: PURCHASE / ACTIVITY / GIFT / ACHIEVEMENT / DEFAULT
         example: PURCHASE
         type: string
-      previewUrl:
+      preview_url:
         example: https://cdn.example.com/deco/frame-preview.png
         type: string
       price:
@@ -2003,38 +2003,38 @@ definitions:
         description: AVATAR_FRAME / COMMENT_BUBBLE / ACHIEVEMENT_BADGE
         example: AVATAR_FRAME
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
-      validDays:
+      valid_days:
         example: 30
         type: integer
     type: object
   dto.DecorationInputRequest:
     properties:
-      bubbleColor:
+      bubble_color:
         example: '#FFD700'
         type: string
       description:
         example: 限时活动的头像框
         type: string
-      imageUrl:
+      image_url:
         example: https://cdn.example.com/deco/frame.png
         type: string
-      isPermanent:
+      is_permanent:
         example: false
         type: boolean
-      isPurchasable:
+      is_purchasable:
         example: true
         type: boolean
       name:
         example: 金色边框
         type: string
-      obtainMethod:
+      obtain_method:
         example: PURCHASE
         type: string
-      previewUrl:
+      preview_url:
         example: https://cdn.example.com/deco/frame-preview.png
         type: string
       price:
@@ -2052,7 +2052,7 @@ definitions:
       type:
         example: AVATAR_FRAME
         type: string
-      validDays:
+      valid_days:
         example: 30
         type: integer
     type: object
@@ -2079,13 +2079,13 @@ definitions:
     type: object
   dto.DeletionRequestResultDto:
     properties:
-      coolingDays:
+      cooling_days:
         example: 7
         type: integer
-      deletionPending:
+      deletion_pending:
         example: true
         type: boolean
-      scheduledAt:
+      scheduled_at:
         format: date-time
         type: string
       status:
@@ -2094,12 +2094,12 @@ definitions:
     type: object
   dto.DeletionStatusDto:
     properties:
-      deletionPending:
+      deletion_pending:
         example: false
         type: boolean
       reason:
         type: string
-      scheduledAt:
+      scheduled_at:
         format: date-time
         type: string
       status:
@@ -2108,7 +2108,7 @@ definitions:
     type: object
   dto.DislikeResultDto:
     properties:
-      isDisliked:
+      is_disliked:
         example: true
         type: boolean
     type: object
@@ -2120,11 +2120,11 @@ definitions:
       code:
         example: ':smile:'
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      fileSize:
+      file_size:
         example: 8192
         type: integer
       height:
@@ -2133,10 +2133,10 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
-      mimeType:
+      mime_type:
         example: image/png
         type: string
       name:
@@ -2154,17 +2154,17 @@ definitions:
         description: system / user
         example: user
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
       url:
         example: https://cdn.example.com/emoji/happy.png
         type: string
-      useCount:
+      use_count:
         example: 128
         type: integer
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       width:
@@ -2185,16 +2185,16 @@ definitions:
       code:
         example: ':smile:'
         type: string
-      fileSize:
+      file_size:
         example: 8192
         type: integer
       height:
         example: 240
         type: integer
-      isPublic:
+      is_public:
         example: true
         type: boolean
-      mimeType:
+      mime_type:
         example: image/png
         type: string
       name:
@@ -2219,11 +2219,11 @@ definitions:
     type: object
   dto.EmojiPackAddEmojiRequest:
     properties:
-      emojiId:
+      emoji_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
     required:
-    - emojiId
+    - emoji_id
     type: object
   dto.EmojiPackDetailDto:
     properties:
@@ -2236,10 +2236,10 @@ definitions:
     type: object
   dto.EmojiPackDto:
     properties:
-      coverUrl:
+      cover_url:
         example: https://cdn.example.com/emoji/cover.png
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -2249,7 +2249,7 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
       name:
@@ -2258,23 +2258,23 @@ definitions:
       status:
         example: active
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.EmojiPackInputRequest:
     properties:
-      coverUrl:
+      cover_url:
         example: https://cdn.example.com/emoji/cover.png
         type: string
       description:
         example: 聊天常用的 12 个表情
         type: string
-      isPublic:
+      is_public:
         example: true
         type: boolean
       name:
@@ -2286,23 +2286,23 @@ definitions:
     type: object
   dto.EmojiPackItemDto:
     properties:
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      emojiId:
+      emoji_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      packId:
+      pack_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       sort:
         example: 0
         type: integer
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
@@ -2348,22 +2348,22 @@ definitions:
       favorited:
         example: true
         type: boolean
-      favoritedAt:
+      favorited_at:
         format: date-time
         type: string
     type: object
   dto.FavoriteItemDto:
     properties:
-      articleId:
+      article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      authorId:
+      author_id:
         type: string
       cover:
         description: 字符串值类型：空时 ""（docs/21）；指针会让空值输出 null。
         example: https://cdn.example.com/c.png
         type: string
-      favoritedAt:
+      favorited_at:
         format: date-time
         type: string
       summary:
@@ -2374,16 +2374,16 @@ definitions:
     type: object
   dto.FavoriteResultDto:
     properties:
-      favoriteCount:
+      favorite_count:
         example: 6
         type: integer
-      isFavorited:
+      is_favorited:
         example: true
         type: boolean
     type: object
   dto.FavoriteStatusDto:
     properties:
-      isFavorited:
+      is_favorited:
         example: true
         type: boolean
     type: object
@@ -2404,18 +2404,18 @@ definitions:
     type: object
   dto.GiftDecorationRequest:
     properties:
-      decorationId:
+      decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
       message:
         example: 生日快乐！
         type: string
-      toUserId:
+      to_user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     required:
-    - decorationId
-    - toUserId
+    - decoration_id
+    - to_user_id
     type: object
   dto.GithubCallbackRequest:
     properties:
@@ -2475,10 +2475,10 @@ definitions:
       identity:
         example: creator
         type: string
-      isCreator:
+      is_creator:
         example: true
         type: boolean
-      isOfficial:
+      is_official:
         example: false
         type: boolean
       slogan:
@@ -2487,34 +2487,34 @@ definitions:
       type:
         example: CREATOR
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.InviteDto:
     properties:
-      commissionRate:
+      commission_rate:
         description: CommissionRate 分成比例（0-1 的小数，不是百分数）
         example: 0.05
         type: number
-      createdAt:
+      created_at:
         format: date-time
         type: string
-      expiredAt:
+      expired_at:
         format: date-time
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      inviteCode:
+      invite_code:
         example: INVAB12CD34
         type: string
-      inviteUrl:
+      invite_url:
         example: http://localhost:3000/register?code=INVAB12CD34
         type: string
-      inviteeId:
+      invitee_id:
         type: string
-      inviterId:
+      inviter_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       remark:
@@ -2525,35 +2525,35 @@ definitions:
       type:
         example: GENERAL
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
-      usedAt:
+      used_at:
         description: 时间：usedAt / expiredAt 空时不传
         format: date-time
         type: string
     type: object
   dto.InviteStatsDto:
     properties:
-      commissionCount:
+      commission_count:
         example: 12
         type: integer
       expired:
         example: 1
         type: integer
-      paidEarnings:
+      paid_earnings:
         example: 54.45
         type: number
       pending:
         example: 3
         type: integer
-      pendingEarnings:
+      pending_earnings:
         example: 4.95
         type: number
       total:
         example: 12
         type: integer
-      totalEarnings:
+      total_earnings:
         example: 59.4
         type: number
       used:
@@ -2577,7 +2577,7 @@ definitions:
       address:
         example: 杭州
         type: string
-      articleCount:
+      article_count:
         example: 12
         type: integer
       avatar:
@@ -2586,12 +2586,12 @@ definitions:
       background:
         example: https://cdn.example.com/bg.png
         type: string
-      birthDate:
+      birth_date:
         description: '---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----'
         example: "1998-06-01T00:00:00Z"
         format: date-time
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -2604,10 +2604,10 @@ definitions:
       experience:
         example: 430
         type: integer
-      followerCount:
+      follower_count:
         example: 128
         type: integer
-      followingCount:
+      following_count:
         example: 36
         type: integer
       gender:
@@ -2616,13 +2616,13 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      inviteCount:
+      invite_count:
         example: 0
         type: integer
-      inviteEarnings:
+      invite_earnings:
         example: 0
         type: number
-      isMember:
+      is_member:
         example: false
         type: boolean
       level:
@@ -2631,19 +2631,19 @@ definitions:
       likes:
         example: 512
         type: integer
-      membershipEndDate:
+      membership_end_date:
         format: date-time
         type: string
-      membershipLevel:
+      membership_level:
         example: 1
         type: integer
-      membershipLevelName:
+      membership_level_name:
         example: 普通用户
         type: string
-      membershipStatus:
+      membership_status:
         example: INACTIVE
         type: string
-      myInviteCode:
+      my_invite_code:
         example: AB12CD
         type: string
       nickname:
@@ -2659,7 +2659,7 @@ definitions:
       points:
         example: 320
         type: integer
-      refreshToken:
+      refresh_token:
         example: eyJhbGciOiJIUzI1NiIs...
         type: string
       roles:
@@ -2682,11 +2682,11 @@ definitions:
     type: object
   dto.MarkMessagesReadResultDto:
     properties:
-      messageIds:
+      message_ids:
         items:
           type: string
         type: array
-      readAt:
+      read_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       receipts:
@@ -2696,10 +2696,10 @@ definitions:
     type: object
   dto.MembershipCheckDto:
     properties:
-      isMember:
+      is_member:
         example: true
         type: boolean
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -2728,25 +2728,25 @@ definitions:
     type: object
   dto.MessageDto:
     properties:
-      articleId:
+      article_id:
         description: |-
           透传载荷：运行时不定的业务结构，保留 map / interface{} 原类型，空时整个不传。
           注意：interface{} 字段**不能带 example**，swag 会报
           "any is unsupported type in example value"（实测踩到）。
-      commentId: {}
+      comment_id: {}
       content:
         example: 你关注的作者发布了新作品
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isBroadcast:
+      is_broadcast:
         example: false
         type: boolean
-      isRead:
+      is_read:
         description: 布尔：false 有意义，不加 omitempty
         example: false
         type: boolean
@@ -2754,19 +2754,19 @@ definitions:
         additionalProperties: true
         description: metadata 是运行时不定的业务结构（jsonb 列），保留 map 原类型，空时整个不传
         type: object
-      notificationType: {}
+      notification_type: {}
       receiver:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      receiverId:
+      receiver_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
       sender:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      senderId:
+      sender_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      targetId: {}
-      targetType: {}
+      target_id: {}
+      target_type: {}
       title:
         example: 系统通知
         type: string
@@ -2777,7 +2777,7 @@ definitions:
         - notification
         example: notification
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
@@ -2789,7 +2789,7 @@ definitions:
       id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      isBlocked:
+      is_blocked:
         example: false
         type: boolean
       nickname:
@@ -2817,7 +2817,7 @@ definitions:
     type: object
   dto.MigrationProcessRequest:
     properties:
-      dryRun:
+      dry_run:
         example: false
         type: boolean
       limit:
@@ -2826,7 +2826,7 @@ definitions:
     type: object
   dto.MigrationProcessResultDto:
     properties:
-      dryRun:
+      dry_run:
         example: false
         type: boolean
       errors:
@@ -2854,7 +2854,7 @@ definitions:
       processed:
         example: 118
         type: integer
-      processedPercent:
+      processed_percent:
         example: "98.33"
         type: string
       total:
@@ -2866,10 +2866,10 @@ definitions:
       watermarked:
         example: 110
         type: integer
-      withOriginal:
+      with_original:
         example: 118
         type: integer
-      withThumbnails:
+      with_thumbnails:
         example: 118
         type: integer
     type: object
@@ -2885,10 +2885,10 @@ definitions:
     type: object
   dto.OAuthBindingDto:
     properties:
-      avatarUrl:
+      avatar_url:
         example: https://thirdwx.qlogo.cn/...
         type: string
-      boundAt:
+      bound_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -2928,14 +2928,14 @@ definitions:
     type: object
   dto.OAuthLinkRequest:
     properties:
-      accessToken:
+      access_token:
         type: string
       channel:
         example: web
         type: string
       code:
         type: string
-      openId:
+      open_id:
         type: string
       provider:
         example: wechat
@@ -2963,11 +2963,11 @@ definitions:
           dto 保持 float64 不改精度语义（改整数分会让前端所有金额计算失真）。
         example: 19.9
         type: number
-      articleId:
+      article_id:
         description: ArticleID 文章 ID（仅 type=ARTICLE 的订单有值）。
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      authorId:
+      author_id:
         description: |-
           AuthorID 卖家用户 ID。
 
@@ -2977,7 +2977,7 @@ definitions:
           已知问题 P3，本轮保持不动。
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -2992,16 +2992,16 @@ definitions:
       id:
         example: 3c4d5e6f-7a8b-4c9d-8e0f-112233445566
         type: string
-      orderNo:
+      order_no:
         description: OrderNo 订单号：ORDER + 毫秒时间戳 + 3 位随机（共 21 字符）。
         example: ORDER1764050000000123
         type: string
-      paidAt:
+      paid_at:
         description: PaidAt 支付时间；未支付时不传该字段（不是 null）。
         example: "2026-11-25T10:05:00Z"
         format: date-time
         type: string
-      paymentMethod:
+      payment_method:
         description: PaymentMethod 支付方式；未支付时为空串（不是 null）。
         enum:
         - ALIPAY
@@ -3010,7 +3010,7 @@ definitions:
         - BALANCE
         example: BALANCE
         type: string
-      paymentOrderNo:
+      payment_order_no:
         description: PaymentOrderNo 第三方支付订单号；未支付时为空串。
         example: "2026112522001445361234567890"
         type: string
@@ -3040,11 +3040,11 @@ definitions:
         - ARTICLE
         example: MEMBERSHIP
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         description: UserID 买家用户 ID。
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
@@ -3057,7 +3057,7 @@ definitions:
     type: object
   dto.OrderWalletDto:
     properties:
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       wallet:
@@ -3082,7 +3082,7 @@ definitions:
       total:
         example: 128
         type: integer
-      totalPages:
+      total_pages:
         example: 7
         type: integer
     type: object
@@ -3092,7 +3092,7 @@ definitions:
         description: Amount 支付金额，**单位：元**（decimal(10,2) / float64，精度语义保持原样）。
         example: 19.9
         type: number
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -3103,22 +3103,22 @@ definitions:
           epayUrl / prepayId / orderNo / amount / previousBalance / currentBalance 等键；
           余额支付含 balancePayment 标记。空时不传该字段（不是 null）。
         type: object
-      errorMessage:
+      error_message:
         description: ErrorMessage 落账失败原因（英文，仅内部诊断用）；正常时为空串。
         example: ""
         type: string
       id:
         example: 4d5e6f70-8a9b-4c0d-9e1f-223344556677
         type: string
-      orderId:
+      order_id:
         example: 3c4d5e6f-7a8b-4c9d-8e0f-112233445566
         type: string
-      paidAt:
+      paid_at:
         description: PaidAt 支付成功时间；未成功时不传该字段（不是 null）。
         example: "2026-11-25T10:05:00Z"
         format: date-time
         type: string
-      paymentMethod:
+      payment_method:
         description: PaymentMethod 支付渠道。
         enum:
         - ALIPAY
@@ -3135,27 +3135,27 @@ definitions:
         - CANCELLED
         example: PENDING
         type: string
-      thirdPartyOrderNo:
+      third_party_order_no:
         description: ThirdPartyOrderNo 第三方支付订单号；未回调时为空串（不是 null）。
         example: "2026112522001445361234567890"
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.PendingArticleItemDto:
     properties:
-      authorId:
+      author_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      categoryId:
+      category_id:
         example: ""
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       id:
@@ -3173,7 +3173,7 @@ definitions:
     type: object
   dto.PermissionDto:
     properties:
-      createdAt:
+      created_at:
         example: "2026-11-19T10:00:00Z"
         type: string
       description:
@@ -3185,7 +3185,7 @@ definitions:
       name:
         example: article:create
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-19T10:00:00Z"
         type: string
     type: object
@@ -3221,11 +3221,11 @@ definitions:
       code:
         example: DAILY_LOGIN
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      dailyLimit:
+      daily_limit:
         description: DailyLimit / TotalLimit 为 0 表示不限制。
         example: 0
         type: integer
@@ -3238,7 +3238,7 @@ definitions:
       id:
         example: 5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
-      isActive:
+      is_active:
         description: IsActive 是否启用（等价于「活动是否上线」）。
         example: true
         type: boolean
@@ -3248,17 +3248,17 @@ definitions:
       name:
         example: 每日登录
         type: string
-      rewardPoints:
+      reward_points:
         description: RewardPoints 奖励积分（整数，不是金额，无精度问题）。
         example: 10
         type: integer
       sort:
         example: 1
         type: integer
-      targetCount:
+      target_count:
         example: 1
         type: integer
-      totalLimit:
+      total_limit:
         example: 0
         type: integer
       type:
@@ -3271,11 +3271,11 @@ definitions:
         - ONCE
         example: DAILY
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      validDays:
+      valid_days:
         description: ValidDays 积分有效期天数，0 表示永久。
         example: 0
         type: integer
@@ -3285,7 +3285,7 @@ definitions:
       points:
         example: 320
         type: integer
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -3295,7 +3295,7 @@ definitions:
         description: Amount 本次变动数量（发放为正、消费为负）。
         example: 10
         type: integer
-      currentPoints:
+      current_points:
         description: CurrentPoints 变动后的余额。
         example: 320
         type: integer
@@ -3320,7 +3320,7 @@ definitions:
     properties:
       activities:
         $ref: '#/definitions/dto.PointsStatsActivitiesDto'
-      bySource:
+      by_source:
         description: BySource 按来源统计的获取明细；空时输出 []（不是 null）。
         items:
           $ref: '#/definitions/dto.PointsSourceStatDto'
@@ -3345,19 +3345,19 @@ definitions:
     type: object
   dto.PointsStatsPointsDto:
     properties:
-      inCirculation:
+      in_circulation:
         example: 960
         type: integer
-      totalEarned:
+      total_earned:
         example: 1280
         type: integer
-      totalSpent:
+      total_spent:
         example: 320
         type: integer
     type: object
   dto.PointsStatsTasksDto:
     properties:
-      claimRate:
+      claim_rate:
         example: "87.50"
         type: string
       claimed:
@@ -3366,10 +3366,10 @@ definitions:
       completed:
         example: 32
         type: integer
-      completionRate:
+      completion_rate:
         example: "50.00"
         type: string
-      totalRecords:
+      total_records:
         example: 64
         type: integer
     type: object
@@ -3387,50 +3387,50 @@ definitions:
     type: object
   dto.PointsStatsUsersDto:
     properties:
-      activeUsers:
+      active_users:
         example: 42
         type: integer
     type: object
   dto.PointsTaskDto:
     properties:
-      activityId:
+      activity_id:
         example: 5f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
-      completedAt:
+      completed_at:
         description: CompletedAt 完成时间；未完成时不传（不是 null）。
         format: date-time
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      currentCount:
+      current_count:
         example: 2
         type: integer
       id:
         example: b1c2d3e4-5f60-4718-8293-0a1b2c3d4e5f
         type: string
-      isCompleted:
+      is_completed:
         example: false
         type: boolean
-      isRewarded:
+      is_rewarded:
         example: false
         type: boolean
-      rewardPoints:
+      reward_points:
         example: 10
         type: integer
-      rewardedAt:
+      rewarded_at:
         description: RewardedAt 领取时间；未领取时不传（不是 null）。
         format: date-time
         type: string
-      targetCount:
+      target_count:
         example: 3
         type: integer
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -3444,7 +3444,7 @@ definitions:
         description: Balance 变动后的积分余额。
         example: 320
         type: integer
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -3456,17 +3456,17 @@ definitions:
         description: Expired 过期积分是否已被回收（EXPIRE 清扫任务用）。
         example: false
         type: boolean
-      expiredAt:
+      expired_at:
         description: ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。
         format: date-time
         type: string
       id:
         example: 7a2b3c4d-5e6f-4a8b-9c0d-112233445566
         type: string
-      relatedId:
+      related_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      relatedType:
+      related_type:
         example: sign_in
         type: string
       source:
@@ -3481,17 +3481,17 @@ definitions:
         - REFUND
         example: EARN
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.PresignRequest:
     properties:
-      contentType:
+      content_type:
         example: image/jpeg
         type: string
       filename:
@@ -3501,22 +3501,22 @@ definitions:
         example: 1572864
         type: integer
     required:
-    - contentType
+    - content_type
     - filename
     - size
     type: object
   dto.PresignResultDto:
     properties:
-      accessUrl:
+      access_url:
         example: https://cdn.example.com/uploads/2026/11/25/a.jpg
         type: string
-      expiresIn:
+      expires_in:
         example: 3600
         type: integer
       key:
         example: uploads/2026/11/25/a.jpg
         type: string
-      uploadUrl:
+      upload_url:
         example: https://minio.example.com/picart/uploads/...&X-Amz-Signature=...
         type: string
     type: object
@@ -3534,22 +3534,22 @@ definitions:
       content:
         example: 在吗
         type: string
-      conversationId:
+      conversation_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isRead:
+      is_read:
         example: false
         type: boolean
-      isRecalled:
+      is_recalled:
         example: false
         type: boolean
-      messageKind:
+      message_kind:
         enum:
         - text
         - image
@@ -3561,38 +3561,38 @@ definitions:
         additionalProperties: true
         description: 透传载荷：保留 map 原类型，空时整个不传
         type: object
-      readAt:
+      read_at:
         description: 时间 / 可选字符串：空时整个不传（未读、未撤回没有自然的空表示）
         example: "2026-11-25T10:00:00Z"
         type: string
-      recallReason:
+      recall_reason:
         type: string
-      recalledAt:
+      recalled_at:
         example: "2026-11-25T10:05:00Z"
         type: string
-      recalledById:
+      recalled_by_id:
         type: string
       receiver:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      receiverId:
+      receiver_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
       sender:
         $ref: '#/definitions/dto.MessageUserBriefDto'
-      senderId:
+      sender_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       type:
         description: 派生字段：isRead / isRecalled 为 false 也是有效语义，不加 omitempty
         example: private
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
   dto.PrivateReadBatchRequest:
     properties:
-      messageIds:
+      message_ids:
         items:
           type: string
         type: array
@@ -3602,7 +3602,7 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPinnedOnProfile:
+      is_pinned_on_profile:
         example: true
         type: boolean
     type: object
@@ -3613,54 +3613,54 @@ definitions:
     type: object
   dto.PurchaseDecorationRequest:
     properties:
-      decorationId:
+      decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
     required:
-    - decorationId
+    - decoration_id
     type: object
   dto.QqAppLoginRequest:
     properties:
-      accessToken:
+      access_token:
         type: string
-      openId:
+      open_id:
         type: string
       payload:
         type: string
     type: object
   dto.ReadReceiptDto:
     properties:
-      conversationId:
+      conversation_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
-      messageIds:
+      message_ids:
         items:
           type: string
         type: array
-      readAt:
+      read_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      receiverId:
+      receiver_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
-      senderId:
+      sender_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
     type: object
   dto.ReadResultDto:
     properties:
-      conversationId:
+      conversation_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
-      counterpartId:
+      counterpart_id:
         example: 1a2b3c4d-5678-4abc-9def-0123456789ab
         type: string
-      messageIds:
+      message_ids:
         items:
           type: string
         type: array
-      readAt:
+      read_at:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
@@ -3672,10 +3672,10 @@ definitions:
     type: object
   dto.RefreshTokenRequest:
     properties:
-      refreshToken:
+      refresh_token:
         type: string
     required:
-    - refreshToken
+    - refresh_token
     type: object
   dto.RefreshTokenResultDto:
     properties:
@@ -3705,7 +3705,7 @@ definitions:
     type: object
   dto.ReorderCollectionItemsRequest:
     properties:
-      articleIds:
+      article_ids:
         example:
         - '["id-a"'
         - '"id-b"]'
@@ -3714,7 +3714,7 @@ definitions:
         minItems: 1
         type: array
     required:
-    - articleIds
+    - article_ids
     type: object
   dto.ReportDto:
     properties:
@@ -3724,16 +3724,16 @@ definitions:
       category:
         example: spam
         type: string
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
         type: string
-      handledAt:
+      handled_at:
         description: 时间：handledAt 未处理时不传
         format: date-time
         type: string
-      handlerId:
+      handler_id:
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
@@ -3741,13 +3741,13 @@ definitions:
       reason:
         example: 垃圾广告
         type: string
-      reportedArticleId:
+      reported_article_id:
         type: string
-      reportedCommentId:
+      reported_comment_id:
         type: string
-      reportedUserId:
+      reported_user_id:
         type: string
-      reporterId:
+      reporter_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       result:
@@ -3758,22 +3758,22 @@ definitions:
       type:
         example: article
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
     type: object
   dto.ReportStatisticsDto:
     properties:
-      byCategory:
+      by_category:
         items:
           $ref: '#/definitions/dto.GroupCountDto'
         type: array
-      byStatus:
+      by_status:
         additionalProperties:
           format: int64
           type: integer
         type: object
-      byType:
+      by_type:
         items:
           $ref: '#/definitions/dto.GroupCountDto'
         type: array
@@ -3831,7 +3831,7 @@ definitions:
     type: object
   dto.RoleBriefDto:
     properties:
-      displayName:
+      display_name:
         example: 普通用户
         type: string
       id:
@@ -3843,22 +3843,22 @@ definitions:
     type: object
   dto.RoleDetailDto:
     properties:
-      createdAt:
+      created_at:
         example: "2026-11-19T10:00:00Z"
         type: string
       description:
         example: 内容编辑角色
         type: string
-      displayName:
+      display_name:
         example: 编辑
         type: string
       id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
-      isSystem:
+      is_system:
         description: IsSystem 系统内置角色不可删除（DeleteRole 会拒绝）。
         example: false
         type: boolean
@@ -3874,28 +3874,28 @@ definitions:
         items:
           $ref: '#/definitions/dto.PermissionDto'
         type: array
-      updatedAt:
+      updated_at:
         example: "2026-11-19T10:00:00Z"
         type: string
     type: object
   dto.RoleDto:
     properties:
-      createdAt:
+      created_at:
         example: "2026-11-19T10:00:00Z"
         type: string
       description:
         example: 内容编辑角色
         type: string
-      displayName:
+      display_name:
         example: 编辑
         type: string
       id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
-      isSystem:
+      is_system:
         description: IsSystem 系统内置角色不可删除（DeleteRole 会拒绝）。
         example: false
         type: boolean
@@ -3906,7 +3906,7 @@ definitions:
         items:
           $ref: '#/definitions/dto.PermissionDto'
         type: array
-      updatedAt:
+      updated_at:
         example: "2026-11-19T10:00:00Z"
         type: string
     type: object
@@ -3916,13 +3916,13 @@ definitions:
         items:
           type: string
         type: array
-      roleId:
+      role_id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
     type: object
   dto.RoleMenusDto:
     properties:
-      allMenus:
+      all_menus:
         items:
           type: string
         type: array
@@ -3930,22 +3930,22 @@ definitions:
         items:
           type: string
         type: array
-      roleId:
+      role_id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
     type: object
   dto.RolePermissionsAssignedDto:
     properties:
-      affectedUsers:
+      affected_users:
         example: 37
         type: integer
-      permVersionBumped:
+      perm_version_bumped:
         example: true
         type: boolean
-      permissionCount:
+      permission_count:
         example: 12
         type: integer
-      roleId:
+      role_id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
     type: object
@@ -3954,7 +3954,7 @@ definitions:
       id:
         example: 3f1c2d3e-4a5b-6c7d-8e9f-0123456789ab
         type: string
-      isActive:
+      is_active:
         example: false
         type: boolean
       name:
@@ -3963,21 +3963,21 @@ definitions:
     type: object
   dto.SearchArticleItemDto:
     properties:
-      authorId:
+      author_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      categoryId:
+      category_id:
         type: string
-      commentCount:
+      comment_count:
         example: 5
         type: integer
       cover:
         example: https://cdn.example.com/c.png
         type: string
-      createdAt:
+      created_at:
         format: date-time
         type: string
-      favoriteCount:
+      favorite_count:
         example: 3
         type: integer
       id:
@@ -3997,7 +3997,7 @@ definitions:
       type:
         example: article
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
       views:
@@ -4017,7 +4017,7 @@ definitions:
       index:
         example: articles
         type: string
-      indexExists:
+      index_exists:
         example: true
         type: boolean
       message:
@@ -4025,7 +4025,7 @@ definitions:
     type: object
   dto.SearchSyncCountDto:
     properties:
-      totalSynced:
+      total_synced:
         example: 1280
         type: integer
     type: object
@@ -4039,7 +4039,7 @@ definitions:
       success:
         example: true
         type: boolean
-      totalSynced:
+      total_synced:
         example: 1280
         type: integer
     type: object
@@ -4048,7 +4048,7 @@ definitions:
       content:
         example: 在吗
         type: string
-      messageKind:
+      message_kind:
         enum:
         - text
         - image
@@ -4124,36 +4124,36 @@ definitions:
     type: object
   dto.SetCommentPinRequest:
     properties:
-      isPinned:
+      is_pinned:
         example: true
         type: boolean
     required:
-    - isPinned
+    - is_pinned
     type: object
   dto.SetFeaturedRequest:
     properties:
-      isFeatured:
+      is_featured:
         example: true
         type: boolean
     required:
-    - isFeatured
+    - is_featured
     type: object
   dto.SetFeaturedResultDto:
     properties:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isFeatured:
+      is_featured:
         example: true
         type: boolean
     type: object
   dto.SetProfilePinRequest:
     properties:
-      isPinned:
+      is_pinned:
         example: true
         type: boolean
     required:
-    - isPinned
+    - is_pinned
     type: object
   dto.ShareResultDto:
     properties:
@@ -4166,13 +4166,13 @@ definitions:
     type: object
   dto.SignInRecordDto:
     properties:
-      consecutiveDays:
+      consecutive_days:
         example: 8
         type: integer
-      isAuto:
+      is_auto:
         example: false
         type: boolean
-      signInDate:
+      sign_in_date:
         example: "2026-11-25"
         type: string
     type: object
@@ -4181,19 +4181,19 @@ definitions:
       already:
         example: false
         type: boolean
-      consecutiveDays:
+      consecutive_days:
         example: 8
         type: integer
       level:
         example: 5
         type: integer
-      leveledUp:
+      leveled_up:
         example: false
         type: boolean
-      pointsGranted:
+      points_granted:
         example: 10
         type: integer
-      signInDate:
+      sign_in_date:
         example: "2026-11-25"
         type: string
       signed:
@@ -4202,16 +4202,16 @@ definitions:
     type: object
   dto.SignInStatsDto:
     properties:
-      consecutiveDays:
+      consecutive_days:
         example: 8
         type: integer
-      lastSignInDate:
+      last_sign_in_date:
         example: "2026-11-25"
         type: string
-      signedToday:
+      signed_today:
         example: true
         type: boolean
-      totalDays:
+      total_days:
         example: 32
         type: integer
     type: object
@@ -4223,10 +4223,10 @@ definitions:
       description:
         example: 兑换表情包
         type: string
-      relatedId:
+      related_id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
-      relatedType:
+      related_type:
         example: emoji_pack
         type: string
       source:
@@ -4247,79 +4247,79 @@ definitions:
       comments:
         example: 9800
         type: integer
-      pendingArticles:
+      pending_articles:
         example: 24
         type: integer
-      publicCollections:
+      public_collections:
         example: 96
         type: integer
-      publishedArticles:
+      published_articles:
         example: 2800
         type: integer
-      publishedComments:
+      published_comments:
         example: 9500
         type: integer
-      todayArticles:
+      today_articles:
         example: 12
         type: integer
-      todayComments:
+      today_comments:
         example: 86
         type: integer
     type: object
   dto.StatisticsEngagementDto:
     properties:
-      articleComments:
+      article_comments:
         example: 9800
         type: integer
-      articleFavorites:
+      article_favorites:
         example: 2100
         type: integer
-      articleLikes:
+      article_likes:
         example: 8600
         type: integer
-      articleShares:
+      article_shares:
         example: 320
         type: integer
-      articleViews:
+      article_views:
         example: 128000
         type: integer
-      collectionItems:
+      collection_items:
         example: 1280
         type: integer
-      collectionViews:
+      collection_views:
         example: 5600
         type: integer
-      commentLikes:
+      comment_likes:
         example: 1500
         type: integer
-      commentReplies:
+      comment_replies:
         example: 2400
         type: integer
     type: object
   dto.StatisticsModerationDto:
     properties:
-      pendingArticles:
+      pending_articles:
         example: 24
         type: integer
-      pendingReports:
+      pending_reports:
         example: 7
         type: integer
-      processingReports:
+      processing_reports:
         example: 2
         type: integer
     type: object
   dto.StatisticsOrdersDto:
     properties:
-      paidCount:
+      paid_count:
         example: 320
         type: integer
-      paidRevenue:
+      paid_revenue:
         example: 12672.5
         type: number
-      todayPaidCount:
+      today_paid_count:
         example: 5
         type: integer
-      todayPaidRevenue:
+      today_paid_revenue:
         example: 396
         type: number
     type: object
@@ -4351,13 +4351,13 @@ definitions:
       active:
         example: 860
         type: integer
-      activeMembers:
+      active_members:
         example: 96
         type: integer
       banned:
         example: 12
         type: integer
-      todayNew:
+      today_new:
         example: 8
         type: integer
       total:
@@ -4384,7 +4384,7 @@ definitions:
     type: object
   dto.TagDto:
     properties:
-      articleCount:
+      article_count:
         example: 42
         type: integer
       avatar:
@@ -4395,7 +4395,7 @@ definitions:
       cover:
         example: https://cdn.example.com/cover.jpg
         type: string
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
@@ -4404,13 +4404,13 @@ definitions:
           会让前端拿到 undefined；docs/21 §一 要求 ""）
         example: 前端相关
         type: string
-      followCount:
+      follow_count:
         example: 8
         type: integer
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isFollowed:
+      is_followed:
         example: true
         type: boolean
       name:
@@ -4419,7 +4419,7 @@ definitions:
       sort:
         example: 9
         type: integer
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
     type: object
@@ -4431,7 +4431,7 @@ definitions:
     type: object
   dto.ToggleRoleStatusRequest:
     properties:
-      isActive:
+      is_active:
         example: false
         type: boolean
     type: object
@@ -4446,10 +4446,10 @@ definitions:
       date:
         example: "2026-11-25"
         type: string
-      paidOrders:
+      paid_orders:
         example: 5
         type: integer
-      paidRevenue:
+      paid_revenue:
         example: 396
         type: number
       users:
@@ -4498,11 +4498,11 @@ definitions:
         type: string
       rarity:
         type: string
-      rewardDecorationId:
+      reward_decoration_id:
         type: string
-      rewardExp:
+      reward_exp:
         type: integer
-      rewardPoints:
+      reward_points:
         type: integer
       sort:
         type: integer
@@ -4511,11 +4511,11 @@ definitions:
     type: object
   dto.UpdateArticleRequest:
     properties:
-      activityId:
+      activity_id:
         type: string
-      allowReprint:
+      allow_reprint:
         type: boolean
-      categoryId:
+      category_id:
         type: string
       content:
         type: string
@@ -4529,19 +4529,19 @@ definitions:
         items:
           type: string
         type: array
-      isFeatured:
+      is_featured:
         type: boolean
-      isPinnedOnProfile:
+      is_pinned_on_profile:
         type: boolean
-      listRequireLogin:
+      list_require_login:
         type: boolean
-      requireFollow:
+      require_follow:
         type: boolean
-      requireLogin:
+      require_login:
         type: boolean
-      requireMembership:
+      require_membership:
         type: boolean
-      requirePayment:
+      require_payment:
         type: boolean
       sort:
         type: integer
@@ -4554,11 +4554,11 @@ definitions:
         type: string
       summary:
         type: string
-      tagIds:
+      tag_ids:
         items:
           type: string
         type: array
-      tagNames:
+      tag_names:
         items:
           type: string
         type: array
@@ -4571,20 +4571,20 @@ definitions:
         - mixed
         - video
         type: string
-      videoUrl:
+      video_url:
         type: string
-      viewPrice:
+      view_price:
         type: number
     type: object
   dto.UpdateBannerRequest:
     properties:
       description:
         type: string
-      imageUrl:
+      image_url:
         type: string
-      linkUrl:
+      link_url:
         type: string
-      sortOrder:
+      sort_order:
         type: integer
       status:
         type: string
@@ -4608,7 +4608,7 @@ definitions:
       name:
         maxLength: 50
         type: string
-      parentId:
+      parent_id:
         type: string
       sort:
         type: integer
@@ -4627,7 +4627,7 @@ definitions:
       description:
         example: 新描述
         type: string
-      isPublic:
+      is_public:
         type: boolean
       name:
         example: 新名字
@@ -4645,7 +4645,7 @@ definitions:
         items:
           type: string
         type: array
-      isPinned:
+      is_pinned:
         example: false
         type: boolean
     type: object
@@ -4654,9 +4654,9 @@ definitions:
       content:
         example: 改后的正文
         type: string
-      isBroadcast:
+      is_broadcast:
         type: boolean
-      isRead:
+      is_read:
         type: boolean
       metadata:
         additionalProperties: true
@@ -4676,7 +4676,7 @@ definitions:
       code:
         example: DAILY_LOGIN
         type: string
-      dailyLimit:
+      daily_limit:
         example: 0
         type: integer
       description:
@@ -4684,7 +4684,7 @@ definitions:
         type: string
       icon:
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
       link:
@@ -4692,16 +4692,16 @@ definitions:
       name:
         example: 每日登录
         type: string
-      rewardPoints:
+      reward_points:
         example: 10
         type: integer
       sort:
         example: 1
         type: integer
-      targetCount:
+      target_count:
         example: 1
         type: integer
-      totalLimit:
+      total_limit:
         example: 0
         type: integer
       type:
@@ -4713,7 +4713,7 @@ definitions:
         - ONCE
         example: DAILY
         type: string
-      validDays:
+      valid_days:
         example: 0
         type: integer
     type: object
@@ -4726,7 +4726,7 @@ definitions:
         type: string
       background:
         type: string
-      birthDate:
+      birth_date:
         format: date-time
         type: string
       description:
@@ -4758,19 +4758,19 @@ definitions:
       description:
         example: 内容编辑角色
         type: string
-      displayName:
+      display_name:
         example: 编辑
         type: string
-      isActive:
+      is_active:
         example: true
         type: boolean
-      isSystem:
+      is_system:
         example: false
         type: boolean
       name:
         example: editor
         type: string
-      permissionIds:
+      permission_ids:
         items:
           type: string
         type: array
@@ -4794,23 +4794,23 @@ definitions:
     type: object
   dto.UpdateUserConfigRequest:
     properties:
-      articleCommissionRate:
+      article_commission_rate:
         type: number
-      enableCustomCommission:
+      enable_custom_commission:
         type: boolean
-      membershipCommissionRate:
+      membership_commission_rate:
         type: number
-      productCommissionRate:
+      product_commission_rate:
         type: number
-      serviceCommissionRate:
+      service_commission_rate:
         type: number
     type: object
   dto.UploadAnimatedOptsDto:
     properties:
-      originalKeepsAnimation:
+      original_keeps_animation:
         example: true
         type: boolean
-      staticThumb:
+      static_thumb:
         example: true
         type: boolean
     type: object
@@ -4819,7 +4819,7 @@ definitions:
       action:
         example: pass
         type: string
-      detailJson:
+      detail_json:
         type: string
       label:
         type: string
@@ -4844,16 +4844,16 @@ definitions:
       format:
         example: webp
         type: string
-      maxWidth:
+      max_width:
         example: 1920
         type: integer
-      preserveAnimation:
+      preserve_animation:
         example: true
         type: boolean
       quality:
         example: 75
         type: integer
-      skipPrecompressMimeTypes:
+      skip_precompress_mime_types:
         items:
           type: string
         type: array
@@ -4866,16 +4866,16 @@ definitions:
       enabled:
         example: true
         type: boolean
-      maxHeight:
+      max_height:
         example: 1080
         type: integer
-      maxWidth:
+      max_width:
         example: 1920
         type: integer
     type: object
   dto.UploadConfigDto:
     properties:
-      allowedMimeTypes:
+      allowed_mime_types:
         additionalProperties:
           items:
             type: string
@@ -4883,7 +4883,7 @@ definitions:
         type: object
       compression:
         $ref: '#/definitions/dto.UploadCompressionDto'
-      imageProcessing:
+      image_processing:
         $ref: '#/definitions/dto.UploadImageProcessingDto'
       limits:
         $ref: '#/definitions/dto.UploadLimitsDto'
@@ -4891,19 +4891,19 @@ definitions:
         $ref: '#/definitions/dto.UploadQueueDto'
       storage:
         $ref: '#/definitions/dto.UploadStorageDto'
-      videoProcessing:
+      video_processing:
         $ref: '#/definitions/dto.UploadVideoProcessingDto'
       watermark:
         $ref: '#/definitions/dto.UploadWatermarkDto'
     type: object
   dto.UploadDto:
     properties:
-      auditResult:
+      audit_result:
         $ref: '#/definitions/dto.UploadAuditResultDto'
-      auditStatus:
+      audit_status:
         example: approved
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -4916,14 +4916,14 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      mimeType:
+      mime_type:
         example: image/jpeg
         type: string
       original:
         allOf:
         - $ref: '#/definitions/dto.UploadOriginalDto'
         description: '---- 对象字段：空时整个字段不传（jsonb 列无值时是 JSON null）----'
-      originalName:
+      original_name:
         example: photo.jpg
         type: string
       path:
@@ -4932,7 +4932,7 @@ definitions:
       processed:
         example: true
         type: boolean
-      referenceCount:
+      reference_count:
         example: 1
         type: integer
       scene:
@@ -4949,19 +4949,19 @@ definitions:
         items:
           $ref: '#/definitions/dto.UploadThumbnailDto'
         type: array
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
       url:
         example: http://127.0.0.1:4011/uploads/2026/11/25/9f8c7b6a5d4e3f2a1b0c.jpg
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      videoCompressionJob:
+      video_compression_job:
         $ref: '#/definitions/dto.UploadVideoJobDto'
-      videoCompressionStatus:
+      video_compression_status:
         example: completed
         type: string
       watermarked:
@@ -4972,19 +4972,19 @@ definitions:
     properties:
       animated:
         $ref: '#/definitions/dto.UploadAnimatedOptsDto'
-      compressionEnabled:
+      compression_enabled:
         example: true
         type: boolean
       format:
         example: webp
         type: string
-      keepOriginal:
+      keep_original:
         example: true
         type: boolean
-      maxHeight:
+      max_height:
         example: 2160
         type: integer
-      maxWidth:
+      max_width:
         example: 3840
         type: integer
       quality:
@@ -4993,10 +4993,10 @@ definitions:
     type: object
   dto.UploadLimitsDto:
     properties:
-      maxFileCount:
+      max_file_count:
         example: 10
         type: integer
-      maxSize:
+      max_size:
         $ref: '#/definitions/dto.UploadSizeLimitsDto'
     type: object
   dto.UploadOriginalDto:
@@ -5019,10 +5019,10 @@ definitions:
     type: object
   dto.UploadQueueDto:
     properties:
-      taskType:
+      task_type:
         example: video:compress
         type: string
-      videoCompression:
+      video_compression:
         example: video:compression
         type: string
     type: object
@@ -5031,13 +5031,13 @@ definitions:
       bucket:
         example: picart
         type: string
-      cdnDomain:
+      cdn_domain:
         example: https://cdn.example.com
         type: string
       endpoint:
         example: minio.example.com:9000
         type: string
-      forcePathStyle:
+      force_path_style:
         example: true
         type: boolean
       region:
@@ -5098,48 +5098,48 @@ definitions:
     type: object
   dto.UploadVideoJobDto:
     properties:
-      completedAt:
+      completed_at:
         example: 1795540389000
         type: integer
-      compressedSize:
+      compressed_size:
         example: 3145728
         type: integer
-      compressionRatio:
+      compression_ratio:
         example: 70
         type: number
       error:
         type: string
-      originalSize:
+      original_size:
         example: 10485760
         type: integer
-      startedAt:
+      started_at:
         example: 1795540372656
         type: integer
     type: object
   dto.UploadVideoProcessingDto:
     properties:
-      audioBitrate:
+      audio_bitrate:
         example: 128k
         type: string
-      compressionEnabled:
+      compression_enabled:
         example: true
         type: boolean
       crf:
         example: 23
         type: integer
-      maxHeight:
+      max_height:
         example: 1080
         type: integer
-      maxWidth:
+      max_width:
         example: 1920
         type: integer
-      minCompressSize:
+      min_compress_size:
         example: 10
         type: integer
       preset:
         example: medium
         type: string
-      videoBitrate:
+      video_bitrate:
         example: 5000k
         type: string
     type: object
@@ -5154,162 +5154,162 @@ definitions:
       position:
         example: bottom-right
         type: string
-      skipScenes:
+      skip_scenes:
         items:
           type: string
         type: array
-      textTemplate:
+      text_template:
         example: PicArt
         type: string
     type: object
   dto.UseInviteRequest:
     properties:
-      inviteCode:
+      invite_code:
         example: INVAB12CD34
         type: string
     required:
-    - inviteCode
+    - invite_code
     type: object
   dto.UserActivityProgressDto:
     properties:
-      activityId:
+      activity_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
-      completedAt:
+      completed_at:
         description: 时间：空时整个字段不传（未完成 / 未领奖时库里是 NULL）
         format: date-time
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
-      currentComments:
+      current_comments:
         example: 12
         type: integer
-      currentLikes:
+      current_likes:
         example: 88
         type: integer
-      currentRecharge:
+      current_recharge:
         example: 0
         type: number
-      currentShares:
+      current_shares:
         example: 0
         type: integer
-      currentSignInDays:
+      current_sign_in_days:
         example: 0
         type: integer
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isCompleted:
+      is_completed:
         example: false
         type: boolean
-      isRewarded:
+      is_rewarded:
         example: false
         type: boolean
-      rewardedAt:
+      rewarded_at:
         format: date-time
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
   dto.UserConfigDto:
     properties:
-      articleCommissionRate:
+      article_commission_rate:
         example: 10
         type: number
-      createdAt:
+      created_at:
         format: date-time
         type: string
-      enableCommentNotification:
+      enable_comment_notification:
         example: true
         type: boolean
-      enableCustomCommission:
+      enable_custom_commission:
         example: false
         type: boolean
-      enableEmailNotification:
+      enable_email_notification:
         example: true
         type: boolean
-      enableFollowNotification:
+      enable_follow_notification:
         example: true
         type: boolean
-      enableInviteNotification:
+      enable_invite_notification:
         example: true
         type: boolean
-      enableLikeNotification:
+      enable_like_notification:
         example: true
         type: boolean
-      enableMessageNotification:
+      enable_message_notification:
         example: true
         type: boolean
-      enableOrderNotification:
+      enable_order_notification:
         example: true
         type: boolean
-      enablePaymentNotification:
+      enable_payment_notification:
         example: true
         type: boolean
-      enablePushNotification:
+      enable_push_notification:
         example: true
         type: boolean
-      enableSmsNotification:
+      enable_sms_notification:
         example: true
         type: boolean
-      enableSystemNotification:
+      enable_system_notification:
         example: true
         type: boolean
-      hideCollections:
+      hide_collections:
         example: false
         type: boolean
-      hideComments:
+      hide_comments:
         example: false
         type: boolean
-      hideFavorites:
+      hide_favorites:
         example: false
         type: boolean
-      hideFollowers:
+      hide_followers:
         example: false
         type: boolean
-      hideFollowings:
+      hide_followings:
         example: false
         type: boolean
-      hideTags:
+      hide_tags:
         example: false
         type: boolean
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      membershipCommissionRate:
+      membership_commission_rate:
         example: 5
         type: number
-      productCommissionRate:
+      product_commission_rate:
         example: 5
         type: number
       remark:
         type: string
-      serviceCommissionRate:
+      service_commission_rate:
         example: 5
         type: number
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      watermarkEnabled:
+      watermark_enabled:
         example: false
         type: boolean
     type: object
   dto.UserDecorationDto:
     properties:
-      activityId:
+      activity_id:
         example: ""
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -5317,40 +5317,40 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.DecorationDto'
         description: 嵌套装饰品定义（service 批量补填；补不到时不传）
-      decorationId:
+      decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
-      expiresAt:
+      expires_at:
         description: 时间：空时整个字段不传（永久持有 / 未领奖时库里是 NULL）
         example: "2026-12-25T10:00:00Z"
         format: date-time
         type: string
-      giftFromUserId:
+      gift_from_user_id:
         example: ""
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      isPermanent:
+      is_permanent:
         example: false
         type: boolean
-      isUsing:
+      is_using:
         example: true
         type: boolean
-      obtainMethod:
+      obtain_method:
         example: PURCHASE
         type: string
-      orderId:
+      order_id:
         example: ""
         type: string
       remark:
         example: ""
         type: string
-      updatedAt:
+      updated_at:
         example: "2026-11-25T10:00:05Z"
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object
@@ -5359,7 +5359,7 @@ definitions:
       address:
         example: 杭州
         type: string
-      articleCount:
+      article_count:
         example: 12
         type: integer
       avatar:
@@ -5368,12 +5368,12 @@ definitions:
       background:
         example: https://cdn.example.com/bg.png
         type: string
-      birthDate:
+      birth_date:
         description: '---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----'
         example: "1998-06-01T00:00:00Z"
         format: date-time
         type: string
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -5386,10 +5386,10 @@ definitions:
       experience:
         example: 430
         type: integer
-      followerCount:
+      follower_count:
         example: 128
         type: integer
-      followingCount:
+      following_count:
         example: 36
         type: integer
       gender:
@@ -5398,13 +5398,13 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      inviteCount:
+      invite_count:
         example: 0
         type: integer
-      inviteEarnings:
+      invite_earnings:
         example: 0
         type: number
-      isMember:
+      is_member:
         example: false
         type: boolean
       level:
@@ -5413,19 +5413,19 @@ definitions:
       likes:
         example: 512
         type: integer
-      membershipEndDate:
+      membership_end_date:
         format: date-time
         type: string
-      membershipLevel:
+      membership_level:
         example: 1
         type: integer
-      membershipLevelName:
+      membership_level_name:
         example: 普通用户
         type: string
-      membershipStatus:
+      membership_status:
         example: INACTIVE
         type: string
-      myInviteCode:
+      my_invite_code:
         example: AB12CD
         type: string
       nickname:
@@ -5461,7 +5461,7 @@ definitions:
       address:
         example: 杭州
         type: string
-      articleCount:
+      article_count:
         example: 12
         type: integer
       avatar:
@@ -5470,14 +5470,14 @@ definitions:
       background:
         example: https://cdn.example.com/bg.png
         type: string
-      birthDate:
+      birth_date:
         description: '---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----'
         example: "1998-06-01T00:00:00Z"
         format: date-time
         type: string
       certification:
         $ref: '#/definitions/dto.CertificationDto'
-      createdAt:
+      created_at:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
@@ -5490,10 +5490,10 @@ definitions:
       experience:
         example: 430
         type: integer
-      followerCount:
+      follower_count:
         example: 128
         type: integer
-      followingCount:
+      following_count:
         example: 36
         type: integer
       gender:
@@ -5502,13 +5502,13 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      inviteCount:
+      invite_count:
         example: 0
         type: integer
-      inviteEarnings:
+      invite_earnings:
         example: 0
         type: number
-      isMember:
+      is_member:
         example: false
         type: boolean
       level:
@@ -5517,19 +5517,19 @@ definitions:
       likes:
         example: 512
         type: integer
-      membershipEndDate:
+      membership_end_date:
         format: date-time
         type: string
-      membershipLevel:
+      membership_level:
         example: 1
         type: integer
-      membershipLevelName:
+      membership_level_name:
         example: 普通用户
         type: string
-      membershipStatus:
+      membership_status:
         example: INACTIVE
         type: string
-      myInviteCode:
+      my_invite_code:
         example: AB12CD
         type: string
       nickname:
@@ -5571,7 +5571,7 @@ definitions:
       balance:
         example: 100.5
         type: number
-      byType:
+      by_type:
         additionalProperties:
           $ref: '#/definitions/dto.WalletTxSummaryDto'
         type: object
@@ -5581,13 +5581,13 @@ definitions:
       amount:
         example: 100
         type: number
-      balanceAfter:
+      balance_after:
         example: 100.5
         type: number
-      balanceBefore:
+      balance_before:
         example: 0.5
         type: number
-      createdAt:
+      created_at:
         format: date-time
         type: string
       description:
@@ -5596,19 +5596,19 @@ definitions:
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
-      orderId:
+      order_id:
         type: string
-      paymentId:
+      payment_id:
         type: string
       remark:
         type: string
       type:
         example: RECHARGE
         type: string
-      updatedAt:
+      updated_at:
         format: date-time
         type: string
-      userId:
+      user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
     type: object

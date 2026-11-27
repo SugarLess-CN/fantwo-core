@@ -46,7 +46,7 @@ func TestBuildMessageVO_AllNull(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &got); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	for _, k := range []string{"receiverId", "title", "content"} {
+	for _, k := range []string{"receiver_id", "title", "content"} {
 		if v, ok := got[k]; !ok {
 			t.Errorf("字段 %s 应存在且为 \"\"，实际整个字段缺失", k)
 		} else if v != "" {
@@ -54,13 +54,13 @@ func TestBuildMessageVO_AllNull(t *testing.T) {
 		}
 	}
 	// 布尔 false 必须有意义地保留（不能 omitempty）
-	for _, k := range []string{"isRead", "isBroadcast"} {
+	for _, k := range []string{"is_read", "is_broadcast"} {
 		if _, ok := got[k]; !ok {
 			t.Errorf("字段 %s 应始终存在（false 是有意义的值）", k)
 		}
 	}
 	// 对象 / 透传字段空时整个不传
-	for _, k := range []string{"sender", "receiver", "metadata", "articleId", "notificationType"} {
+	for _, k := range []string{"sender", "receiver", "metadata", "article_id", "notification_type"} {
 		if _, ok := got[k]; ok && got[k] == nil {
 			t.Errorf("字段 %s 不应为 null", k)
 		}
@@ -75,8 +75,8 @@ func TestBuildMessageVO_MetadataFlat(t *testing.T) {
 		Content:  "x",
 		Type:     MsgTypeSystem,
 		Metadata: model.MessageJSON{
-			"article_id":       "a1",
-			"notificationType": "like",
+			"article_id":        "a1",
+			"notification_type": "like",
 		},
 	}
 	vo := buildMessageVO(m, nil, nil)
@@ -110,13 +110,13 @@ func TestPrivateMessageVO_AllNull(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	// 时间 / 可空字符串：空时整个字段不传
-	for _, k := range []string{"readAt", "recalledAt", "recalledById", "recallReason", "payload"} {
+	for _, k := range []string{"read_at", "recalled_at", "recalled_by_id", "recall_reason", "payload"} {
 		if _, ok := got[k]; ok {
 			t.Errorf("字段 %s 空时应整个不传，实际存在: %#v", k, got[k])
 		}
 	}
 	// 布尔派生字段始终存在
-	for _, k := range []string{"isRead", "isRecalled"} {
+	for _, k := range []string{"is_read", "is_recalled"} {
 		if _, ok := got[k]; !ok {
 			t.Errorf("字段 %s 应始终存在（false 有意义）", k)
 		}
@@ -166,7 +166,7 @@ func TestBriefUser_NilStrings(t *testing.T) {
 func TestCursorMeta_LastPage(t *testing.T) {
 	meta := CursorMeta{Limit: 20, HasMore: false}
 	out := assertNoNull(t, "CursorMeta", meta)
-	if !strings.Contains(out, `"nextCursor":""`) {
+	if !strings.Contains(out, `"next_cursor":""`) {
 		t.Errorf("最后一页 nextCursor 期望 \"\"，实际: %s", out)
 	}
 }
@@ -184,7 +184,7 @@ func TestBlockedUser_NoNull(t *testing.T) {
 func TestMarkMessagesReadResult_EmptyArrays(t *testing.T) {
 	res := MarkMessagesReadResultVO{MessageIDs: []string{}, Receipts: []ReadReceiptVO{}}
 	out := assertNoNull(t, "MarkMessagesReadResultVO", res)
-	if !strings.Contains(out, `"messageIds":[]`) || !strings.Contains(out, `"receipts":[]`) {
+	if !strings.Contains(out, `"message_ids":[]`) || !strings.Contains(out, `"receipts":[]`) {
 		t.Errorf("空数组期望 []，实际: %s", out)
 	}
 }

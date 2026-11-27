@@ -194,10 +194,10 @@ type InviteStats struct {
 	Pending         int64   `json:"pending"`
 	Used            int64   `json:"used"`
 	Expired         int64   `json:"expired"`
-	TotalEarnings   float64 `json:"totalEarnings"`
-	PendingEarnings float64 `json:"pendingEarnings"`
-	PaidEarnings    float64 `json:"paidEarnings"`
-	CommissionCount int64   `json:"commissionCount"`
+	TotalEarnings   float64 `json:"total_earnings"`
+	PendingEarnings float64 `json:"pending_earnings"`
+	PaidEarnings    float64 `json:"paid_earnings"`
+	CommissionCount int64   `json:"commission_count"`
 }
 
 // Stats 统计。

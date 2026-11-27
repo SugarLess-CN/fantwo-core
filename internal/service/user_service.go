@@ -180,7 +180,7 @@ type UpdateProfileInput struct {
 	Background  *string `json:"background"`
 	Address     *string `json:"address"`
 	Gender      *string `json:"gender"`
-	BirthDate   *string `json:"birthDate"`
+	BirthDate   *string `json:"birth_date"`
 	Email       *string `json:"email"`
 	Phone       *string `json:"phone"`
 }
@@ -341,9 +341,9 @@ type CreateUserInput struct {
 	Password   string   `json:"password"`
 	Email      string   `json:"email"`
 	Phone      string   `json:"phone"`
-	RoleIDs    []string `json:"roleIds"`
+	RoleIDs    []string `json:"role_ids"`
 	Wallet     float64  `json:"wallet"`
-	InviteCode string   `json:"inviteCode"`
+	InviteCode string   `json:"invite_code"`
 }
 
 // CreateUser 管理员创建用户（可指定角色/初始余额）。
@@ -394,7 +394,7 @@ type UpdateUserInput struct {
 	Background  *string  `json:"background"`
 	Address     *string  `json:"address"`
 	Gender      *string  `json:"gender"`
-	RoleIDs     []string `json:"roleIds"`
+	RoleIDs     []string `json:"role_ids"`
 	Wallet      *float64 `json:"wallet"`
 	Status      *string  `json:"status"`
 }
@@ -531,11 +531,11 @@ func userConfigDto(p *model.UserProfile) *dto.UserConfigDto {
 
 // UpdateConfigInput 配置更新（指针语义，nil 不改）。
 type UpdateConfigInput struct {
-	ArticleCommissionRate    *float64 `json:"articleCommissionRate"`
-	MembershipCommissionRate *float64 `json:"membershipCommissionRate"`
-	ProductCommissionRate    *float64 `json:"productCommissionRate"`
-	ServiceCommissionRate    *float64 `json:"serviceCommissionRate"`
-	EnableCustomCommission   *bool    `json:"enableCustomCommission"`
+	ArticleCommissionRate    *float64 `json:"article_commission_rate"`
+	MembershipCommissionRate *float64 `json:"membership_commission_rate"`
+	ProductCommissionRate    *float64 `json:"product_commission_rate"`
+	ServiceCommissionRate    *float64 `json:"service_commission_rate"`
+	EnableCustomCommission   *bool    `json:"enable_custom_commission"`
 }
 
 // UpdateConfig 更新抽成配置。
@@ -577,17 +577,17 @@ func commissionFields(a, m, p, sv *float64, enable *bool) map[string]interface{}
 
 // NotificationInput 通知开关入参。
 type NotificationInput struct {
-	EnableSystemNotification  *bool `json:"enableSystemNotification"`
-	EnableCommentNotification *bool `json:"enableCommentNotification"`
-	EnableLikeNotification    *bool `json:"enableLikeNotification"`
-	EnableFollowNotification  *bool `json:"enableFollowNotification"`
-	EnableMessageNotification *bool `json:"enableMessageNotification"`
-	EnableOrderNotification   *bool `json:"enableOrderNotification"`
-	EnablePaymentNotification *bool `json:"enablePaymentNotification"`
-	EnableInviteNotification  *bool `json:"enableInviteNotification"`
-	EnableEmailNotification   *bool `json:"enableEmailNotification"`
-	EnableSmsNotification     *bool `json:"enableSmsNotification"`
-	EnablePushNotification    *bool `json:"enablePushNotification"`
+	EnableSystemNotification  *bool `json:"enable_system_notification"`
+	EnableCommentNotification *bool `json:"enable_comment_notification"`
+	EnableLikeNotification    *bool `json:"enable_like_notification"`
+	EnableFollowNotification  *bool `json:"enable_follow_notification"`
+	EnableMessageNotification *bool `json:"enable_message_notification"`
+	EnableOrderNotification   *bool `json:"enable_order_notification"`
+	EnablePaymentNotification *bool `json:"enable_payment_notification"`
+	EnableInviteNotification  *bool `json:"enable_invite_notification"`
+	EnableEmailNotification   *bool `json:"enable_email_notification"`
+	EnableSmsNotification     *bool `json:"enable_sms_notification"`
+	EnablePushNotification    *bool `json:"enable_push_notification"`
 }
 
 // UpdateNotifications 更新通知设置。
@@ -671,12 +671,12 @@ func (s *UserService) BatchCheckMembership(ctx context.Context) (*dto.BatchMembe
 
 // FavoriteItem 收藏项（文章简要）。
 type FavoriteItem struct {
-	ArticleID   string    `json:"articleId"`
+	ArticleID   string    `json:"article_id"`
 	Title       string    `json:"title"`
 	Cover       *string   `json:"cover"`
 	Summary     *string   `json:"summary"`
-	AuthorID    *string   `json:"authorId"`
-	FavoritedAt time.Time `json:"favoritedAt"`
+	AuthorID    *string   `json:"author_id"`
+	FavoritedAt time.Time `json:"favorited_at"`
 }
 
 // ListFavorites 我的收藏（article_favorites 分页）。

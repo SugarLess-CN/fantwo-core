@@ -40,18 +40,18 @@ type Article struct {
 	Title string `gorm:"type:varchar(200);not null" json:"title"`
 
 	// 可见性/付费门槛（对齐原 require* 五个开关）
-	RequireLogin      bool    `gorm:"not null;default:false" json:"requireLogin"`
-	RequireFollow     bool    `gorm:"not null;default:false" json:"requireFollow"`
-	RequirePayment    bool    `gorm:"not null;default:false" json:"requirePayment"`
-	RequireMembership bool    `gorm:"not null;default:false" json:"requireMembership"`
-	ListRequireLogin  bool    `gorm:"not null;default:false;index:idx_articles_list_req_login" json:"listRequireLogin"`
-	ViewPrice         float64 `gorm:"type:decimal(10,2);not null;default:0" json:"viewPrice"`
+	RequireLogin      bool    `gorm:"not null;default:false" json:"require_login"`
+	RequireFollow     bool    `gorm:"not null;default:false" json:"require_follow"`
+	RequirePayment    bool    `gorm:"not null;default:false" json:"require_payment"`
+	RequireMembership bool    `gorm:"not null;default:false" json:"require_membership"`
+	ListRequireLogin  bool    `gorm:"not null;default:false;index:idx_articles_list_req_login" json:"list_require_login"`
+	ViewPrice         float64 `gorm:"type:decimal(10,2);not null;default:0" json:"view_price"`
 
 	Type    string  `gorm:"type:varchar(16);not null;default:mixed" json:"type"`
 	Content *string `gorm:"type:text" json:"content"`
 	// Images 图片列表，落库存 JSON 文本（原 TypeORM text 列存 JSON.stringify 结果）
 	Images   *string `gorm:"type:text" json:"images"`
-	VideoURL *string `gorm:"type:text" json:"videoUrl"`
+	VideoURL *string `gorm:"type:text" json:"video_url"`
 	Cover    *string `gorm:"type:text" json:"cover"`
 	Summary  *string `gorm:"type:varchar(500)" json:"summary"`
 
@@ -60,24 +60,24 @@ type Article struct {
 	// 计数冗余列（点赞/收藏/评论/分享/阅读），由 service 在同事务内增减
 	Views         int `gorm:"not null;default:0" json:"views"`
 	Likes         int `gorm:"not null;default:0" json:"likes"`
-	FavoriteCount int `gorm:"not null;default:0" json:"favoriteCount"`
-	CommentCount  int `gorm:"not null;default:0" json:"commentCount"`
+	FavoriteCount int `gorm:"not null;default:0" json:"favorite_count"`
+	CommentCount  int `gorm:"not null;default:0" json:"comment_count"`
 	Shares        int `gorm:"not null;default:0" json:"shares"`
 
 	// 精华（管理端置顶推荐位）
-	IsFeatured bool       `gorm:"not null;default:false;index:idx_articles_featured_status,priority:1" json:"isFeatured"`
-	FeaturedAt *time.Time `json:"featuredAt"`
+	IsFeatured bool       `gorm:"not null;default:false;index:idx_articles_featured_status,priority:1" json:"is_featured"`
+	FeaturedAt *time.Time `json:"featured_at"`
 	// 个人主页置顶（作者自主置顶）
-	IsPinnedOnProfile bool       `gorm:"not null;default:false" json:"isPinnedOnProfile"`
-	PinnedAt          *time.Time `json:"pinnedAt"`
+	IsPinnedOnProfile bool       `gorm:"not null;default:false" json:"is_pinned_on_profile"`
+	PinnedAt          *time.Time `json:"pinned_at"`
 
 	Status string `gorm:"type:varchar(16);not null;default:DRAFT;index:idx_articles_status_created,priority:1" json:"status"`
 
-	AuthorID   *string `gorm:"type:varchar(36);index:idx_articles_author_status,priority:1" json:"authorId"`
-	CategoryID *string `gorm:"type:varchar(36);index:idx_articles_category" json:"categoryId"`
-	ActivityID *string `gorm:"type:varchar(36)" json:"activityId"`
+	AuthorID   *string `gorm:"type:varchar(36);index:idx_articles_author_status,priority:1" json:"author_id"`
+	CategoryID *string `gorm:"type:varchar(36);index:idx_articles_category" json:"category_id"`
+	ActivityID *string `gorm:"type:varchar(36)" json:"activity_id"`
 
-	AllowReprint bool `gorm:"not null;default:false" json:"allowReprint"`
+	AllowReprint bool `gorm:"not null;default:false" json:"allow_reprint"`
 }
 
 // TableName 表名。
@@ -85,9 +85,9 @@ func (Article) TableName() string { return "articles" }
 
 // ArticleTag 文章-标签多对多关联（表 article_tags）；复合主键，不继承 BaseModel。
 type ArticleTag struct {
-	ArticleID string    `gorm:"type:varchar(36);primaryKey" json:"articleId"`
-	TagID     string    `gorm:"type:varchar(36);primaryKey;index:idx_article_tags_tag" json:"tagId"`
-	CreatedAt time.Time `json:"createdAt"`
+	ArticleID string    `gorm:"type:varchar(36);primaryKey" json:"article_id"`
+	TagID     string    `gorm:"type:varchar(36);primaryKey;index:idx_article_tags_tag" json:"tag_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // TableName 表名。
@@ -107,9 +107,9 @@ const (
 // ArticleLike 文章点赞/表情回复（表 article_likes）；同一用户对同一文章唯一。
 type ArticleLike struct {
 	BaseModel
-	ArticleID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:1" json:"articleId"`
-	UserID       string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:2" json:"userId"`
-	ReactionType string `gorm:"type:varchar(16);not null;default:like" json:"reactionType"`
+	ArticleID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:1" json:"article_id"`
+	UserID       string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_likes_user_article,priority:2" json:"user_id"`
+	ReactionType string `gorm:"type:varchar(16);not null;default:like" json:"reaction_type"`
 }
 
 // TableName 表名。
@@ -119,8 +119,8 @@ func (ArticleLike) TableName() string { return "article_likes" }
 // 语义与「合集（collection）」互补：这里是轻量收藏，profile 域的「我的收藏」即读本表。
 type ArticleFavorite struct {
 	BaseModel
-	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:1" json:"userId"`
-	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:2" json:"articleId"`
+	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:1" json:"user_id"`
+	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_favorites_user_article,priority:2" json:"article_id"`
 }
 
 // TableName 表名。
@@ -130,12 +130,12 @@ func (ArticleFavorite) TableName() string { return "article_favorites" }
 // 除文章/用户外额外快照 作者/分类/标签，供推荐流按维度过滤（对齐原实现）。
 type ArticleDislike struct {
 	BaseModel
-	UserID     string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:1" json:"userId"`
-	ArticleID  string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:2" json:"articleId"`
-	AuthorID   *string `gorm:"type:varchar(36)" json:"authorId"`
-	CategoryID *string `gorm:"type:varchar(36)" json:"categoryId"`
+	UserID     string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:1" json:"user_id"`
+	ArticleID  string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_article_dislikes_user_article,priority:2" json:"article_id"`
+	AuthorID   *string `gorm:"type:varchar(36)" json:"author_id"`
+	CategoryID *string `gorm:"type:varchar(36)" json:"category_id"`
 	// TagIDs 标签 ID 快照，落库存 JSON 数组文本
-	TagIDs *string `gorm:"type:text" json:"tagIds"`
+	TagIDs *string `gorm:"type:text" json:"tag_ids"`
 	Reason *string `gorm:"type:varchar(255)" json:"reason"`
 }
 
@@ -145,9 +145,9 @@ func (ArticleDislike) TableName() string { return "article_dislikes" }
 // BrowseHistory 浏览历史（表 browse_histories）；同一用户对同一文章唯一，重复浏览累加 viewCount。
 type BrowseHistory struct {
 	BaseModel
-	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:1;index:idx_browse_histories_user_updated,priority:1" json:"userId"`
-	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:2" json:"articleId"`
-	ViewCount int    `gorm:"not null;default:1" json:"viewCount"`
+	UserID    string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:1;index:idx_browse_histories_user_updated,priority:1" json:"user_id"`
+	ArticleID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_browse_histories_user_article,priority:2" json:"article_id"`
+	ViewCount int    `gorm:"not null;default:1" json:"view_count"`
 	Progress  int    `gorm:"not null;default:0" json:"progress"` // 浏览进度百分比 0-100
 	Duration  int    `gorm:"not null;default:0" json:"duration"` // 停留时长（秒）
 }

@@ -22,7 +22,7 @@ type CreateCategoryRequest struct {
 	Name        string  `json:"name" binding:"required,max=50"`
 	Description *string `json:"description" binding:"omitempty,max=200"`
 	Sort        *int    `json:"sort"`
-	ParentID    *string `json:"parentId"`
+	ParentID    *string `json:"parent_id"`
 	Link        *string `json:"link" binding:"omitempty,max=200"`
 	Avatar      *string `json:"avatar"`
 	Background  *string `json:"background"`
@@ -35,7 +35,7 @@ type UpdateCategoryRequest struct {
 	Name        *string `json:"name" binding:"omitempty,max=50"`
 	Description *string `json:"description" binding:"omitempty,max=200"`
 	Sort        *int    `json:"sort"`
-	ParentID    *string `json:"parentId"`
+	ParentID    *string `json:"parent_id"`
 	Link        *string `json:"link" binding:"omitempty,max=200"`
 	Avatar      *string `json:"avatar"`
 	Background  *string `json:"background"`
@@ -57,19 +57,19 @@ type CategoryView struct {
 	Description string `json:"description"`
 	// ParentID 为空表示「这是一级分类」。用 "" 而不是 null：
 	// 前端判断 `if (cat.parentId)` 时 "" 与 null 都是 falsy，行为一致，但类型可信。
-	ParentID     string `json:"parentId"`
+	ParentID     string `json:"parent_id"`
 	Link         string `json:"link"`
 	Avatar       string `json:"avatar"`
 	Background   string `json:"background"`
 	Cover        string `json:"cover"`
 	Sort         int    `json:"sort"`
 	Status       string `json:"status"`
-	ArticleCount int    `json:"articleCount"`
-	FollowCount  int    `json:"followCount"`
+	ArticleCount int    `json:"article_count"`
+	FollowCount  int    `json:"follow_count"`
 	// 数组：空时 [] 而不是省略
 	Children  []CategoryView `json:"children"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 // CategoryService 分类业务逻辑（对齐原 NestJS CategoryService）。

@@ -38,12 +38,12 @@ type SMSChannel struct {
 	Name            string            `json:"name"`
 	Enabled         bool              `json:"enabled"`
 	URL             string            `json:"url"`
-	Method          string            `json:"method"`      // GET / POST（默认 POST）
-	ContentType     string            `json:"contentType"` // 默认 application/json
+	Method          string            `json:"method"`       // GET / POST（默认 POST）
+	ContentType     string            `json:"content_type"` // 默认 application/json
 	Headers         map[string]string `json:"headers"`
-	BodyTemplate    string            `json:"bodyTemplate"`
-	SuccessContains []string          `json:"successContains"`
-	TimeoutMs       int               `json:"timeoutMs"`
+	BodyTemplate    string            `json:"body_template"`
+	SuccessContains []string          `json:"success_contains"`
+	TimeoutMs       int               `json:"timeout_ms"`
 }
 
 // SMSSender 短信发送器。

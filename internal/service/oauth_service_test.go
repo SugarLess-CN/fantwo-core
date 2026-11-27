@@ -982,7 +982,7 @@ func TestListBindingsMapsViews(t *testing.T) {
 	if err != nil {
 		t.Fatalf("序列化失败: %v", err)
 	}
-	for _, leak := range []string{"openid-web-1", "unionid-1", "qq-openid-2", "openid", "unionId"} {
+	for _, leak := range []string{"openid-web-1", "unionid-1", "qq-openid-2", "openid", "union_id"} {
 		if strings.Contains(string(raw), leak) {
 			t.Errorf("绑定视图泄漏 PII 字段 %q: %s", leak, raw)
 		}
@@ -1233,7 +1233,7 @@ func TestLinkBindingOKCreatesBindingOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("序列化失败: %v", err)
 	}
-	for _, leak := range []string{"wx-new", "unionid-new", "openid", "unionId"} {
+	for _, leak := range []string{"wx-new", "unionid-new", "openid", "union_id"} {
 		if strings.Contains(string(raw), leak) {
 			t.Errorf("link 返回列表泄漏 PII %q: %s", leak, raw)
 		}

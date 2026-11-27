@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
@@ -23,10 +24,10 @@ import (
 )
 
 // snakeJSONKey 匹配形如 "user_id": 的 JSON 键。
-var snakeJSONKey = regexp.MustCompile(`"([a-zA-Z0-9]+_[a-zA-Z0-9_]*)":`)
+var camelJSONKey = regexp.MustCompile(`"([a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*)":`)
 
-// TestOpsJSONKeysCamelCase 检查我域全部对外结构体的 JSON 键。
-func TestOpsJSONKeysCamelCase(t *testing.T) {
+// TestOpsJSONKeysSnakeCase 检查我域全部对外结构体的 JSON 键。
+func TestOpsJSONKeysSnakeCase(t *testing.T) {
 	samples := map[string]interface{}{
 		// model 实体
 		"PointsAccount":        model.PointsAccount{},
@@ -94,8 +95,8 @@ func TestOpsJSONKeysCamelCase(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s 序列化失败: %v", name, err)
 		}
-		if m := snakeJSONKey.FindAllStringSubmatch(string(b), -1); len(m) > 0 {
-			t.Errorf("%s 存在 snake_case JSON 键 %v（对外 JSON 必须 camelCase）：%s", name, m, string(b))
+		if m := camelJSONKey.FindAllStringSubmatch(string(b), -1); len(m) > 0 {
+			t.Errorf("%s 存在 camelCase JSON 键 %v（对外 JSON 必须 snake_case）：%s", name, m, string(b))
 		}
 	}
 }
@@ -126,8 +127,9 @@ func TestOpsGinHKeysCamelCase(t *testing.T) {
 		}
 		for _, m := range ginHKey.FindAllStringSubmatch(string(src), -1) {
 			key := m[1]
-			if regexp.MustCompile(`^[a-zA-Z0-9]+_[a-zA-Z0-9_]+$`).MatchString(key) && key != "auth_user" {
-				t.Errorf("%s 中 gin.H 键 %q 为 snake_case，应改 camelCase", f, key)
+			// 2026-11-27 规范：gin.H 键也必须是 snake_case
+			if key != strings.ToLower(key) {
+				t.Errorf("%s 中 gin.H 键 %q 含大写字母，应改 snake_case", f, key)
 			}
 		}
 	}

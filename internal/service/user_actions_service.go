@@ -346,7 +346,7 @@ func (s *UserService) WalletStatistics(ctx context.Context, userID string) (*dto
 // WithdrawInput 提现入参。
 type WithdrawInput struct {
 	Amount   float64                `json:"amount"`
-	BankInfo map[string]interface{} `json:"bankInfo"`
+	BankInfo map[string]interface{} `json:"bank_info"`
 }
 
 // Withdraw 钱包提现：扣款 + 流水（事务）。
@@ -410,11 +410,11 @@ func (s *UserService) CommissionConfig(ctx context.Context, userID string) (*dto
 
 // SetCommissionInput 设置抽成配置（POST /user/commission/config）。
 type SetCommissionInput struct {
-	ArticleCommissionRate    float64 `json:"articleCommissionRate"`
-	MembershipCommissionRate float64 `json:"membershipCommissionRate"`
-	ProductCommissionRate    float64 `json:"productCommissionRate"`
-	ServiceCommissionRate    float64 `json:"serviceCommissionRate"`
-	EnableCustomCommission   bool    `json:"enableCustomCommission"`
+	ArticleCommissionRate    float64 `json:"article_commission_rate"`
+	MembershipCommissionRate float64 `json:"membership_commission_rate"`
+	ProductCommissionRate    float64 `json:"product_commission_rate"`
+	ServiceCommissionRate    float64 `json:"service_commission_rate"`
+	EnableCustomCommission   bool    `json:"enable_custom_commission"`
 	Remark                   string  `json:"remark"`
 }
 
@@ -581,8 +581,8 @@ func certDto(c *model.UserCertification) *dto.CertificationDto {
 // ApplyCertInput 认证申请入参。
 type ApplyCertInput struct {
 	Type             string   `json:"type"`
-	RealName         string   `json:"realName"`
-	OrganizationName string   `json:"organizationName"`
+	RealName         string   `json:"real_name"`
+	OrganizationName string   `json:"organization_name"`
 	Description      string   `json:"description"`
 	Slogan           string   `json:"slogan"`
 	Materials        []string `json:"materials"`

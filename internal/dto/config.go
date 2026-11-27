@@ -40,15 +40,15 @@ type ConfigDto struct {
 	Public      bool   `json:"public" example:"false"`
 
 	// HasValue 后端是否已配置（DB 值非空）。敏感项 value 被打码后仍能靠它判断「有没有配」。
-	HasValue bool `json:"hasValue" example:"true"`
+	HasValue bool `json:"has_value" example:"true"`
 	// Masked 该项是否属敏感项（读时打码 + 写时 "***" 视为「保持原值」）。
 	Masked bool `json:"masked" example:"true"`
 	// StartupOnly 启动期配置：改了必须重启才生效，管理端应置灰只读（四个写入口也会硬拒）。
 	// 与 Masked 互不排斥 —— s3_access_key 两者同为 true（写路径拒、读路径仍打码）。
-	StartupOnly bool `json:"startupOnly" example:"true"`
+	StartupOnly bool `json:"startup_only" example:"true"`
 
-	CreatedAt time.Time `json:"createdAt" example:"2026-11-23T10:00:00Z"`
-	UpdatedAt time.Time `json:"updatedAt" example:"2026-11-23T10:00:00Z"`
+	CreatedAt time.Time `json:"created_at" example:"2026-11-23T10:00:00Z"`
+	UpdatedAt time.Time `json:"updated_at" example:"2026-11-23T10:00:00Z"`
 }
 
 // ConfigRequest 配置创建 / 更新请求体（POST /config、PATCH /config、PATCH /config/group/{g}）。
@@ -98,15 +98,15 @@ type PublicConfigsDto map[string]map[string]interface{}
 // 否则 map 取不存在的键会得到 nil，JSON 里就是 null。
 type AdvertisementConfigDto struct {
 	Enabled            bool   `json:"enabled" example:"false"`
-	HomeBanner         string `json:"homeBanner" example:"https://cdn.example.com/banner.png"`
-	HomeBannerLink     string `json:"homeBannerLink" example:"https://example.com/promo"`
-	ArticleTop         string `json:"articleTop" example:""`
-	ArticleTopLink     string `json:"articleTopLink" example:""`
-	ArticleBottom      string `json:"articleBottom" example:""`
-	ArticleBottomLink  string `json:"articleBottomLink" example:""`
-	ArticleSidebar     string `json:"articleSidebar" example:""`
-	ArticleSidebarLink string `json:"articleSidebarLink" example:""`
-	GlobalNotice       string `json:"globalNotice" example:""`
+	HomeBanner         string `json:"home_banner" example:"https://cdn.example.com/banner.png"`
+	HomeBannerLink     string `json:"home_banner_link" example:"https://example.com/promo"`
+	ArticleTop         string `json:"article_top" example:""`
+	ArticleTopLink     string `json:"article_top_link" example:""`
+	ArticleBottom      string `json:"article_bottom" example:""`
+	ArticleBottomLink  string `json:"article_bottom_link" example:""`
+	ArticleSidebar     string `json:"article_sidebar" example:""`
+	ArticleSidebarLink string `json:"article_sidebar_link" example:""`
+	GlobalNotice       string `json:"global_notice" example:""`
 
 	// Raw 广告组的原始键值（含上面 11 个字段的源 key）。无配置时为 {}（不是 null）。
 	Raw map[string]interface{} `json:"raw"`

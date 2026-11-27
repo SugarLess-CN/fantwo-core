@@ -32,15 +32,15 @@ type CollectionDto struct {
 	Avatar      string `json:"avatar" example:"https://cdn.example.com/col.png"`
 	Cover       string `json:"cover" example:"https://cdn.example.com/cover.png"`
 
-	IsPublic  bool   `json:"isPublic" example:"true"`
+	IsPublic  bool   `json:"is_public" example:"true"`
 	Sort      int    `json:"sort" example:"3"`
-	UserID    string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ItemCount int    `json:"itemCount" example:"15"`
+	UserID    string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ItemCount int    `json:"item_count" example:"15"`
 	Views     int    `json:"views" example:"100"`
 
 	// 时间必有值（DB 记录的 created_at / updated_at），用 RFC3339 字符串。
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 }
 
 // CollectionDetailDto 合集详情（GET /collection/{id}）：基础视图 + 内嵌条目。
@@ -55,7 +55,7 @@ type CollectionDetailDto struct {
 // CollectionItemDto 合集条目视图（service.CollectionItemView 的镜像）。
 type CollectionItemDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ArticleID string `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ArticleID string `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Sort      int    `json:"sort" example:"3"`
 
 	// 字符串：空时 ""（改前是 *string + omitempty，空时省略）。
@@ -66,7 +66,7 @@ type CollectionItemDto struct {
 	// 不在这里重复声明字段（那样两边一改就打架）。
 	Article *ArticleDto `json:"article,omitempty"`
 
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 }
 
 // CollectionArticleAddResultDto 添加文章到合集的结果（POST /collection/{id}/article/{articleId}）。
@@ -91,7 +91,7 @@ type CollectionReorderResultDto struct {
 
 // CollectionCheckDto 文章所在合集检查（GET /collection/check/{articleId}）。
 type CollectionCheckDto struct {
-	InCollection bool                      `json:"inCollection" example:"true"`
+	InCollection bool                      `json:"in_collection" example:"true"`
 	Collections  []CollectionCheckBriefDto `json:"collections"`
 }
 
@@ -99,8 +99,8 @@ type CollectionCheckDto struct {
 type CollectionCheckBriefDto struct {
 	ID        string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Name      string `json:"name" example:"我的收藏"`
-	IsPublic  bool   `json:"isPublic" example:"true"`
-	ItemCount int    `json:"itemCount" example:"15"`
+	IsPublic  bool   `json:"is_public" example:"true"`
+	ItemCount int    `json:"item_count" example:"15"`
 }
 
 // ArticleCollectionInfoDto 文章所在合集信息（GET /collection/article/{articleId}/info）。
@@ -109,7 +109,7 @@ type CollectionCheckBriefDto struct {
 // 少 itemCount（详情页跳转用不到）。刻意不复用同一个 brief 类型 ——
 // 复用会让文档声明出运行时根本不存在的字段。
 type ArticleCollectionInfoDto struct {
-	ArticleID   string                      `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ArticleID   string                      `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Collections []ArticleCollectionBriefDto `json:"collections"`
 }
 
@@ -117,8 +117,8 @@ type ArticleCollectionInfoDto struct {
 type ArticleCollectionBriefDto struct {
 	ID       string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Name     string `json:"name" example:"我的收藏"`
-	UserID   string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	IsPublic bool   `json:"isPublic" example:"true"`
+	UserID   string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	IsPublic bool   `json:"is_public" example:"true"`
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +134,7 @@ type CreateCollectionRequest struct {
 	Description *string `json:"description" example:"风景合集"`
 	Avatar      *string `json:"avatar" example:"https://cdn.example.com/col.png"`
 	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
-	IsPublic    *bool   `json:"isPublic" example:"true"`
+	IsPublic    *bool   `json:"is_public" example:"true"`
 	Sort        *int    `json:"sort" example:"0"`
 }
 
@@ -144,7 +144,7 @@ type UpdateCollectionRequest struct {
 	Description *string `json:"description" example:"新描述"`
 	Avatar      *string `json:"avatar"`
 	Cover       *string `json:"cover"`
-	IsPublic    *bool   `json:"isPublic"`
+	IsPublic    *bool   `json:"is_public"`
 	Sort        *int    `json:"sort"`
 }
 
@@ -152,5 +152,5 @@ type UpdateCollectionRequest struct {
 //
 // articleIds 的**顺序即展示顺序**（越靠前越前），不是按 sort 值提交。
 type ReorderCollectionItemsRequest struct {
-	ArticleIDs []string `json:"articleIds" binding:"required,min=1" example:"[\"id-a\",\"id-b\"]"`
+	ArticleIDs []string `json:"article_ids" binding:"required,min=1" example:"[\"id-a\",\"id-b\"]"`
 }

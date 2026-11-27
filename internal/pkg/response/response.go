@@ -111,7 +111,7 @@ type Meta struct {
 	Total      int64 `json:"total"`
 	Page       int   `json:"page"`
 	Limit      int   `json:"limit"`
-	TotalPages int64 `json:"totalPages"`
+	TotalPages int64 `json:"total_pages"`
 }
 
 // PageData 分页数据载荷。

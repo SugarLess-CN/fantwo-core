@@ -1,7 +1,7 @@
 // 积分域 DTO 空值回归测试（docs/21-JSON序列化规范.md）。
 //
 // 防什么 bug：
-//  1. 时间字段用 model 的 *time.Time 直接透传 → 序列化成 `"expiredAt": null`；
+//  1. 时间字段用 model 的 *time.Time 直接透传 → 序列化成 `"expired_at": null`；
 //  2. 列表用 nil 切片 → 序列化成 `"data": null`（数组契约要求 []）；
 //  3. 字符串用 *string → `"description": null`。
 //
@@ -58,7 +58,7 @@ func TestPointsTransactionDtoNoNull(t *testing.T) {
 
 	// nil 时字段必须整个不传（omitempty 生效）
 	b, _ := json.Marshal(zero)
-	if strings.Contains(string(b), "expiredAt") {
+	if strings.Contains(string(b), "expired_at") {
 		t.Fatalf("expiredAt 为 nil 时不应出现该字段：%s", b)
 	}
 }
@@ -85,7 +85,7 @@ func TestPointsTaskDtoNoNull(t *testing.T) {
 	assertNoNullJSON(t, "PointsTaskDto(零值)", d)
 
 	b, _ := json.Marshal(d)
-	for _, k := range []string{"completedAt", "rewardedAt"} {
+	for _, k := range []string{"completed_at", "rewarded_at"} {
 		if strings.Contains(string(b), k) {
 			t.Fatalf("%s 为 nil 时不应出现该字段：%s", k, b)
 		}
@@ -133,7 +133,7 @@ func TestPointsListsAreEmptyArrayNotNil(t *testing.T) {
 func TestPointsStatisticsDtoBySourceEmpty(t *testing.T) {
 	st := dto.PointsStatisticsDto{BySource: sliceOrEmpty([]dto.PointsSourceStatDto(nil))}
 	b, _ := json.Marshal(st)
-	if !strings.Contains(string(b), `"bySource":[]`) {
+	if !strings.Contains(string(b), `"by_source":[]`) {
 		t.Fatalf("bySource 空时应为 []，实际 %s", b)
 	}
 	assertNoNullJSON(t, "PointsStatisticsDto(空 bySource)", st)

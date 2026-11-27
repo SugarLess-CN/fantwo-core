@@ -239,11 +239,11 @@ func (s *RoleService) FindRole(ctx context.Context, id string) (*dto.RoleDetailD
 // CreateRoleInput 创建角色入参。
 type CreateRoleInput struct {
 	Name          string   `json:"name"`
-	DisplayName   string   `json:"displayName"`
+	DisplayName   string   `json:"display_name"`
 	Description   string   `json:"description"`
-	PermissionIDs []string `json:"permissionIds"`
-	IsActive      *bool    `json:"isActive"`
-	IsSystem      *bool    `json:"isSystem"`
+	PermissionIDs []string `json:"permission_ids"`
+	IsActive      *bool    `json:"is_active"`
+	IsSystem      *bool    `json:"is_system"`
 }
 
 // CreateRole 创建角色。
@@ -290,11 +290,11 @@ func (s *RoleService) CreateRole(ctx context.Context, in CreateRoleInput) (*dto.
 // UpdateRoleInput 更新角色入参。
 type UpdateRoleInput struct {
 	Name          *string  `json:"name"`
-	DisplayName   *string  `json:"displayName"`
+	DisplayName   *string  `json:"display_name"`
 	Description   *string  `json:"description"`
-	PermissionIDs []string `json:"permissionIds"`
-	IsActive      *bool    `json:"isActive"`
-	IsSystem      *bool    `json:"isSystem"`
+	PermissionIDs []string `json:"permission_ids"`
+	IsActive      *bool    `json:"is_active"`
+	IsSystem      *bool    `json:"is_system"`
 }
 
 // UpdateRole 更新角色（含权限重写 + perm_ver bump）。

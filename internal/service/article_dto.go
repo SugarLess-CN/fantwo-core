@@ -80,7 +80,7 @@ type AuthorBrief struct {
 	Nickname   string  `json:"nickname,omitempty"`
 	Username   string  `json:"username,omitempty"`
 	Avatar     *string `json:"avatar,omitempty"`
-	IsFollowed bool    `json:"isFollowed"`
+	IsFollowed bool    `json:"is_followed"`
 }
 
 // authorBriefDto 作者简要 → 对外 DTO（avatar 空指针转 ""，绝不输出 null）。
@@ -125,31 +125,31 @@ type CreateArticleRequest struct {
 	Content  *string    `json:"content"`
 	Summary  *string    `json:"summary" binding:"omitempty,max=500"`
 	Images   StringList `json:"images"`
-	VideoURL *string    `json:"videoUrl"`
+	VideoURL *string    `json:"video_url"`
 	Cover    *string    `json:"cover"`
 	Sort     *int       `json:"sort"`
 
-	CategoryID *string  `json:"categoryId"`
-	TagNames   []string `json:"tagNames"`
-	TagIDs     []string `json:"tagIds"`
+	CategoryID *string  `json:"category_id"`
+	TagNames   []string `json:"tag_names"`
+	TagIDs     []string `json:"tag_ids"`
 
 	Status string `json:"status" binding:"omitempty,oneof=DRAFT PENDING PUBLISHED ARCHIVED"`
 
-	RequireLogin      *bool    `json:"requireLogin"`
-	RequireFollow     *bool    `json:"requireFollow"`
-	RequirePayment    *bool    `json:"requirePayment"`
-	RequireMembership *bool    `json:"requireMembership"`
-	ListRequireLogin  *bool    `json:"listRequireLogin"`
-	ViewPrice         *float64 `json:"viewPrice" binding:"omitempty,gte=0"`
+	RequireLogin      *bool    `json:"require_login"`
+	RequireFollow     *bool    `json:"require_follow"`
+	RequirePayment    *bool    `json:"require_payment"`
+	RequireMembership *bool    `json:"require_membership"`
+	ListRequireLogin  *bool    `json:"list_require_login"`
+	ViewPrice         *float64 `json:"view_price" binding:"omitempty,gte=0"`
 
 	Type string `json:"type" binding:"omitempty,oneof=image mixed video"`
 
-	ActivityID *string                  `json:"activityId"`
+	ActivityID *string                  `json:"activity_id"`
 	Downloads  []ArticleDownloadRequest `json:"downloads"`
 
-	IsFeatured        *bool `json:"isFeatured"`
-	IsPinnedOnProfile *bool `json:"isPinnedOnProfile"`
-	AllowReprint      *bool `json:"allowReprint"`
+	IsFeatured        *bool `json:"is_featured"`
+	IsPinnedOnProfile *bool `json:"is_pinned_on_profile"`
+	AllowReprint      *bool `json:"allow_reprint"`
 }
 
 // UpdateArticleRequest 更新文章（全字段可选，语义同 PartialType）。
@@ -159,36 +159,36 @@ type UpdateArticleRequest struct {
 	Content  *string    `json:"content"`
 	Summary  *string    `json:"summary" binding:"omitempty,max=500"`
 	Images   StringList `json:"images"`
-	VideoURL *string    `json:"videoUrl"`
+	VideoURL *string    `json:"video_url"`
 	Cover    *string    `json:"cover"`
 	Sort     *int       `json:"sort"`
 
-	CategoryID *string  `json:"categoryId"`
-	TagNames   []string `json:"tagNames"`
-	TagIDs     []string `json:"tagIds"`
+	CategoryID *string  `json:"category_id"`
+	TagNames   []string `json:"tag_names"`
+	TagIDs     []string `json:"tag_ids"`
 
 	Status string `json:"status" binding:"omitempty,oneof=DRAFT PENDING PUBLISHED ARCHIVED"`
 
-	RequireLogin      *bool    `json:"requireLogin"`
-	RequireFollow     *bool    `json:"requireFollow"`
-	RequirePayment    *bool    `json:"requirePayment"`
-	RequireMembership *bool    `json:"requireMembership"`
-	ListRequireLogin  *bool    `json:"listRequireLogin"`
-	ViewPrice         *float64 `json:"viewPrice" binding:"omitempty,gte=0"`
+	RequireLogin      *bool    `json:"require_login"`
+	RequireFollow     *bool    `json:"require_follow"`
+	RequirePayment    *bool    `json:"require_payment"`
+	RequireMembership *bool    `json:"require_membership"`
+	ListRequireLogin  *bool    `json:"list_require_login"`
+	ViewPrice         *float64 `json:"view_price" binding:"omitempty,gte=0"`
 
 	Type string `json:"type" binding:"omitempty,oneof=image mixed video"`
 
-	ActivityID *string                  `json:"activityId"`
+	ActivityID *string                  `json:"activity_id"`
 	Downloads  []ArticleDownloadRequest `json:"downloads"`
 
-	IsFeatured        *bool `json:"isFeatured"`
-	IsPinnedOnProfile *bool `json:"isPinnedOnProfile"`
-	AllowReprint      *bool `json:"allowReprint"`
+	IsFeatured        *bool `json:"is_featured"`
+	IsPinnedOnProfile *bool `json:"is_pinned_on_profile"`
+	AllowReprint      *bool `json:"allow_reprint"`
 }
 
 // ArticleReactionRequest 点赞/表情回复。
 type ArticleReactionRequest struct {
-	ReactionType string `json:"reactionType" binding:"omitempty,oneof=like love haha wow sad angry dislike"`
+	ReactionType string `json:"reaction_type" binding:"omitempty,oneof=like love haha wow sad angry dislike"`
 }
 
 // ArticleDislikeRequest 不喜欢原因。
@@ -203,12 +203,12 @@ type ArticleShareRequest struct {
 
 // SetFeaturedRequest 设精。
 type SetFeaturedRequest struct {
-	IsFeatured *bool `json:"isFeatured" binding:"required"`
+	IsFeatured *bool `json:"is_featured" binding:"required"`
 }
 
 // SetProfilePinRequest 个人主页置顶。
 type SetProfilePinRequest struct {
-	IsPinned *bool `json:"isPinned" binding:"required"`
+	IsPinned *bool `json:"is_pinned" binding:"required"`
 }
 
 // BrowseProgressRequest 浏览进度上报。
@@ -219,7 +219,7 @@ type BrowseProgressRequest struct {
 
 // BatchDeleteBrowseRequest 批量删除浏览记录。
 type BatchDeleteBrowseRequest struct {
-	ArticleIDs []string `json:"articleIds" binding:"required,min=1,max=100"`
+	ArticleIDs []string `json:"article_ids" binding:"required,min=1,max=100"`
 }
 
 // StringList 兼容「单个字符串 / 字符串数组」两种入参（对齐原 images 的 oneOf 定义）。

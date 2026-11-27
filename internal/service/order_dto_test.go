@@ -30,7 +30,7 @@ func TestOrderDtoNoNull(t *testing.T) {
 	assertNoNullJSON(t, "OrderDto(待支付)", pending)
 
 	b, _ := json.Marshal(pending)
-	if strings.Contains(string(b), "paidAt") {
+	if strings.Contains(string(b), "paid_at") {
 		t.Fatalf("paidAt 为 nil 时不应出现该字段：%s", b)
 	}
 	// 中文业务数据必须原样保留（data 内容不翻译，AGENTS 响应契约第 8 条）

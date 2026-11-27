@@ -255,15 +255,15 @@ func TestConfigViewJSONFields(t *testing.T) {
 	//    以后再加字段不该让这条契约测试变脆，但删字段/改名必须红。
 	for _, k := range []string{
 		"id", "key", "value", "description", "type", "group", "public",
-		"createdAt", "updatedAt", // ← 与改前 GORM 实体响应一致的既有字段，不许删
-		"hasValue", "masked", "startupOnly", // ← 打码 + 启动期标记（新增字段）
+		"created_at", "updated_at", // ← 与改前 GORM 实体响应一致的既有字段，不许删
+		"has_value", "masked", "startup_only", // ← 打码 + 启动期标记（新增字段）
 	} {
 		if _, ok := m[k]; !ok {
 			t.Fatalf("JSON 缺少字段 %q（契约回归）: %s", k, raw)
 		}
 	}
 	// ② 改前就不出现的字段，现在也不该出现
-	if _, leaked := m["deletedAt"]; leaked {
+	if _, leaked := m["deleted_at"]; leaked {
 		t.Fatalf("JSON 出现 deletedAt（改前为 json:\"-\"，不该下发）: %s", raw)
 	}
 
@@ -271,16 +271,16 @@ func TestConfigViewJSONFields(t *testing.T) {
 	if m["value"] != maskedValue {
 		t.Fatalf("JSON value = %v, want %q", m["value"], maskedValue)
 	}
-	if m["hasValue"] != true || m["masked"] != true {
-		t.Fatalf("JSON hasValue/masked = %v/%v, want true/true", m["hasValue"], m["masked"])
+	if m["has_value"] != true || m["masked"] != true {
+		t.Fatalf("JSON hasValue/masked = %v/%v, want true/true", m["has_value"], m["masked"])
 	}
 	// ③b 启动期标记：s3_secret_key 同时命中「启动期」与「敏感」，两者共存于同一行
-	if m["startupOnly"] != true {
-		t.Fatalf("JSON startupOnly = %v, want true（s3_secret_key 属启动期配置）", m["startupOnly"])
+	if m["startup_only"] != true {
+		t.Fatalf("JSON startupOnly = %v, want true（s3_secret_key 属启动期配置）", m["startup_only"])
 	}
 
 	// ④ 时间戳真实下发（前端按 updatedAt 展示「最后修改时间」）
-	for _, k := range []string{"createdAt", "updatedAt"} {
+	for _, k := range []string{"created_at", "updated_at"} {
 		s, ok := m[k].(string)
 		if !ok || s == "" {
 			t.Fatalf("JSON %s = %#v, want 非空 RFC3339 字符串", k, m[k])
@@ -289,7 +289,7 @@ func TestConfigViewJSONFields(t *testing.T) {
 			t.Fatalf("JSON %s = %q 不是 RFC3339 时间: %v", k, s, err)
 		}
 	}
-	if got := m["createdAt"].(string); got[:10] != "2026-11-22" {
+	if got := m["created_at"].(string); got[:10] != "2026-11-22" {
 		t.Fatalf("JSON createdAt = %q, want 2026-11-22 开头", got)
 	}
 }

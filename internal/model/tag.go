@@ -12,8 +12,8 @@ type Tag struct {
 	Cover       *string `gorm:"type:text" json:"cover"`
 	Sort        int     `gorm:"not null;default:0" json:"sort"`
 
-	ArticleCount int `gorm:"not null;default:0" json:"articleCount"`
-	FollowCount  int `gorm:"not null;default:0" json:"followCount"`
+	ArticleCount int `gorm:"not null;default:0" json:"article_count"`
+	FollowCount  int `gorm:"not null;default:0" json:"follow_count"`
 }
 
 // TableName 表名。
@@ -22,8 +22,8 @@ func (Tag) TableName() string { return "tags" }
 // TagFollow 标签关注（表 tag_follows）；同一用户对同一标签唯一。
 type TagFollow struct {
 	BaseModel
-	UserID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:1" json:"userId"`
-	TagID  string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:2" json:"tagId"`
+	UserID string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:1" json:"user_id"`
+	TagID  string `gorm:"type:varchar(36);not null;uniqueIndex:uk_tag_follows_user_tag,priority:2" json:"tag_id"`
 }
 
 // TableName 表名。

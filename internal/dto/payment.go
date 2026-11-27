@@ -28,25 +28,25 @@ package dto
 // （Payment 表不冗余存标题），那边已按「data 内容不翻译」处理。
 type PaymentDto struct {
 	ID        string `json:"id" example:"4d5e6f70-8a9b-4c0d-9e1f-223344556677"`
-	CreatedAt string `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt string `json:"updatedAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	CreatedAt string `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt string `json:"updated_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
-	OrderID string `json:"orderId" example:"3c4d5e6f-7a8b-4c9d-8e0f-112233445566"`
-	UserID  string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	OrderID string `json:"order_id" example:"3c4d5e6f-7a8b-4c9d-8e0f-112233445566"`
+	UserID  string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 
 	// PaymentMethod 支付渠道。
-	PaymentMethod string `json:"paymentMethod" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
+	PaymentMethod string `json:"payment_method" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
 
 	// Amount 支付金额，**单位：元**（decimal(10,2) / float64，精度语义保持原样）。
 	Amount float64 `json:"amount" example:"19.9"`
 
 	// ThirdPartyOrderNo 第三方支付订单号；未回调时为空串（不是 null）。
-	ThirdPartyOrderNo string `json:"thirdPartyOrderNo" example:"2026112522001445361234567890"`
+	ThirdPartyOrderNo string `json:"third_party_order_no" example:"2026112522001445361234567890"`
 
 	Status string `json:"status" enums:"PENDING,SUCCESS,FAILED,CANCELLED" example:"PENDING"`
 
 	// PaidAt 支付成功时间；未成功时不传该字段（不是 null）。
-	PaidAt *string `json:"paidAt,omitempty" format:"date-time" example:"2026-11-25T10:05:00Z"`
+	PaidAt *string `json:"paid_at,omitempty" format:"date-time" example:"2026-11-25T10:05:00Z"`
 
 	// Details 支付详情（jsonb 透传）。按渠道不同含 alipayUrl / wechatCodeUrl /
 	// epayUrl / prepayId / orderNo / amount / previousBalance / currentBalance 等键；
@@ -54,7 +54,7 @@ type PaymentDto struct {
 	Details map[string]interface{} `json:"details,omitempty"`
 
 	// ErrorMessage 落账失败原因（英文，仅内部诊断用）；正常时为空串。
-	ErrorMessage string `json:"errorMessage" example:""`
+	ErrorMessage string `json:"error_message" example:""`
 }
 
 // PaymentRecordDto 支付记录详情（GET /payment/record/{id} 的语义名）。
@@ -70,11 +70,11 @@ type PaymentRecordDto = PaymentDto
 // paymentMethod 的枚举校验在 binding tag 上：小写 alipay / 未知渠道 / 空值都会被拒（400）。
 type CreatePaymentRequest struct {
 	// OrderID 待支付的订单 ID（必须是本人的、非 PAID 的订单）。
-	OrderID string `json:"orderId" binding:"required" example:"3c4d5e6f-7a8b-4c9d-8e0f-112233445566"`
+	OrderID string `json:"order_id" binding:"required" example:"3c4d5e6f-7a8b-4c9d-8e0f-112233445566"`
 	// PaymentMethod 支付渠道；渠道开关由系统配置表控制，未开启返回「Payment channel disabled」。
-	PaymentMethod string `json:"paymentMethod" binding:"required,oneof=ALIPAY WECHAT EPAY BALANCE" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
+	PaymentMethod string `json:"payment_method" binding:"required,oneof=ALIPAY WECHAT EPAY BALANCE" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
 	// ReturnURL 支付完成后的前端跳转地址（可选；缺省用配置 default_return_url）。
-	ReturnURL string `json:"returnUrl" example:"https://example.com/pay/return"`
+	ReturnURL string `json:"return_url" example:"https://example.com/pay/return"`
 	// Type 仅 EPAY 生效的子渠道：alipay / wxpay / usdt（缺省 alipay）。
 	Type string `json:"type" enums:"alipay,wxpay,usdt" example:"alipay"`
 }
@@ -92,12 +92,12 @@ type CreatePaymentRequest struct {
 // null —— 这与 map 的序列化行为一致。Balance 用 omitempty：余额支付后余额为 0
 // 时该键仍由 map 明确给出，本 DTO 只用于文档，不影响线上输出。
 type CreatePaymentResultDto struct {
-	PaymentID     string `json:"paymentId" example:"4d5e6f70-8a9b-4c0d-9e1f-223344556677"`
-	PaymentMethod string `json:"paymentMethod" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
+	PaymentID     string `json:"payment_id" example:"4d5e6f70-8a9b-4c0d-9e1f-223344556677"`
+	PaymentMethod string `json:"payment_method" enums:"ALIPAY,WECHAT,EPAY,BALANCE" example:"ALIPAY"`
 	// PaymentURL 跳转支付地址（支付宝 / 易支付）。
-	PaymentURL string `json:"paymentUrl,omitempty" example:"https://openapi.alipay.com/gateway.do?..."`
+	PaymentURL string `json:"payment_url,omitempty" example:"https://openapi.alipay.com/gateway.do?..."`
 	// CodeURL 二维码内容（微信 Native）。
-	CodeURL string `json:"codeUrl,omitempty" example:"weixin://wxpay/bizpayurl?pr=xxxxxx"`
+	CodeURL string `json:"code_url,omitempty" example:"weixin://wxpay/bizpayurl?pr=xxxxxx"`
 	// Status 仅余额支付返回，固定 "SUCCESS"。
 	Status string `json:"status,omitempty" example:"SUCCESS"`
 	// Balance 仅余额支付返回：支付后的钱包余额，**单位：元**。

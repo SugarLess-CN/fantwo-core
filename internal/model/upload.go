@@ -51,11 +51,11 @@ type UploadOriginal struct {
 
 // UploadVideoJob 视频压缩任务信息（原 videoCompressionJob）。
 type UploadVideoJob struct {
-	OriginalSize    int64   `json:"originalSize"`
-	CompressedSize  int64   `json:"compressedSize"`
-	CompressionRate float64 `json:"compressionRatio"`
-	StartedAt       int64   `json:"startedAt"`             // 毫秒时间戳
-	CompletedAt     int64   `json:"completedAt,omitempty"` // 毫秒时间戳
+	OriginalSize    int64   `json:"original_size"`
+	CompressedSize  int64   `json:"compressed_size"`
+	CompressionRate float64 `json:"compression_ratio"`
+	StartedAt       int64   `json:"started_at"`             // 毫秒时间戳
+	CompletedAt     int64   `json:"completed_at,omitempty"` // 毫秒时间戳
 	Error           string  `json:"error,omitempty"`
 }
 
@@ -66,15 +66,15 @@ type Upload struct {
 	BaseModel
 
 	Hash         string `gorm:"column:hash;type:varchar(128);uniqueIndex;not null" json:"hash"` // 文件 sha256，去重标识
-	OriginalName string `gorm:"column:original_name;type:varchar(255);not null" json:"originalName"`
+	OriginalName string `gorm:"column:original_name;type:varchar(255);not null" json:"original_name"`
 	Storage      string `gorm:"column:storage;type:varchar(16);not null;default:local" json:"storage"`
 	Filename     string `gorm:"column:filename;type:varchar(255);not null" json:"filename"`
 	Path         string `gorm:"column:path;type:text;not null" json:"path"`
 	URL          string `gorm:"column:url;type:text;not null" json:"url"`
 	Size         int64  `gorm:"column:size;not null;default:0" json:"size"`
-	MimeType     string `gorm:"column:mime_type;type:varchar(128);not null" json:"mimeType"`
+	MimeType     string `gorm:"column:mime_type;type:varchar(128);not null" json:"mime_type"`
 
-	ReferenceCount int `gorm:"column:reference_count;not null;default:1" json:"referenceCount"`
+	ReferenceCount int `gorm:"column:reference_count;not null;default:1" json:"reference_count"`
 
 	OriginalJSON string `gorm:"column:original;type:jsonb" json:"-"`
 	ThumbsJSON   string `gorm:"column:thumbnails;type:jsonb" json:"-"`
@@ -82,15 +82,15 @@ type Upload struct {
 	Processed   bool `gorm:"column:processed;not null;default:false" json:"processed"`
 	Watermarked bool `gorm:"column:watermarked;not null;default:false" json:"watermarked"`
 
-	VideoCompressionStatus string `gorm:"column:video_compression_status;type:varchar(16);not null;default:pending;index:idx_upload_video_status" json:"videoCompressionStatus"`
+	VideoCompressionStatus string `gorm:"column:video_compression_status;type:varchar(16);not null;default:pending;index:idx_upload_video_status" json:"video_compression_status"`
 	VideoJobJSON           string `gorm:"column:video_compression_job;type:jsonb" json:"-"`
 
 	// Scene 上传场景（avatar / image / other）：avatar 不加水印（对齐原 skipScenes）
 	Scene string `gorm:"column:scene;type:varchar(16);not null;default:image;index:idx_upload_scene" json:"scene"`
 	// UserID 上传者（游客上传为 NULL）；水印取昵称、管理端按人筛选都用它
-	UserID *string `gorm:"column:user_id;type:varchar(36);index:idx_upload_user" json:"userId"`
+	UserID *string `gorm:"column:user_id;type:varchar(36);index:idx_upload_user" json:"user_id"`
 
-	AuditStatus   string `gorm:"column:audit_status;type:varchar(16);not null;default:pending" json:"auditStatus"`
+	AuditStatus   string `gorm:"column:audit_status;type:varchar(16);not null;default:pending" json:"audit_status"`
 	AuditResultJS string `gorm:"column:audit_result;type:jsonb" json:"-"`
 }
 

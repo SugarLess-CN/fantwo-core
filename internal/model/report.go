@@ -49,12 +49,12 @@ type Report struct {
 	Status            string     `gorm:"type:varchar(20);default:PENDING;index;comment:处理状态" json:"status"`
 	Result            string     `gorm:"type:text;comment:处理结果" json:"result"`
 	Action            string     `gorm:"type:varchar(20);comment:处理动作" json:"action"`
-	ReporterID        string     `gorm:"type:varchar(36);index;comment:举报人ID" json:"reporterId"`
-	ReportedUserID    string     `gorm:"type:varchar(36);index;comment:被举报用户ID" json:"reportedUserId"`
-	ReportedArticleID string     `gorm:"type:varchar(36);index;comment:被举报文章ID" json:"reportedArticleId"`
-	ReportedCommentID string     `gorm:"type:varchar(36);index;comment:被举报评论ID" json:"reportedCommentId"`
-	HandlerID         string     `gorm:"type:varchar(36);index;comment:处理人ID" json:"handlerId"`
-	HandledAt         *time.Time `json:"handledAt"`
+	ReporterID        string     `gorm:"type:varchar(36);index;comment:举报人ID" json:"reporter_id"`
+	ReportedUserID    string     `gorm:"type:varchar(36);index;comment:被举报用户ID" json:"reported_user_id"`
+	ReportedArticleID string     `gorm:"type:varchar(36);index;comment:被举报文章ID" json:"reported_article_id"`
+	ReportedCommentID string     `gorm:"type:varchar(36);index;comment:被举报评论ID" json:"reported_comment_id"`
+	HandlerID         string     `gorm:"type:varchar(36);index;comment:处理人ID" json:"handler_id"`
+	HandledAt         *time.Time `json:"handled_at"`
 }
 
 // TableName 表名。
@@ -91,9 +91,9 @@ type ReportCreateInput struct {
 	Reason            string `json:"reason" binding:"required"`
 	Category          string `json:"category" binding:"required"`
 	Description       string `json:"description"`
-	ReportedUserID    string `json:"reportedUserId"`
-	ReportedArticleID string `json:"reportedArticleId"`
-	ReportedCommentID string `json:"reportedCommentId"`
+	ReportedUserID    string `json:"reported_user_id"`
+	ReportedArticleID string `json:"reported_article_id"`
+	ReportedCommentID string `json:"reported_comment_id"`
 }
 
 // ReportUpdateInput 更新举报入参（对齐原 UpdateReportDto）。

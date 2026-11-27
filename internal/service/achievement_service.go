@@ -198,7 +198,7 @@ type AchievementStats struct {
 	Total          int64  `json:"total"`
 	Completed      int64  `json:"completed"`
 	Claimed        int64  `json:"claimed"`
-	CompletionRate string `json:"completionRate"`
+	CompletionRate string `json:"completion_rate"`
 }
 
 // Stats 统计。
@@ -408,7 +408,7 @@ func achievementClaimRejection(ua *model.UserAchievement) *errcode.Err {
 type ClaimResult struct {
 	Points       int    `json:"points"`
 	Exp          int    `json:"exp"`
-	DecorationID string `json:"decorationId,omitempty"`
+	DecorationID string `json:"decoration_id,omitempty"`
 }
 
 // ClaimAllResult 一键领取结果。

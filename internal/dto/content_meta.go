@@ -56,12 +56,12 @@ type TagDto struct {
 	Cover       string `json:"cover" example:"https://cdn.example.com/cover.jpg"`
 
 	Sort         int  `json:"sort" example:"9"`
-	ArticleCount int  `json:"articleCount" example:"42"`
-	FollowCount  int  `json:"followCount" example:"8"`
-	IsFollowed   bool `json:"isFollowed" example:"true"`
+	ArticleCount int  `json:"article_count" example:"42"`
+	FollowCount  int  `json:"follow_count" example:"8"`
+	IsFollowed   bool `json:"is_followed" example:"true"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // CreateTagRequest 创建标签（service.CreateTagRequest，6 字段）。
@@ -103,7 +103,7 @@ type CategoryDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Name        string `json:"name" example:"风景摄影"`
 	Description string `json:"description"`
-	ParentID    string `json:"parentId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ParentID    string `json:"parent_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Link        string `json:"link"`
 	Avatar      string `json:"avatar"`
 	Background  string `json:"background"`
@@ -111,14 +111,14 @@ type CategoryDto struct {
 	Sort        int    `json:"sort" example:"1"`
 	Status      string `json:"status" example:"ENABLED"`
 
-	ArticleCount int `json:"articleCount" example:"128"`
-	FollowCount  int `json:"followCount" example:"16"`
+	ArticleCount int `json:"article_count" example:"128"`
+	FollowCount  int `json:"follow_count" example:"16"`
 
 	// Children 子分类（tree=true 或详情时填充；叶节点是 [] 不是 null）。
 	Children []CategoryDto `json:"children"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // CreateCategoryRequest 创建分类（service.CreateCategoryRequest，9 字段）。
@@ -126,7 +126,7 @@ type CreateCategoryRequest struct {
 	Name        string  `json:"name" binding:"required,max=50" example:"风景摄影"`
 	Description *string `json:"description" binding:"omitempty,max=200"`
 	Sort        *int    `json:"sort" example:"1"`
-	ParentID    *string `json:"parentId"`
+	ParentID    *string `json:"parent_id"`
 	Link        *string `json:"link" binding:"omitempty,max=200"`
 	Avatar      *string `json:"avatar"`
 	Background  *string `json:"background"`
@@ -139,7 +139,7 @@ type UpdateCategoryRequest struct {
 	Name        *string `json:"name" binding:"omitempty,max=50"`
 	Description *string `json:"description" binding:"omitempty,max=200"`
 	Sort        *int    `json:"sort"`
-	ParentID    *string `json:"parentId"`
+	ParentID    *string `json:"parent_id"`
 	Link        *string `json:"link" binding:"omitempty,max=200"`
 	Avatar      *string `json:"avatar"`
 	Background  *string `json:"background"`
@@ -159,22 +159,22 @@ type BannerDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Title       string `json:"title" example:"双十一活动"`
 	Description string `json:"description"`
-	ImageURL    string `json:"imageUrl" example:"https://cdn.example.com/banner.png"`
-	LinkURL     string `json:"linkUrl" example:"https://example.com/activity"`
-	SortOrder   int    `json:"sortOrder" example:"1"`
+	ImageURL    string `json:"image_url" example:"https://cdn.example.com/banner.png"`
+	LinkURL     string `json:"link_url" example:"https://example.com/activity"`
+	SortOrder   int    `json:"sort_order" example:"1"`
 	Status      string `json:"status" example:"active"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // CreateBannerRequest 创建轮播（model.BannerInput，6 字段；title/imageUrl 必填）。
 type CreateBannerRequest struct {
 	Title       *string `json:"title" example:"双十一活动"`
 	Description *string `json:"description"`
-	ImageURL    *string `json:"imageUrl" example:"https://cdn.example.com/banner.png"`
-	LinkURL     *string `json:"linkUrl"`
-	SortOrder   *int    `json:"sortOrder" example:"1"`
+	ImageURL    *string `json:"image_url" example:"https://cdn.example.com/banner.png"`
+	LinkURL     *string `json:"link_url"`
+	SortOrder   *int    `json:"sort_order" example:"1"`
 	Status      *string `json:"status" example:"active"`
 }
 
@@ -182,9 +182,9 @@ type CreateBannerRequest struct {
 type UpdateBannerRequest struct {
 	Title       *string `json:"title"`
 	Description *string `json:"description"`
-	ImageURL    *string `json:"imageUrl"`
-	LinkURL     *string `json:"linkUrl"`
-	SortOrder   *int    `json:"sortOrder"`
+	ImageURL    *string `json:"image_url"`
+	LinkURL     *string `json:"link_url"`
+	SortOrder   *int    `json:"sort_order"`
 	Status      *string `json:"status"`
 }
 
@@ -221,9 +221,9 @@ type AchievementDto struct {
 	// Condition 完成条件（必有，jsonb 默认零值 {type:"",target:0}）
 	Condition AchievementConditionDto `json:"condition"`
 
-	RewardPoints       int    `json:"rewardPoints" example:"10"`
-	RewardExp          int    `json:"rewardExp" example:"5"`
-	RewardDecorationID string `json:"rewardDecorationId"`
+	RewardPoints       int    `json:"reward_points" example:"10"`
+	RewardExp          int    `json:"reward_exp" example:"5"`
+	RewardDecorationID string `json:"reward_decoration_id"`
 	Hidden             bool   `json:"hidden" example:"false"`
 	Sort               int    `json:"sort" example:"1"`
 	Enabled            bool   `json:"enabled" example:"true"`
@@ -233,11 +233,11 @@ type AchievementDto struct {
 	Completed bool `json:"completed" example:"false"`
 	Claimed   bool `json:"claimed" example:"false"`
 	// 时间：空时不传（未完成无 completedAt，未领取无 claimedAt）
-	CompletedAt *time.Time `json:"completedAt,omitempty" format:"date-time"`
-	ClaimedAt   *time.Time `json:"claimedAt,omitempty" format:"date-time"`
+	CompletedAt *time.Time `json:"completed_at,omitempty" format:"date-time"`
+	ClaimedAt   *time.Time `json:"claimed_at,omitempty" format:"date-time"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // CreateAchievementRequest 创建成就定义（model.AchievementInput，13 字段）。
@@ -249,9 +249,9 @@ type CreateAchievementRequest struct {
 	Type               *string                  `json:"type" example:"ARTICLE"`
 	Rarity             *string                  `json:"rarity" example:"COMMON"`
 	Condition          *AchievementConditionDto `json:"condition"`
-	RewardPoints       *int                     `json:"rewardPoints" example:"10"`
-	RewardExp          *int                     `json:"rewardExp" example:"5"`
-	RewardDecorationID *string                  `json:"rewardDecorationId"`
+	RewardPoints       *int                     `json:"reward_points" example:"10"`
+	RewardExp          *int                     `json:"reward_exp" example:"5"`
+	RewardDecorationID *string                  `json:"reward_decoration_id"`
 	Hidden             *bool                    `json:"hidden"`
 	Sort               *int                     `json:"sort"`
 	Enabled            *bool                    `json:"enabled"`
@@ -266,9 +266,9 @@ type UpdateAchievementRequest struct {
 	Type               *string                  `json:"type"`
 	Rarity             *string                  `json:"rarity"`
 	Condition          *AchievementConditionDto `json:"condition"`
-	RewardPoints       *int                     `json:"rewardPoints"`
-	RewardExp          *int                     `json:"rewardExp"`
-	RewardDecorationID *string                  `json:"rewardDecorationId"`
+	RewardPoints       *int                     `json:"reward_points"`
+	RewardExp          *int                     `json:"reward_exp"`
+	RewardDecorationID *string                  `json:"reward_decoration_id"`
 	Hidden             *bool                    `json:"hidden"`
 	Sort               *int                     `json:"sort"`
 	Enabled            *bool                    `json:"enabled"`
@@ -282,7 +282,7 @@ type AchievementStatsDto struct {
 	Total          int64  `json:"total" example:"20"`
 	Completed      int64  `json:"completed" example:"3"`
 	Claimed        int64  `json:"claimed" example:"1"`
-	CompletionRate string `json:"completionRate" example:"15.00"`
+	CompletionRate string `json:"completion_rate" example:"15.00"`
 }
 
 // AchievementClaimResultDto 单个成就领取结果（service.ClaimResult，3 字段）。
@@ -291,7 +291,7 @@ type AchievementStatsDto struct {
 type AchievementClaimResultDto struct {
 	Points       int    `json:"points" example:"10"`
 	Exp          int    `json:"exp" example:"5"`
-	DecorationID string `json:"decorationId,omitempty"`
+	DecorationID string `json:"decoration_id,omitempty"`
 }
 
 // AchievementClaimAllResultDto 一键领取结果（service.ClaimAllResult，2 字段）。
@@ -316,16 +316,16 @@ type ReportDto struct {
 	Status            string `json:"status" example:"PENDING"`
 	Result            string `json:"result"`
 	Action            string `json:"action" example:"NONE"`
-	ReporterID        string `json:"reporterId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ReportedUserID    string `json:"reportedUserId"`
-	ReportedArticleID string `json:"reportedArticleId"`
-	ReportedCommentID string `json:"reportedCommentId"`
-	HandlerID         string `json:"handlerId"`
+	ReporterID        string `json:"reporter_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ReportedUserID    string `json:"reported_user_id"`
+	ReportedArticleID string `json:"reported_article_id"`
+	ReportedCommentID string `json:"reported_comment_id"`
+	HandlerID         string `json:"handler_id"`
 
 	// 时间：handledAt 未处理时不传
-	HandledAt *time.Time `json:"handledAt,omitempty" format:"date-time"`
-	CreatedAt time.Time  `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time  `json:"updatedAt" format:"date-time"`
+	HandledAt *time.Time `json:"handled_at,omitempty" format:"date-time"`
+	CreatedAt time.Time  `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time  `json:"updated_at" format:"date-time"`
 }
 
 // CreateReportRequest 提交举报（model.ReportCreateInput，7 字段）。
@@ -334,9 +334,9 @@ type CreateReportRequest struct {
 	Reason            string `json:"reason" binding:"required" example:"垃圾广告"`
 	Category          string `json:"category" binding:"required" example:"spam"`
 	Description       string `json:"description"`
-	ReportedUserID    string `json:"reportedUserId"`
-	ReportedArticleID string `json:"reportedArticleId"`
-	ReportedCommentID string `json:"reportedCommentId"`
+	ReportedUserID    string `json:"reported_user_id"`
+	ReportedArticleID string `json:"reported_article_id"`
+	ReportedCommentID string `json:"reported_comment_id"`
 }
 
 // UpdateReportRequest 处理举报（model.ReportUpdateInput，3 字段）。
@@ -358,9 +358,9 @@ type GroupCountDto struct {
 // groupCount 返回 nil 时由 service 侧保证非 nil（见 report_service.go Statistics）。
 type ReportStatisticsDto struct {
 	Total      int64            `json:"total" example:"36"`
-	ByStatus   map[string]int64 `json:"byStatus"`
-	ByType     []GroupCountDto  `json:"byType"`
-	ByCategory []GroupCountDto  `json:"byCategory"`
+	ByStatus   map[string]int64 `json:"by_status"`
+	ByType     []GroupCountDto  `json:"by_type"`
+	ByCategory []GroupCountDto  `json:"by_category"`
 }
 
 // ---------------------------------------------------------------------------
@@ -372,35 +372,35 @@ type ReportStatisticsDto struct {
 // 用于：POST /invite、POST /invite/use、GET /invite/my（分页项）、GET /invite/{id}。
 type InviteDto struct {
 	ID         string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	InviterID  string `json:"inviterId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	InviteeID  string `json:"inviteeId"`
-	InviteCode string `json:"inviteCode" example:"INVAB12CD34"`
+	InviterID  string `json:"inviter_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	InviteeID  string `json:"invitee_id"`
+	InviteCode string `json:"invite_code" example:"INVAB12CD34"`
 	Status     string `json:"status" example:"PENDING"`
 	Type       string `json:"type" example:"GENERAL"`
 	// CommissionRate 分成比例（0-1 的小数，不是百分数）
-	CommissionRate float64 `json:"commissionRate" example:"0.05"`
-	InviteURL      string  `json:"inviteUrl" example:"http://localhost:3000/register?code=INVAB12CD34"`
+	CommissionRate float64 `json:"commission_rate" example:"0.05"`
+	InviteURL      string  `json:"invite_url" example:"http://localhost:3000/register?code=INVAB12CD34"`
 
 	// 时间：usedAt / expiredAt 空时不传
-	UsedAt    *time.Time `json:"usedAt,omitempty" format:"date-time"`
-	ExpiredAt *time.Time `json:"expiredAt,omitempty" format:"date-time"`
+	UsedAt    *time.Time `json:"used_at,omitempty" format:"date-time"`
+	ExpiredAt *time.Time `json:"expired_at,omitempty" format:"date-time"`
 
 	Remark    string    `json:"remark"`
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // CreateInviteRequest 生成邀请码（model.InviteCreateInput，4 字段）。
 type CreateInviteRequest struct {
 	Type           *string    `json:"type" example:"GENERAL"`
-	CommissionRate *float64   `json:"commissionRate" example:"0.05"`
-	ExpiredAt      *time.Time `json:"expiredAt" format:"date-time"`
+	CommissionRate *float64   `json:"commission_rate" example:"0.05"`
+	ExpiredAt      *time.Time `json:"expired_at" format:"date-time"`
 	Remark         *string    `json:"remark"`
 }
 
 // UseInviteRequest 绑定邀请人（model.InviteUseInput，1 字段，必填）。
 type UseInviteRequest struct {
-	InviteCode string `json:"inviteCode" binding:"required" example:"INVAB12CD34"`
+	InviteCode string `json:"invite_code" binding:"required" example:"INVAB12CD34"`
 }
 
 // InviteCommissionDto 邀请分成记录（model.InviteCommission + BaseModel，16 字段）。
@@ -408,22 +408,22 @@ type UseInviteRequest struct {
 // 用于：GET /invite/earnings 的分页项。
 type InviteCommissionDto struct {
 	ID               string  `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	InviteID         string  `json:"inviteId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	InviterID        string  `json:"inviterId"`
-	InviteeID        string  `json:"inviteeId"`
-	OrderID          string  `json:"orderId"`
-	OrderType        string  `json:"orderType" example:"membership"`
-	OrderAmount      float64 `json:"orderAmount" example:"99.00"`
-	CommissionRate   float64 `json:"commissionRate" example:"0.05"`
-	CommissionAmount float64 `json:"commissionAmount" example:"4.95"`
+	InviteID         string  `json:"invite_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	InviterID        string  `json:"inviter_id"`
+	InviteeID        string  `json:"invitee_id"`
+	OrderID          string  `json:"order_id"`
+	OrderType        string  `json:"order_type" example:"membership"`
+	OrderAmount      float64 `json:"order_amount" example:"99.00"`
+	CommissionRate   float64 `json:"commission_rate" example:"0.05"`
+	CommissionAmount float64 `json:"commission_amount" example:"4.95"`
 	Status           string  `json:"status" example:"PENDING"`
 
 	// 时间：paidAt 未结算时不传
-	PaidAt *time.Time `json:"paidAt,omitempty" format:"date-time"`
+	PaidAt *time.Time `json:"paid_at,omitempty" format:"date-time"`
 
 	Remark    string    `json:"remark"`
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
 
 // InviteStatsDto 邀请统计（service.InviteStats，8 字段）。
@@ -432,10 +432,10 @@ type InviteStatsDto struct {
 	Pending         int64   `json:"pending" example:"3"`
 	Used            int64   `json:"used" example:"8"`
 	Expired         int64   `json:"expired" example:"1"`
-	TotalEarnings   float64 `json:"totalEarnings" example:"59.40"`
-	PendingEarnings float64 `json:"pendingEarnings" example:"4.95"`
-	PaidEarnings    float64 `json:"paidEarnings" example:"54.45"`
-	CommissionCount int64   `json:"commissionCount" example:"12"`
+	TotalEarnings   float64 `json:"total_earnings" example:"59.40"`
+	PendingEarnings float64 `json:"pending_earnings" example:"4.95"`
+	PaidEarnings    float64 `json:"paid_earnings" example:"54.45"`
+	CommissionCount int64   `json:"commission_count" example:"12"`
 }
 
 // ---------------------------------------------------------------------------
@@ -449,7 +449,7 @@ type InviteStatsDto struct {
 type SearchStatusDto struct {
 	Enabled     bool   `json:"enabled" example:"true"`
 	Index       string `json:"index,omitempty" example:"articles"`
-	IndexExists bool   `json:"indexExists" example:"true"`
+	IndexExists bool   `json:"index_exists" example:"true"`
 	Documents   int64  `json:"documents" example:"1280"`
 	Message     string `json:"message,omitempty"`
 	Error       string `json:"error,omitempty"`
@@ -464,12 +464,12 @@ type SearchSyncResultDto struct {
 	Success     bool               `json:"success" example:"true"`
 	Message     string             `json:"message" example:"Synced 1280 articles"`
 	Data        SearchSyncCountDto `json:"data"`
-	TotalSynced int64              `json:"totalSynced" example:"1280"`
+	TotalSynced int64              `json:"total_synced" example:"1280"`
 }
 
 // SearchSyncCountDto 同步计数（嵌在 SearchSyncResultDto.data 里）。
 type SearchSyncCountDto struct {
-	TotalSynced int64 `json:"totalSynced" example:"1280"`
+	TotalSynced int64 `json:"total_synced" example:"1280"`
 }
 
 // HotKeywordDto 热搜词（model.HotKeyword，2 字段）。
@@ -500,14 +500,14 @@ type SearchArticleItemDto struct {
 	Cover         string `json:"cover" example:"https://cdn.example.com/c.png"`
 	Type          string `json:"type" example:"article"`
 	Status        string `json:"status" example:"PUBLISHED"`
-	AuthorID      string `json:"authorId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CategoryID    string `json:"categoryId"`
+	AuthorID      string `json:"author_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CategoryID    string `json:"category_id"`
 	Views         int    `json:"views" example:"128"`
 	Likes         int    `json:"likes" example:"12"`
-	FavoriteCount int    `json:"favoriteCount" example:"3"`
-	CommentCount  int    `json:"commentCount" example:"5"`
-	CreatedAt     string `json:"createdAt" format:"date-time"`
-	UpdatedAt     string `json:"updatedAt" format:"date-time"`
+	FavoriteCount int    `json:"favorite_count" example:"3"`
+	CommentCount  int    `json:"comment_count" example:"5"`
+	CreatedAt     string `json:"created_at" format:"date-time"`
+	UpdatedAt     string `json:"updated_at" format:"date-time"`
 }
 
 // ---------------------------------------------------------------------------
@@ -519,49 +519,49 @@ type StatisticsUsersDto struct {
 	Total         int64 `json:"total" example:"1024"`
 	Active        int64 `json:"active" example:"860"`
 	Banned        int64 `json:"banned" example:"12"`
-	ActiveMembers int64 `json:"activeMembers" example:"96"`
-	TodayNew      int64 `json:"todayNew" example:"8"`
+	ActiveMembers int64 `json:"active_members" example:"96"`
+	TodayNew      int64 `json:"today_new" example:"8"`
 }
 
 // StatisticsContentDto 内容组统计（infra.ContentStat，9 字段）。
 type StatisticsContentDto struct {
 	Articles          int64 `json:"articles" example:"3200"`
-	PublishedArticles int64 `json:"publishedArticles" example:"2800"`
-	PendingArticles   int64 `json:"pendingArticles" example:"24"`
+	PublishedArticles int64 `json:"published_articles" example:"2800"`
+	PendingArticles   int64 `json:"pending_articles" example:"24"`
 	Comments          int64 `json:"comments" example:"9800"`
-	PublishedComments int64 `json:"publishedComments" example:"9500"`
+	PublishedComments int64 `json:"published_comments" example:"9500"`
 	Collections       int64 `json:"collections" example:"128"`
-	PublicCollections int64 `json:"publicCollections" example:"96"`
-	TodayArticles     int64 `json:"todayArticles" example:"12"`
-	TodayComments     int64 `json:"todayComments" example:"86"`
+	PublicCollections int64 `json:"public_collections" example:"96"`
+	TodayArticles     int64 `json:"today_articles" example:"12"`
+	TodayComments     int64 `json:"today_comments" example:"86"`
 }
 
 // StatisticsOrdersDto 订单组统计（infra.OrdersStat，4 字段）。
 type StatisticsOrdersDto struct {
-	PaidCount        int64   `json:"paidCount" example:"320"`
-	PaidRevenue      float64 `json:"paidRevenue" example:"12672.50"`
-	TodayPaidCount   int64   `json:"todayPaidCount" example:"5"`
-	TodayPaidRevenue float64 `json:"todayPaidRevenue" example:"396.00"`
+	PaidCount        int64   `json:"paid_count" example:"320"`
+	PaidRevenue      float64 `json:"paid_revenue" example:"12672.50"`
+	TodayPaidCount   int64   `json:"today_paid_count" example:"5"`
+	TodayPaidRevenue float64 `json:"today_paid_revenue" example:"396.00"`
 }
 
 // StatisticsModerationDto 审核组统计（infra.ModerationStat，3 字段）。
 type StatisticsModerationDto struct {
-	PendingReports    int64 `json:"pendingReports" example:"7"`
-	ProcessingReports int64 `json:"processingReports" example:"2"`
-	PendingArticles   int64 `json:"pendingArticles" example:"24"`
+	PendingReports    int64 `json:"pending_reports" example:"7"`
+	ProcessingReports int64 `json:"processing_reports" example:"2"`
+	PendingArticles   int64 `json:"pending_articles" example:"24"`
 }
 
 // StatisticsEngagementDto 互动组统计（infra.EngagementStat，9 字段）。
 type StatisticsEngagementDto struct {
-	ArticleViews     int64 `json:"articleViews" example:"128000"`
-	ArticleLikes     int64 `json:"articleLikes" example:"8600"`
-	ArticleFavorites int64 `json:"articleFavorites" example:"2100"`
-	ArticleShares    int64 `json:"articleShares" example:"320"`
-	ArticleComments  int64 `json:"articleComments" example:"9800"`
-	CommentLikes     int64 `json:"commentLikes" example:"1500"`
-	CommentReplies   int64 `json:"commentReplies" example:"2400"`
-	CollectionViews  int64 `json:"collectionViews" example:"5600"`
-	CollectionItems  int64 `json:"collectionItems" example:"1280"`
+	ArticleViews     int64 `json:"article_views" example:"128000"`
+	ArticleLikes     int64 `json:"article_likes" example:"8600"`
+	ArticleFavorites int64 `json:"article_favorites" example:"2100"`
+	ArticleShares    int64 `json:"article_shares" example:"320"`
+	ArticleComments  int64 `json:"article_comments" example:"9800"`
+	CommentLikes     int64 `json:"comment_likes" example:"1500"`
+	CommentReplies   int64 `json:"comment_replies" example:"2400"`
+	CollectionViews  int64 `json:"collection_views" example:"5600"`
+	CollectionItems  int64 `json:"collection_items" example:"1280"`
 }
 
 // StatisticsOverviewDto 站点总览（infra.OverviewResult，5 个分组）。
@@ -581,8 +581,8 @@ type TrendPointDto struct {
 	Users       int64   `json:"users" example:"8"`
 	Articles    int64   `json:"articles" example:"12"`
 	Comments    int64   `json:"comments" example:"86"`
-	PaidOrders  int64   `json:"paidOrders" example:"5"`
-	PaidRevenue float64 `json:"paidRevenue" example:"396.00"`
+	PaidOrders  int64   `json:"paid_orders" example:"5"`
+	PaidRevenue float64 `json:"paid_revenue" example:"396.00"`
 }
 
 // StatisticsTrendsDto 近 N 天趋势（infra.TrendsResult，2 字段）。

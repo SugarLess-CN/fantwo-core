@@ -35,29 +35,29 @@ type AuditConfigDto struct {
 	Provider string `json:"provider" enums:"none,aliyun,tencent" example:"none"`
 
 	// 四类内容的审核开关（false = 该类型不送审，直接放行）。
-	CommentEnabled bool `json:"commentEnabled" example:"true"`
-	AvatarEnabled  bool `json:"avatarEnabled" example:"true"`
-	ImageEnabled   bool `json:"imageEnabled" example:"true"`
-	ArticleEnabled bool `json:"articleEnabled" example:"true"`
+	CommentEnabled bool `json:"comment_enabled" example:"true"`
+	AvatarEnabled  bool `json:"avatar_enabled" example:"true"`
+	ImageEnabled   bool `json:"image_enabled" example:"true"`
+	ArticleEnabled bool `json:"article_enabled" example:"true"`
 
 	// AutoBlock 命中后的处置：true = 硬拦截（action=block，passed=false）；
 	// false = 放行但转人工（action=review，passed=true）。
-	AutoBlock bool `json:"autoBlock" example:"true"`
+	AutoBlock bool `json:"auto_block" example:"true"`
 
 	// ReviewMode 审核模式：auto / manual。
-	ReviewMode string `json:"reviewMode" enums:"auto,manual" example:"auto"`
+	ReviewMode string `json:"review_mode" enums:"auto,manual" example:"auto"`
 	// Sensitivity 敏感度：low / medium / high（默认 medium）。
 	Sensitivity string `json:"sensitivity" enums:"low,medium,high" example:"medium"`
 
 	// Tencent 腾讯云 CMS（凭据字段不下发，见类型注释）。
-	TencentSecretID string `json:"tencentSecretId" example:""`
-	TencentRegion   string `json:"tencentRegion" example:"ap-guangzhou"`
-	TencentTextBiz  string `json:"tencentTextBiz" example:"text_zh"`
-	TencentImageBiz string `json:"tencentImageBiz" example:"image_zh"`
+	TencentSecretID string `json:"tencent_secret_id" example:""`
+	TencentRegion   string `json:"tencent_region" example:"ap-guangzhou"`
+	TencentTextBiz  string `json:"tencent_text_biz" example:"text_zh"`
+	TencentImageBiz string `json:"tencent_image_biz" example:"image_zh"`
 
 	// Aliyun 阿里云 green（凭据字段不下发，见类型注释）。
-	AliyunAccessKeyID string `json:"aliyunAccessKeyId" example:""`
-	AliyunRegion      string `json:"aliyunRegion" example:"cn-shanghai"`
+	AliyunAccessKeyID string `json:"aliyun_access_key_id" example:""`
+	AliyunRegion      string `json:"aliyun_region" example:"cn-shanghai"`
 }
 
 // AuditConfigReloadDto 重载审核配置的结果（POST /content-audit/config/reload）。
@@ -87,7 +87,7 @@ type AuditResultDto struct {
 	// Score 云服务商返回的风险分（0~100）；本地敏感词命中时为 0。
 	Score float64 `json:"score" example:"0"`
 	// DetailJSON 云服务商原始响应（jsonb 文本透传）；无则空串。
-	DetailJSON string `json:"detailJson" example:""`
+	DetailJSON string `json:"detail_json" example:""`
 }
 
 // PendingArticleItemDto 待人工复审的文章条目（GET /content-audit/pending-articles 的 list 元素）。
@@ -97,11 +97,11 @@ type AuditResultDto struct {
 type PendingArticleItemDto struct {
 	ID         string `json:"id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Title      string `json:"title" example:"我的第一篇画作"`
-	AuthorID   string `json:"authorId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CategoryID string `json:"categoryId" example:""`
+	AuthorID   string `json:"author_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CategoryID string `json:"category_id" example:""`
 	// Status 文章当前状态；本接口只返回 PENDING 的文章。
 	Status    string    `json:"status" enums:"PENDING" example:"PENDING"`
-	CreatedAt time.Time `json:"createdAt" example:"2026-11-25T10:00:00Z"`
+	CreatedAt time.Time `json:"created_at" example:"2026-11-25T10:00:00Z"`
 }
 
 // ReviewArticleRequest 人工复审请求体（POST /content-audit/articles/{id}/review）。
@@ -119,11 +119,11 @@ type ReviewArticleRequest struct {
 
 // AuditReviewResultDto 人工复审结果（POST /content-audit/articles/{id}/review 的 data）。
 type AuditReviewResultDto struct {
-	ArticleID  string `json:"articleId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ArticleID  string `json:"article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Result     string `json:"result" enums:"APPROVED,REJECTED" example:"APPROVED"`
 	Reason     string `json:"reason" example:"含违规内容"`
-	ReviewedBy string `json:"reviewedBy" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ReviewedAt string `json:"reviewedAt" format:"date-time" example:"2026-11-25T10:05:00Z"`
+	ReviewedBy string `json:"reviewed_by" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ReviewedAt string `json:"reviewed_at" format:"date-time" example:"2026-11-25T10:05:00Z"`
 }
 
 // AuditTextRequest 文本送审请求体（POST /content-audit/text，调试端点）。

@@ -11,11 +11,11 @@ type Collection struct {
 	Description *string `gorm:"type:text" json:"description"`
 	Avatar      *string `gorm:"type:text" json:"avatar"`
 	Cover       *string `gorm:"type:text" json:"cover"`
-	IsPublic    bool    `gorm:"not null;default:false" json:"isPublic"`
+	IsPublic    bool    `gorm:"not null;default:false" json:"is_public"`
 	Sort        int     `gorm:"not null;default:0" json:"sort"`
 
-	UserID    string `gorm:"type:varchar(36);not null;index:idx_collections_user" json:"userId"`
-	ItemCount int    `gorm:"not null;default:0" json:"itemCount"`
+	UserID    string `gorm:"type:varchar(36);not null;index:idx_collections_user" json:"user_id"`
+	ItemCount int    `gorm:"not null;default:0" json:"item_count"`
 	Views     int    `gorm:"not null;default:0" json:"views"`
 }
 
@@ -26,9 +26,9 @@ func (Collection) TableName() string { return "collections" }
 type CollectionItem struct {
 	BaseModel
 
-	CollectionID string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_collection_items_col_article,priority:1" json:"collectionId"`
-	ArticleID    string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_collection_items_col_article,priority:2" json:"articleId"`
-	UserID       string  `gorm:"type:varchar(36);not null" json:"userId"`
+	CollectionID string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_collection_items_col_article,priority:1" json:"collection_id"`
+	ArticleID    string  `gorm:"type:varchar(36);not null;uniqueIndex:uk_collection_items_col_article,priority:2" json:"article_id"`
+	UserID       string  `gorm:"type:varchar(36);not null" json:"user_id"`
 	Sort         int     `gorm:"not null;default:0" json:"sort"`
 	Note         *string `gorm:"type:text" json:"note"`
 }

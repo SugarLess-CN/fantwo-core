@@ -20,7 +20,7 @@ package dto
 type RoleBriefDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Name        string `json:"name" example:"user"`
-	DisplayName string `json:"displayName" example:"普通用户"`
+	DisplayName string `json:"display_name" example:"普通用户"`
 }
 
 // UserDto 用户对外视图（service.UserView，32 字段）。
@@ -43,31 +43,31 @@ type UserDto struct {
 	Gender       string `json:"gender" example:"FEMALE"`
 	Email        string `json:"email" example:"a***@example.com"`
 	Phone        string `json:"phone" example:"138****8000"`
-	MyInviteCode string `json:"myInviteCode" example:"AB12CD"`
+	MyInviteCode string `json:"my_invite_code" example:"AB12CD"`
 
 	// ---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----
-	BirthDate         *string `json:"birthDate,omitempty" format:"date-time" example:"1998-06-01T00:00:00Z"`
-	MembershipEndDate *string `json:"membershipEndDate,omitempty" format:"date-time"`
+	BirthDate         *string `json:"birth_date,omitempty" format:"date-time" example:"1998-06-01T00:00:00Z"`
+	MembershipEndDate *string `json:"membership_end_date,omitempty" format:"date-time"`
 
 	Status              string  `json:"status" example:"ACTIVE"`
-	ArticleCount        int     `json:"articleCount" example:"12"`
-	FollowerCount       int     `json:"followerCount" example:"128"`
-	FollowingCount      int     `json:"followingCount" example:"36"`
+	ArticleCount        int     `json:"article_count" example:"12"`
+	FollowerCount       int     `json:"follower_count" example:"128"`
+	FollowingCount      int     `json:"following_count" example:"36"`
 	Likes               int     `json:"likes" example:"512"`
 	Level               int     `json:"level" example:"5"`
 	Experience          int     `json:"experience" example:"430"`
 	Wallet              float64 `json:"wallet" example:"100.5"`
 	Points              int     `json:"points" example:"320"`
-	MembershipLevel     int     `json:"membershipLevel" example:"1"`
-	MembershipLevelName string  `json:"membershipLevelName" example:"普通用户"`
-	MembershipStatus    string  `json:"membershipStatus" example:"INACTIVE"`
-	InviteEarnings      float64 `json:"inviteEarnings" example:"0"`
-	InviteCount         int     `json:"inviteCount" example:"0"`
-	CreatedAt           string  `json:"createdAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	MembershipLevel     int     `json:"membership_level" example:"1"`
+	MembershipLevelName string  `json:"membership_level_name" example:"普通用户"`
+	MembershipStatus    string  `json:"membership_status" example:"INACTIVE"`
+	InviteEarnings      float64 `json:"invite_earnings" example:"0"`
+	InviteCount         int     `json:"invite_count" example:"0"`
+	CreatedAt           string  `json:"created_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 
 	// ---- 数组字段：去掉 omitempty，空时输出 []（不是省略、不是 null）----
 	Roles    []RoleBriefDto `json:"roles"`
-	IsMember bool           `json:"isMember" example:"false"`
+	IsMember bool           `json:"is_member" example:"false"`
 }
 
 // UserProfileDto 当前用户资料（GET /user/profile）。
@@ -82,18 +82,18 @@ type UserProfileDto struct {
 // CertificationDto 认证记录视图（service.certView，10 字段）。
 type CertificationDto struct {
 	ID     string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	UserID string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Type   string `json:"type" example:"CREATOR"`
 	Status string `json:"status" example:"APPROVED"`
 	// 字符串值类型：空时 ""（docs/21-JSON序列化规范.md）
-	RealName         string `json:"realName" example:"张三"`
-	OrganizationName string `json:"organizationName"`
+	RealName         string `json:"real_name" example:"张三"`
+	OrganizationName string `json:"organization_name"`
 	Description      string `json:"description" example:"签约摄影师"`
 	Slogan           string `json:"slogan" example:"官方认证 · 签约摄影师"`
-	ReviewReason     string `json:"reviewReason"`
+	ReviewReason     string `json:"review_reason"`
 	// 时间：空时不传
-	ReviewedAt *string `json:"reviewedAt,omitempty" format:"date-time"`
-	CreatedAt  string  `json:"createdAt" format:"date-time"`
+	ReviewedAt *string `json:"reviewed_at,omitempty" format:"date-time"`
+	CreatedAt  string  `json:"created_at" format:"date-time"`
 }
 
 // UserConfigDto 用户配置（GET /user/config，model.UserProfile 对外字段）。
@@ -101,32 +101,32 @@ type CertificationDto struct {
 // 表名是 user_config；含 4 项抽成费率 + 11 个通知开关 + 6 个隐藏开关 + 水印开关。
 type UserConfigDto struct {
 	ID                        string  `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt                 string  `json:"createdAt" format:"date-time"`
-	UpdatedAt                 string  `json:"updatedAt" format:"date-time"`
-	UserID                    string  `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ArticleCommissionRate     float64 `json:"articleCommissionRate" example:"10"`
-	MembershipCommissionRate  float64 `json:"membershipCommissionRate" example:"5"`
-	ProductCommissionRate     float64 `json:"productCommissionRate" example:"5"`
-	ServiceCommissionRate     float64 `json:"serviceCommissionRate" example:"5"`
-	EnableCustomCommission    bool    `json:"enableCustomCommission" example:"false"`
-	EnableSystemNotification  bool    `json:"enableSystemNotification" example:"true"`
-	EnableCommentNotification bool    `json:"enableCommentNotification" example:"true"`
-	EnableLikeNotification    bool    `json:"enableLikeNotification" example:"true"`
-	EnableFollowNotification  bool    `json:"enableFollowNotification" example:"true"`
-	EnableMessageNotification bool    `json:"enableMessageNotification" example:"true"`
-	EnableOrderNotification   bool    `json:"enableOrderNotification" example:"true"`
-	EnablePaymentNotification bool    `json:"enablePaymentNotification" example:"true"`
-	EnableInviteNotification  bool    `json:"enableInviteNotification" example:"true"`
-	EnableEmailNotification   bool    `json:"enableEmailNotification" example:"true"`
-	EnableSmsNotification     bool    `json:"enableSmsNotification" example:"true"`
-	EnablePushNotification    bool    `json:"enablePushNotification" example:"true"`
-	HideFavorites             bool    `json:"hideFavorites" example:"false"`
-	HideComments              bool    `json:"hideComments" example:"false"`
-	HideCollections           bool    `json:"hideCollections" example:"false"`
-	HideFollowers             bool    `json:"hideFollowers" example:"false"`
-	HideFollowings            bool    `json:"hideFollowings" example:"false"`
-	HideTags                  bool    `json:"hideTags" example:"false"`
-	WatermarkEnabled          bool    `json:"watermarkEnabled" example:"false"`
+	CreatedAt                 string  `json:"created_at" format:"date-time"`
+	UpdatedAt                 string  `json:"updated_at" format:"date-time"`
+	UserID                    string  `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ArticleCommissionRate     float64 `json:"article_commission_rate" example:"10"`
+	MembershipCommissionRate  float64 `json:"membership_commission_rate" example:"5"`
+	ProductCommissionRate     float64 `json:"product_commission_rate" example:"5"`
+	ServiceCommissionRate     float64 `json:"service_commission_rate" example:"5"`
+	EnableCustomCommission    bool    `json:"enable_custom_commission" example:"false"`
+	EnableSystemNotification  bool    `json:"enable_system_notification" example:"true"`
+	EnableCommentNotification bool    `json:"enable_comment_notification" example:"true"`
+	EnableLikeNotification    bool    `json:"enable_like_notification" example:"true"`
+	EnableFollowNotification  bool    `json:"enable_follow_notification" example:"true"`
+	EnableMessageNotification bool    `json:"enable_message_notification" example:"true"`
+	EnableOrderNotification   bool    `json:"enable_order_notification" example:"true"`
+	EnablePaymentNotification bool    `json:"enable_payment_notification" example:"true"`
+	EnableInviteNotification  bool    `json:"enable_invite_notification" example:"true"`
+	EnableEmailNotification   bool    `json:"enable_email_notification" example:"true"`
+	EnableSmsNotification     bool    `json:"enable_sms_notification" example:"true"`
+	EnablePushNotification    bool    `json:"enable_push_notification" example:"true"`
+	HideFavorites             bool    `json:"hide_favorites" example:"false"`
+	HideComments              bool    `json:"hide_comments" example:"false"`
+	HideCollections           bool    `json:"hide_collections" example:"false"`
+	HideFollowers             bool    `json:"hide_followers" example:"false"`
+	HideFollowings            bool    `json:"hide_followings" example:"false"`
+	HideTags                  bool    `json:"hide_tags" example:"false"`
+	WatermarkEnabled          bool    `json:"watermark_enabled" example:"false"`
 	Remark                    string  `json:"remark"`
 }
 
@@ -151,7 +151,7 @@ type RegisterRequest struct {
 
 // RefreshTokenRequest 刷新 access token 请求体（另需 Device-Id 头）。
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
 // LoginResultDto 登录成功的 data。
@@ -175,7 +175,7 @@ type LoginResultDto struct {
 	UserDto
 
 	Token        string `json:"token" example:"eyJhbGciOiJIUzI1NiIs..."`
-	RefreshToken string `json:"refreshToken" example:"eyJhbGciOiJIUzI1NiIs..."`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIs..."`
 
 	// ID 与内嵌 UserDto.ID 同值，为兼容前端历史习惯额外保留一份顶层副本。
 	//
@@ -211,13 +211,13 @@ type EmailCodeRequest struct {
 type ResetPasswordRequest struct {
 	Email       string `json:"email" binding:"required" example:"alice@example.com"`
 	Code        string `json:"code" binding:"required" example:"123456"`
-	NewPassword string `json:"newPassword" binding:"required" example:"newpass123"`
+	NewPassword string `json:"new_password" binding:"required" example:"newpass123"`
 }
 
 // ChangePasswordRequest 修改密码请求体（原密码校验）。
 type ChangePasswordRequest struct {
-	OldPassword string `json:"oldPassword" binding:"required" example:"oldpass123"`
-	NewPassword string `json:"newPassword" binding:"required" example:"newpass123"`
+	OldPassword string `json:"old_password" binding:"required" example:"oldpass123"`
+	NewPassword string `json:"new_password" binding:"required" example:"newpass123"`
 }
 
 // BindPhoneCodeRequest 发送绑定手机验证码请求体。
@@ -258,8 +258,8 @@ type OAuthCodeRequest struct {
 
 // QqAppLoginRequest QQ app 登录请求体（交 accessToken + openId，或直接交 payload）。
 type QqAppLoginRequest struct {
-	AccessToken string `json:"accessToken"`
-	OpenID      string `json:"openId"`
+	AccessToken string `json:"access_token"`
+	OpenID      string `json:"open_id"`
 	Payload     string `json:"payload"`
 }
 
@@ -271,8 +271,8 @@ type OAuthLinkRequest struct {
 	Channel     string `json:"channel" binding:"required" example:"web"`
 	Code        string `json:"code"`
 	State       string `json:"state"`
-	AccessToken string `json:"accessToken"`
-	OpenID      string `json:"openId"`
+	AccessToken string `json:"access_token"`
+	OpenID      string `json:"open_id"`
 }
 
 // OAuthURLDto 取授权链接的 data（url + state）。
@@ -286,8 +286,8 @@ type OAuthBindingDto struct {
 	Provider  string `json:"provider" example:"wechat"`
 	Channel   string `json:"channel" example:"web"`
 	Nickname  string `json:"nickname" example:"微信昵称"`
-	AvatarURL string `json:"avatarUrl" example:"https://thirdwx.qlogo.cn/..."`
-	BoundAt   string `json:"boundAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	AvatarURL string `json:"avatar_url" example:"https://thirdwx.qlogo.cn/..."`
+	BoundAt   string `json:"bound_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 }
 
 // OAuthBindingListDto 我的绑定列表（空列表是 [] 不是 null）。
@@ -307,52 +307,52 @@ type UpdateProfileRequest struct {
 	Background  *string `json:"background"`
 	Address     *string `json:"address"`
 	Gender      *string `json:"gender" example:"MALE"`
-	BirthDate   *string `json:"birthDate" format:"date-time"`
+	BirthDate   *string `json:"birth_date" format:"date-time"`
 	Email       *string `json:"email"`
 	Phone       *string `json:"phone"`
 }
 
 // UpdateUserConfigRequest 更新抽成配置（service.UpdateConfigInput，5 指针字段）。
 type UpdateUserConfigRequest struct {
-	ArticleCommissionRate    *float64 `json:"articleCommissionRate"`
-	MembershipCommissionRate *float64 `json:"membershipCommissionRate"`
-	ProductCommissionRate    *float64 `json:"productCommissionRate"`
-	ServiceCommissionRate    *float64 `json:"serviceCommissionRate"`
-	EnableCustomCommission   *bool    `json:"enableCustomCommission"`
+	ArticleCommissionRate    *float64 `json:"article_commission_rate"`
+	MembershipCommissionRate *float64 `json:"membership_commission_rate"`
+	ProductCommissionRate    *float64 `json:"product_commission_rate"`
+	ServiceCommissionRate    *float64 `json:"service_commission_rate"`
+	EnableCustomCommission   *bool    `json:"enable_custom_commission"`
 }
 
 // UpdateNotificationRequest 更新通知偏好（service.NotificationInput，11 指针字段）。
 type UpdateNotificationRequest struct {
-	EnableSystemNotification  *bool `json:"enableSystemNotification"`
-	EnableCommentNotification *bool `json:"enableCommentNotification"`
-	EnableLikeNotification    *bool `json:"enableLikeNotification"`
-	EnableFollowNotification  *bool `json:"enableFollowNotification"`
-	EnableMessageNotification *bool `json:"enableMessageNotification"`
-	EnableOrderNotification   *bool `json:"enableOrderNotification"`
-	EnablePaymentNotification *bool `json:"enablePaymentNotification"`
-	EnableInviteNotification  *bool `json:"enableInviteNotification"`
-	EnableEmailNotification   *bool `json:"enableEmailNotification"`
-	EnableSmsNotification     *bool `json:"enableSmsNotification"`
-	EnablePushNotification    *bool `json:"enablePushNotification"`
+	EnableSystemNotification  *bool `json:"enable_system_notification"`
+	EnableCommentNotification *bool `json:"enable_comment_notification"`
+	EnableLikeNotification    *bool `json:"enable_like_notification"`
+	EnableFollowNotification  *bool `json:"enable_follow_notification"`
+	EnableMessageNotification *bool `json:"enable_message_notification"`
+	EnableOrderNotification   *bool `json:"enable_order_notification"`
+	EnablePaymentNotification *bool `json:"enable_payment_notification"`
+	EnableInviteNotification  *bool `json:"enable_invite_notification"`
+	EnableEmailNotification   *bool `json:"enable_email_notification"`
+	EnableSmsNotification     *bool `json:"enable_sms_notification"`
+	EnablePushNotification    *bool `json:"enable_push_notification"`
 }
 
 // SetCommissionRequest 设置抽成配置（service.SetCommissionInput，6 字段）。
 type SetCommissionRequest struct {
-	ArticleCommissionRate    float64 `json:"articleCommissionRate" example:"10"`
-	MembershipCommissionRate float64 `json:"membershipCommissionRate" example:"5"`
-	ProductCommissionRate    float64 `json:"productCommissionRate" example:"5"`
-	ServiceCommissionRate    float64 `json:"serviceCommissionRate" example:"5"`
-	EnableCustomCommission   bool    `json:"enableCustomCommission" example:"false"`
+	ArticleCommissionRate    float64 `json:"article_commission_rate" example:"10"`
+	MembershipCommissionRate float64 `json:"membership_commission_rate" example:"5"`
+	ProductCommissionRate    float64 `json:"product_commission_rate" example:"5"`
+	ServiceCommissionRate    float64 `json:"service_commission_rate" example:"5"`
+	EnableCustomCommission   bool    `json:"enable_custom_commission" example:"false"`
 	Remark                   string  `json:"remark"`
 }
 
 // CommissionConfigDto 抽成配置（CommissionConfig 的 data，5 字段）。
 type CommissionConfigDto struct {
-	ArticleCommissionRate    float64 `json:"articleCommissionRate" example:"10"`
-	MembershipCommissionRate float64 `json:"membershipCommissionRate" example:"5"`
-	ProductCommissionRate    float64 `json:"productCommissionRate" example:"5"`
-	ServiceCommissionRate    float64 `json:"serviceCommissionRate" example:"5"`
-	EnableCustomCommission   bool    `json:"enableCustomCommission" example:"false"`
+	ArticleCommissionRate    float64 `json:"article_commission_rate" example:"10"`
+	MembershipCommissionRate float64 `json:"membership_commission_rate" example:"5"`
+	ProductCommissionRate    float64 `json:"product_commission_rate" example:"5"`
+	ServiceCommissionRate    float64 `json:"service_commission_rate" example:"5"`
+	EnableCustomCommission   bool    `json:"enable_custom_commission" example:"false"`
 }
 
 // CalculateCommissionRequest 抽成试算请求体（handler 内匿名 struct）。
@@ -381,9 +381,9 @@ type CreateUserRequest struct {
 	Password   string   `json:"password" binding:"required" example:"123456"`
 	Email      string   `json:"email" example:"alice@example.com"`
 	Phone      string   `json:"phone" example:"13800138000"`
-	RoleIDs    []string `json:"roleIds"`
+	RoleIDs    []string `json:"role_ids"`
 	Wallet     float64  `json:"wallet" example:"0"`
-	InviteCode string   `json:"inviteCode"`
+	InviteCode string   `json:"invite_code"`
 }
 
 // UpdateUserRequest 管理员更新用户（service.UpdateUserInput，9 字段）。
@@ -394,15 +394,15 @@ type UpdateUserRequest struct {
 	Background  *string  `json:"background"`
 	Address     *string  `json:"address"`
 	Gender      *string  `json:"gender"`
-	RoleIDs     []string `json:"roleIds"`
+	RoleIDs     []string `json:"role_ids"`
 	Wallet      *float64 `json:"wallet"`
 	Status      *string  `json:"status" example:"ACTIVE"`
 }
 
 // MembershipCheckDto 会员状态检查（2 字段）。
 type MembershipCheckDto struct {
-	UserID   string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	IsMember bool   `json:"isMember" example:"true"`
+	UserID   string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	IsMember bool   `json:"is_member" example:"true"`
 }
 
 // BatchMembershipCheckDto 批量会员状态检查结果。
@@ -432,8 +432,8 @@ type FollowCountDto struct {
 
 // FollowStatsDto 粉丝与关注双向计数。
 type FollowStatsDto struct {
-	FollowerCount  int64 `json:"followerCount" example:"128"`
-	FollowingCount int64 `json:"followingCount" example:"36"`
+	FollowerCount  int64 `json:"follower_count" example:"128"`
+	FollowingCount int64 `json:"following_count" example:"36"`
 }
 
 // ---------------------------------------------------------------------------
@@ -444,26 +444,26 @@ type FollowStatsDto struct {
 type SignInResultDto struct {
 	Signed          bool   `json:"signed" example:"true"`
 	Already         bool   `json:"already" example:"false"`
-	ConsecutiveDays int    `json:"consecutiveDays" example:"8"`
-	SignInDate      string `json:"signInDate" example:"2026-11-25"`
-	PointsGranted   int    `json:"pointsGranted" example:"10"`
+	ConsecutiveDays int    `json:"consecutive_days" example:"8"`
+	SignInDate      string `json:"sign_in_date" example:"2026-11-25"`
+	PointsGranted   int    `json:"points_granted" example:"10"`
 	Level           int    `json:"level" example:"5"`
-	LeveledUp       bool   `json:"leveledUp" example:"false"`
+	LeveledUp       bool   `json:"leveled_up" example:"false"`
 }
 
 // SignInRecordDto 签到记录项（service.SignRecords，3 字段）。
 type SignInRecordDto struct {
-	SignInDate      string `json:"signInDate" example:"2026-11-25"`
-	ConsecutiveDays int    `json:"consecutiveDays" example:"8"`
-	IsAuto          bool   `json:"isAuto" example:"false"`
+	SignInDate      string `json:"sign_in_date" example:"2026-11-25"`
+	ConsecutiveDays int    `json:"consecutive_days" example:"8"`
+	IsAuto          bool   `json:"is_auto" example:"false"`
 }
 
 // SignInStatsDto 签到统计（4 字段；lastSignInDate 在从未签到时省略）。
 type SignInStatsDto struct {
-	TotalDays       int64  `json:"totalDays" example:"32"`
-	ConsecutiveDays int    `json:"consecutiveDays" example:"8"`
-	SignedToday     bool   `json:"signedToday" example:"true"`
-	LastSignInDate  string `json:"lastSignInDate,omitempty" example:"2026-11-25"`
+	TotalDays       int64  `json:"total_days" example:"32"`
+	ConsecutiveDays int    `json:"consecutive_days" example:"8"`
+	SignedToday     bool   `json:"signed_today" example:"true"`
+	LastSignInDate  string `json:"last_sign_in_date,omitempty" example:"2026-11-25"`
 }
 
 // ---------------------------------------------------------------------------
@@ -478,15 +478,15 @@ type WalletBalanceDto struct {
 // WalletTransactionDto 钱包流水（model.WalletTransaction + BaseModel 对外字段）。
 type WalletTransactionDto struct {
 	ID            string  `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CreatedAt     string  `json:"createdAt" format:"date-time"`
-	UpdatedAt     string  `json:"updatedAt" format:"date-time"`
-	UserID        string  `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	CreatedAt     string  `json:"created_at" format:"date-time"`
+	UpdatedAt     string  `json:"updated_at" format:"date-time"`
+	UserID        string  `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Type          string  `json:"type" example:"RECHARGE"`
 	Amount        float64 `json:"amount" example:"100"`
-	BalanceBefore float64 `json:"balanceBefore" example:"0.5"`
-	BalanceAfter  float64 `json:"balanceAfter" example:"100.5"`
-	OrderID       *string `json:"orderId"`
-	PaymentID     *string `json:"paymentId"`
+	BalanceBefore float64 `json:"balance_before" example:"0.5"`
+	BalanceAfter  float64 `json:"balance_after" example:"100.5"`
+	OrderID       *string `json:"order_id"`
+	PaymentID     *string `json:"payment_id"`
 	Description   *string `json:"description" example:"Wallet recharge"`
 	Remark        string  `json:"remark"`
 }
@@ -499,14 +499,14 @@ type WalletTxSummaryDto struct {
 
 // WalletStatisticsDto 钱包收支统计（byType + balance）。
 type WalletStatisticsDto struct {
-	ByType  map[string]WalletTxSummaryDto `json:"byType"`
+	ByType  map[string]WalletTxSummaryDto `json:"by_type"`
 	Balance float64                       `json:"balance" example:"100.5"`
 }
 
 // WithdrawRequest 提现请求体（service.WithdrawInput）。
 type WithdrawRequest struct {
 	Amount   float64                `json:"amount" binding:"required" example:"50"`
-	BankInfo map[string]interface{} `json:"bankInfo"`
+	BankInfo map[string]interface{} `json:"bank_info"`
 }
 
 // WithdrawResultDto 提现结果（3 字段）。
@@ -530,17 +530,17 @@ type RequestDeletionRequest struct {
 // 不是字符串。改前这里写成 string，导致 service 无法直接赋值，是 dto 定义与真实契约不符。
 type DeletionRequestResultDto struct {
 	Status          int    `json:"status" example:"1"`
-	ScheduledAt     string `json:"scheduledAt" format:"date-time"`
-	CoolingDays     int    `json:"coolingDays" example:"7"`
-	DeletionPending bool   `json:"deletionPending" example:"true"`
+	ScheduledAt     string `json:"scheduled_at" format:"date-time"`
+	CoolingDays     int    `json:"cooling_days" example:"7"`
+	DeletionPending bool   `json:"deletion_pending" example:"true"`
 }
 
 // DeletionStatusDto 注销状态（reason 仅在有待注销记录且填写过时出现）。
 // Status 是 int 枚举（0=无 1=待注销 2=已撤销），与 model.DeletionStatus* 同源。
 type DeletionStatusDto struct {
 	Status          int    `json:"status" example:"0"`
-	DeletionPending bool   `json:"deletionPending" example:"false"`
-	ScheduledAt     string `json:"scheduledAt,omitempty" format:"date-time"`
+	DeletionPending bool   `json:"deletion_pending" example:"false"`
+	ScheduledAt     string `json:"scheduled_at,omitempty" format:"date-time"`
 	Reason          string `json:"reason,omitempty"`
 }
 
@@ -553,8 +553,8 @@ type DeletionStatusDto struct {
 // 字段与 Apifox 的 ApplyCertificationDto 一致（交叉校验过）；只有 type 必填。
 type ApplyCertificationRequest struct {
 	Type             string   `json:"type" binding:"required" example:"CREATOR"`
-	RealName         string   `json:"realName"`
-	OrganizationName string   `json:"organizationName"`
+	RealName         string   `json:"real_name"`
+	OrganizationName string   `json:"organization_name"`
 	Description      string   `json:"description"`
 	Slogan           string   `json:"slogan" example:"官方认证 · 签约摄影师"`
 	Materials        []string `json:"materials"`
@@ -573,10 +573,10 @@ type RevokeCertificationRequest struct {
 
 // IdentityDto 用户身份标识（6 字段；type/slogan 仅在有已通过认证时出现）。
 type IdentityDto struct {
-	UserID     string `json:"userId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	UserID     string `json:"user_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Identity   string `json:"identity" example:"creator"`
-	IsOfficial bool   `json:"isOfficial" example:"false"`
-	IsCreator  bool   `json:"isCreator" example:"true"`
+	IsOfficial bool   `json:"is_official" example:"false"`
+	IsCreator  bool   `json:"is_creator" example:"true"`
 	Type       string `json:"type,omitempty" example:"CREATOR"`
 	Slogan     string `json:"slogan,omitempty" example:"官方认证 · 签约摄影师"`
 }
@@ -587,18 +587,18 @@ type IdentityDto struct {
 
 // FavoriteItemDto 收藏项（service.FavoriteItem，6 字段）。
 type FavoriteItemDto struct {
-	ArticleID string `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ArticleID string `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Title     string `json:"title" example:"我的第一篇作品"`
 	// 字符串值类型：空时 ""（docs/21）；指针会让空值输出 null。
 	Cover       string `json:"cover" example:"https://cdn.example.com/c.png"`
 	Summary     string `json:"summary"`
-	AuthorID    string `json:"authorId"`
-	FavoritedAt string `json:"favoritedAt" format:"date-time"`
+	AuthorID    string `json:"author_id"`
+	FavoritedAt string `json:"favorited_at" format:"date-time"`
 }
 
 // FavoriteDetailDto 收藏详情（3 字段；未收藏时 article 省略）。
 type FavoriteDetailDto struct {
 	Favorited   bool             `json:"favorited" example:"true"`
-	FavoritedAt string           `json:"favoritedAt,omitempty" format:"date-time"`
+	FavoritedAt string           `json:"favorited_at,omitempty" format:"date-time"`
 	Article     *FavoriteItemDto `json:"article,omitempty"`
 }

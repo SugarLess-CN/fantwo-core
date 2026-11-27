@@ -27,7 +27,7 @@ type MessageUserBriefDto struct {
 	Username  string `json:"username" example:"xiaoming"`
 	Nickname  string `json:"nickname" example:"小明"`
 	Avatar    string `json:"avatar" example:"https://cdn.example.com/a.png"`
-	IsBlocked bool   `json:"isBlocked" example:"false"`
+	IsBlocked bool   `json:"is_blocked" example:"false"`
 }
 
 // CursorMetaDto 游标分页元信息（service.CursorMeta）。
@@ -37,8 +37,8 @@ type MessageUserBriefDto struct {
 // （最后一页没有下一页，前端用 hasMore 判断，不需要 null 三态）。
 type CursorMetaDto struct {
 	Limit      int    `json:"limit" example:"20"`
-	HasMore    bool   `json:"hasMore" example:"true"`
-	NextCursor string `json:"nextCursor" example:"eyJ0aW1lIjoiMjAyNi0xMS0yNVQxMDowMDowMFoiLCJpZCI6ImFiYyJ9"`
+	HasMore    bool   `json:"has_more" example:"true"`
+	NextCursor string `json:"next_cursor" example:"eyJ0aW1lIjoiMjAyNi0xMS0yNVQxMDowMDowMFoiLCJpZCI6ImFiYyJ9"`
 }
 
 // ---------------------------------------------------------------------------
@@ -54,15 +54,15 @@ type CursorMetaDto struct {
 // 省略会让前端无法区分「字段不存在」与「未读」。
 type MessageDto struct {
 	ID         string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	SenderID   string `json:"senderId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
-	ReceiverID string `json:"receiverId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	SenderID   string `json:"sender_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReceiverID string `json:"receiver_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
 	Content    string `json:"content" example:"你关注的作者发布了新作品"`
 	Title      string `json:"title" example:"系统通知"`
 	Type       string `json:"type" example:"notification" enums:"private,system,notification"`
 
 	// 布尔：false 有意义，不加 omitempty
-	IsRead      bool `json:"isRead" example:"false"`
-	IsBroadcast bool `json:"isBroadcast" example:"false"`
+	IsRead      bool `json:"is_read" example:"false"`
+	IsBroadcast bool `json:"is_broadcast" example:"false"`
 
 	// metadata 是运行时不定的业务结构（jsonb 列），保留 map 原类型，空时整个不传
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
@@ -73,14 +73,14 @@ type MessageDto struct {
 	// 透传载荷：运行时不定的业务结构，保留 map / interface{} 原类型，空时整个不传。
 	// 注意：interface{} 字段**不能带 example**，swag 会报
 	// "any is unsupported type in example value"（实测踩到）。
-	ArticleID        interface{} `json:"articleId,omitempty"`
-	CommentID        interface{} `json:"commentId,omitempty"`
-	TargetID         interface{} `json:"targetId,omitempty"`
-	TargetType       interface{} `json:"targetType,omitempty"`
-	NotificationType interface{} `json:"notificationType,omitempty"`
+	ArticleID        interface{} `json:"article_id,omitempty"`
+	CommentID        interface{} `json:"comment_id,omitempty"`
+	TargetID         interface{} `json:"target_id,omitempty"`
+	TargetType       interface{} `json:"target_type,omitempty"`
+	NotificationType interface{} `json:"notification_type,omitempty"`
 
-	CreatedAt time.Time `json:"createdAt" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt time.Time `json:"updatedAt" example:"2026-11-25T10:00:00Z"`
+	CreatedAt time.Time `json:"created_at" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt time.Time `json:"updated_at" example:"2026-11-25T10:00:00Z"`
 }
 
 // MessageCreateResultDto 创建 / 全部已读 / 批量操作的 data（service.MessageCreateResult）。
@@ -117,31 +117,31 @@ type UnreadCountDto struct {
 // 前端用 isRead / isRecalled 布尔判断，不靠 null。
 type PrivateMessageDto struct {
 	ID             string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ConversationID string `json:"conversationId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
-	SenderID       string `json:"senderId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
-	ReceiverID     string `json:"receiverId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
-	MessageKind    string `json:"messageKind" example:"text" enums:"text,image,file,card"`
+	ConversationID string `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	SenderID       string `json:"sender_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReceiverID     string `json:"receiver_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	MessageKind    string `json:"message_kind" example:"text" enums:"text,image,file,card"`
 	Content        string `json:"content" example:"在吗"`
 
 	// 透传载荷：保留 map 原类型，空时整个不传
 	Payload map[string]interface{} `json:"payload,omitempty"`
 
 	// 时间 / 可选字符串：空时整个不传（未读、未撤回没有自然的空表示）
-	ReadAt       *time.Time `json:"readAt,omitempty" example:"2026-11-25T10:00:00Z"`
-	RecalledAt   *time.Time `json:"recalledAt,omitempty" example:"2026-11-25T10:05:00Z"`
-	RecalledByID string     `json:"recalledById,omitempty"`
-	RecallReason string     `json:"recallReason,omitempty"`
+	ReadAt       *time.Time `json:"read_at,omitempty" example:"2026-11-25T10:00:00Z"`
+	RecalledAt   *time.Time `json:"recalled_at,omitempty" example:"2026-11-25T10:05:00Z"`
+	RecalledByID string     `json:"recalled_by_id,omitempty"`
+	RecallReason string     `json:"recall_reason,omitempty"`
 
 	// 派生字段：isRead / isRecalled 为 false 也是有效语义，不加 omitempty
 	Type       string `json:"type" example:"private"`
-	IsRead     bool   `json:"isRead" example:"false"`
-	IsRecalled bool   `json:"isRecalled" example:"false"`
+	IsRead     bool   `json:"is_read" example:"false"`
+	IsRecalled bool   `json:"is_recalled" example:"false"`
 
 	Sender   *MessageUserBriefDto `json:"sender,omitempty"`
 	Receiver *MessageUserBriefDto `json:"receiver,omitempty"`
 
-	CreatedAt time.Time `json:"createdAt" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt time.Time `json:"updatedAt" example:"2026-11-25T10:00:00Z"`
+	CreatedAt time.Time `json:"created_at" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt time.Time `json:"updated_at" example:"2026-11-25T10:00:00Z"`
 }
 
 // ConversationDto 私信会话列表项（service.ConversationVO）。
@@ -149,11 +149,11 @@ type PrivateMessageDto struct {
 // counterpart / latestMessage 为指针 + omitempty：对方注销或会话无消息时整个字段不传。
 // lastMessageAt 是时间，空时不传。
 type ConversationDto struct {
-	ConversationID string               `json:"conversationId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	ConversationID string               `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
 	Counterpart    *MessageUserBriefDto `json:"counterpart,omitempty"`
-	LatestMessage  *PrivateMessageDto   `json:"latestMessage,omitempty"`
-	UnreadCount    int64                `json:"unreadCount" example:"2"`
-	LastMessageAt  *time.Time           `json:"lastMessageAt,omitempty" example:"2026-11-25T10:00:00Z"`
+	LatestMessage  *PrivateMessageDto   `json:"latest_message,omitempty"`
+	UnreadCount    int64                `json:"unread_count" example:"2"`
+	LastMessageAt  *time.Time           `json:"last_message_at,omitempty" example:"2026-11-25T10:00:00Z"`
 }
 
 // ConversationListDto 会话列表 data（service.ConversationListVO）。
@@ -175,21 +175,21 @@ type PrivateHistoryDto struct {
 //
 // messageIds 空时必须是 []（service 用 make 初始化），readAt 空时不传。
 type ReadResultDto struct {
-	ConversationID string     `json:"conversationId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
-	CounterpartID  string     `json:"counterpartId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
-	MessageIDs     []string   `json:"messageIds"`
-	ReadAt         *time.Time `json:"readAt,omitempty" example:"2026-11-25T10:00:00Z"`
+	ConversationID string     `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	CounterpartID  string     `json:"counterpart_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	MessageIDs     []string   `json:"message_ids"`
+	ReadAt         *time.Time `json:"read_at,omitempty" example:"2026-11-25T10:00:00Z"`
 }
 
 // ReadReceiptDto 单条已读回执（service.ReadReceiptVO，WS 载荷与批量已读结果共用）。
 //
 // readAt 是 RFC3339 字符串（回执是瞬时事件，一定有值），因此用值类型。
 type ReadReceiptDto struct {
-	ConversationID string   `json:"conversationId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
-	SenderID       string   `json:"senderId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
-	ReceiverID     string   `json:"receiverId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
-	MessageIDs     []string `json:"messageIds"`
-	ReadAt         string   `json:"readAt" format:"date-time" example:"2026-11-25T10:00:00Z"`
+	ConversationID string   `json:"conversation_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	SenderID       string   `json:"sender_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReceiverID     string   `json:"receiver_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	MessageIDs     []string `json:"message_ids"`
+	ReadAt         string   `json:"read_at" format:"date-time" example:"2026-11-25T10:00:00Z"`
 }
 
 // MarkMessagesReadResultDto 批量私信已读结果（POST /message/private/read-batch）。
@@ -197,8 +197,8 @@ type ReadReceiptDto struct {
 // 取代原先手写的 map[string]interface{}（字段是 snake_case 的 message_ids/read_at，
 // 与全站 camelCase 口径不符）；改为具名结构后同时进入 swagger。
 type MarkMessagesReadResultDto struct {
-	MessageIDs []string         `json:"messageIds"`
-	ReadAt     *time.Time       `json:"readAt,omitempty" example:"2026-11-25T10:00:00Z"`
+	MessageIDs []string         `json:"message_ids"`
+	ReadAt     *time.Time       `json:"read_at,omitempty" example:"2026-11-25T10:00:00Z"`
 	Receipts   []ReadReceiptDto `json:"receipts"`
 }
 
@@ -212,8 +212,8 @@ type MarkMessagesReadResultDto struct {
 type BlockedUserDto struct {
 	ID          string               `json:"id" example:"3c4d5e6f-0000-4a71-8cbd-000000000003"`
 	Reason      string               `json:"reason" example:"骚扰"`
-	CreatedAt   time.Time            `json:"createdAt" example:"2026-11-25T10:00:00Z"`
-	BlockedUser *MessageUserBriefDto `json:"blockedUser,omitempty"`
+	CreatedAt   time.Time            `json:"created_at" example:"2026-11-25T10:00:00Z"`
+	BlockedUser *MessageUserBriefDto `json:"blocked_user,omitempty"`
 }
 
 // BlockedUserListDto 拉黑列表 data（service 原返回 map{"data": [...]} 的具名形态）。
@@ -226,7 +226,7 @@ type BlockedUserListDto struct {
 // 取代原先手写的 map（blocked_user_id 是 snake_case，与全站 camelCase 不符）。
 type BlockResultDto struct {
 	Success       bool   `json:"success" example:"true"`
-	BlockedUserID string `json:"blockedUserId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	BlockedUserID string `json:"blocked_user_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
 }
 
 // ---------------------------------------------------------------------------
@@ -242,13 +242,13 @@ type BlockResultDto struct {
 // 三种投递方式按 isBroadcast → receiverIds → receiverId 的优先级判定：
 // 广播时 receiver_id 置空；部分发送按 receiverIds 展开成多行。
 type CreateMessageRequest struct {
-	SenderID    string                 `json:"senderId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
-	ReceiverID  string                 `json:"receiverId" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
-	ReceiverIDs []string               `json:"receiverIds"`
+	SenderID    string                 `json:"sender_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReceiverID  string                 `json:"receiver_id" example:"1a2b3c4d-5678-4abc-9def-0123456789ab"`
+	ReceiverIDs []string               `json:"receiver_ids"`
 	Content     string                 `json:"content" example:"你关注的作者发布了新作品"`
 	Title       string                 `json:"title" example:"系统通知"`
 	Type        string                 `json:"type" binding:"omitempty,oneof=private system notification" example:"notification"`
-	IsBroadcast bool                   `json:"isBroadcast" example:"false"`
+	IsBroadcast bool                   `json:"is_broadcast" example:"false"`
 	Metadata    map[string]interface{} `json:"metadata"`
 }
 
@@ -257,20 +257,20 @@ type UpdateMessageRequest struct {
 	Content     *string                 `json:"content" example:"改后的正文"`
 	Title       *string                 `json:"title" example:"改后的标题"`
 	Type        *string                 `json:"type" binding:"omitempty,oneof=private system notification"`
-	IsRead      *bool                   `json:"isRead"`
-	IsBroadcast *bool                   `json:"isBroadcast"`
+	IsRead      *bool                   `json:"is_read"`
+	IsBroadcast *bool                   `json:"is_broadcast"`
 	Metadata    *map[string]interface{} `json:"metadata"`
 }
 
 // MarkAllReadRequest 全部已读（service.MarkAllReadInput；body 可空）。
 type MarkAllReadRequest struct {
 	Type        string `json:"type" example:"notification"`
-	IsBroadcast bool   `json:"isBroadcast" example:"false"`
+	IsBroadcast bool   `json:"is_broadcast" example:"false"`
 }
 
 // BatchMessageRequest 批量已读 / 删除（service.BatchMessageInput）。
 type BatchMessageRequest struct {
-	MessageIDs []string `json:"messageIds" binding:"required"`
+	MessageIDs []string `json:"message_ids" binding:"required"`
 	Action     string   `json:"action" binding:"required" enums:"read,delete" example:"read"`
 }
 
@@ -279,13 +279,13 @@ type BatchMessageRequest struct {
 // payload 保留 map 原类型（卡片 / 图片消息的不定业务结构）。
 type SendPrivateRequest struct {
 	Content     string                 `json:"content" example:"在吗"`
-	MessageKind string                 `json:"messageKind" binding:"omitempty,oneof=text image file card" example:"text"`
+	MessageKind string                 `json:"message_kind" binding:"omitempty,oneof=text image file card" example:"text"`
 	Payload     map[string]interface{} `json:"payload"`
 }
 
 // PrivateReadBatchRequest 批量私信已读（handler 内匿名 struct 的具名形态）。
 type PrivateReadBatchRequest struct {
-	MessageIDs []string `json:"messageIds"`
+	MessageIDs []string `json:"message_ids"`
 }
 
 // RecallPrivateRequest 撤回私信（body 可空，reason 可选）。

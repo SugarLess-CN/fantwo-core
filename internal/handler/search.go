@@ -65,7 +65,7 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 		return
 	}
 	var body struct {
-		BatchSize int    `json:"batchSize"`
+		BatchSize int    `json:"batch_size"`
 		Status    string `json:"status"`
 	}
 	// body 可缺省（全量同步默认参数），解析失败不报错
@@ -77,10 +77,10 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{
-		"success":     true,
-		"message":     i18n.Tf(i18n.SearchSynced, total),
-		"data":        gin.H{"totalSynced": total},
-		"totalSynced": total,
+		"success":      true,
+		"message":      i18n.Tf(i18n.SearchSynced, total),
+		"data":         gin.H{"total_synced": total},
+		"total_synced": total,
 	})
 }
 

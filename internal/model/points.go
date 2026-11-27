@@ -31,11 +31,11 @@ const (
 // 并发安全：所有变动都在事务内先对该行加行锁，或走带条件的原子 UPDATE。
 type PointsAccount struct {
 	BaseModel
-	UserID  string `gorm:"type:varchar(36);uniqueIndex;comment:用户ID（一人一账户）" json:"userId"`
+	UserID  string `gorm:"type:varchar(36);uniqueIndex;comment:用户ID（一人一账户）" json:"user_id"`
 	Balance int    `gorm:"not null;default:0;comment:当前积分余额" json:"balance"`
 	// TotalEarned / TotalSpent 累计口径，统计接口直接读，免去全表 SUM。
-	TotalEarned int64 `gorm:"not null;default:0;comment:累计获取" json:"totalEarned"`
-	TotalSpent  int64 `gorm:"not null;default:0;comment:累计消费" json:"totalSpent"`
+	TotalEarned int64 `gorm:"not null;default:0;comment:累计获取" json:"total_earned"`
+	TotalSpent  int64 `gorm:"not null;default:0;comment:累计消费" json:"total_spent"`
 }
 
 // TableName 表名。
@@ -48,14 +48,14 @@ type PointsActivity struct {
 	Name         string `gorm:"type:varchar(128);not null;comment:活动名称" json:"name"`
 	Description  string `gorm:"type:text;comment:活动描述" json:"description"`
 	Type         string `gorm:"type:varchar(20);default:INSTANT;comment:活动类型" json:"type"`
-	RewardPoints int    `gorm:"not null;default:0;comment:奖励积分" json:"rewardPoints"`
-	TargetCount  int    `gorm:"not null;default:1;comment:目标数量" json:"targetCount"`
-	DailyLimit   int    `gorm:"not null;default:0;comment:每日限制次数（0 不限）" json:"dailyLimit"`
-	TotalLimit   int    `gorm:"not null;default:0;comment:总限制次数（0 不限）" json:"totalLimit"`
-	ValidDays    int    `gorm:"not null;default:0;comment:积分有效期天数（0 永久）" json:"validDays"`
+	RewardPoints int    `gorm:"not null;default:0;comment:奖励积分" json:"reward_points"`
+	TargetCount  int    `gorm:"not null;default:1;comment:目标数量" json:"target_count"`
+	DailyLimit   int    `gorm:"not null;default:0;comment:每日限制次数（0 不限）" json:"daily_limit"`
+	TotalLimit   int    `gorm:"not null;default:0;comment:总限制次数（0 不限）" json:"total_limit"`
+	ValidDays    int    `gorm:"not null;default:0;comment:积分有效期天数（0 永久）" json:"valid_days"`
 	Icon         string `gorm:"type:varchar(512);comment:活动图标" json:"icon"`
 	Link         string `gorm:"type:varchar(512);comment:跳转链接" json:"link"`
-	IsActive     bool   `gorm:"not null;default:true;comment:是否启用" json:"isActive"`
+	IsActive     bool   `gorm:"not null;default:true;comment:是否启用" json:"is_active"`
 	Sort         int    `gorm:"not null;default:0;comment:排序" json:"sort"`
 }
 
@@ -65,15 +65,15 @@ func (PointsActivity) TableName() string { return "points_activities" }
 // PointsTaskRecord 任务完成记录（周期性任务用；INSTANT 类型不落此表）。
 type PointsTaskRecord struct {
 	BaseModel
-	UserID       string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:1;comment:用户ID" json:"userId"`
-	ActivityID   string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:2;comment:活动ID" json:"activityId"`
-	CurrentCount int        `gorm:"not null;default:0;comment:当前完成数量" json:"currentCount"`
-	TargetCount  int        `gorm:"not null;default:1;comment:目标数量" json:"targetCount"`
-	IsCompleted  bool       `gorm:"not null;default:false;comment:是否完成" json:"isCompleted"`
-	CompletedAt  *time.Time `json:"completedAt"`
-	RewardPoints int        `gorm:"not null;default:0;comment:奖励积分" json:"rewardPoints"`
-	IsRewarded   bool       `gorm:"not null;default:false;comment:是否已领取奖励" json:"isRewarded"`
-	RewardedAt   *time.Time `json:"rewardedAt"`
+	UserID       string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:1;comment:用户ID" json:"user_id"`
+	ActivityID   string     `gorm:"type:varchar(36);index:idx_points_task_user_activity,priority:2;comment:活动ID" json:"activity_id"`
+	CurrentCount int        `gorm:"not null;default:0;comment:当前完成数量" json:"current_count"`
+	TargetCount  int        `gorm:"not null;default:1;comment:目标数量" json:"target_count"`
+	IsCompleted  bool       `gorm:"not null;default:false;comment:是否完成" json:"is_completed"`
+	CompletedAt  *time.Time `json:"completed_at"`
+	RewardPoints int        `gorm:"not null;default:0;comment:奖励积分" json:"reward_points"`
+	IsRewarded   bool       `gorm:"not null;default:false;comment:是否已领取奖励" json:"is_rewarded"`
+	RewardedAt   *time.Time `json:"rewarded_at"`
 }
 
 // TableName 表名。
@@ -82,15 +82,15 @@ func (PointsTaskRecord) TableName() string { return "points_task_records" }
 // PointsTransaction 积分流水（不可变账本，只追加）。
 type PointsTransaction struct {
 	BaseModel
-	UserID      string     `gorm:"type:varchar(36);index:idx_points_tx_user,priority:1;comment:用户ID" json:"userId"`
+	UserID      string     `gorm:"type:varchar(36);index:idx_points_tx_user,priority:1;comment:用户ID" json:"user_id"`
 	Amount      int        `gorm:"not null;comment:变动数量（正增负减）" json:"amount"`
 	Balance     int        `gorm:"not null;comment:变动后余额" json:"balance"`
 	Type        string     `gorm:"type:varchar(20);index:idx_points_tx_user,priority:2;comment:交易类型" json:"type"`
 	Source      string     `gorm:"type:varchar(64);index;comment:来源/用途" json:"source"`
-	RelatedType string     `gorm:"type:varchar(32);comment:关联业务类型" json:"relatedType"`
-	RelatedID   string     `gorm:"type:varchar(36);comment:关联业务ID" json:"relatedId"`
+	RelatedType string     `gorm:"type:varchar(32);comment:关联业务类型" json:"related_type"`
+	RelatedID   string     `gorm:"type:varchar(36);comment:关联业务ID" json:"related_id"`
 	Description string     `gorm:"type:text;comment:描述" json:"description"`
-	ExpiredAt   *time.Time `json:"expiredAt"`
+	ExpiredAt   *time.Time `json:"expired_at"`
 	// Expired 过期积分是否已被回收（EXPIRE 清扫用）。
 	Expired bool `gorm:"not null;default:false;comment:是否已过期回收" json:"expired"`
 }
@@ -113,13 +113,13 @@ type PointsActivityInput struct {
 	Name         *string `json:"name"`
 	Description  *string `json:"description"`
 	Type         *string `json:"type"`
-	RewardPoints *int    `json:"rewardPoints"`
-	TargetCount  *int    `json:"targetCount"`
-	DailyLimit   *int    `json:"dailyLimit"`
-	TotalLimit   *int    `json:"totalLimit"`
-	ValidDays    *int    `json:"validDays"`
+	RewardPoints *int    `json:"reward_points"`
+	TargetCount  *int    `json:"target_count"`
+	DailyLimit   *int    `json:"daily_limit"`
+	TotalLimit   *int    `json:"total_limit"`
+	ValidDays    *int    `json:"valid_days"`
 	Icon         *string `json:"icon"`
 	Link         *string `json:"link"`
-	IsActive     *bool   `json:"isActive"`
+	IsActive     *bool   `json:"is_active"`
 	Sort         *int    `json:"sort"`
 }

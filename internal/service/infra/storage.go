@@ -64,18 +64,18 @@ const sniffSize = 64
 
 // S3Presign PUT 预签名响应（对齐 PresignedUrlResponseDto）。
 type S3Presign struct {
-	UploadURL string `json:"uploadUrl"`
-	AccessURL string `json:"accessUrl"`
+	UploadURL string `json:"upload_url"`
+	AccessURL string `json:"access_url"`
 	Key       string `json:"key"`
-	ExpiresIn int    `json:"expiresIn"`
+	ExpiresIn int    `json:"expires_in"`
 }
 
 // S3Confirm S3 直传确认请求体（对齐 /upload/confirm）。
 type S3Confirm struct {
 	Key          string `json:"key" binding:"required"`
 	URL          string `json:"url" binding:"required"`
-	OriginalName string `json:"originalName" binding:"required"`
-	MimeType     string `json:"mimeType" binding:"required"`
+	OriginalName string `json:"original_name" binding:"required"`
+	MimeType     string `json:"mime_type" binding:"required"`
 	Size         int64  `json:"size" binding:"required"`
 	Hash         string `json:"hash"`
 	Scene        string `json:"scene"`

@@ -25,15 +25,15 @@ const (
 // Payment 支付记录。
 type Payment struct {
 	BaseModel
-	OrderID           string                 `gorm:"type:varchar(36);index;comment:订单ID" json:"orderId"`
-	UserID            string                 `gorm:"type:varchar(36);index;comment:用户ID" json:"userId"`
-	PaymentMethod     string                 `gorm:"type:varchar(20);comment:支付方式" json:"paymentMethod"`
+	OrderID           string                 `gorm:"type:varchar(36);index;comment:订单ID" json:"order_id"`
+	UserID            string                 `gorm:"type:varchar(36);index;comment:用户ID" json:"user_id"`
+	PaymentMethod     string                 `gorm:"type:varchar(20);comment:支付方式" json:"payment_method"`
 	Amount            float64                `gorm:"type:decimal(10,2);comment:支付金额（元）" json:"amount"`
-	ThirdPartyOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"thirdPartyOrderNo"`
+	ThirdPartyOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"third_party_order_no"`
 	Status            string                 `gorm:"type:varchar(20);index;default:PENDING;comment:支付状态" json:"status"`
-	PaidAt            *time.Time             `gorm:"comment:支付时间" json:"paidAt"`
+	PaidAt            *time.Time             `gorm:"comment:支付时间" json:"paid_at"`
 	Details           map[string]interface{} `gorm:"type:jsonb;serializer:json;comment:支付详情" json:"details"`
-	ErrorMessage      string                 `gorm:"type:text;comment:错误信息" json:"errorMessage"`
+	ErrorMessage      string                 `gorm:"type:text;comment:错误信息" json:"error_message"`
 }
 
 // TableName 表名。
@@ -42,21 +42,21 @@ func (Payment) TableName() string { return "payments" }
 // CommissionRecord 佣金流水（支付成功事务内写入；邀请分成 5% 默认费率从 config 表读）。
 type CommissionRecord struct {
 	BaseModel
-	OrderID        string     `gorm:"type:varchar(36);uniqueIndex;comment:订单ID（一笔订单一笔流水，天然幂等）" json:"orderId"`
-	OrderNo        string     `gorm:"type:varchar(64);index" json:"orderNo"`
-	UserID         string     `gorm:"type:varchar(36);index;comment:买家ID" json:"userId"`
-	AuthorID       string     `gorm:"type:varchar(36);comment:作者ID" json:"authorId"`
-	InviterID      string     `gorm:"type:varchar(36);index;comment:邀请人ID（无邀请关系为空）" json:"inviterId"`
-	OrderType      string     `gorm:"type:varchar(20)" json:"orderType"`
-	OrderAmount    float64    `gorm:"type:decimal(10,2)" json:"orderAmount"`
-	InviterRate    float64    `gorm:"type:decimal(6,4);comment:邀请人分成比例" json:"inviterRate"`
-	InviterAmount  float64    `gorm:"type:decimal(10,2);comment:邀请人分成金额" json:"inviterAmount"`
-	AuthorRate     float64    `gorm:"type:decimal(6,4)" json:"authorRate"`
-	AuthorAmount   float64    `gorm:"type:decimal(10,2)" json:"authorAmount"`
-	PlatformRate   float64    `gorm:"type:decimal(6,4)" json:"platformRate"`
-	PlatformAmount float64    `gorm:"type:decimal(10,2)" json:"platformAmount"`
+	OrderID        string     `gorm:"type:varchar(36);uniqueIndex;comment:订单ID（一笔订单一笔流水，天然幂等）" json:"order_id"`
+	OrderNo        string     `gorm:"type:varchar(64);index" json:"order_no"`
+	UserID         string     `gorm:"type:varchar(36);index;comment:买家ID" json:"user_id"`
+	AuthorID       string     `gorm:"type:varchar(36);comment:作者ID" json:"author_id"`
+	InviterID      string     `gorm:"type:varchar(36);index;comment:邀请人ID（无邀请关系为空）" json:"inviter_id"`
+	OrderType      string     `gorm:"type:varchar(20)" json:"order_type"`
+	OrderAmount    float64    `gorm:"type:decimal(10,2)" json:"order_amount"`
+	InviterRate    float64    `gorm:"type:decimal(6,4);comment:邀请人分成比例" json:"inviter_rate"`
+	InviterAmount  float64    `gorm:"type:decimal(10,2);comment:邀请人分成金额" json:"inviter_amount"`
+	AuthorRate     float64    `gorm:"type:decimal(6,4)" json:"author_rate"`
+	AuthorAmount   float64    `gorm:"type:decimal(10,2)" json:"author_amount"`
+	PlatformRate   float64    `gorm:"type:decimal(6,4)" json:"platform_rate"`
+	PlatformAmount float64    `gorm:"type:decimal(10,2)" json:"platform_amount"`
 	Status         string     `gorm:"type:varchar(20);default:PAID" json:"status"`
-	PaidAt         *time.Time `json:"paidAt"`
+	PaidAt         *time.Time `json:"paid_at"`
 }
 
 // TableName 表名。
@@ -79,13 +79,13 @@ func (ConfigKV) TableName() string { return "config" }
 type UserPaymentView struct {
 	ID                  string     `gorm:"type:varchar(36);primaryKey;column:id" json:"id"`
 	Wallet              float64    `gorm:"type:decimal(10,2);column:wallet" json:"wallet"`
-	InviterID           string     `gorm:"type:varchar(36);column:inviter_id" json:"inviterId"`
-	InviteEarnings      float64    `gorm:"type:decimal(10,2);column:invite_earnings" json:"inviteEarnings"`
-	MembershipStatus    string     `gorm:"type:varchar(20);column:membership_status" json:"membershipStatus"`
-	MembershipLevel     int        `gorm:"column:membership_level" json:"membershipLevel"`
-	MembershipLevelName string     `gorm:"type:varchar(64);column:membership_level_name" json:"membershipLevelName"`
-	MembershipStartDate *time.Time `gorm:"column:membership_start_date" json:"membershipStartDate"`
-	MembershipEndDate   *time.Time `gorm:"column:membership_end_date" json:"membershipEndDate"`
+	InviterID           string     `gorm:"type:varchar(36);column:inviter_id" json:"inviter_id"`
+	InviteEarnings      float64    `gorm:"type:decimal(10,2);column:invite_earnings" json:"invite_earnings"`
+	MembershipStatus    string     `gorm:"type:varchar(20);column:membership_status" json:"membership_status"`
+	MembershipLevel     int        `gorm:"column:membership_level" json:"membership_level"`
+	MembershipLevelName string     `gorm:"type:varchar(64);column:membership_level_name" json:"membership_level_name"`
+	MembershipStartDate *time.Time `gorm:"column:membership_start_date" json:"membership_start_date"`
+	MembershipEndDate   *time.Time `gorm:"column:membership_end_date" json:"membership_end_date"`
 }
 
 // TableName 表名。

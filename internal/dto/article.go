@@ -20,7 +20,7 @@ type AuthorBriefDto struct {
 	Nickname   string `json:"nickname" example:"小明"`
 	Username   string `json:"username" example:"xiaoming"`
 	Avatar     string `json:"avatar" example:"https://cdn.example.com/a.png"`
-	IsFollowed bool   `json:"isFollowed" example:"false"`
+	IsFollowed bool   `json:"is_followed" example:"false"`
 }
 
 // TagBriefDto 标签简要（service.TagBrief）。
@@ -52,62 +52,62 @@ type ArticleDto struct {
 	ID string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 
 	Title             string  `json:"title" example:"我的第一篇作品"`
-	RequireLogin      bool    `json:"requireLogin" example:"false"`
-	RequireFollow     bool    `json:"requireFollow" example:"false"`
-	RequirePayment    bool    `json:"requirePayment" example:"false"`
-	RequireMembership bool    `json:"requireMembership" example:"false"`
-	ListRequireLogin  bool    `json:"listRequireLogin" example:"false"`
-	ViewPrice         float64 `json:"viewPrice" example:"0"`
+	RequireLogin      bool    `json:"require_login" example:"false"`
+	RequireFollow     bool    `json:"require_follow" example:"false"`
+	RequirePayment    bool    `json:"require_payment" example:"false"`
+	RequireMembership bool    `json:"require_membership" example:"false"`
+	ListRequireLogin  bool    `json:"list_require_login" example:"false"`
+	ViewPrice         float64 `json:"view_price" example:"0"`
 
 	Type     string   `json:"type" example:"image"`
 	Content  string   `json:"content,omitempty"`
 	Images   []string `json:"images"`
-	VideoURL string   `json:"videoUrl" example:"https://cdn.example.com/v.mp4"`
+	VideoURL string   `json:"video_url" example:"https://cdn.example.com/v.mp4"`
 	Cover    string   `json:"cover" example:"https://cdn.example.com/cover.jpg"`
 	Summary  string   `json:"summary" example:"一句话摘要"`
 
 	Sort          int `json:"sort" example:"0"`
 	Views         int `json:"views" example:"12"`
 	Likes         int `json:"likes" example:"3"`
-	FavoriteCount int `json:"favoriteCount" example:"1"`
-	CommentCount  int `json:"commentCount" example:"0"`
+	FavoriteCount int `json:"favorite_count" example:"1"`
+	CommentCount  int `json:"comment_count" example:"0"`
 	Shares        int `json:"shares" example:"0"`
-	DownloadCount int `json:"downloadCount" example:"0"`
+	DownloadCount int `json:"download_count" example:"0"`
 
-	IsFeatured        bool       `json:"isFeatured" example:"false"`
-	FeaturedAt        *time.Time `json:"featuredAt,omitempty"`
-	IsPinnedOnProfile bool       `json:"isPinnedOnProfile" example:"false"`
-	PinnedAt          *time.Time `json:"pinnedAt,omitempty"`
+	IsFeatured        bool       `json:"is_featured" example:"false"`
+	FeaturedAt        *time.Time `json:"featured_at,omitempty"`
+	IsPinnedOnProfile bool       `json:"is_pinned_on_profile" example:"false"`
+	PinnedAt          *time.Time `json:"pinned_at,omitempty"`
 
 	Status string `json:"status" example:"PUBLISHED"`
 
-	AuthorID   string            `json:"authorId" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	AuthorID   string            `json:"author_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Author     *AuthorBriefDto   `json:"author,omitempty"`
-	CategoryID string            `json:"categoryId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	CategoryID string            `json:"category_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
 	Category   *CategoryBriefDto `json:"category,omitempty"`
 	Tags       []TagBriefDto     `json:"tags"`
-	ActivityID string            `json:"activityId" example:""`
+	ActivityID string            `json:"activity_id" example:""`
 
-	AllowReprint bool `json:"allowReprint" example:"false"`
+	AllowReprint bool `json:"allow_reprint" example:"false"`
 
-	IsLiked     bool `json:"isLiked" example:"false"`
-	IsFavorited bool `json:"isFavorited" example:"false"`
-	IsDisliked  bool `json:"isDisliked" example:"false"`
+	IsLiked     bool `json:"is_liked" example:"false"`
+	IsFavorited bool `json:"is_favorited" example:"false"`
+	IsDisliked  bool `json:"is_disliked" example:"false"`
 
-	CreatedAt time.Time `json:"createdAt" example:"2026-11-25T10:00:00Z"`
-	UpdatedAt time.Time `json:"updatedAt" example:"2026-11-25T10:00:00Z"`
+	CreatedAt time.Time `json:"created_at" example:"2026-11-25T10:00:00Z"`
+	UpdatedAt time.Time `json:"updated_at" example:"2026-11-25T10:00:00Z"`
 }
 
 // BrowseHistoryDto 浏览历史条目（service.BrowseHistoryView）。
 //
 // article 是文章概要（不含正文）；文章已被删除时整个字段不传。
 type BrowseHistoryDto struct {
-	ArticleID string      `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ViewCount int         `json:"viewCount" example:"2"`
+	ArticleID string      `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ViewCount int         `json:"view_count" example:"2"`
 	Progress  int         `json:"progress" example:"80"`
 	Duration  int         `json:"duration" example:"120"`
 	Article   *ArticleDto `json:"article,omitempty"`
-	ViewedAt  time.Time   `json:"viewedAt" example:"2026-11-25T10:00:00Z"`
+	ViewedAt  time.Time   `json:"viewed_at" example:"2026-11-25T10:00:00Z"`
 }
 
 // HotSearchItemDto 热搜词条目（service.HotSearch 的列表元素）。
@@ -130,31 +130,31 @@ type CountDto struct {
 
 // ArticleLikeResultDto 点赞 / 表情回复结果。
 type ArticleLikeResultDto struct {
-	IsLiked      bool   `json:"isLiked" example:"true"`
-	ReactionType string `json:"reactionType" example:"like"`
+	IsLiked      bool   `json:"is_liked" example:"true"`
+	ReactionType string `json:"reaction_type" example:"like"`
 	Likes        int64  `json:"likes" example:"13"`
 }
 
 // ArticleLikeStatusDto 点赞状态（未点赞时 reactionType 为 ""，不是 null）。
 type ArticleLikeStatusDto struct {
-	IsLiked      bool   `json:"isLiked" example:"false"`
-	ReactionType string `json:"reactionType" example:"like"`
+	IsLiked      bool   `json:"is_liked" example:"false"`
+	ReactionType string `json:"reaction_type" example:"like"`
 }
 
 // FavoriteResultDto 收藏 / 取消收藏结果。
 type FavoriteResultDto struct {
-	IsFavorited   bool  `json:"isFavorited" example:"true"`
-	FavoriteCount int64 `json:"favoriteCount" example:"6"`
+	IsFavorited   bool  `json:"is_favorited" example:"true"`
+	FavoriteCount int64 `json:"favorite_count" example:"6"`
 }
 
 // FavoriteStatusDto 收藏状态。
 type FavoriteStatusDto struct {
-	IsFavorited bool `json:"isFavorited" example:"true"`
+	IsFavorited bool `json:"is_favorited" example:"true"`
 }
 
 // DislikeResultDto 不喜欢 / 取消不喜欢 / 状态查询（三处同形）。
 type DislikeResultDto struct {
-	IsDisliked bool `json:"isDisliked" example:"true"`
+	IsDisliked bool `json:"is_disliked" example:"true"`
 }
 
 // ShareResultDto 分享上报结果。
@@ -166,13 +166,13 @@ type ShareResultDto struct {
 // SetFeaturedResultDto 设置 / 取消精华结果。
 type SetFeaturedResultDto struct {
 	ID         string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	IsFeatured bool   `json:"isFeatured" example:"true"`
+	IsFeatured bool   `json:"is_featured" example:"true"`
 }
 
 // ProfilePinResultDto 设置 / 取消主页置顶结果。
 type ProfilePinResultDto struct {
 	ID                string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	IsPinnedOnProfile bool   `json:"isPinnedOnProfile" example:"true"`
+	IsPinnedOnProfile bool   `json:"is_pinned_on_profile" example:"true"`
 }
 
 // DeleteResultDto 删除成功结果（文章 / 评论共用；id 为被删对象 ID）。
@@ -198,17 +198,17 @@ type ClearedResultDto struct {
 
 // BrowseProgressDto 浏览进度上报结果。
 type BrowseProgressDto struct {
-	ArticleID string `json:"articleId" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	ArticleID string `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Progress  int    `json:"progress" example:"80"`
 	Duration  int    `json:"duration" example:"120"`
 }
 
 // BrowseStatsDto 浏览统计（均值来自 SQL AVG，无记录时为 0）。
 type BrowseStatsDto struct {
-	TotalArticles int64   `json:"totalArticles" example:"12"`
-	TotalViews    int64   `json:"totalViews" example:"37"`
-	AvgProgress   float64 `json:"avgProgress" example:"62.5"`
-	AvgDuration   float64 `json:"avgDuration" example:"95.3"`
+	TotalArticles int64   `json:"total_articles" example:"12"`
+	TotalViews    int64   `json:"total_views" example:"37"`
+	AvgProgress   float64 `json:"avg_progress" example:"62.5"`
+	AvgDuration   float64 `json:"avg_duration" example:"95.3"`
 }
 
 // ---------------------------------------------------------------------------
@@ -238,30 +238,30 @@ type CreateArticleRequest struct {
 	Content  string   `json:"content"`
 	Summary  string   `json:"summary" example:"一句话摘要"`
 	Images   []string `json:"images" example:"[\"https://cdn.example.com/1.jpg\"]"`
-	VideoURL string   `json:"videoUrl"`
+	VideoURL string   `json:"video_url"`
 	Cover    string   `json:"cover"`
 	Sort     int      `json:"sort"`
 
-	CategoryID string   `json:"categoryId" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
-	TagNames   []string `json:"tagNames" example:"[\"风景\"]"`
-	TagIDs     []string `json:"tagIds"`
+	CategoryID string   `json:"category_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
+	TagNames   []string `json:"tag_names" example:"[\"风景\"]"`
+	TagIDs     []string `json:"tag_ids"`
 
 	Status string `json:"status" binding:"omitempty,oneof=DRAFT PENDING PUBLISHED ARCHIVED" example:"PUBLISHED"`
 
-	RequireLogin      bool    `json:"requireLogin"`
-	RequireFollow     bool    `json:"requireFollow"`
-	RequirePayment    bool    `json:"requirePayment"`
-	RequireMembership bool    `json:"requireMembership"`
-	ListRequireLogin  bool    `json:"listRequireLogin"`
-	ViewPrice         float64 `json:"viewPrice" example:"0"`
+	RequireLogin      bool    `json:"require_login"`
+	RequireFollow     bool    `json:"require_follow"`
+	RequirePayment    bool    `json:"require_payment"`
+	RequireMembership bool    `json:"require_membership"`
+	ListRequireLogin  bool    `json:"list_require_login"`
+	ViewPrice         float64 `json:"view_price" example:"0"`
 
 	Type string `json:"type" binding:"omitempty,oneof=image mixed video" example:"image"`
 
-	ActivityID        string                   `json:"activityId"`
+	ActivityID        string                   `json:"activity_id"`
 	Downloads         []ArticleDownloadRequest `json:"downloads"`
-	IsFeatured        bool                     `json:"isFeatured"`
-	IsPinnedOnProfile bool                     `json:"isPinnedOnProfile"`
-	AllowReprint      bool                     `json:"allowReprint"`
+	IsFeatured        bool                     `json:"is_featured"`
+	IsPinnedOnProfile bool                     `json:"is_pinned_on_profile"`
+	AllowReprint      bool                     `json:"allow_reprint"`
 }
 
 // UpdateArticleRequest 更新文章请求体（全字段可选，语义同 PartialType）。
@@ -271,35 +271,35 @@ type UpdateArticleRequest struct {
 	Content  *string  `json:"content"`
 	Summary  *string  `json:"summary"`
 	Images   []string `json:"images"`
-	VideoURL *string  `json:"videoUrl"`
+	VideoURL *string  `json:"video_url"`
 	Cover    *string  `json:"cover"`
 	Sort     *int     `json:"sort"`
 
-	CategoryID *string  `json:"categoryId"`
-	TagNames   []string `json:"tagNames"`
-	TagIDs     []string `json:"tagIds"`
+	CategoryID *string  `json:"category_id"`
+	TagNames   []string `json:"tag_names"`
+	TagIDs     []string `json:"tag_ids"`
 
 	Status string `json:"status" binding:"omitempty,oneof=DRAFT PENDING PUBLISHED ARCHIVED"`
 
-	RequireLogin      *bool    `json:"requireLogin"`
-	RequireFollow     *bool    `json:"requireFollow"`
-	RequirePayment    *bool    `json:"requirePayment"`
-	RequireMembership *bool    `json:"requireMembership"`
-	ListRequireLogin  *bool    `json:"listRequireLogin"`
-	ViewPrice         *float64 `json:"viewPrice"`
+	RequireLogin      *bool    `json:"require_login"`
+	RequireFollow     *bool    `json:"require_follow"`
+	RequirePayment    *bool    `json:"require_payment"`
+	RequireMembership *bool    `json:"require_membership"`
+	ListRequireLogin  *bool    `json:"list_require_login"`
+	ViewPrice         *float64 `json:"view_price"`
 
 	Type string `json:"type" binding:"omitempty,oneof=image mixed video"`
 
-	ActivityID        *string                  `json:"activityId"`
+	ActivityID        *string                  `json:"activity_id"`
 	Downloads         []ArticleDownloadRequest `json:"downloads"`
-	IsFeatured        *bool                    `json:"isFeatured"`
-	IsPinnedOnProfile *bool                    `json:"isPinnedOnProfile"`
-	AllowReprint      *bool                    `json:"allowReprint"`
+	IsFeatured        *bool                    `json:"is_featured"`
+	IsPinnedOnProfile *bool                    `json:"is_pinned_on_profile"`
+	AllowReprint      *bool                    `json:"allow_reprint"`
 }
 
 // ArticleReactionRequest 点赞 / 表情回复请求体（可空，缺省按 like）。
 type ArticleReactionRequest struct {
-	ReactionType string `json:"reactionType" binding:"omitempty,oneof=like love haha wow sad angry dislike" example:"like"`
+	ReactionType string `json:"reaction_type" binding:"omitempty,oneof=like love haha wow sad angry dislike" example:"like"`
 }
 
 // ArticleDislikeRequest 不喜欢原因请求体（可空）。
@@ -314,12 +314,12 @@ type ArticleShareRequest struct {
 
 // SetFeaturedRequest 设精请求体（必填 isFeatured）。
 type SetFeaturedRequest struct {
-	IsFeatured bool `json:"isFeatured" binding:"required" example:"true"`
+	IsFeatured bool `json:"is_featured" binding:"required" example:"true"`
 }
 
 // SetProfilePinRequest 个人主页置顶请求体（必填 isPinned）。
 type SetProfilePinRequest struct {
-	IsPinned bool `json:"isPinned" binding:"required" example:"true"`
+	IsPinned bool `json:"is_pinned" binding:"required" example:"true"`
 }
 
 // BrowseProgressRequest 浏览进度上报请求体（可空）。
@@ -330,5 +330,5 @@ type BrowseProgressRequest struct {
 
 // BatchDeleteBrowseRequest 批量删除浏览记录请求体（1~100 个 ID）。
 type BatchDeleteBrowseRequest struct {
-	ArticleIDs []string `json:"articleIds" binding:"required,min=1,max=100"`
+	ArticleIDs []string `json:"article_ids" binding:"required,min=1,max=100"`
 }

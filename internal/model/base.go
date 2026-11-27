@@ -23,8 +23,8 @@ import (
 // 对外 JSON 一律 camelCase（对齐原 NestJS DTO / 前端契约）。
 type BaseModel struct {
 	ID        string                `gorm:"type:varchar(36);primaryKey" json:"id"`
-	CreatedAt time.Time             `gorm:"autoCreateTime" json:"createdAt"`
-	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updatedAt"`
+	CreatedAt time.Time             `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time             `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt soft_delete.DeletedAt `gorm:"index" json:"-"`
 }
 

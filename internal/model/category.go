@@ -12,7 +12,7 @@ type Category struct {
 
 	Name        string  `gorm:"type:varchar(50);not null;uniqueIndex:uk_categories_name" json:"name"`
 	Description *string `gorm:"type:varchar(200)" json:"description"`
-	ParentID    *string `gorm:"type:varchar(36);index:idx_categories_parent" json:"parentId"`
+	ParentID    *string `gorm:"type:varchar(36);index:idx_categories_parent" json:"parent_id"`
 	Link        *string `gorm:"type:varchar(200)" json:"link"`
 	Avatar      *string `gorm:"type:text" json:"avatar"`
 	Background  *string `gorm:"type:text" json:"background"`
@@ -20,8 +20,8 @@ type Category struct {
 	Sort        int     `gorm:"not null;default:0" json:"sort"`
 	Status      string  `gorm:"type:varchar(16);not null;default:ENABLED" json:"status"`
 
-	ArticleCount int `gorm:"not null;default:0" json:"articleCount"`
-	FollowCount  int `gorm:"not null;default:0" json:"followCount"`
+	ArticleCount int `gorm:"not null;default:0" json:"article_count"`
+	FollowCount  int `gorm:"not null;default:0" json:"follow_count"`
 }
 
 // TableName 表名。

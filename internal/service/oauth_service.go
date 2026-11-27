@@ -757,8 +757,8 @@ type oauthBindingView struct {
 	Provider  string `json:"provider"`
 	Channel   string `json:"channel"`
 	Nickname  string `json:"nickname"`
-	AvatarURL string `json:"avatarUrl"`
-	BoundAt   string `json:"boundAt"` // RFC3339，取 CreatedAt
+	AvatarURL string `json:"avatar_url"`
+	BoundAt   string `json:"bound_at"` // RFC3339，取 CreatedAt
 }
 
 // ListBindings 当前用户的全部第三方绑定。
@@ -1074,6 +1074,6 @@ type OAuthLinkInput struct {
 	Channel     string `json:"channel"`
 	Code        string `json:"code"`
 	State       string `json:"state"`
-	AccessToken string `json:"accessToken"`
-	OpenID      string `json:"openId"`
+	AccessToken string `json:"access_token"`
+	OpenID      string `json:"open_id"`
 }

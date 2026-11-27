@@ -34,18 +34,18 @@ type AuditRecord struct {
 	// 必须用指针：记录在「提交审核」时创建、此时尚无任务 ID；若用 string 零值，
 	// 多条记录都是空串会撞 uniqueIndex（SQLSTATE 23505，曾导致文章审核记录只进第一条）。
 	// PostgreSQL 下多个 NULL 不参与唯一约束，故用 *string + 入队后回填。
-	MsgID *string `gorm:"type:varchar(64);uniqueIndex;comment:asynq 任务ID" json:"msgId"`
+	MsgID *string `gorm:"type:varchar(64);uniqueIndex;comment:asynq 任务ID" json:"msg_id"`
 	Scene string  `gorm:"type:varchar(20);index;comment:场景 comment/avatar/image/article" json:"scene"`
 	// BizType 业务对象类型：article / comment / upload / user_avatar
-	BizType string `gorm:"type:varchar(30);index" json:"bizType"`
+	BizType string `gorm:"type:varchar(30);index" json:"biz_type"`
 	// BizID 业务对象 ID（article id / comment id / upload id）。
-	BizID string `gorm:"type:varchar(36);index;comment:业务对象ID" json:"bizId"`
+	BizID string `gorm:"type:varchar(36);index;comment:业务对象ID" json:"biz_id"`
 	// OperatorID 发起人（自动审核为空）。
-	OperatorID string `gorm:"type:varchar(36)" json:"operatorId"`
+	OperatorID string `gorm:"type:varchar(36)" json:"operator_id"`
 	// Content 文本内容（text-audit）。
 	Content string `gorm:"type:text" json:"content,omitempty"`
 	// ImageURL 图片地址（image-audit）。
-	ImageURL string `gorm:"type:varchar(512)" json:"imageUrl,omitempty"`
+	ImageURL string `gorm:"type:varchar(512)" json:"image_url,omitempty"`
 	// Provider aliyun / tencent / none
 	Provider string `gorm:"type:varchar(20)" json:"provider"`
 	// Status PENDING / PASSED / BLOCKED / REVIEW / FAILED
@@ -55,8 +55,8 @@ type AuditRecord struct {
 	Reason string  `gorm:"type:text" json:"reason"`
 	Score  float64 `gorm:"type:decimal(8,4)" json:"score"`
 	// ResultDetail provider 原始返回摘要。
-	ResultDetail map[string]interface{} `gorm:"type:jsonb;serializer:json" json:"resultDetail"`
-	AuditedAt    *time.Time             `json:"auditedAt"`
+	ResultDetail map[string]interface{} `gorm:"type:jsonb;serializer:json" json:"result_detail"`
+	AuditedAt    *time.Time             `json:"audited_at"`
 }
 
 // TableName 表名。
@@ -64,9 +64,9 @@ func (AuditRecord) TableName() string { return "audit_records" }
 
 // QueueMessage 队列消息去重表（审核 handler 幂等：msg_id 已存在则跳过）。
 type QueueMessage struct {
-	MsgID       string    `gorm:"type:varchar(64);primaryKey;column:msg_id" json:"msgId"`
+	MsgID       string    `gorm:"type:varchar(64);primaryKey;column:msg_id" json:"msg_id"`
 	Queue       string    `gorm:"type:varchar(64)" json:"queue"`
-	ProcessedAt time.Time `gorm:"autoCreateTime" json:"processedAt"`
+	ProcessedAt time.Time `gorm:"autoCreateTime" json:"processed_at"`
 }
 
 // TableName 表名。

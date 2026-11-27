@@ -64,11 +64,11 @@ func UserRoom(userID string) string { return userID }
 // SendMessageInput 发送消息入参（对齐源端 handleSendMessage 的 data）。
 type SendMessageInput struct {
 	Content     string                 `json:"content"`
-	ToUserID    string                 `json:"toUserId"`
-	ReceiverIDs []string               `json:"receiverIds"`
-	IsBroadcast bool                   `json:"isBroadcast"`
-	Type        string                 `json:"type"`        // private|system|notification
-	MessageKind string                 `json:"messageKind"` // text|image|file|card
+	ToUserID    string                 `json:"to_user_id"`
+	ReceiverIDs []string               `json:"receiver_ids"`
+	IsBroadcast bool                   `json:"is_broadcast"`
+	Type        string                 `json:"type"`         // private|system|notification
+	MessageKind string                 `json:"message_kind"` // text|image|file|card
 	Payload     map[string]interface{} `json:"payload"`
 }
 
@@ -86,47 +86,47 @@ type CursorInput struct {
 
 // GetPrivateHistoryInput 私信历史入参（对齐 handleGetPrivateHistory）。
 type GetPrivateHistoryInput struct {
-	UserID string `json:"userId"`
+	UserID string `json:"user_id"`
 	Cursor string `json:"cursor"`
 	Limit  int    `json:"limit"`
 }
 
 // ReadPrivateMessagesInput 批量已读入参（对齐 handleReadPrivateMessages）。
 type ReadPrivateMessagesInput struct {
-	MessageIDs []string `json:"messageIds"`
+	MessageIDs []string `json:"message_ids"`
 }
 
 // ReadPrivateConversationInput 整会话已读入参（对齐 handleReadPrivateConversation）。
 type ReadPrivateConversationInput struct {
-	UserID string `json:"userId"`
+	UserID string `json:"user_id"`
 }
 
 // RecallPrivateMessageInput 撤回私信入参（对齐 handleRecallPrivateMessage）。
 type RecallPrivateMessageInput struct {
-	MessageID string `json:"messageId"`
+	MessageID string `json:"message_id"`
 	Reason    string `json:"reason"`
 }
 
 // MarkAllAsReadInput 全部已读入参（对齐 handleMarkAllAsRead）。
 type MarkAllAsReadInput struct {
 	Type        string `json:"type"`
-	IsBroadcast bool   `json:"isBroadcast"`
+	IsBroadcast bool   `json:"is_broadcast"`
 }
 
 // BatchOperationInput 批量操作入参（对齐 handleBatchOperation）。
 type BatchOperationInput struct {
-	MessageIDs []string `json:"messageIds"`
+	MessageIDs []string `json:"message_ids"`
 	Action     string   `json:"action"` // read|delete
 }
 
 // ReadMessageInput 单条已读入参（对齐 handleReadMessage）。
 type ReadMessageInput struct {
-	MessageID string `json:"messageId"`
+	MessageID string `json:"message_id"`
 }
 
 // UserStatusInput 在线状态入参（对齐 subscribeUserStatus / getUserStatus）。
 type UserStatusInput struct {
-	UserID string `json:"userId"`
+	UserID string `json:"user_id"`
 }
 
 // ---------- 服务端 → 客户端 payload ----------
@@ -173,22 +173,22 @@ const (
 // PongPayload pong 事件载荷（对齐 handlePing）。
 type PongPayload struct {
 	Message   string `json:"message"`
-	UserID    string `json:"userId"`
+	UserID    string `json:"user_id"`
 	Timestamp string `json:"timestamp"`
 }
 
 // JoinedPayload joined / leaved 事件载荷（对齐 handleJoin / handleLeave）。
 type JoinedPayload struct {
-	UserID  string `json:"userId"`
+	UserID  string `json:"user_id"`
 	Message string `json:"message"`
 	Room    string `json:"room"`
 }
 
 // UserStatusPayload 在线状态载荷（对齐 UserPresencePayload）。
 type UserStatusPayload struct {
-	UserID     string  `json:"userId"`
-	IsOnline   bool    `json:"isOnline"`
-	LastSeenAt *string `json:"lastSeenAt"`
+	UserID     string  `json:"user_id"`
+	IsOnline   bool    `json:"is_online"`
+	LastSeenAt *string `json:"last_seen_at"`
 }
 
 // ProfilePayload getProfile 载荷（源端只给四个字段）。

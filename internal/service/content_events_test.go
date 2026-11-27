@@ -300,8 +300,8 @@ func TestParseReportHandledPayload(t *testing.T) {
 
 	// 形态 3b：map（camelCase）
 	if got, ok := parseReportHandledPayload(map[string]interface{}{
-		"reportId": "r-1", "type": "ARTICLE", "action": "DELETE_CONTENT",
-		"reportedArticleId": "art-1", "reportedCommentId": "cmt-1",
+		"report_id": "r-1", "type": "ARTICLE", "action": "DELETE_CONTENT",
+		"reported_article_id": "art-1", "reported_comment_id": "cmt-1",
 	}); !ok || got != want {
 		t.Errorf("map camelCase 解析错误：ok=%v got=%+v", ok, got)
 	}
@@ -339,7 +339,7 @@ func TestParseArticleStatusPayload(t *testing.T) {
 		t.Errorf("指针形态：ok=%v got=%+v", ok, got)
 	}
 	if got, ok := parseArticleStatusPayload(map[string]interface{}{
-		"articleId": "art-1", "from": "PENDING", "to": "PUBLISHED", "reason": "ok", "source": "auto",
+		"article_id": "art-1", "from": "PENDING", "to": "PUBLISHED", "reason": "ok", "source": "auto",
 	}); !ok || got != want {
 		t.Errorf("map camelCase：ok=%v got=%+v", ok, got)
 	}

@@ -150,7 +150,7 @@ func TestCheckSensitive(t *testing.T) {
 // 防什么 bug（2026-11-19 联调缺陷）：AuditConfig 曾用 Go 字段名直出
 // （Provider/CommentEnabled…），前端按 camelCase 读取恒为 undefined，
 // 表现为「后台审核开关全部显示为关闭」，运营误判为配置未生效。
-func TestAuditConfigJSONTagsCamelCase(t *testing.T) {
+func TestAuditConfigJSONTagsSnakeCase(t *testing.T) {
 	typ := reflect.TypeOf(AuditConfig{})
 	allowedEmpty := map[string]bool{"TencentSecretKey": true, "AliyunAccessKeySecret": true}
 
@@ -172,11 +172,9 @@ func TestAuditConfigJSONTagsCamelCase(t *testing.T) {
 		if name == "-" {
 			continue
 		}
-		if name != strings.ToLower(name[:1])+name[1:] {
-			t.Errorf("字段 %s 的 json tag %q 不是 camelCase（首字母必须小写）", f.Name, name)
-		}
-		if strings.Contains(name, "_") {
-			t.Errorf("字段 %s 的 json tag %q 含下划线（应为 camelCase）", f.Name, name)
+		// 2026-11-27 规范改为 snake_case：小写字母、单词间下划线、不含大写字母
+		if name != strings.ToLower(name) {
+			t.Errorf("字段 %s 的 json tag %q 含大写字母（应为 snake_case）", f.Name, name)
 		}
 	}
 
@@ -191,7 +189,7 @@ func TestAuditConfigJSONTagsCamelCase(t *testing.T) {
 			t.Errorf("序列化结果不应包含 %s: %s", bad, s)
 		}
 	}
-	for _, want := range []string{`"provider"`, `"commentEnabled"`, `"autoBlock"`} {
+	for _, want := range []string{`"provider"`, `"comment_enabled"`, `"auto_block"`} {
 		if !strings.Contains(s, want) {
 			t.Errorf("序列化结果应包含 %s: %s", want, s)
 		}

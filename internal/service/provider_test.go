@@ -98,7 +98,7 @@ func TestSMSChannelResponseMismatch(t *testing.T) {
 	defer srv.Close()
 	d := NewDeps(nil, nil, nil, nil, nil)
 	d.Cfg = stubConfig{"sms_channels": `[{"name":"bad","enabled":true,"url":"` + srv.URL +
-		`","bodyTemplate":"{{code}}","successContains":["\"ok\":true"]}]`}
+		`","body_template":"{{code}}","success_contains":["\"ok\":true"]}]`}
 	if err := NewSMSSender(d).Send(context.Background(), "13800138000", "1", "login"); err == nil {
 		t.Error("响应不匹配时应返回错误")
 	}
