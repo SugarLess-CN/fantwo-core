@@ -26,6 +26,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
@@ -147,7 +148,7 @@ func (h *UploadHandler) UploadAvatar(c *gin.Context) { h.upload(c, infra.SceneAv
 func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 	form, err := c.MultipartForm()
 	if err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请使用 multipart/form-data 上传文件")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadMultipartRequired)
 		return
 	}
 	// AnyFilesInterceptor 语义：任意字段名都收（优先 files，其次第一个非元数据字段）
@@ -162,13 +163,13 @@ func (h *UploadHandler) upload(c *gin.Context, forcedScene string) {
 		}
 	}
 	if len(files) == 0 {
-		response.FailWith(c, errcode.ErrBadRequest, "上传文件不能为空")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadNoFile)
 		return
 	}
 
 	metadata, err := infraParseUploadMetadata(infraFirstValue(form.Value["metadata"]))
 	if err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "metadata 必须是合法的 JSON 数组")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadMetadataInvalid)
 		return
 	}
 
@@ -208,7 +209,7 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 	// 与实际解析的字段必须同源，否则改一处漏一处（docs/18-DTO复用规范.md）。
 	var req dto.PresignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "filename、contentType、size 均为必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadPresignFieldsRequired)
 		return
 	}
 	res, err := h.svc.GeneratePresign(req.Filename, req.ContentType, req.Size)
@@ -233,11 +234,11 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 func (h *UploadHandler) Confirm(c *gin.Context) {
 	var body dto.ConfirmUploadRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "key、url、originalName、mimeType、size 均为必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadPresignFieldsRequired)
 		return
 	}
 	if body.Scene != "" && body.Scene != infra.SceneAvatar && body.Scene != infra.SceneImage && body.Scene != infra.SceneOther {
-		response.FailWith(c, errcode.ErrBadRequest, "scene 必须是 avatar、image 或 other")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.UploadSceneInvalid)
 		return
 	}
 	// dto 请求结构 → service 入参（service 签名保持不动，转换只发生在 handler 边界）

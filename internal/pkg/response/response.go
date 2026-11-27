@@ -125,7 +125,7 @@ type PageData struct {
 func Success(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, Body{
 		Data:       data,
-		Message:    i18n.T(i18n.CommonOK),
+		Message:    string(i18n.CommonOK),
 		StatusCode: 0,
 		TraceID:    traceOf(c),
 		Timestamp:  time.Now().UnixMilli(),
@@ -133,10 +133,12 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 // SuccessMsg 成功响应，并指定顶层提示（业务动作类接口用）。
+//
+// message 返回 **key 本身**（用户 2026-11-27 指定），翻译由前端按语言包处理。
 func SuccessMsg(c *gin.Context, key i18n.Key, data interface{}, args ...interface{}) {
 	c.JSON(http.StatusOK, Body{
 		Data:       data,
-		Message:    i18n.Tf(key, args...),
+		Message:    string(key),
 		StatusCode: 0,
 		TraceID:    traceOf(c),
 		Timestamp:  time.Now().UnixMilli(),
@@ -147,7 +149,7 @@ func SuccessMsg(c *gin.Context, key i18n.Key, data interface{}, args ...interfac
 func SuccessCode(c *gin.Context, code int, data interface{}) {
 	c.JSON(http.StatusOK, Body{
 		Data:       data,
-		Message:    i18n.T(i18n.CommonOK),
+		Message:    string(i18n.CommonOK),
 		StatusCode: code,
 		TraceID:    traceOf(c),
 		Timestamp:  time.Now().UnixMilli(),

@@ -137,7 +137,7 @@ func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	}
 	keyword := c.Query("keyword")
 	if keyword == "" {
-		response.FailWith(c, errcode.ErrBadRequest, "keyword 不能为空")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.SearchKeywordRequired)
 		return
 	}
 	page := infraAtoi(c.Query("page"), 1)

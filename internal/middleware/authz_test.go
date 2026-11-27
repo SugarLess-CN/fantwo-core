@@ -143,11 +143,8 @@ func TestJWTAuthV2RejectsNoToken(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("期望 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), `"message":"Please log in first"`) {
-		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
-	}
-	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthNeedLogin)) {
-		t.Errorf("期望 message=%q，body=%s", i18n.T(i18n.AuthNeedLogin), w.Body.String())
+	if !bodyHas(w.Body.String(), `"message":"`+string(i18n.AuthNeedLogin)+`"`) {
+		t.Errorf("期望 message 返回 key %q，body=%s", string(i18n.AuthNeedLogin), w.Body.String())
 	}
 }
 
@@ -239,8 +236,8 @@ func TestJWTAuthV2PermVersionMismatch(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("版本不一致应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), i18n.T(i18n.AuthPermVersionStale)) {
-		t.Errorf("期望 message=%q，body=%s", i18n.T(i18n.AuthPermVersionStale), w.Body.String())
+	if !bodyHas(w.Body.String(), `"message":"`+string(i18n.AuthPermVersionStale)+`"`) {
+		t.Errorf("期望 message 返回 key %q，body=%s", string(i18n.AuthPermVersionStale), w.Body.String())
 	}
 	if !bodyHas(w.Body.String(), "20002") {
 		t.Errorf("期望业务码 20002，body=%s", w.Body.String())
@@ -315,8 +312,8 @@ func TestRequireAnyPermissionWithoutLogin(t *testing.T) {
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("未登录应 401，实际 %d", w.Code)
 	}
-	if !bodyHas(w.Body.String(), `"message":"Please log in first"`) {
-		t.Errorf("期望 status_code=401，body=%s", w.Body.String())
+	if !bodyHas(w.Body.String(), `"message":"auth.need_login"`) {
+		t.Errorf("期望 message 返回 key auth.need_login，body=%s", w.Body.String())
 	}
 }
 

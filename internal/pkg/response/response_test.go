@@ -76,8 +76,8 @@ func TestSuccess(t *testing.T) {
 	if got := m["status_code"].(float64); got != 0 {
 		t.Errorf("status_code：得到 %v，期望 0（成功默认 0）", got)
 	}
-	if got := m["message"].(string); got != "Success" {
-		t.Errorf("message：得到 %q，期望 \"Success\"", got)
+	if got := m["message"].(string); got != string(i18n.CommonOK) {
+		t.Errorf("message：得到 %q，期望 key %q", got, string(i18n.CommonOK))
 	}
 	data, ok := m["data"].(map[string]interface{})
 	if !ok {
@@ -94,8 +94,8 @@ func TestSuccessMsg(t *testing.T) {
 	SuccessMsg(c, i18n.AuthLogoutSuccess, gin.H{"success": true})
 
 	m := decode(t, w)
-	if got := m["message"].(string); got != "Logged out" {
-		t.Errorf("message：得到 %q，期望 \"Logged out\"", got)
+	if got := m["message"].(string); got != string(i18n.AuthLogoutSuccess) {
+		t.Errorf("message：得到 %q，期望 key %q", got, string(i18n.AuthLogoutSuccess))
 	}
 	data := m["data"].(map[string]interface{})
 	if _, leaked := data["message"]; leaked {
@@ -138,8 +138,8 @@ func TestFail(t *testing.T) {
 	if _, exists := m["data"]; exists {
 		t.Errorf("失败响应 data 应省略（空数据不返回），body=%s", w.Body.String())
 	}
-	if got := m["message"].(string); got != "Unauthorized" {
-		t.Errorf("message：得到 %q，期望 \"Unauthorized\"", got)
+	if got := m["message"].(string); got != string(errcode.ErrUnauthorized.Key) {
+		t.Errorf("message：得到 %q，期望 key %q", got, string(errcode.ErrUnauthorized.Key))
 	}
 	if !c.IsAborted() {
 		t.Error("Fail 应调用 Abort，阻止后续 handler 继续写响应")
@@ -151,8 +151,8 @@ func TestFailKey(t *testing.T) {
 	c, w := newCtx(http.MethodGet, "/api/v1/article/x")
 	FailKey(c, errcode.ErrNotFound, i18n.ArticleNotFound)
 	m := decode(t, w)
-	if got := m["message"].(string); got != "Article not found" {
-		t.Errorf("message：得到 %q，期望 \"Article not found\"", got)
+	if got := m["message"].(string); got != string(i18n.ArticleNotFound) {
+		t.Errorf("message：应返回 key 本身，得到 %q，期望 %q", got, string(i18n.ArticleNotFound))
 	}
 }
 

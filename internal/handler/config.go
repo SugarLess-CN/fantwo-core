@@ -83,7 +83,7 @@ func (h *ConfigHandler) List(c *gin.Context) {
 func (h *ConfigHandler) Create(c *gin.Context) {
 	var in infra.ConfigInput
 	if err := c.ShouldBindJSON(&in); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：key 必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigKeyRequired)
 		return
 	}
 	out, err := h.svc.Create(in)
@@ -107,7 +107,7 @@ func (h *ConfigHandler) Create(c *gin.Context) {
 func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 	var items []infra.ConfigInput
 	if err := c.ShouldBindJSON(&items); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigBodyArrayRequired)
 		return
 	}
 	updated, skipped, err := h.svc.UpdateAll(items)
@@ -153,7 +153,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 func (h *ConfigHandler) UpdateGroup(c *gin.Context) {
 	var items []infra.ConfigInput
 	if err := c.ShouldBindJSON(&items); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求体必须是配置数组")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigBodyArrayRequired)
 		return
 	}
 	updated, skipped, err := h.svc.UpdateGroup(c.Param("group"), items)
@@ -251,7 +251,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 	var in infra.ConfigInput
 	if err := c.ShouldBindJSON(&in); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.CommonInvalidParam)
 		return
 	}
 	out, err := h.svc.Update(c.Param("id"), in)
@@ -317,7 +317,7 @@ func (h *ConfigHandler) ListSensitiveWords(c *gin.Context) {
 func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 	var body dto.SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigSensitiveEmpty)
 		return
 	}
 	if err := h.svc.AddSensitiveWord(body.Word); err != nil {
@@ -340,7 +340,7 @@ func (h *ConfigHandler) CreateSensitiveWord(c *gin.Context) {
 func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 	var body dto.SensitiveWordRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：word 必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigSensitiveEmpty)
 		return
 	}
 	if err := h.svc.RemoveSensitiveWord(body.Word); err != nil {
@@ -363,7 +363,7 @@ func (h *ConfigHandler) RemoveSensitiveWord(c *gin.Context) {
 func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 	var body dto.SensitiveWordBatchRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigSensitiveEmpty)
 		return
 	}
 	added, err := h.svc.BatchAddSensitiveWords(body.Words)
@@ -391,7 +391,7 @@ func (h *ConfigHandler) BatchCreateSensitiveWords(c *gin.Context) {
 func (h *ConfigHandler) BatchRemoveSensitiveWords(c *gin.Context) {
 	var body dto.SensitiveWordBatchRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
-		response.FailWith(c, errcode.ErrBadRequest, "请求参数错误：words 必填")
+		response.FailKey(c, errcode.ErrBadRequest, i18n.ConfigSensitiveEmpty)
 		return
 	}
 	removed, err := h.svc.BatchRemoveSensitiveWords(body.Words)

@@ -127,14 +127,19 @@ func TestWith_DoesNotMutateOriginal(t *testing.T) {
 	}
 }
 
-// TestWithf_Formatting 格式化覆盖。
+// TestWithf_Formatting 格式化覆盖（MsgText 走文案，Msg 走 key）。
 func TestWithf_Formatting(t *testing.T) {
 	e := ErrNotFound.Withf("Article %s not found", "a-1")
+	// Withf 产生 RawMsg（动态文案），Msg() 对 RawMsg 原样返回 —— 这是设计行为：
+	// RawMsg 含实测业务数据（如「8.0MB > 7MB」），翻不动也不该翻。
 	if e.Msg() != "Article a-1 not found" {
-		t.Errorf("Withf 格式化失败：得到 %q", e.Msg())
+		t.Errorf("Withf 产生 RawMsg，Msg 应原样返回：得到 %q", e.Msg())
 	}
-	if ErrNotFound.Msg() != "Resource not found" {
-		t.Errorf("Withf 污染了预定义值：%q", ErrNotFound.Msg())
+	if e.Key == "" || e.RawMsg == "" {
+		t.Error("Withf 后 Key 应保留（供前端匹配），RawMsg 应非空")
+	}
+	if ErrNotFound.MsgText() != "Resource not found" {
+		t.Errorf("Withf 污染了预定义值（MsgText）：%q", ErrNotFound.MsgText())
 	}
 }
 
@@ -153,8 +158,8 @@ func TestWith_ChainIndependent(t *testing.T) {
 // TestError_ImplementsError interface 实现（多处用于 err.(*errcode.Err) 断言）。
 func TestError_ImplementsError(t *testing.T) {
 	var err error = ErrNotFound
-	if err.Error() != ErrNotFound.Msg() {
-		t.Errorf("Error() 应返回 Msg：得到 %q，期望 %q", err.Error(), ErrNotFound.Msg())
+	if err.Error() != ErrNotFound.MsgText() {
+		t.Errorf("Error() 应返回 MsgText（英文文案，供日志）：得到 %q，期望 %q", err.Error(), ErrNotFound.MsgText())
 	}
 
 	e := ErrNotFound.With("Custom message")

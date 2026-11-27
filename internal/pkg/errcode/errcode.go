@@ -65,12 +65,37 @@ type Err struct {
 }
 
 // Error 实现 error 接口（供日志使用，取英文文案）。
-func (e *Err) Error() string { return e.Msg() }
+//
+// 注意：这里刻意用 MsgText() 而不是 Msg() —— 日志要人能读，前端要 key。
+func (e *Err) Error() string { return e.MsgText() }
 
-// Msg 取当前语言下的提示文案。
+// Msg 对外响应里的 message 字段值。
+//
+// **返回 i18n key 本身，不返回翻译后的文案**（用户 2026-11-27 指定）：
+//   - 后端只负责给 key，翻译由前端按自己的语言包处理；
+//   - 好处：后端加文案不用改前端，前端换语言不用改后端；响应体也更小。
+//
+// 例外：RawMsg 非空时原样返回（动态业务数据，如「8.0MB > 7MB」这类含实测值的提示，
+// 翻不动，也不该翻）。
+func (e *Err) Msg() string {
+	if e == nil {
+		return string(i18n.CommonInternal)
+	}
+	if e.RawMsg != "" {
+		return e.RawMsg
+	}
+	if e.Key != "" {
+		// 带参数时仍需格式化（参数是业务数据），但文案骨架仍是 key 形式：
+		// 前端拿到 key 后自行替换占位符，这里把参数一并保留在 Args 里。
+		return string(e.Key)
+	}
+	return string(i18n.CommonInternal)
+}
+
+// MsgText 翻译后的英文文案（仅后端日志、监控、Error() 使用，不进响应体）。
 //
 // 优先级：RawMsg > i18n 文案（带参数格式化）> key 原样返回（漏配时）。
-func (e *Err) Msg() string {
+func (e *Err) MsgText() string {
 	if e == nil {
 		return i18n.T(i18n.CommonInternal)
 	}
@@ -147,8 +172,15 @@ func (e *Err) With(msg string) *Err {
 }
 
 // Withf 格式化覆盖。
+//
+// 保留原 Key（若有）：message 返回 key 的模式下，前端按 key 匹配；
+// RawMsg 含动态业务数据（如「8.0MB > 7MB」），日志/MsgText 用，前端不用。
 func (e *Err) Withf(format string, args ...interface{}) *Err {
-	return e.With(fmt.Sprintf(format, args...))
+	msg := fmt.Sprintf(format, args...)
+	if e == nil {
+		return &Err{RawMsg: msg}
+	}
+	return &Err{BizCode: e.BizCode, HTTP: e.HTTP, Key: e.Key, RawMsg: msg}
 }
 
 // WithKey 换成另一个 i18n key（保留原 BizCode/HTTP）。
