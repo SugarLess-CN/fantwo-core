@@ -26,6 +26,7 @@ type CollectionHandler struct {
 //	@Security	BearerAuth
 //	@Param		body body dto.CreateCollectionRequest true "合集信息"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDto}
+//	@Param		body body dto.CreateCollectionRequest true "请求体"
 //	@Router		/collection [post]
 //	@ID			CollectionController_create
 func (h *CollectionHandler) Create(c *gin.Context) {

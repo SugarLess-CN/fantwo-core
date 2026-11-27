@@ -29,6 +29,7 @@ type ArticleHandler struct {
 //	@Failure		400		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
 //	@ID			ArticleController_create
+//	@Param		body body dto.CreateArticleRequest true "请求体"
 //	@Router			/article [post]
 func (h *ArticleHandler) Create(c *gin.Context) {
 	var req service.CreateArticleRequest
@@ -235,6 +236,7 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id		path		string	true	"文章 ID"
 //	@Param		body	body		dto.UpdateArticleRequest	true	"待更新字段（部分更新）"
+//	@Param		body body dto.UpdateArticleRequest true "请求体"
 //	@Success	200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure	403		{object}	ResponseBody
 //	@ID			ArticleController_update

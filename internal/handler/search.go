@@ -56,6 +56,7 @@ func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogSer
 //	@Tags		搜索
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.SearchSyncRequest false "batch_size/status 均可缺省"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SearchSyncResultDto}
 //	@ID			SearchController_syncArticles
 //	@Router		/search/sync/articles [post]
@@ -64,10 +65,7 @@ func (h *SearchHandler) SyncArticles(c *gin.Context) {
 		response.Fail(c, ErrServiceNotConfigured)
 		return
 	}
-	var body struct {
-		BatchSize int    `json:"batch_size"`
-		Status    string `json:"status"`
-	}
+	var body dto.SearchSyncRequest
 	// body 可缺省（全量同步默认参数），解析失败不报错
 	_ = c.ShouldBindJSON(&body)
 

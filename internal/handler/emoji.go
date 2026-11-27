@@ -32,6 +32,7 @@ const emojiMaxSize = 5 * 1024 * 1024
 //	@Param		body body dto.EmojiInputRequest true "表情字段（全部可选，不传=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@ID			EmojiController_create
+//	@Param		body body dto.EmojiInputRequest true "请求体"
 //	@Router		/emoji [post]
 func (h *OpsHandler) EmojiCreate(c *gin.Context) {
 	uid := requireUser(c)

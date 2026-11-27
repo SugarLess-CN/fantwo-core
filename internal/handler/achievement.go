@@ -19,6 +19,7 @@ import (
 //	@Success	200	{object}	dto.ResponseBody{data=dto.AchievementDto}
 //	@ID			AchievementController_create
 //	@Param		body body dto.CreateAchievementRequest true "创建成就定义"
+//	@Param		body body dto.CreateAchievementRequest true "请求体"
 //	@Router		/achievement [post]
 func (h *OpsHandler) AchievementCreate(c *gin.Context) {
 	var in model.AchievementInput

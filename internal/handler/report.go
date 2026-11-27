@@ -19,6 +19,7 @@ import (
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_create
 //	@Param		body body dto.CreateReportRequest true "提交举报"
+//	@Param		body body dto.CreateReportRequest true "请求体"
 //	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
 	uid := requireUser(c)

@@ -76,10 +76,7 @@ func (h *AuthHandler) WechatWebURL(c *gin.Context) {
 //	@Router		/user/oauth/wechat/web/callback [post]
 //	@ID			WechatOAuthController_webCallback
 func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req dto.OAuthCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -121,9 +118,7 @@ func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
 //	@Router		/user/oauth/wechat/app/login [post]
 //	@ID			WechatOAuthController_appLogin
 func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
-	var req struct {
-		Code string `json:"code"`
-	}
+	var req dto.OAuthCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -167,10 +162,7 @@ func (h *AuthHandler) QQWebURL(c *gin.Context) {
 //	@Router		/user/oauth/qq/web/callback [post]
 //	@ID			QqOAuthController_webCallback
 func (h *AuthHandler) QQWebCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req dto.OAuthCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -220,11 +212,9 @@ func (h *AuthHandler) QQWebRedirect(c *gin.Context) {
 //	@ID			QqAppLoginController_login
 //	@Router		/user/oauth/qq/app/login [post]
 func (h *AuthHandler) QQAppLogin(c *gin.Context) {
-	var req struct {
-		AccessToken string                 `json:"access_token"`
-		OpenID      string                 `json:"open_id"`
-		Payload     map[string]interface{} `json:"payload"`
-	}
+	// Payload 字段在 handler 里从未使用（QQ 移动端原始回调走 QQAppLoginPayload 另一条路），
+	// 保持 dto.QqAppLoginRequest 的三字段即可。
+	var req dto.QqAppLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}

@@ -74,6 +74,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.UpdateProfileRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_updateContact
 //	@Router		/user/profile/contact [patch]
@@ -96,13 +97,12 @@ func (h *UserHandler) UpdateContact(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.BindPhoneCodeRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserProfileController_sendBindPhoneCode
 //	@Router		/user/profile/phone/code [post]
 func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-	}
+	var req dto.BindPhoneCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -120,6 +120,7 @@ func (h *UserHandler) SendBindPhoneCode(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.BindPhoneRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BindPhoneResultDto}
 //	@ID			UserProfileController_bindPhone
 //	@Router		/user/profile/phone [post]
@@ -141,6 +142,7 @@ func (h *UserHandler) BindPhone(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.RequestDeletionRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletionRequestResultDto}
 //	@ID			UserController_requestAccountDeletion
 //	@Router		/user/account/deletion [post]
@@ -313,6 +315,7 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
+//	@Param		body body dto.UpdateUserRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_update
 //	@Router		/user/{id} [patch]
@@ -396,6 +399,7 @@ func (h *UserHandler) UpdateConfig(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.UpdateNotificationRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_updateNotificationSettings
 //	@Router		/user/config/notifications [patch]
@@ -458,6 +462,7 @@ func (h *UserHandler) GetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.SetCommissionRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_setUserCommissionConfig
 //	@Router		/user/commission/config [post]
@@ -479,14 +484,12 @@ func (h *UserHandler) SetCommissionConfig(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.CalculateCommissionRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CommissionResultDto}
 //	@ID			UserController_calculateCommission
 //	@Router		/user/commission/calculate [post]
 func (h *UserHandler) CalculateCommission(c *gin.Context) {
-	var req struct {
-		Amount float64 `json:"amount"`
-		Type   string  `json:"type"`
-	}
+	var req dto.CalculateCommissionRequest
 	if !bindJSON(c, &req) {
 		return
 	}

@@ -39,6 +39,7 @@ type PaymentHandler struct {
 //	@Success		200		{object}	dto.ResponseBody{data=dto.CreatePaymentResultDto}
 //	@Failure		400		{object}	dto.ResponseBody
 //	@ID			PaymentController_createPayment
+//	@Param		body body dto.CreatePaymentRequest true "请求体"
 //	@Router			/payment/create [post]
 func (h *PaymentHandler) Create(c *gin.Context) {
 	var in service.CreatePaymentInput

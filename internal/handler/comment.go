@@ -37,6 +37,7 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			body	body		dto.CreateCommentRequest	true	"评论内容"
+//	@Param		body body dto.CreateCommentRequest true "请求体"
 //	@Success		200		{object}	dto.ResponseBody{data=dto.CommentDto}
 //	@Failure		400		{object}	ResponseBody
 //	@ID			CommentController_create

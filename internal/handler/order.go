@@ -162,6 +162,7 @@ func (h *OrderHandler) GetByNo(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
+//	@Param		body body dto.OrderRefundRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OrderDto}
 //	@ID			OrderController_cancelOrder
 //	@Router		/order/{id}/cancel [put]

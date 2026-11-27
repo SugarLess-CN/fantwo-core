@@ -262,6 +262,7 @@ func (h *UserActionHandler) WalletStatistics(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.WithdrawRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.WithdrawResultDto}
 //	@ID			UserController_withdrawWallet
 //	@Router		/user/wallet/withdraw [post]
@@ -431,13 +432,12 @@ func (h *UserActionHandler) CertAudit(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "申请 ID"
+//	@Param		body body dto.RevokeCertificationRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CertificationDto}
 //	@ID			UserController_revoke
 //	@Router		/user/certification/admin/applications/{id}/revoke [post]
 func (h *UserActionHandler) CertRevoke(c *gin.Context) {
-	var body struct {
-		Reason string `json:"reason"`
-	}
+	var body dto.RevokeCertificationRequest
 	_ = c.ShouldBindJSON(&body)
 	out, e := h.svc.RevokeCertification(c.Request.Context(), c.Param("id"),
 		middleware.CurrentUserID(c), body.Reason)

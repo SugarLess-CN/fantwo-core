@@ -93,6 +93,7 @@ func currentUID(c *gin.Context) (string, bool) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param	body	body	dto.CreateMessageRequest	true	"CreateMessageInput{content,type,receiverId}"
+//	@Param		body body dto.CreateMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@Failure	403	{object}	dto.ResponseBody
 //	@ID			MessageController_create
@@ -214,6 +215,7 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param	body	body	dto.UpdateMessageRequest	true	"UpdateMessageInput"
+//	@Param		body body dto.UpdateMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@ID			MessageController_update
 //	@Router		/message/{id} [patch]
@@ -264,6 +266,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
+//	@Param		body body dto.MarkAllReadRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			MessageController_markAsRead
 //	@Router		/message/{id}/read [post]
@@ -285,6 +288,7 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.MarkAllReadRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@ID			MessageController_markAllAsRead
 //	@Router		/message/read-all [post]
@@ -310,6 +314,7 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param	body	body	dto.BatchMessageRequest	true	"BatchMessageInput{messageIds,action}"
+//	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@ID			MessageController_batchOperation
 //	@Router		/message/batch [post]
@@ -365,6 +370,7 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			userId	path		string	true	"接收者用户 ID"
 //	@Param	body	body	dto.SendPrivateRequest	true	"SendPrivateInput{content,messageKind,payload}"
+//	@Param		body body dto.SendPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@Failure	403	{object}	dto.ResponseBody
 //	@ID			MessageController_sendPrivateMessage
@@ -441,6 +447,7 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
+//	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReadResultDto}
 //	@ID			MessageController_markPrivateConversationRead
 //	@Router		/message/private/conversations/{userId}/read [post]
@@ -464,6 +471,7 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 //	@Produce	json
 //	@Security	BearerAuth
 //	@Param	body	body	dto.PrivateReadBatchRequest	true	"PrivateReadBatchInput{messageIds}"
+//	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MarkMessagesReadResultDto}
 //	@ID			MessageController_markPrivateMessagesRead
 //	@Router		/message/private/read-batch [post]
@@ -472,9 +480,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var in struct {
-		MessageIDs []string `json:"message_ids"`
-	}
+	var in dto.BatchMessageRequest
 	if err := c.ShouldBindJSON(&in); err != nil {
 		response.Fail(c, errcode.ErrBadRequest)
 		return
@@ -495,6 +501,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		id path string true "id"
 //	@Param		body	body	dto.RecallPrivateRequest	false	"RecallPrivateInput{reason}"
+//	@Param		body body dto.RecallPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@ID			MessageController_recallPrivateMessage
 //	@Router		/message/private/recall/{id} [post]
@@ -503,9 +510,7 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var in struct {
-		Reason string `json:"reason"`
-	}
+	var in dto.RecallPrivateRequest
 	_ = c.ShouldBindJSON(&in) // body 可空
 	out, err := h.Priv.Recall(uid, c.Param("id"), in.Reason)
 	if err != nil {
@@ -523,6 +528,7 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 //	@Security	BearerAuth
 //	@Param		userId path string true "userId"
 //	@Param		body	body	dto.BlockUserRequest	false	"BlockUserInput{reason}"
+//	@Param		body body dto.BlockUserRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@ID			MessageController_blockPrivateUser
 //	@Router		/message/private/block/{userId} [post]
@@ -531,9 +537,7 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var in struct {
-		Reason string `json:"reason"`
-	}
+	var in dto.BlockUserRequest
 	_ = c.ShouldBindJSON(&in)
 	var reason *string
 	if in.Reason != "" {

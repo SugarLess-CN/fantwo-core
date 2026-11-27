@@ -316,6 +316,14 @@ definitions:
         type: boolean
       pinned_at:
         type: string
+      reaction_stats:
+        additionalProperties:
+          type: integer
+        description: |-
+          ReactionStats 各表情的计数（键固定为 like/love/haha/wow/sad/angry/dislike）。
+
+          对齐原 buildEmptyReactionStats()：无表态时是**全 0 对象**，不是 null。
+        type: object
       require_follow:
         example: false
         type: boolean
@@ -352,6 +360,10 @@ definitions:
         type: string
       updated_at:
         example: "2026-11-25T10:00:00Z"
+        type: string
+      user_reaction:
+        description: UserReaction 当前用户对该文章的表态；未表态或未登录时为 ""（不是 null）。
+        example: like
         type: string
       video_url:
         example: https://cdn.example.com/v.mp4
@@ -590,6 +602,19 @@ definitions:
       avatar:
         example: https://cdn.example.com/a.png
         type: string
+      certification:
+        allOf:
+        - $ref: '#/definitions/dto.CertificationBriefDto'
+        description: Certification 已通过的认证详情；未认证时不传。
+      equipped_decorations:
+        additionalProperties:
+          $ref: '#/definitions/dto.EquippedDecorationDto'
+        description: |-
+          EquippedDecorations 作者当前佩戴的装饰品，按 type 分组。
+
+          空时不传（不是 null、不是空对象）—— 见 docs/21 §一 规则 ③。
+          对齐原 NestJS processUserDecorations()：Record<decorationType, Decoration>。
+        type: object
       id:
         example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
@@ -670,6 +695,26 @@ definitions:
     required:
     - action
     - message_ids
+    type: object
+  dto.BindPhoneCodeRequest:
+    properties:
+      phone:
+        example: "13800138000"
+        type: string
+    required:
+    - phone
+    type: object
+  dto.BindPhoneRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      phone:
+        example: "13800138000"
+        type: string
+    required:
+    - code
+    - phone
     type: object
   dto.BindPhoneResultDto:
     properties:
@@ -775,6 +820,18 @@ definitions:
         example: 37
         type: integer
     type: object
+  dto.CalculateCommissionRequest:
+    properties:
+      amount:
+        example: 100
+        type: number
+      type:
+        example: article
+        type: string
+    required:
+    - amount
+    - type
+    type: object
   dto.CategoryBriefDto:
     properties:
       avatar:
@@ -838,6 +895,18 @@ definitions:
         format: date-time
         type: string
     type: object
+  dto.CertificationBriefDto:
+    properties:
+      real_name:
+        example: 张三
+        type: string
+      slogan:
+        example: 记录光
+        type: string
+      type:
+        example: OFFICIAL
+        type: string
+    type: object
   dto.CertificationDto:
     properties:
       created_at:
@@ -873,6 +942,18 @@ definitions:
       user_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
+    type: object
+  dto.ChangePasswordRequest:
+    properties:
+      new_password:
+        example: newpass123
+        type: string
+      old_password:
+        example: oldpass123
+        type: string
+    required:
+    - new_password
+    - old_password
     type: object
   dto.ClaimPointsResultDto:
     properties:
@@ -1549,6 +1630,20 @@ definitions:
     - article_id
     - content
     type: object
+  dto.CreateInviteRequest:
+    properties:
+      commission_rate:
+        example: 0.05
+        type: number
+      expired_at:
+        format: date-time
+        type: string
+      remark:
+        type: string
+      type:
+        example: GENERAL
+        type: string
+    type: object
   dto.CreateMembershipOrderRequest:
     properties:
       duration:
@@ -2112,6 +2207,17 @@ definitions:
         example: true
         type: boolean
     type: object
+  dto.EmailCodeRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      type:
+        example: verification
+        type: string
+    required:
+    - email
+    type: object
   dto.EmojiDto:
     properties:
       category:
@@ -2339,6 +2445,27 @@ definitions:
         type: string
       sign_type:
         example: MD5
+        type: string
+    type: object
+  dto.EquippedDecorationDto:
+    properties:
+      bubble_color:
+        example: '#FFD700'
+        type: string
+      id:
+        example: a1b2c3d4-0000-4e5f-8a9b-000000000001
+        type: string
+      image_url:
+        example: https://cdn.example.com/frame.png
+        type: string
+      name:
+        example: 星辰边框
+        type: string
+      rarity:
+        example: RARE
+        type: string
+      type:
+        example: AVATAR_FRAME
         type: string
     type: object
   dto.FavoriteDetailDto:
@@ -2679,6 +2806,15 @@ definitions:
       wallet:
         example: 100.5
         type: number
+    type: object
+  dto.MarkAllReadRequest:
+    properties:
+      is_broadcast:
+        example: false
+        type: boolean
+      type:
+        example: notification
+        type: string
     type: object
   dto.MarkMessagesReadResultDto:
     properties:
@@ -3781,6 +3917,28 @@ definitions:
         example: 36
         type: integer
     type: object
+  dto.RequestDeletionRequest:
+    properties:
+      reason:
+        example: 不再使用
+        type: string
+    type: object
+  dto.ResetPasswordRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      email:
+        example: alice@example.com
+        type: string
+      new_password:
+        example: newpass123
+        type: string
+    required:
+    - code
+    - email
+    - new_password
+    type: object
   dto.ResponseBody:
     properties:
       data: {}
@@ -3828,6 +3986,11 @@ definitions:
         type: string
     required:
     - result
+    type: object
+  dto.RevokeCertificationRequest:
+    properties:
+      reason:
+        type: string
     type: object
   dto.RoleBriefDto:
     properties:
@@ -4029,6 +4192,15 @@ definitions:
         example: 1280
         type: integer
     type: object
+  dto.SearchSyncRequest:
+    properties:
+      batch_size:
+        example: 100
+        type: integer
+      status:
+        example: PUBLISHED
+        type: string
+    type: object
   dto.SearchSyncResultDto:
     properties:
       data:
@@ -4130,6 +4302,26 @@ definitions:
     required:
     - is_pinned
     type: object
+  dto.SetCommissionRequest:
+    properties:
+      article_commission_rate:
+        example: 10
+        type: number
+      enable_custom_commission:
+        example: false
+        type: boolean
+      membership_commission_rate:
+        example: 5
+        type: number
+      product_commission_rate:
+        example: 5
+        type: number
+      remark:
+        type: string
+      service_commission_rate:
+        example: 5
+        type: number
+    type: object
   dto.SetFeaturedRequest:
     properties:
       is_featured:
@@ -4214,6 +4406,29 @@ definitions:
       total_days:
         example: 32
         type: integer
+    type: object
+  dto.SmsCodeRequest:
+    properties:
+      phone:
+        example: "13800138000"
+        type: string
+      scene:
+        example: login
+        type: string
+    required:
+    - phone
+    type: object
+  dto.SmsLoginRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      phone:
+        example: "13800138000"
+        type: string
+    required:
+    - code
+    - phone
     type: object
   dto.SpendPointsRequest:
     properties:
@@ -4671,6 +4886,31 @@ definitions:
         - notification
         type: string
     type: object
+  dto.UpdateNotificationRequest:
+    properties:
+      enable_comment_notification:
+        type: boolean
+      enable_email_notification:
+        type: boolean
+      enable_follow_notification:
+        type: boolean
+      enable_invite_notification:
+        type: boolean
+      enable_like_notification:
+        type: boolean
+      enable_message_notification:
+        type: boolean
+      enable_order_notification:
+        type: boolean
+      enable_payment_notification:
+        type: boolean
+      enable_push_notification:
+        type: boolean
+      enable_sms_notification:
+        type: boolean
+      enable_system_notification:
+        type: boolean
+    type: object
   dto.UpdatePointsActivityRequest:
     properties:
       code:
@@ -4803,6 +5043,30 @@ definitions:
       product_commission_rate:
         type: number
       service_commission_rate:
+        type: number
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      background:
+        type: string
+      description:
+        type: string
+      gender:
+        type: string
+      nickname:
+        type: string
+      role_ids:
+        items:
+          type: string
+        type: array
+      status:
+        example: ACTIVE
+        type: string
+      wallet:
         type: number
     type: object
   dto.UploadAnimatedOptsDto:
@@ -5621,6 +5885,17 @@ definitions:
         example: 100
         type: number
     type: object
+  dto.WithdrawRequest:
+    properties:
+      amount:
+        example: 50
+        type: number
+      bank_info:
+        additionalProperties: true
+        type: object
+    required:
+    - amount
+    type: object
   dto.WithdrawResultDto:
     properties:
       amount:
@@ -5690,6 +5965,12 @@ paths:
       operationId: AchievementController_create
       parameters:
       - description: 创建成就定义
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAchievementRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -5927,6 +6208,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.CreateArticleRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateArticleRequest'
       produces:
       - application/json
       responses:
@@ -6020,6 +6307,12 @@ paths:
         required: true
         type: string
       - description: 待更新字段（部分更新）
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateArticleRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -6871,6 +7164,13 @@ paths:
   /auth/sms/login:
     post:
       operationId: AuthController_smsLogin
+      parameters:
+      - description: 手机号与验证码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SmsLoginRequest'
       produces:
       - application/json
       responses:
@@ -6889,6 +7189,13 @@ paths:
   /auth/sms/send:
     post:
       operationId: AuthController_sendSmsCode
+      parameters:
+      - description: 手机号与场景
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SmsCodeRequest'
       produces:
       - application/json
       responses:
@@ -6937,6 +7244,12 @@ paths:
       operationId: BannerController_create
       parameters:
       - description: 创建轮播位
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateBannerRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -7252,6 +7565,12 @@ paths:
       operationId: CollectionController_create
       parameters:
       - description: 合集信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCollectionRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -7589,6 +7908,12 @@ paths:
       operationId: CommentController_create
       parameters:
       - description: 评论内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCommentRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -8496,6 +8821,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.DecorationInputRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DecorationInputRequest'
       produces:
       - application/json
       responses:
@@ -9062,6 +9393,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.EmojiInputRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmojiInputRequest'
       produces:
       - application/json
       responses:
@@ -9596,6 +9933,13 @@ paths:
   /invite:
     post:
       operationId: InviteController_createInvite
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateInviteRequest'
       produces:
       - application/json
       responses:
@@ -9783,6 +10127,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.CreateMessageRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMessageRequest'
       produces:
       - application/json
       responses:
@@ -9871,6 +10221,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.UpdateMessageRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateMessageRequest'
       produces:
       - application/json
       responses:
@@ -9897,6 +10253,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarkAllReadRequest'
       produces:
       - application/json
       responses:
@@ -9919,6 +10281,12 @@ paths:
       operationId: MessageController_batchOperation
       parameters:
       - description: BatchMessageInput{messageIds,action}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchMessageRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -9954,6 +10322,12 @@ paths:
         required: true
         type: string
       - description: SendPrivateInput{content,messageKind,payload}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendPrivateRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -10017,6 +10391,12 @@ paths:
       - description: BlockUserInput{reason}
         in: body
         name: body
+        schema:
+          $ref: '#/definitions/dto.BlockUserRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
         schema:
           $ref: '#/definitions/dto.BlockUserRequest'
       produces:
@@ -10120,6 +10500,12 @@ paths:
         name: userId
         required: true
         type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchMessageRequest'
       produces:
       - application/json
       responses:
@@ -10147,6 +10533,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.PrivateReadBatchRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BatchMessageRequest'
       produces:
       - application/json
       responses:
@@ -10178,6 +10570,12 @@ paths:
         name: body
         schema:
           $ref: '#/definitions/dto.RecallPrivateRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RecallPrivateRequest'
       produces:
       - application/json
       responses:
@@ -10198,6 +10596,13 @@ paths:
   /message/read-all:
     post:
       operationId: MessageController_markAllAsRead
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarkAllReadRequest'
       produces:
       - application/json
       responses:
@@ -10362,6 +10767,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderRefundRequest'
       produces:
       - application/json
       responses:
@@ -10607,6 +11018,12 @@ paths:
       operationId: PaymentController_createPayment
       parameters:
       - description: 支付入参
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePaymentRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -11132,6 +11549,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/dto.AddPointsRequest'
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddPointsRequest'
       produces:
       - application/json
       responses:
@@ -11458,6 +11881,12 @@ paths:
       operationId: ReportController_create
       parameters:
       - description: 提交举报
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateReportRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -12034,6 +12463,12 @@ paths:
   /search/sync/articles:
     post:
       operationId: SearchController_syncArticles
+      parameters:
+      - description: batch_size/status 均可缺省
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/dto.SearchSyncRequest'
       produces:
       - application/json
       responses:
@@ -12131,6 +12566,12 @@ paths:
       operationId: TagController_create
       parameters:
       - description: 创建标签
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTagRequest'
+      - description: 请求体
         in: body
         name: body
         required: true
@@ -12782,6 +13223,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
       produces:
       - application/json
       responses:
@@ -12996,6 +13443,13 @@ paths:
   /user/account/deletion:
     post:
       operationId: UserController_requestAccountDeletion
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RequestDeletionRequest'
       produces:
       - application/json
       responses:
@@ -13136,6 +13590,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RevokeCertificationRequest'
       produces:
       - application/json
       responses:
@@ -13273,6 +13733,13 @@ paths:
   /user/commission/calculate:
     post:
       operationId: UserController_calculateCommission
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CalculateCommissionRequest'
       produces:
       - application/json
       responses:
@@ -13312,6 +13779,13 @@ paths:
       - 用户管理
     post:
       operationId: UserController_setUserCommissionConfig
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SetCommissionRequest'
       produces:
       - application/json
       responses:
@@ -13411,6 +13885,13 @@ paths:
       consumes:
       - application/json
       operationId: UserController_updateNotificationSettings
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateNotificationRequest'
       produces:
       - application/json
       responses:
@@ -13431,6 +13912,13 @@ paths:
   /user/email/verification:
     post:
       operationId: UserController_sendVerificationCode
+      parameters:
+      - description: 邮箱与用途
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmailCodeRequest'
       produces:
       - application/json
       responses:
@@ -13854,6 +14342,13 @@ paths:
   /user/password/change:
     post:
       operationId: UserController_changePassword
+      parameters:
+      - description: 原密码与新密码
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePasswordRequest'
       produces:
       - application/json
       responses:
@@ -13874,6 +14369,13 @@ paths:
   /user/password/reset:
     post:
       operationId: UserController_resetPassword
+      parameters:
+      - description: 邮箱验证码重置参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
       produces:
       - application/json
       responses:
@@ -13951,6 +14453,13 @@ paths:
       consumes:
       - application/json
       operationId: UserController_updateContact
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
       produces:
       - application/json
       responses:
@@ -14033,6 +14542,13 @@ paths:
   /user/profile/phone:
     post:
       operationId: UserProfileController_bindPhone
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BindPhoneRequest'
       produces:
       - application/json
       responses:
@@ -14053,6 +14569,13 @@ paths:
   /user/profile/phone/code:
     post:
       operationId: UserProfileController_sendBindPhoneCode
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BindPhoneCodeRequest'
       produces:
       - application/json
       responses:
@@ -14289,6 +14812,13 @@ paths:
   /user/wallet/withdraw:
     post:
       operationId: UserController_withdrawWallet
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WithdrawRequest'
       produces:
       - application/json
       responses:

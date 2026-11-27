@@ -592,3 +592,11 @@ type StatisticsTrendsDto struct {
 	Days   int             `json:"days" example:"7"`
 	Series []TrendPointDto `json:"series"`
 }
+
+// SearchSyncRequest 全量同步文章到 ES 的请求体（POST /search/sync/articles）。
+//
+// 两个字段都可缺省：不传 batch_size 用默认批量，不传 status 同步全部状态。
+type SearchSyncRequest struct {
+	BatchSize int    `json:"batch_size" example:"100"`
+	Status    string `json:"status" example:"PUBLISHED"`
+}

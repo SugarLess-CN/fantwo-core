@@ -201,9 +201,7 @@ func (h *RoleHandler) Copy(c *gin.Context) {
 //	@ID			RoleController_assignPermissions
 //	@Router		/role/{id}/permissions [post]
 func (h *RoleHandler) AssignPermissions(c *gin.Context) {
-	var in struct {
-		PermissionIDs []string `json:"permission_ids"`
-	}
+	var in dto.AssignPermissionsRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -228,9 +226,7 @@ func (h *RoleHandler) AssignPermissions(c *gin.Context) {
 //	@ID			RoleController_toggleStatus
 //	@Router		/role/{id}/status [patch]
 func (h *RoleHandler) ToggleStatus(c *gin.Context) {
-	var in struct {
-		IsActive *bool `json:"is_active"`
-	}
+	var in dto.ToggleRoleStatusRequest
 	if !bindJSON(c, &in) {
 		return
 	}
@@ -259,9 +255,7 @@ func (h *RoleHandler) ToggleStatus(c *gin.Context) {
 //	@ID			RoleController_bindMenus
 //	@Router		/role/{id}/menus [put]
 func (h *RoleHandler) AssignMenus(c *gin.Context) {
-	var in struct {
-		Menus []string `json:"menus"`
-	}
+	var in dto.AssignMenusRequest
 	if !bindJSON(c, &in) {
 		return
 	}

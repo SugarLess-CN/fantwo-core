@@ -73,13 +73,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //	@ID			UserController_registerUser
 //	@Router			/user/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
-	var req struct {
-		Username string `json:"username"`
-		Nickname string `json:"nickname"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-		Phone    string `json:"phone"`
-	}
+	var req dto.RegisterRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -108,9 +102,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //	@ID			UserController_refreshToken
 //	@Router			/user/refresh-token [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
+	var req dto.RefreshTokenRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -173,14 +165,12 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 //	@Summary	发送短信验证码
 //	@Tags		用户认证
 //	@Produce	json
+//	@Param		body body dto.SmsCodeRequest true "手机号与场景"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			AuthController_sendSmsCode
 //	@Router		/auth/sms/send [post]
 func (h *AuthHandler) SendSmsCode(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-		Scene string `json:"scene"`
-	}
+	var req dto.SmsCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -199,14 +189,12 @@ func (h *AuthHandler) SendSmsCode(c *gin.Context) {
 //	@Summary	手机验证码登录
 //	@Tags		用户认证
 //	@Produce	json
+//	@Param		body body dto.SmsLoginRequest true "手机号与验证码"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@ID			AuthController_smsLogin
 //	@Router		/auth/sms/login [post]
 func (h *AuthHandler) SmsLogin(c *gin.Context) {
-	var req struct {
-		Phone string `json:"phone"`
-		Code  string `json:"code"`
-	}
+	var req dto.SmsLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -223,14 +211,12 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 //	@Summary	发送邮箱验证码
 //	@Tags		用户认证
 //	@Produce	json
+//	@Param		body body dto.EmailCodeRequest true "邮箱与用途"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_sendVerificationCode
 //	@Router		/user/email/verification [post]
 func (h *AuthHandler) SendEmailCode(c *gin.Context) {
-	var req struct {
-		Email string `json:"email"`
-		Type  string `json:"type"`
-	}
+	var req dto.EmailCodeRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -250,15 +236,12 @@ func (h *AuthHandler) SendEmailCode(c *gin.Context) {
 //	@Summary	邮箱验证码重置密码
 //	@Tags		用户认证
 //	@Produce	json
+//	@Param		body body dto.ResetPasswordRequest true "邮箱验证码重置参数"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_resetPassword
 //	@Router		/user/password/reset [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
-	var req struct {
-		Email       string `json:"email"`
-		Code        string `json:"code"`
-		NewPassword string `json:"new_password"`
-	}
+	var req dto.ResetPasswordRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -275,14 +258,12 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
+//	@Param		body body dto.ChangePasswordRequest true "原密码与新密码"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			UserController_changePassword
 //	@Router		/user/password/change [post]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
-	var req struct {
-		OldPassword string `json:"old_password"`
-		NewPassword string `json:"new_password"`
-	}
+	var req dto.ChangePasswordRequest
 	if !bindJSON(c, &req) {
 		return
 	}
@@ -340,10 +321,7 @@ func (h *AuthHandler) GithubURL(c *gin.Context) {
 //	@ID			UserController_githubOAuthCallback
 //	@Router		/user/oauth/github/callback [post]
 func (h *AuthHandler) GithubCallback(c *gin.Context) {
-	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
-	}
+	var req dto.GithubCallbackRequest
 	if !bindJSON(c, &req) {
 		return
 	}

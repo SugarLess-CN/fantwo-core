@@ -91,6 +91,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.CreateAchievementRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAchievementRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -488,6 +497,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "文章内容",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateArticleRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1477,6 +1495,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.UpdateArticleRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateArticleRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2155,6 +2182,17 @@ const docTemplate = `{
                 ],
                 "summary": "手机验证码登录",
                 "operationId": "AuthController_smsLogin",
+                "parameters": [
+                    {
+                        "description": "手机号与验证码",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SmsLoginRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2187,6 +2225,17 @@ const docTemplate = `{
                 ],
                 "summary": "发送短信验证码",
                 "operationId": "AuthController_sendSmsCode",
+                "parameters": [
+                    {
+                        "description": "手机号与场景",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SmsCodeRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2280,6 +2329,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "创建轮播位",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateBannerRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -2829,6 +2887,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "合集信息",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCollectionRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -3418,6 +3485,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "评论内容",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCommentRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -5014,6 +5090,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.DecorationInputRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DecorationInputRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -6030,6 +6115,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.EmojiInputRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmojiInputRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -6968,6 +7062,17 @@ const docTemplate = `{
                 ],
                 "summary": "生成邀请码",
                 "operationId": "InviteController_createInvite",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateInviteRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7305,6 +7410,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.CreateMessageRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMessageRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -7353,6 +7467,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "BatchMessageInput{messageIds,action}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BatchMessageRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7410,6 +7533,15 @@ const docTemplate = `{
                         "description": "BlockUserInput{reason}",
                         "name": "body",
                         "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BlockUserRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.BlockUserRequest"
                         }
@@ -7637,6 +7769,15 @@ const docTemplate = `{
                         "name": "userId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BatchMessageRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -7684,6 +7825,15 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.PrivateReadBatchRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BatchMessageRequest"
                         }
                     }
                 ],
@@ -7736,6 +7886,15 @@ const docTemplate = `{
                         "description": "RecallPrivateInput{reason}",
                         "name": "body",
                         "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RecallPrivateRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.RecallPrivateRequest"
                         }
@@ -7798,6 +7957,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.SendPrivateRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendPrivateRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -7843,6 +8011,17 @@ const docTemplate = `{
                 ],
                 "summary": "全部已读",
                 "operationId": "MessageController_markAllAsRead",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarkAllReadRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8090,6 +8269,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.UpdateMessageRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateMessageRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -8136,6 +8324,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarkAllReadRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -8645,6 +8842,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OrderRefundRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -8755,6 +8961,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "支付入参",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePaymentRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -9660,6 +9875,15 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.AddPointsRequest"
                         }
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddPointsRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -10254,6 +10478,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "提交举报",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateReportRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -11269,6 +11502,16 @@ const docTemplate = `{
                 ],
                 "summary": "全量同步文章到 ES",
                 "operationId": "SearchController_syncArticles",
+                "parameters": [
+                    {
+                        "description": "batch_size/status 均可缺省",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchSyncRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -11445,6 +11688,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "创建标签",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateTagRequest"
+                        }
+                    },
+                    {
+                        "description": "请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -12484,6 +12736,17 @@ const docTemplate = `{
                 ],
                 "summary": "申请注销账号",
                 "operationId": "UserController_requestAccountDeletion",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RequestDeletionRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -12732,6 +12995,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RevokeCertificationRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -12982,6 +13254,17 @@ const docTemplate = `{
                 ],
                 "summary": "佣金试算",
                 "operationId": "UserController_calculateCommission",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CalculateCommissionRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13054,6 +13337,17 @@ const docTemplate = `{
                 ],
                 "summary": "设置佣金配置",
                 "operationId": "UserController_setUserCommissionConfig",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SetCommissionRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13231,6 +13525,17 @@ const docTemplate = `{
                 ],
                 "summary": "更新通知偏好",
                 "operationId": "UserController_updateNotificationSettings",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateNotificationRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13263,6 +13568,17 @@ const docTemplate = `{
                 ],
                 "summary": "发送邮箱验证码",
                 "operationId": "UserController_sendVerificationCode",
+                "parameters": [
+                    {
+                        "description": "邮箱与用途",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmailCodeRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13989,6 +14305,17 @@ const docTemplate = `{
                 ],
                 "summary": "修改密码",
                 "operationId": "UserController_changePassword",
+                "parameters": [
+                    {
+                        "description": "原密码与新密码",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChangePasswordRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14021,6 +14348,17 @@ const docTemplate = `{
                 ],
                 "summary": "邮箱验证码重置密码",
                 "operationId": "UserController_resetPassword",
+                "parameters": [
+                    {
+                        "description": "邮箱验证码重置参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResetPasswordRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14160,6 +14498,17 @@ const docTemplate = `{
                 ],
                 "summary": "修改联系方式",
                 "operationId": "UserController_updateContact",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateProfileRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14309,6 +14658,17 @@ const docTemplate = `{
                 ],
                 "summary": "绑定手机号",
                 "operationId": "UserProfileController_bindPhone",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BindPhoneRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14346,6 +14706,17 @@ const docTemplate = `{
                 ],
                 "summary": "发送绑定手机验证码",
                 "operationId": "UserProfileController_sendBindPhoneCode",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BindPhoneCodeRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14764,6 +15135,17 @@ const docTemplate = `{
                 ],
                 "summary": "钱包提现",
                 "operationId": "UserController_withdrawWallet",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WithdrawRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -14911,6 +15293,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -15720,6 +16111,13 @@ const docTemplate = `{
                 "pinned_at": {
                     "type": "string"
                 },
+                "reaction_stats": {
+                    "description": "ReactionStats 各表情的计数（键固定为 like/love/haha/wow/sad/angry/dislike）。\n\n对齐原 buildEmptyReactionStats()：无表态时是**全 0 对象**，不是 null。",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
                 "require_follow": {
                     "type": "boolean",
                     "example": false
@@ -15769,6 +16167,11 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string",
                     "example": "2026-11-25T10:00:00Z"
+                },
+                "user_reaction": {
+                    "description": "UserReaction 当前用户对该文章的表态；未表态或未登录时为 \"\"（不是 null）。",
+                    "type": "string",
+                    "example": "like"
                 },
                 "video_url": {
                     "type": "string",
@@ -16091,6 +16494,21 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/a.png"
                 },
+                "certification": {
+                    "description": "Certification 已通过的认证详情；未认证时不传。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CertificationBriefDto"
+                        }
+                    ]
+                },
+                "equipped_decorations": {
+                    "description": "EquippedDecorations 作者当前佩戴的装饰品，按 type 分组。\n\n空时不传（不是 null、不是空对象）—— 见 docs/21 §一 规则 ③。\n对齐原 NestJS processUserDecorations()：Record\u003cdecorationType, Decoration\u003e。",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dto.EquippedDecorationDto"
+                    }
+                },
                 "id": {
                     "type": "string",
                     "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
@@ -16203,6 +16621,35 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.BindPhoneCodeRequest": {
+            "type": "object",
+            "required": [
+                "phone"
+            ],
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "example": "13800138000"
+                }
+            }
+        },
+        "dto.BindPhoneRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "phone"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13800138000"
                 }
             }
         },
@@ -16354,6 +16801,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CalculateCommissionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "type"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "example": 100
+                },
+                "type": {
+                    "type": "string",
+                    "example": "article"
+                }
+            }
+        },
         "dto.CategoryBriefDto": {
             "type": "object",
             "properties": {
@@ -16442,6 +16906,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CertificationBriefDto": {
+            "type": "object",
+            "properties": {
+                "real_name": {
+                    "type": "string",
+                    "example": "张三"
+                },
+                "slogan": {
+                    "type": "string",
+                    "example": "记录光"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "OFFICIAL"
+                }
+            }
+        },
         "dto.CertificationDto": {
             "type": "object",
             "properties": {
@@ -16488,6 +16969,23 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                }
+            }
+        },
+        "dto.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "example": "newpass123"
+                },
+                "old_password": {
+                    "type": "string",
+                    "example": "oldpass123"
                 }
             }
         },
@@ -17425,6 +17923,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateInviteRequest": {
+            "type": "object",
+            "properties": {
+                "commission_rate": {
+                    "type": "number",
+                    "example": 0.05
+                },
+                "expired_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "GENERAL"
+                }
+            }
+        },
         "dto.CreateMembershipOrderRequest": {
             "type": "object",
             "properties": {
@@ -18191,6 +18709,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.EmailCodeRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "verification"
+                }
+            }
+        },
         "dto.EmojiDto": {
             "type": "object",
             "properties": {
@@ -18505,6 +19039,35 @@ const docTemplate = `{
                 "sign_type": {
                     "type": "string",
                     "example": "MD5"
+                }
+            }
+        },
+        "dto.EquippedDecorationDto": {
+            "type": "object",
+            "properties": {
+                "bubble_color": {
+                    "type": "string",
+                    "example": "#FFD700"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "a1b2c3d4-0000-4e5f-8a9b-000000000001"
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/frame.png"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "星辰边框"
+                },
+                "rarity": {
+                    "type": "string",
+                    "example": "RARE"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "AVATAR_FRAME"
                 }
             }
         },
@@ -18971,6 +19534,19 @@ const docTemplate = `{
                 "wallet": {
                     "type": "number",
                     "example": 100.5
+                }
+            }
+        },
+        "dto.MarkAllReadRequest": {
+            "type": "object",
+            "properties": {
+                "is_broadcast": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "type": {
+                    "type": "string",
+                    "example": "notification"
                 }
             }
         },
@@ -20472,6 +21048,37 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.RequestDeletionRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "example": "不再使用"
+                }
+            }
+        },
+        "dto.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "new_password"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "alice@example.com"
+                },
+                "new_password": {
+                    "type": "string",
+                    "example": "newpass123"
+                }
+            }
+        },
         "dto.ResponseBody": {
             "type": "object",
             "properties": {
@@ -20536,6 +21143,14 @@ const docTemplate = `{
                         "REJECTED"
                     ],
                     "example": "APPROVED"
+                }
+            }
+        },
+        "dto.RevokeCertificationRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
                 }
             }
         },
@@ -20820,6 +21435,19 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SearchSyncRequest": {
+            "type": "object",
+            "properties": {
+                "batch_size": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PUBLISHED"
+                }
+            }
+        },
         "dto.SearchSyncResultDto": {
             "type": "object",
             "properties": {
@@ -20965,6 +21593,34 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SetCommissionRequest": {
+            "type": "object",
+            "properties": {
+                "article_commission_rate": {
+                    "type": "number",
+                    "example": 10
+                },
+                "enable_custom_commission": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "membership_commission_rate": {
+                    "type": "number",
+                    "example": 5
+                },
+                "product_commission_rate": {
+                    "type": "number",
+                    "example": 5
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "service_commission_rate": {
+                    "type": "number",
+                    "example": 5
+                }
+            }
+        },
         "dto.SetFeaturedRequest": {
             "type": "object",
             "required": [
@@ -21083,6 +21739,39 @@ const docTemplate = `{
                 "total_days": {
                     "type": "integer",
                     "example": 32
+                }
+            }
+        },
+        "dto.SmsCodeRequest": {
+            "type": "object",
+            "required": [
+                "phone"
+            ],
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "example": "13800138000"
+                },
+                "scene": {
+                    "type": "string",
+                    "example": "login"
+                }
+            }
+        },
+        "dto.SmsLoginRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "phone"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "13800138000"
                 }
             }
         },
@@ -21734,6 +22423,44 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateNotificationRequest": {
+            "type": "object",
+            "properties": {
+                "enable_comment_notification": {
+                    "type": "boolean"
+                },
+                "enable_email_notification": {
+                    "type": "boolean"
+                },
+                "enable_follow_notification": {
+                    "type": "boolean"
+                },
+                "enable_invite_notification": {
+                    "type": "boolean"
+                },
+                "enable_like_notification": {
+                    "type": "boolean"
+                },
+                "enable_message_notification": {
+                    "type": "boolean"
+                },
+                "enable_order_notification": {
+                    "type": "boolean"
+                },
+                "enable_payment_notification": {
+                    "type": "boolean"
+                },
+                "enable_push_notification": {
+                    "type": "boolean"
+                },
+                "enable_sms_notification": {
+                    "type": "boolean"
+                },
+                "enable_system_notification": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.UpdatePointsActivityRequest": {
             "type": "object",
             "properties": {
@@ -21920,6 +22647,42 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "service_commission_rate": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "background": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "role_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ACTIVE"
+                },
+                "wallet": {
                     "type": "number"
                 }
             }
@@ -23043,6 +23806,22 @@ const docTemplate = `{
                 "total": {
                     "type": "number",
                     "example": 100
+                }
+            }
+        },
+        "dto.WithdrawRequest": {
+            "type": "object",
+            "required": [
+                "amount"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "example": 50
+                },
+                "bank_info": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },

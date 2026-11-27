@@ -20,6 +20,7 @@ import (
 //	@Param		body body dto.DecorationInputRequest true "装饰品字段（全部可选，不传=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DecorationDto}
 //	@ID			DecorationController_create
+//	@Param		body body dto.DecorationInputRequest true "请求体"
 //	@Router		/decoration [post]
 func (h *OpsHandler) DecorationCreate(c *gin.Context) {
 	// 绑定 dto 请求结构：文档声明与实际解析必须同源（docs/18-DTO复用规范.md）。

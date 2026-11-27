@@ -21,6 +21,7 @@ import (
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_create
 //	@Param		body body dto.CreateBannerRequest true "创建轮播位"
+//	@Param		body body dto.CreateBannerRequest true "请求体"
 //	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
 	var in model.BannerInput

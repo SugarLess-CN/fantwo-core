@@ -25,6 +25,7 @@ type TagHandler struct {
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_create
 //	@Param		body body dto.CreateTagRequest true "创建标签"
+//	@Param		body body dto.CreateTagRequest true "请求体"
 //	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
 	var req service.CreateTagRequest

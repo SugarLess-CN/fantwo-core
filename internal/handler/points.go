@@ -27,6 +27,7 @@ import (
 //	@Param		body body dto.AddPointsRequest true "加分入参"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PointsChangeResultDto}
 //	@ID			PointsController_addPoints
+//	@Param		body body dto.AddPointsRequest true "请求体"
 //	@Router		/points/add [post]
 func (h *OpsHandler) PointsAdd(c *gin.Context) {
 	uid := requireUser(c)

@@ -21,6 +21,34 @@ type AuthorBriefDto struct {
 	Username   string `json:"username" example:"xiaoming"`
 	Avatar     string `json:"avatar" example:"https://cdn.example.com/a.png"`
 	IsFollowed bool   `json:"is_followed" example:"false"`
+
+	// EquippedDecorations 作者当前佩戴的装饰品，按 type 分组。
+	//
+	// 空时不传（不是 null、不是空对象）—— 见 docs/21 §一 规则 ③。
+	// 对齐原 NestJS processUserDecorations()：Record<decorationType, Decoration>。
+	EquippedDecorations map[string]EquippedDecorationDto `json:"equipped_decorations,omitempty"`
+
+	// Certification 已通过的认证详情；未认证时不传。
+	Certification *CertificationBriefDto `json:"certification,omitempty"`
+}
+
+// EquippedDecorationDto 佩戴中的装饰品（原 transformDecorationToFrontend 的 6 字段）。
+type EquippedDecorationDto struct {
+	ID          string `json:"id" example:"a1b2c3d4-0000-4e5f-8a9b-000000000001"`
+	Name        string `json:"name" example:"星辰边框"`
+	Type        string `json:"type" example:"AVATAR_FRAME"`
+	ImageURL    string `json:"image_url" example:"https://cdn.example.com/frame.png"`
+	Rarity      string `json:"rarity" example:"RARE"`
+	BubbleColor string `json:"bubble_color" example:"#FFD700"`
+}
+
+// CertificationBriefDto 作者认证简要（挂在用户对象的 certification 上）。
+//
+// 与 CertificationDto 的区别：只带展示需要的 4 个字段，不含申请材料/审核记录。
+type CertificationBriefDto struct {
+	Type     string `json:"type" example:"OFFICIAL"`
+	RealName string `json:"real_name" example:"张三"`
+	Slogan   string `json:"slogan" example:"记录光"`
 }
 
 // TagBriefDto 标签简要（service.TagBrief）。
@@ -66,13 +94,21 @@ type ArticleDto struct {
 	Cover    string   `json:"cover" example:"https://cdn.example.com/cover.jpg"`
 	Summary  string   `json:"summary" example:"一句话摘要"`
 
-	Sort          int `json:"sort" example:"0"`
-	Views         int `json:"views" example:"12"`
-	Likes         int `json:"likes" example:"3"`
-	FavoriteCount int `json:"favorite_count" example:"1"`
-	CommentCount  int `json:"comment_count" example:"0"`
-	Shares        int `json:"shares" example:"0"`
-	DownloadCount int `json:"download_count" example:"0"`
+	Sort  int `json:"sort" example:"0"`
+	Views int `json:"views" example:"12"`
+	Likes int `json:"likes" example:"3"`
+
+	// ReactionStats 各表情的计数（键固定为 like/love/haha/wow/sad/angry/dislike）。
+	//
+	// 对齐原 buildEmptyReactionStats()：无表态时是**全 0 对象**，不是 null。
+	ReactionStats map[string]int `json:"reaction_stats"`
+
+	// UserReaction 当前用户对该文章的表态；未表态或未登录时为 ""（不是 null）。
+	UserReaction  string `json:"user_reaction" example:"like"`
+	FavoriteCount int    `json:"favorite_count" example:"1"`
+	CommentCount  int    `json:"comment_count" example:"0"`
+	Shares        int    `json:"shares" example:"0"`
+	DownloadCount int    `json:"download_count" example:"0"`
 
 	IsFeatured        bool       `json:"is_featured" example:"false"`
 	FeaturedAt        *time.Time `json:"featured_at,omitempty"`

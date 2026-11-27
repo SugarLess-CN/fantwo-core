@@ -17,6 +17,7 @@ import (
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.InviteDto}
 //	@ID			InviteController_createInvite
+//	@Param		body body dto.CreateInviteRequest true "请求体"
 //	@Router		/invite [post]
 func (h *OpsHandler) InviteCreate(c *gin.Context) {
 	uid := requireUser(c)
