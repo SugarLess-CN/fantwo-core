@@ -8,6 +8,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/handler"
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/service"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
 )
@@ -59,4 +60,15 @@ func RegisterSearchRoutes(v1 *gin.RouterGroup, opt Option) {
 	}
 	g.GET("", append(searchChain, h.SearchArticles)...)
 	g.GET("/hot", h.HotKeywords)
+
+	// 搜索结果的「分类维度」：标签 / 用户。
+	//
+	// 为什么单独建而不让前端调 /tag 与 /user：
+	//  · /tag?keyword= 等价可用，但前端要的是「搜索页的一个 tab」，路径语义应归属于 /search；
+	//  · /user 需要 user:manage（管理端分页），普通用户搜人用不了；
+	//  · /search/users 返回 UserSearchItemDto（**不含 email/phone/wallet**），公开安全。
+	// 两条都是可选登录：游客能搜，登录后额外拿到 is_followed。
+	userH := handler.NewUserHandler(service.NewUserService(buildUserDeps(opt)))
+	g.GET("/tags", append(searchChain, contentHandlers(opt).Tag.SearchTags)...)
+	g.GET("/users", append(searchChain, userH.SearchUsers)...)
 }

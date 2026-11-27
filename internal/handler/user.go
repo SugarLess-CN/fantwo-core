@@ -563,3 +563,30 @@ func queryBool(c *gin.Context, key string) *bool {
 // 让 dto 包成为本文件的真实 import：swag 按「注释所在文件的 import」解析跨包类型，
 // 本文件的注解写了 dto.Xxx，这里必须引用一次（不参与运行逻辑）。
 var _ = dto.ResponseBody{}
+
+// SearchUsers GET /search/users：用户搜索（公开端点，可选登录）。
+//
+//	@Summary	搜索用户
+//	@Tags		搜索
+//	@Produce	json
+//	@Param		keyword query string false "用户名/昵称关键字 example(alice)"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserSearchItemDto}}
+//	@ID			SearchController_searchUsers
+//	@Router		/search/users [get]
+//
+// 响应**不含** email / phone / wallet —— 搜索是公开端点，见 dto.UserSearchItemDto 注释。
+func (h *UserHandler) SearchUsers(c *gin.Context) {
+	page, limit := queryPage(c)
+	keyword := c.Query("keyword")
+	if keyword == "" {
+		keyword = c.Query("username")
+	}
+	list, total, e := h.svc.ListUsersForSearch(c.Request.Context(), actorOf(c), page, limit, keyword)
+	if e != nil {
+		response.Fail(c, e)
+		return
+	}
+	response.SuccessPage(c, list, total, page, limit)
+}

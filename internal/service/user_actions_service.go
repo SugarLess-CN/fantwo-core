@@ -574,9 +574,9 @@ func certDto(c *model.UserCertification) *dto.CertificationDto {
 		Slogan:           strOrEmpty(c.Slogan),
 		ReviewReason:     strOrEmpty(c.ReviewReason),
 		ReviewedAt:       timePtrRFC3339(c.ReviewedAt),
-		// CertifiedAt 映射 reviewed_at：model.UserCertification 没有 certified_at 列，
-		// 而 APPROVED 时 reviewed_at 就是认证生效时间（详见 dto.CertificationDto 注释）。
-		CertifiedAt: timePtrRFC3339(c.ReviewedAt),
+		// CertifiedAt 读独立列：只有 APPROVED 有值，拒绝为 NULL、撤销后清空。
+		// 与 ReviewedAt 是两个语义（见 model.UserCertification.CertifiedAt 注释），不共用。
+		CertifiedAt: timePtrRFC3339(c.CertifiedAt),
 		CreatedAt:   c.CreatedAt.Format(time.RFC3339),
 	}
 }
@@ -731,13 +731,21 @@ func (s *UserService) AuditCertification(ctx context.Context, certID, reviewerID
 		return nil, errcode.ErrCertificationNotPending
 	}
 	now := time.Now()
-	if err := s.d.Users.UpdateCert(s.d.DB, certID, map[string]interface{}{
+	updates := map[string]interface{}{
 		"status": in.Status, "reviewer_id": reviewerID,
 		"review_reason": nilIfEmpty(in.Reason), "reviewed_at": now,
-	}); err != nil {
+	}
+	// certified_at 只在**通过**时写；拒绝必须保持 NULL ——
+	// 否则前端「认证于 xxx」会把一次被拒的时间当成通过时间显示。
+	var certifiedAt *time.Time
+	if in.Status == model.CertStatusApproved {
+		certifiedAt = &now
+		updates["certified_at"] = now
+	}
+	if err := s.d.Users.UpdateCert(s.d.DB, certID, updates); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	cert.Status, cert.ReviewedAt = in.Status, &now
+	cert.Status, cert.ReviewedAt, cert.CertifiedAt = in.Status, &now, certifiedAt
 	return certDto(cert), nil
 }
 
@@ -757,10 +765,12 @@ func (s *UserService) RevokeCertification(ctx context.Context, certID, reviewerI
 	if err := s.d.Users.UpdateCert(s.d.DB, certID, map[string]interface{}{
 		"status": model.CertStatusRevoked, "reviewer_id": reviewerID,
 		"review_reason": nilIfEmpty(reason), "reviewed_at": now,
+		// 撤销后不再有「认证生效时间」——置 NULL，前端据此不显示「认证于」。
+		"certified_at": nil,
 	}); err != nil {
 		return nil, errcode.ErrInternal
 	}
-	cert.Status, cert.ReviewedAt = model.CertStatusRevoked, &now
+	cert.Status, cert.ReviewedAt, cert.CertifiedAt = model.CertStatusRevoked, &now, nil
 	return certDto(cert), nil
 }
 

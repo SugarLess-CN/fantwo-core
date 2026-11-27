@@ -193,6 +193,15 @@ type UserCertification struct {
 	ReviewerID       *string    `gorm:"column:reviewer_id;type:varchar(36)" json:"reviewer_id"`
 	ReviewReason     *string    `gorm:"column:review_reason;type:text" json:"review_reason"`
 	ReviewedAt       *time.Time `gorm:"column:reviewed_at" json:"reviewed_at"`
+
+	// CertifiedAt 认证**通过**的时间（对外契约字段 certified_at）。
+	//
+	// 与 reviewed_at 的区别（两个都要，不要合并）：
+	//   · reviewed_at  = 审核**动作**发生的时间 —— 通过/拒绝都有值；
+	//   · certified_at = 认证**生效**的时间 —— 只有 APPROVED 有值，
+	//                    拒绝时保持 NULL，撤销（REVOKED）时清回 NULL。
+	// 前端用它显示「认证于 xxxx 年」，拿 reviewed_at 会在被拒场景显示错误的语义。
+	CertifiedAt *time.Time `gorm:"column:certified_at" json:"certified_at"`
 }
 
 // TableName 表名。

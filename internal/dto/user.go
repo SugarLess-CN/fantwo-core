@@ -104,14 +104,11 @@ type CertificationDto struct {
 	ReviewReason     string `json:"review_reason"`
 	// 时间：空时不传
 	ReviewedAt *string `json:"reviewed_at,omitempty" format:"date-time"`
-	// CertifiedAt 认证时间（JS 契约字段 certified_at）。
+	// CertifiedAt 认证**通过**的时间；未通过 / 被拒 / 已撤销时整个字段不传。
 	//
-	// ⚠️ model.UserCertification **没有 certified_at 列**（只有 reviewed_at）。
-	// 这里映射 reviewed_at —— 审核动作发生的时间，APPROVED 时它就是认证生效时间，
-	// 语义最接近，且取的是真实数据、不是硬造出来的值。
-	// 若将来要区分「认证通过时间」与「最后一次审核时间」（先拒后过的场景两者不同），
-	// 必须给表加列，届时这里改读新列。
-	CertifiedAt *string `json:"certified_at,omitempty" format:"date-time"`
+	// 与 reviewed_at 是两回事：reviewed_at 是审核动作时间（拒绝也有），
+	// certified_at 是认证生效时间（只在 APPROVED 时存在）。见 model.UserCertification。
+	CertifiedAt *string `json:"certified_at,omitempty" format:"date-time" example:"2026-11-27T10:00:00Z"`
 	CreatedAt   string  `json:"created_at" format:"date-time"`
 }
 
@@ -708,4 +705,38 @@ type FavoriteDetailDto struct {
 	Favorited   bool             `json:"favorited" example:"true"`
 	FavoritedAt string           `json:"favorited_at,omitempty" format:"date-time"`
 	Article     *FavoriteItemDto `json:"article,omitempty"`
+}
+
+// UserSearchItemDto 用户搜索结果项（GET /search/users）。
+//
+// **为什么不复用 UserDto**：UserDto 面向管理端，含 email / phone / wallet /
+// banned / ban_reason / invite_code / role_ids 等字段。搜索是**公开**端点
+// （任何登录用户都能搜人），带这些字段等于把全站用户的联系方式和余额
+// 暴露给任何人。
+//
+// 只保留「卡片展示 + 关注态」需要的字段，与前端 UserSearchCard 的取数一致。
+type UserSearchItemDto struct {
+	ID          string `json:"id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Username    string `json:"username" example:"alice"`
+	Nickname    string `json:"nickname" example:"爱丽丝"`
+	Avatar      string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Description string `json:"description" example:"一句话说明"`
+
+	ArticleCount   int `json:"article_count" example:"12"`
+	FollowerCount  int `json:"follower_count" example:"34"`
+	FollowingCount int `json:"following_count" example:"5"`
+	Level          int `json:"level" example:"3"`
+
+	IsMember   bool `json:"is_member" example:"false"`
+	IsFollowed bool `json:"is_followed" example:"false"`
+
+	// 装扮与认证：搜索结果卡片与个人主页保持一致的视觉信息。
+	//
+	// omitempty：当前 service 层**没有**批量装配扮的实现（AuthorBriefDto 同样
+	// 声明了 equipped_decorations 却全仓无填充点），所以这里用 omitempty 让
+	// 「没有就不传」，而不是返回一个空 map 假装有契约。
+	EquippedDecorations map[string]EquippedDecorationDto `json:"equipped_decorations,omitempty"`
+	Certification       *CertificationBriefDto           `json:"certification,omitempty"`
+
+	CreatedAt string `json:"created_at" format:"date-time"`
 }

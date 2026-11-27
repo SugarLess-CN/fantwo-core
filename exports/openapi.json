@@ -11752,6 +11752,146 @@
         }
       }
     },
+    "/search/tags": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "搜索"
+        ],
+        "summary": "搜索标签",
+        "operationId": "SearchController_searchTags",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "风景",
+            "description": "标签名关键字 example(风景)",
+            "name": "keyword",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "页码 example(1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "每页条数 example(10)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/dto.ResponsePageBody"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/dto.PageBody"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "list": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/dto.TagDto"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/search/users": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "搜索"
+        ],
+        "summary": "搜索用户",
+        "operationId": "SearchController_searchUsers",
+        "parameters": [
+          {
+            "type": "string",
+            "example": "alice",
+            "description": "用户名/昵称关键字 example(alice)",
+            "name": "keyword",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "页码 example(1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "每页条数 example(10)",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/dto.ResponsePageBody"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/dto.PageBody"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "list": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/dto.UserSearchItemDto"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/statistics/overview": {
       "get": {
         "security": [
@@ -17303,9 +17443,10 @@
         "type": "object",
         "properties": {
           "certified_at": {
-            "description": "CertifiedAt 认证时间（JS 契约字段 certified_at）。\n\n⚠️ model.UserCertification **没有 certified_at 列**（只有 reviewed_at）。\n这里映射 reviewed_at —— 审核动作发生的时间，APPROVED 时它就是认证生效时间，\n语义最接近，且取的是真实数据、不是硬造出来的值。\n若将来要区分「认证通过时间」与「最后一次审核时间」（先拒后过的场景两者不同），\n必须给表加列，届时这里改读新列。",
+            "description": "CertifiedAt 认证**通过**的时间；未通过 / 被拒 / 已撤销时整个字段不传。\n\n与 reviewed_at 是两回事：reviewed_at 是审核动作时间（拒绝也有），\ncertified_at 是认证生效时间（只在 APPROVED 时存在）。见 model.UserCertification。",
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "example": "2026-11-27T10:00:00Z"
           },
           "created_at": {
             "type": "string",
@@ -24444,6 +24585,69 @@
           "wallet": {
             "type": "number",
             "example": 100.5
+          }
+        }
+      },
+      "dto.UserSearchItemDto": {
+        "type": "object",
+        "properties": {
+          "article_count": {
+            "type": "integer",
+            "example": 12
+          },
+          "avatar": {
+            "type": "string",
+            "example": "https://cdn.example.com/a.png"
+          },
+          "certification": {
+            "$ref": "#/components/schemas/dto.CertificationBriefDto"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "example": "一句话说明"
+          },
+          "equipped_decorations": {
+            "description": "装扮与认证：搜索结果卡片与个人主页保持一致的视觉信息。\n\nomitempty：当前 service 层**没有**批量装配扮的实现（AuthorBriefDto 同样\n声明了 equipped_decorations 却全仓无填充点），所以这里用 omitempty 让\n「没有就不传」，而不是返回一个空 map 假装有契约。",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/dto.EquippedDecorationDto"
+            }
+          },
+          "follower_count": {
+            "type": "integer",
+            "example": 34
+          },
+          "following_count": {
+            "type": "integer",
+            "example": 5
+          },
+          "id": {
+            "type": "string",
+            "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+          },
+          "is_followed": {
+            "type": "boolean",
+            "example": false
+          },
+          "is_member": {
+            "type": "boolean",
+            "example": false
+          },
+          "level": {
+            "type": "integer",
+            "example": 3
+          },
+          "nickname": {
+            "type": "string",
+            "example": "爱丽丝"
+          },
+          "username": {
+            "type": "string",
+            "example": "alice"
           }
         }
       },

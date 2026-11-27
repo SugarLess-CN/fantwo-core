@@ -231,3 +231,27 @@ func (h *TagHandler) Unfollow(c *gin.Context) {
 
 // 让 dto 包成为真实 import（swag 只按注解所在文件的 import 解析跨包类型）。
 var _ = dto.ResponseBody{}
+
+// SearchTags GET /search/tags：标签搜索（公开端点，可选登录）。
+//
+//	@Summary	搜索标签
+//	@Tags		搜索
+//	@Produce	json
+//	@Param		keyword query string false "标签名关键字 example(风景)"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.TagDto}}
+//	@ID			SearchController_searchTags
+//	@Router		/search/tags [get]
+//
+// 与 GET /tag 共用 parseTagQuery（keyword 优先、name 兜底）与 TagService.List，
+// **零重复实现** —— 独立方法只是为了给 swag 一个不同路径的锚点。
+func (h *TagHandler) SearchTags(c *gin.Context) {
+	q := parseTagQuery(c)
+	list, total, e := h.svc.List(c.Request.Context(), actorOf(c), q)
+	if e != nil {
+		ctFail(c, e)
+		return
+	}
+	ctPage(c, list, total, q.Page, q.Limit)
+}

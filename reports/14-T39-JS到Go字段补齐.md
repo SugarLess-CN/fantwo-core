@@ -457,3 +457,104 @@ if now := time.Now(); revokeAllAt.Before(now) {
 `max(传入, now)` 这种兜底必须在写代码时就想清楚，不能靠测试发现。
 
 测试数据已清（用户 + Redis key 全删，0 残留）。
+
+---
+
+# 第三轮：两项用户裁定事项
+
+用户 2026-11-27 裁定：`/search/tags`、`/search/users` **需要新建**；`certified_at` **需要加列**。
+
+## 十一、新建 `/search/tags` 与 `/search/users`
+
+| 文件 | 改动 |
+|---|---|
+| `internal/dto/user.go` | 新建 `UserSearchItemDto`（12 字段，**不含 email/phone/wallet**） |
+| `internal/service/user_service.go` | 新建 `ListUsersForSearch`（公开搜索，填 `is_followed`）+ `followingIDs` |
+| `internal/handler/user.go` | 新建 `SearchUsers`（`@Router /search/users`） |
+| `internal/handler/tag.go` | 新建 `SearchTags`（`@Router /search/tags`，复用 `parseTagQuery` + `TagService.List`） |
+| `internal/router/search_routes.go` | 注册两条（可选登录：游客能搜，登录后拿到 `is_followed`） |
+
+### 关键设计：`/search/users` 为什么不复用 `UserDto`
+
+`UserDto` 有 31 字段，含 `email` / `phone` / `wallet` / `banned` / `ban_reason` / `invite_code` / `role_ids`。
+搜索是**公开端点**（任何登录用户都能搜人），直接复用等于把全站用户的联系方式和余额
+暴露给任何人。新建 `UserSearchItemDto` 只留卡片展示 + 关注态需要的 12 个字段。
+
+### 为什么 `/search/tags` 要独立方法而不直接挂 `Tag.List`
+
+`Tag.List` 的 swag 注解锚点固定在 `@Router /tag`。直接复用它，`/search/tags` 这条
+**不会出现在 swagger 里**（实测确认：paths 只多了 `/search/users` 一条）。
+所以写了个 `SearchTags` 薄方法 —— 内部 `parseTagQuery` + `TagService.List` 完全复用，
+零重复实现，额外成本只有 6 行注解。
+
+### 真机验证
+
+```
+/search/tags
+  keyword=（无）→ 2 条
+  keyword=T43  → 2 条
+  keyword=风景 → 1 条     ← 过滤生效
+  keyword=zzz  → 0 条
+  status_code 全 0
+
+/search/users?keyword=test
+  条数: 2
+  字段: article_count avatar created_at description follower_count
+        following_count id is_followed is_member level nickname username
+  email=None  phone=None  wallet=None     ← 敏感字段未泄漏
+  is_followed: False
+  null 计数: 0
+```
+
+## 十二、`certified_at` 加独立列
+
+### 为什么不能只映射 `reviewed_at`
+
+| 字段 | 语义 | APPROVED | REJECTED | REVOKED |
+|---|---|---|---|---|
+| `reviewed_at` | 审核**动作**时间 | 有值 | **有值** | 有值 |
+| `certified_at` | 认证**生效**时间 | 有值 | **NULL** | **NULL** |
+
+映射到 `reviewed_at` 会让前端在「被拒」场景显示「认证于 xxxx」—— 语义完全错。
+用户裁定加列，已加。
+
+### 改动
+
+| 文件 | 改动 |
+|---|---|
+| `internal/model/user.go` | `UserCertification` +`CertifiedAt *time.Time`（`column:certified_at`） |
+| `internal/service/user_actions_service.go` | `AuditCertification` 通过时写 `certified_at`；`RevokeCertification` 置 NULL；`certDto` 读独立列 |
+| `migrations/migrate_user.go` | 已含 `&model.UserCertification{}`，AutoMigrate 自动加列 |
+
+真机确认列已建：`user_certification.certified_at | timestamp with time zone`。
+
+### 真机三态验证
+
+```
+① APPROVED  → status: APPROVED  reviewed_at: 2026-11-27T19:09:13+08:00
+                                certified_at: 2026-11-27T19:09:13+08:00   ← 两者都有
+② REVOKED   → status: REVOKED   reviewed_at: 2026-11-27T19:09:32+08:00
+                                certified_at 字段存在: False               ← 消失
+                库内: REVOKED certified=NULL
+③ REJECTED  → status: REJECTED  reviewed_at: 2026-11-27T19:09:34+08:00
+                                certified_at 存在: False                   ← 未误写
+                库内: REJECTED certified=NULL
+```
+
+## 十三、第三轮质量门
+
+```
+gofmt -l internal/ migrations/ cmd/  → 空
+go build ./...                       → exit=0
+go vet ./...                         → 零输出
+go test ./... -count=1               → 16 包全绿
+swag init ... --exclude tmp,internal/dto → exit=0, 危险词=0, paths 246 → 248, defs 291 → 292
+json-naming-check                    → ✓ 全站 snake_case
+verify-t39                           → 22 通过 / 0 未通过
+cmp-js-go-fields                     → 字段缺失 3（全是 Decoration 枚举误报）
+```
+
+新增 swagger 条目：`/search/tags`、`/search/users`（各 3 参数：keyword/page/limit）
+新增 schema：`dto.UserSearchItemDto`（14 属性，含 2 个 omitempty）
+
+测试数据已清：`tags` T43 系列 0 条、`user_certification` t43 系列 0 条。

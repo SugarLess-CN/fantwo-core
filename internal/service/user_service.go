@@ -1080,3 +1080,69 @@ func IsMember(u *model.User) bool { return isMembershipActive(u) }
 func LoginResult(u *model.User, token, refresh string) *dto.LoginResultDto {
 	return &dto.LoginResultDto{UserDto: *ViewUser(u, true), Token: token, RefreshToken: refresh}
 }
+
+// ---------- 用户搜索（GET /search/users，公开） ----------
+
+// ListUsersForSearch 用户搜索（公开端点）。
+//
+// 与 ListUsers 的三点差异（都不改 ListUsers，避免影响管理端）：
+//  1. 返回 dto.UserSearchItemDto —— **不含 email/phone/wallet** 等敏感字段
+//     （UserDto 面向管理端，直接拿来给公开搜索 = 把全站用户联系方式暴露给任何人）；
+//  2. 填 is_followed（搜索卡片要显示「已关注」态，前端原本只能等用户点一次才准）；
+//  3. 只在登录时查关注关系；游客（actor 为空）跳过，省一次查询。
+func (s *UserService) ListUsersForSearch(ctx context.Context, actor Actor, page, limit int, keyword string) ([]*dto.UserSearchItemDto, int64, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, 0, e
+	}
+	page, limit = normPage(page, limit)
+	users, total, err := s.d.Users.List(s.d.DB, page, limit, keyword)
+	if err != nil {
+		return nil, 0, errcode.ErrInternal
+	}
+	out := make([]*dto.UserSearchItemDto, 0, len(users))
+	if len(users) == 0 {
+		return out, total, nil
+	}
+
+	// 关注关系：一次查全量（不按用户逐个查，避免 N+1）。
+	following := map[string]struct{}{}
+	if !actor.Anonymous() {
+		if ids, err := s.followingIDs(ctx, actor.UserID); err == nil {
+			for _, id := range ids {
+				following[id] = struct{}{}
+			}
+		}
+	}
+
+	for i := range users {
+		u := &users[i]
+		nick := strOrEmpty(u.Nickname)
+		if nick == "" {
+			nick = u.Username
+		}
+		_, isFollowed := following[u.ID]
+		out = append(out, &dto.UserSearchItemDto{
+			ID:             u.ID,
+			Username:       u.Username,
+			Nickname:       nick,
+			Avatar:         strOrEmpty(u.Avatar),
+			Description:    strOrEmpty(u.Description),
+			ArticleCount:   u.ArticleCount,
+			FollowerCount:  u.FollowerCount,
+			FollowingCount: u.FollowingCount,
+			Level:          u.Level,
+			IsMember:       isMembershipActive(u),
+			IsFollowed:     isFollowed,
+			CreatedAt:      u.CreatedAt.Format(time.RFC3339),
+		})
+	}
+	return out, total, nil
+}
+
+// followingIDs 当前用户关注的人（空 userID 返回空集）。
+func (s *UserService) followingIDs(ctx context.Context, userID string) ([]string, error) {
+	if userID == "" {
+		return nil, nil
+	}
+	return s.d.Users.FollowingIDs(s.d.DB, userID)
+}
