@@ -52,7 +52,7 @@ type TagDto struct {
 	// 会让前端拿到 undefined；docs/21 §一 要求 ""）
 	Description string `json:"description" example:"前端相关"`
 	Avatar      string `json:"avatar" example:"https://cdn.example.com/tag.png"`
-	Background  string `json:"background"`
+	Background  string `json:"background" example:"https://cdn.example.com/bg.png"`
 	Cover       string `json:"cover" example:"https://cdn.example.com/cover.jpg"`
 
 	Sort         int  `json:"sort" example:"9"`
@@ -67,21 +67,21 @@ type TagDto struct {
 // CreateTagRequest 创建标签（service.CreateTagRequest，6 字段）。
 type CreateTagRequest struct {
 	Name        string  `json:"name" binding:"required,max=50" example:"Vue"`
-	Description *string `json:"description" binding:"omitempty,max=200"`
-	Avatar      *string `json:"avatar"`
-	Background  *string `json:"background"`
-	Cover       *string `json:"cover"`
+	Description *string `json:"description" binding:"omitempty,max=200" example:"一句话说明"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Background  *string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
 	Sort        *int    `json:"sort" example:"9"`
 }
 
 // UpdateTagRequest 更新标签（全字段可选，service.UpdateTagRequest）。
 type UpdateTagRequest struct {
-	Name        *string `json:"name" binding:"omitempty,max=50"`
-	Description *string `json:"description" binding:"omitempty,max=200"`
-	Avatar      *string `json:"avatar"`
-	Background  *string `json:"background"`
-	Cover       *string `json:"cover"`
-	Sort        *int    `json:"sort"`
+	Name        *string `json:"name" binding:"omitempty,max=50" example:"示例名称"`
+	Description *string `json:"description" binding:"omitempty,max=200" example:"一句话说明"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Background  *string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
+	Sort        *int    `json:"sort" example:"1"`
 }
 
 // TagFollowDto 标签关注 / 取消关注结果（service 返回 {followed}）。
@@ -102,12 +102,12 @@ type TagFollowDto struct {
 type CategoryDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Name        string `json:"name" example:"风景摄影"`
-	Description string `json:"description"`
+	Description string `json:"description" example:"一句话说明"`
 	ParentID    string `json:"parent_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Link        string `json:"link"`
-	Avatar      string `json:"avatar"`
-	Background  string `json:"background"`
-	Cover       string `json:"cover"`
+	Link        string `json:"link" example:"https://example.com"`
+	Avatar      string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Background  string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Cover       string `json:"cover" example:"https://cdn.example.com/cover.png"`
 	Sort        int    `json:"sort" example:"1"`
 	Status      string `json:"status" example:"ENABLED"`
 
@@ -124,27 +124,27 @@ type CategoryDto struct {
 // CreateCategoryRequest 创建分类（service.CreateCategoryRequest，9 字段）。
 type CreateCategoryRequest struct {
 	Name        string  `json:"name" binding:"required,max=50" example:"风景摄影"`
-	Description *string `json:"description" binding:"omitempty,max=200"`
+	Description *string `json:"description" binding:"omitempty,max=200" example:"一句话说明"`
 	Sort        *int    `json:"sort" example:"1"`
-	ParentID    *string `json:"parent_id"`
-	Link        *string `json:"link" binding:"omitempty,max=200"`
-	Avatar      *string `json:"avatar"`
-	Background  *string `json:"background"`
-	Cover       *string `json:"cover"`
+	ParentID    *string `json:"parent_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Link        *string `json:"link" binding:"omitempty,max=200" example:"https://example.com"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Background  *string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
 	Status      string  `json:"status" binding:"omitempty,oneof=ENABLED DISABLED" example:"ENABLED"`
 }
 
 // UpdateCategoryRequest 更新分类（全字段可选，service.UpdateCategoryRequest）。
 type UpdateCategoryRequest struct {
-	Name        *string `json:"name" binding:"omitempty,max=50"`
-	Description *string `json:"description" binding:"omitempty,max=200"`
-	Sort        *int    `json:"sort"`
-	ParentID    *string `json:"parent_id"`
-	Link        *string `json:"link" binding:"omitempty,max=200"`
-	Avatar      *string `json:"avatar"`
-	Background  *string `json:"background"`
-	Cover       *string `json:"cover"`
-	Status      string  `json:"status" binding:"omitempty,oneof=ENABLED DISABLED"`
+	Name        *string `json:"name" binding:"omitempty,max=50" example:"示例名称"`
+	Description *string `json:"description" binding:"omitempty,max=200" example:"一句话说明"`
+	Sort        *int    `json:"sort" example:"1"`
+	ParentID    *string `json:"parent_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Link        *string `json:"link" binding:"omitempty,max=200" example:"https://example.com"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Background  *string `json:"background" example:"https://cdn.example.com/bg.png"`
+	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
+	Status      string  `json:"status" binding:"omitempty,oneof=ENABLED DISABLED" example:"PUBLISHED"`
 }
 
 // ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ type UpdateCategoryRequest struct {
 type BannerDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Title       string `json:"title" example:"双十一活动"`
-	Description string `json:"description"`
+	Description string `json:"description" example:"一句话说明"`
 	ImageURL    string `json:"image_url" example:"https://cdn.example.com/banner.png"`
 	LinkURL     string `json:"link_url" example:"https://example.com/activity"`
 	SortOrder   int    `json:"sort_order" example:"1"`
@@ -171,21 +171,21 @@ type BannerDto struct {
 // CreateBannerRequest 创建轮播（model.BannerInput，6 字段；title/imageUrl 必填）。
 type CreateBannerRequest struct {
 	Title       *string `json:"title" example:"双十一活动"`
-	Description *string `json:"description"`
+	Description *string `json:"description" example:"一句话说明"`
 	ImageURL    *string `json:"image_url" example:"https://cdn.example.com/banner.png"`
-	LinkURL     *string `json:"link_url"`
+	LinkURL     *string `json:"link_url" example:"https://example.com"`
 	SortOrder   *int    `json:"sort_order" example:"1"`
 	Status      *string `json:"status" example:"active"`
 }
 
 // UpdateBannerRequest 更新轮播（与创建同构，model.BannerInput 全指针部分更新）。
 type UpdateBannerRequest struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	ImageURL    *string `json:"image_url"`
-	LinkURL     *string `json:"link_url"`
-	SortOrder   *int    `json:"sort_order"`
-	Status      *string `json:"status"`
+	Title       *string `json:"title" example:"我的第一篇作品"`
+	Description *string `json:"description" example:"一句话说明"`
+	ImageURL    *string `json:"image_url" example:"https://cdn.example.com/banner.png"`
+	LinkURL     *string `json:"link_url" example:"https://example.com"`
+	SortOrder   *int    `json:"sort_order" example:"1"`
+	Status      *string `json:"status" example:"PUBLISHED"`
 }
 
 // ---------------------------------------------------------------------------
@@ -213,7 +213,7 @@ type AchievementDto struct {
 	ID          string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Code        string `json:"code" example:"FIRST_ARTICLE"`
 	Name        string `json:"name" example:"初次创作"`
-	Description string `json:"description"`
+	Description string `json:"description" example:"一句话说明"`
 	Icon        string `json:"icon" example:"https://cdn.example.com/badge.png"`
 	Type        string `json:"type" example:"ARTICLE"`
 	Rarity      string `json:"rarity" example:"COMMON"`
@@ -223,7 +223,7 @@ type AchievementDto struct {
 
 	RewardPoints       int    `json:"reward_points" example:"10"`
 	RewardExp          int    `json:"reward_exp" example:"5"`
-	RewardDecorationID string `json:"reward_decoration_id"`
+	RewardDecorationID string `json:"reward_decoration_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Hidden             bool   `json:"hidden" example:"false"`
 	Sort               int    `json:"sort" example:"1"`
 	Enabled            bool   `json:"enabled" example:"true"`
@@ -244,34 +244,34 @@ type AchievementDto struct {
 type CreateAchievementRequest struct {
 	Code               *string                  `json:"code" example:"FIRST_ARTICLE"`
 	Name               *string                  `json:"name" example:"初次创作"`
-	Description        *string                  `json:"description"`
-	Icon               *string                  `json:"icon"`
+	Description        *string                  `json:"description" example:"一句话说明"`
+	Icon               *string                  `json:"icon" example:"https://cdn.example.com/icon.png"`
 	Type               *string                  `json:"type" example:"ARTICLE"`
 	Rarity             *string                  `json:"rarity" example:"COMMON"`
 	Condition          *AchievementConditionDto `json:"condition"`
 	RewardPoints       *int                     `json:"reward_points" example:"10"`
 	RewardExp          *int                     `json:"reward_exp" example:"5"`
-	RewardDecorationID *string                  `json:"reward_decoration_id"`
-	Hidden             *bool                    `json:"hidden"`
-	Sort               *int                     `json:"sort"`
-	Enabled            *bool                    `json:"enabled"`
+	RewardDecorationID *string                  `json:"reward_decoration_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Hidden             *bool                    `json:"hidden" example:"false"`
+	Sort               *int                     `json:"sort" example:"1"`
+	Enabled            *bool                    `json:"enabled" example:"true"`
 }
 
 // UpdateAchievementRequest 更新成就定义（model.AchievementInput 全指针部分更新）。
 type UpdateAchievementRequest struct {
-	Code               *string                  `json:"code"`
-	Name               *string                  `json:"name"`
-	Description        *string                  `json:"description"`
-	Icon               *string                  `json:"icon"`
-	Type               *string                  `json:"type"`
-	Rarity             *string                  `json:"rarity"`
+	Code               *string                  `json:"code" example:"123456"`
+	Name               *string                  `json:"name" example:"示例名称"`
+	Description        *string                  `json:"description" example:"一句话说明"`
+	Icon               *string                  `json:"icon" example:"https://cdn.example.com/icon.png"`
+	Type               *string                  `json:"type" example:"image"`
+	Rarity             *string                  `json:"rarity" example:"RARE"`
 	Condition          *AchievementConditionDto `json:"condition"`
-	RewardPoints       *int                     `json:"reward_points"`
-	RewardExp          *int                     `json:"reward_exp"`
-	RewardDecorationID *string                  `json:"reward_decoration_id"`
-	Hidden             *bool                    `json:"hidden"`
-	Sort               *int                     `json:"sort"`
-	Enabled            *bool                    `json:"enabled"`
+	RewardPoints       *int                     `json:"reward_points" example:"100"`
+	RewardExp          *int                     `json:"reward_exp" example:"50"`
+	RewardDecorationID *string                  `json:"reward_decoration_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Hidden             *bool                    `json:"hidden" example:"false"`
+	Sort               *int                     `json:"sort" example:"1"`
+	Enabled            *bool                    `json:"enabled" example:"true"`
 }
 
 // AchievementStatsDto 我的成就进度统计（service.AchievementStats，4 字段）。
@@ -312,14 +312,14 @@ type ReportDto struct {
 	Type              string `json:"type" example:"article"`
 	Reason            string `json:"reason" example:"垃圾广告"`
 	Category          string `json:"category" example:"spam"`
-	Description       string `json:"description"`
+	Description       string `json:"description" example:"一句话说明"`
 	Status            string `json:"status" example:"PENDING"`
-	Result            string `json:"result"`
+	Result            string `json:"result" example:"内容属违规"`
 	Action            string `json:"action" example:"NONE"`
 	ReporterID        string `json:"reporter_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	ReportedUserID    string `json:"reported_user_id"`
-	ReportedArticleID string `json:"reported_article_id"`
-	ReportedCommentID string `json:"reported_comment_id"`
+	ReportedUserID    string `json:"reported_user_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedArticleID string `json:"reported_article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedCommentID string `json:"reported_comment_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	HandlerID         string `json:"handler_id"`
 
 	// 时间：handledAt 未处理时不传
@@ -333,16 +333,16 @@ type CreateReportRequest struct {
 	Type              string `json:"type" binding:"required" example:"article"`
 	Reason            string `json:"reason" binding:"required" example:"垃圾广告"`
 	Category          string `json:"category" binding:"required" example:"spam"`
-	Description       string `json:"description"`
-	ReportedUserID    string `json:"reported_user_id"`
-	ReportedArticleID string `json:"reported_article_id"`
-	ReportedCommentID string `json:"reported_comment_id"`
+	Description       string `json:"description" example:"一句话说明"`
+	ReportedUserID    string `json:"reported_user_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedArticleID string `json:"reported_article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedCommentID string `json:"reported_comment_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 }
 
 // UpdateReportRequest 处理举报（model.ReportUpdateInput，3 字段）。
 type UpdateReportRequest struct {
 	Status string `json:"status" example:"RESOLVED"`
-	Result string `json:"result"`
+	Result string `json:"result" example:"内容属违规"`
 	Action string `json:"action" example:"DELETE_CONTENT"`
 }
 
@@ -385,7 +385,7 @@ type InviteDto struct {
 	UsedAt    *time.Time `json:"used_at,omitempty" format:"date-time"`
 	ExpiredAt *time.Time `json:"expired_at,omitempty" format:"date-time"`
 
-	Remark    string    `json:"remark"`
+	Remark    string    `json:"remark" example:"备注"`
 	CreatedAt time.Time `json:"created_at" format:"date-time"`
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
@@ -394,8 +394,8 @@ type InviteDto struct {
 type CreateInviteRequest struct {
 	Type           *string    `json:"type" example:"GENERAL"`
 	CommissionRate *float64   `json:"commission_rate" example:"0.05"`
-	ExpiredAt      *time.Time `json:"expired_at" format:"date-time"`
-	Remark         *string    `json:"remark"`
+	ExpiredAt      *time.Time `json:"expired_at" format:"date-time" example:"2026-12-31T23:59:59Z"`
+	Remark         *string    `json:"remark" example:"备注"`
 }
 
 // UseInviteRequest 绑定邀请人（model.InviteUseInput，1 字段，必填）。
@@ -421,7 +421,7 @@ type InviteCommissionDto struct {
 	// 时间：paidAt 未结算时不传
 	PaidAt *time.Time `json:"paid_at,omitempty" format:"date-time"`
 
-	Remark    string    `json:"remark"`
+	Remark    string    `json:"remark" example:"备注"`
 	CreatedAt time.Time `json:"created_at" format:"date-time"`
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 }
@@ -496,12 +496,12 @@ type HotKeywordsDto struct {
 type SearchArticleItemDto struct {
 	ID            string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	Title         string `json:"title" example:"我的第一篇作品"`
-	Summary       string `json:"summary"`
+	Summary       string `json:"summary" example:"一句话摘要"`
 	Cover         string `json:"cover" example:"https://cdn.example.com/c.png"`
 	Type          string `json:"type" example:"article"`
 	Status        string `json:"status" example:"PUBLISHED"`
 	AuthorID      string `json:"author_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	CategoryID    string `json:"category_id"`
+	CategoryID    string `json:"category_id" example:"2b3c4d5e-0000-4f60-9bac-000000000002"`
 	Views         int    `json:"views" example:"128"`
 	Likes         int    `json:"likes" example:"12"`
 	FavoriteCount int    `json:"favorite_count" example:"3"`

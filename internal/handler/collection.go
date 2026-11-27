@@ -24,7 +24,6 @@ type CollectionHandler struct {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body dto.CreateCollectionRequest true "合集信息"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDto}
 //	@Param		body body dto.CreateCollectionRequest true "请求体"
 //	@Router		/collection [post]
@@ -49,12 +48,12 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		user_id		query	string	false	"按作者过滤"
-//	@Param		keyword		query	string	false	"按名称搜索"
-//	@Param		sort_by		query	string	false	"排序字段"
-//	@Param		sort_order	query	string	false	"排序方向 ASC / DESC（默认 DESC）"
-//	@Param		page		query	int		false	"页码"
-//	@Param		limit		query	int		false	"每页条数"
+//	@Param		user_id query string false "按作者过滤 example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		keyword query string false "按名称搜索 example(风景)"
+//	@Param		sort_by query string false "排序字段 example(created_at)"
+//	@Param		sort_order query string false "排序方向 ASC / DESC（默认 DESC） example(desc)"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CollectionDto}}
 //	@Router		/collection [get]
 //	@ID			CollectionController_findAll
@@ -82,7 +81,7 @@ func (h *CollectionHandler) List(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDetailDto}
 //	@Router		/collection/{id} [get]
 //	@ID			CollectionController_findOne
@@ -102,7 +101,7 @@ func (h *CollectionHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateCollectionRequest true "要改的字段（不传 = 不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionDto}
 //	@Router		/collection/{id} [patch]
@@ -127,7 +126,7 @@ func (h *CollectionHandler) Update(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Router		/collection/{id} [delete]
 //	@ID			CollectionController_remove
@@ -146,13 +145,13 @@ func (h *CollectionHandler) Remove(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
-//	@Param		articleId path string true "文章 ID"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		article_id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionArticleAddResultDto}
-//	@Router		/collection/{id}/article/{articleId} [post]
+//	@Router		/collection/{id}/article/{article_id} [post]
 //	@ID			CollectionController_addArticle
 func (h *CollectionHandler) AddArticle(c *gin.Context) {
-	out, e := h.svc.AddArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c), nil)
+	out, e := h.svc.AddArticle(c.Request.Context(), c.Param("id"), c.Param("article_id"), actorOf(c), nil)
 	if e != nil {
 		ctFail(c, e)
 		return
@@ -171,13 +170,13 @@ func (h *CollectionHandler) AddArticle(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
-//	@Param		articleId path string true "文章 ID"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		article_id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionArticleRemoveResultDto}
-//	@Router		/collection/{id}/article/{articleId} [delete]
+//	@Router		/collection/{id}/article/{article_id} [delete]
 //	@ID			CollectionController_removeArticle
 func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
-	out, e := h.svc.RemoveArticle(c.Request.Context(), c.Param("id"), c.Param("articleId"), actorOf(c))
+	out, e := h.svc.RemoveArticle(c.Request.Context(), c.Param("id"), c.Param("article_id"), actorOf(c))
 	if e != nil {
 		ctFail(c, e)
 		return
@@ -191,9 +190,9 @@ func (h *CollectionHandler) RemoveArticle(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "合集 ID"
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		id path string true "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CollectionItemDto}}
 //	@Router		/collection/{id}/items [get]
 //	@ID			CollectionController_findItems
@@ -214,7 +213,7 @@ func (h *CollectionHandler) ListItems(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.ReorderCollectionItemsRequest true "articleIds 的顺序即展示顺序"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionReorderResultDto}
 //	@Router		/collection/{id}/items/order [put]
@@ -239,12 +238,12 @@ func (h *CollectionHandler) ReorderItems(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		articleId path string true "articleId"
+//	@Param		article_id path string true "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CollectionCheckDto}
-//	@Router		/collection/check/{articleId} [get]
+//	@Router		/collection/check/{article_id} [get]
 //	@ID			CollectionController_checkArticle
 func (h *CollectionHandler) CheckArticle(c *gin.Context) {
-	out, e := h.svc.CheckArticle(c.Request.Context(), actorOf(c), c.Param("articleId"))
+	out, e := h.svc.CheckArticle(c.Request.Context(), actorOf(c), c.Param("article_id"))
 	if e != nil {
 		ctFail(c, e)
 		return
@@ -258,12 +257,12 @@ func (h *CollectionHandler) CheckArticle(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		articleId path string true "articleId"
+//	@Param		article_id path string true "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ArticleCollectionInfoDto}
-//	@Router		/collection/article/{articleId}/info [get]
+//	@Router		/collection/article/{article_id}/info [get]
 //	@ID			CollectionController_articleCollectionInfo
 func (h *CollectionHandler) ArticleCollectionInfo(c *gin.Context) {
-	out, e := h.svc.ArticleCollectionInfo(c.Request.Context(), actorOf(c), c.Param("articleId"))
+	out, e := h.svc.ArticleCollectionInfo(c.Request.Context(), actorOf(c), c.Param("article_id"))
 	if e != nil {
 		ctFail(c, e)
 		return

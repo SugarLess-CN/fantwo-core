@@ -56,7 +56,7 @@ type UserOAuthBinding struct {
 	// 登录查找优先用它，保证同一人跨端不分裂成两个账号。
 	UnionID *string `gorm:"column:unionid;type:varchar(191);index:idx_oauth_unionid" json:"union_id"`
 	// Nickname 平台昵称快照（仅展示用途，不参与登录判断）。
-	Nickname string `gorm:"column:nickname;type:varchar(255)" json:"nickname"`
+	Nickname string `gorm:"column:nickname;type:varchar(255)" json:"nickname" example:"爱丽丝"`
 	// AvatarURL 平台头像快照。
 	AvatarURL string `gorm:"column:avatar_url;type:varchar(512)" json:"avatar_url"`
 }

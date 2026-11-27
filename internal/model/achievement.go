@@ -23,20 +23,20 @@ const (
 // Achievement 成就定义。
 type Achievement struct {
 	BaseModel
-	Code        string `gorm:"type:varchar(64);index;comment:成就代码" json:"code"`
-	Name        string `gorm:"type:varchar(128);not null;comment:成就名称" json:"name"`
-	Description string `gorm:"type:text;comment:成就描述" json:"description"`
-	Icon        string `gorm:"type:varchar(512);comment:成就图标" json:"icon"`
-	Type        string `gorm:"type:varchar(20);comment:成就类型" json:"type"`
-	Rarity      string `gorm:"type:varchar(20);default:COMMON;comment:稀有度" json:"rarity"`
+	Code        string `gorm:"type:varchar(64);index;comment:成就代码" json:"code" example:"123456"`
+	Name        string `gorm:"type:varchar(128);not null;comment:成就名称" json:"name" example:"示例名称"`
+	Description string `gorm:"type:text;comment:成就描述" json:"description" example:"一句话说明"`
+	Icon        string `gorm:"type:varchar(512);comment:成就图标" json:"icon" example:"https://cdn.example.com/icon.png"`
+	Type        string `gorm:"type:varchar(20);comment:成就类型" json:"type" example:"image"`
+	Rarity      string `gorm:"type:varchar(20);default:COMMON;comment:稀有度" json:"rarity" example:"RARE"`
 	// Condition 完成条件（原 json 列）：{type, target, ...}，target 为目标值。
 	Condition          AchievementCondition `gorm:"type:jsonb;serializer:json;comment:完成条件" json:"condition"`
-	RewardPoints       int                  `gorm:"not null;default:0;comment:奖励积分" json:"reward_points"`
-	RewardExp          int                  `gorm:"not null;default:0;comment:奖励经验" json:"reward_exp"`
-	RewardDecorationID string               `gorm:"type:varchar(36);comment:奖励装饰品ID" json:"reward_decoration_id"`
-	Hidden             bool                 `gorm:"not null;default:false;comment:未解锁前隐藏" json:"hidden"`
-	Sort               int                  `gorm:"not null;default:0;comment:排序" json:"sort"`
-	Enabled            bool                 `gorm:"not null;default:true;comment:是否启用" json:"enabled"`
+	RewardPoints       int                  `gorm:"not null;default:0;comment:奖励积分" json:"reward_points" example:"100"`
+	RewardExp          int                  `gorm:"not null;default:0;comment:奖励经验" json:"reward_exp" example:"50"`
+	RewardDecorationID string               `gorm:"type:varchar(36);comment:奖励装饰品ID" json:"reward_decoration_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Hidden             bool                 `gorm:"not null;default:false;comment:未解锁前隐藏" json:"hidden" example:"false"`
+	Sort               int                  `gorm:"not null;default:0;comment:排序" json:"sort" example:"1"`
+	Enabled            bool                 `gorm:"not null;default:true;comment:是否启用" json:"enabled" example:"true"`
 }
 
 // TableName 表名。
@@ -45,7 +45,7 @@ func (Achievement) TableName() string { return "achievements" }
 // AchievementCondition 成就完成条件（JSON 列）。
 // 原仓库只约定 {type, target}，额外键保留在 Extra 中以实现前向兼容。
 type AchievementCondition struct {
-	Type   string                 `json:"type"`
+	Type   string                 `json:"type" example:"image"`
 	Target int                    `json:"target"`
 	Extra  map[string]interface{} `json:"extra,omitempty"`
 }
@@ -85,17 +85,17 @@ type AchievementView struct {
 
 // AchievementInput 成就创建/更新入参。
 type AchievementInput struct {
-	Code               *string               `json:"code"`
-	Name               *string               `json:"name"`
-	Description        *string               `json:"description"`
-	Icon               *string               `json:"icon"`
-	Type               *string               `json:"type"`
-	Rarity             *string               `json:"rarity"`
+	Code               *string               `json:"code" example:"123456"`
+	Name               *string               `json:"name" example:"示例名称"`
+	Description        *string               `json:"description" example:"一句话说明"`
+	Icon               *string               `json:"icon" example:"https://cdn.example.com/icon.png"`
+	Type               *string               `json:"type" example:"image"`
+	Rarity             *string               `json:"rarity" example:"RARE"`
 	Condition          *AchievementCondition `json:"condition"`
-	RewardPoints       *int                  `json:"reward_points"`
-	RewardExp          *int                  `json:"reward_exp"`
-	RewardDecorationID *string               `json:"reward_decoration_id"`
-	Hidden             *bool                 `json:"hidden"`
-	Sort               *int                  `json:"sort"`
-	Enabled            *bool                 `json:"enabled"`
+	RewardPoints       *int                  `json:"reward_points" example:"100"`
+	RewardExp          *int                  `json:"reward_exp" example:"50"`
+	RewardDecorationID *string               `json:"reward_decoration_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Hidden             *bool                 `json:"hidden" example:"false"`
+	Sort               *int                  `json:"sort" example:"1"`
+	Enabled            *bool                 `json:"enabled" example:"true"`
 }

@@ -84,15 +84,6 @@ const docTemplate = `{
                 "operationId": "AchievementController_create",
                 "parameters": [
                     {
-                        "description": "创建成就定义",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateAchievementRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -211,7 +202,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "成就 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -255,7 +247,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -302,7 +295,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -357,7 +351,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "成就 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -399,43 +394,50 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码，默认 1",
+                        "example": 1,
+                        "description": "页码，默认 1 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数，默认 10",
+                        "example": 10,
+                        "description": "每页条数，默认 10 example(10)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标题关键字",
+                        "example": "秋日",
+                        "description": "标题关键字 example(秋日)",
                         "name": "title",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "分类 ID",
+                        "example": "2b3c4d5e-0000-4f60-9bac-000000000002",
+                        "description": "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)",
                         "name": "category_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "标签 ID",
+                        "example": "1a2b3c4d-0000-4e5f-8a9b-000000000001",
+                        "description": "标签 ID example(1a2b3c4d-0000-4e5f-8a9b-000000000001)",
                         "name": "tag_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "image/mixed/video，默认 all",
+                        "example": "image",
+                        "description": "image/mixed/video，默认 all example(image)",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "状态筛选，逗号分隔",
+                        "example": "PUBLISHED",
+                        "description": "状态筛选，逗号分隔 example(PUBLISHED)",
                         "name": "status",
                         "in": "query"
                     }
@@ -496,15 +498,6 @@ const docTemplate = `{
                 "operationId": "ArticleController_create",
                 "parameters": [
                     {
-                        "description": "文章内容",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateArticleRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -561,13 +554,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -712,13 +707,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -837,7 +834,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/article/browse/{articleId}": {
+        "/article/browse/{article_id}": {
             "get": {
                 "security": [
                     {
@@ -855,8 +852,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "articleId",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -899,8 +897,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "articleId",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -945,13 +944,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1011,13 +1012,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1077,13 +1080,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1178,13 +1183,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1274,7 +1281,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1318,13 +1326,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1379,7 +1389,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1429,7 +1440,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1482,19 +1494,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "待更新字段（部分更新）",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateArticleRequest"
-                        }
                     },
                     {
                         "description": "请求体",
@@ -1555,7 +1559,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1609,7 +1614,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1661,7 +1667,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1707,7 +1714,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1753,7 +1761,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1797,7 +1806,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1843,7 +1853,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1892,7 +1903,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1947,7 +1959,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1996,7 +2009,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2037,7 +2051,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2086,7 +2101,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2136,7 +2152,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2328,15 +2345,6 @@ const docTemplate = `{
                 "operationId": "BannerController_create",
                 "parameters": [
                     {
-                        "description": "创建轮播位",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateBannerRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -2413,7 +2421,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "轮播 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2457,7 +2466,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "轮播 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2504,7 +2514,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "轮播 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2650,7 +2661,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "分类 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2694,7 +2706,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "分类 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2741,7 +2754,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "分类 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2796,37 +2810,43 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "按作者过滤",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "按作者过滤 example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "按名称搜索",
+                        "example": "风景",
+                        "description": "按名称搜索 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "排序字段",
+                        "example": "created_at",
+                        "description": "排序字段 example(created_at)",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "排序方向 ASC / DESC（默认 DESC）",
+                        "example": "desc",
+                        "description": "排序方向 ASC / DESC（默认 DESC） example(desc)",
                         "name": "sort_order",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -2886,15 +2906,6 @@ const docTemplate = `{
                 "operationId": "CollectionController_create",
                 "parameters": [
                     {
-                        "description": "合集信息",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateCollectionRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -2926,7 +2937,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/collection/article/{articleId}/info": {
+        "/collection/article/{article_id}/info": {
             "get": {
                 "security": [
                     {
@@ -2944,8 +2955,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "articleId",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -2972,7 +2984,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/collection/check/{articleId}": {
+        "/collection/check/{article_id}": {
             "get": {
                 "security": [
                     {
@@ -2990,8 +3002,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "articleId",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -3036,7 +3049,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3080,7 +3094,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3127,7 +3142,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3164,7 +3180,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/collection/{id}/article/{articleId}": {
+        "/collection/{id}/article/{article_id}": {
             "post": {
                 "security": [
                     {
@@ -3182,15 +3198,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "文章 ID",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -3233,15 +3251,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "文章 ID",
-                        "name": "articleId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "article_id",
                         "in": "path",
                         "required": true
                     }
@@ -3286,20 +3306,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "合集 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3362,7 +3385,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3417,13 +3441,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3484,15 +3510,6 @@ const docTemplate = `{
                 "operationId": "CommentController_create",
                 "parameters": [
                     {
-                        "description": "评论内容",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateCommentRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -3543,20 +3560,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3611,7 +3631,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3639,7 +3660,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/comment/user/{userId}": {
+        "/comment/user/{user_id}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -3652,13 +3673,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -3713,7 +3736,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3757,7 +3781,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "评论 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "评论 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3810,7 +3835,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3865,7 +3891,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3914,7 +3941,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4139,7 +4167,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "分组名",
+                        "example": "upload",
+                        "description": "分组名 example(upload)",
                         "name": "group",
                         "in": "path",
                         "required": true
@@ -4189,7 +4218,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "分组名",
+                        "example": "upload",
+                        "description": "分组名 example(upload)",
                         "name": "group",
                         "in": "path",
                         "required": true
@@ -4247,7 +4277,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "配置键",
+                        "example": "upload_max_image_size",
+                        "description": "配置键 example(upload_max_image_size)",
                         "name": "key",
                         "in": "path",
                         "required": true
@@ -4585,7 +4616,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "配置 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4629,7 +4661,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "配置 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4676,7 +4709,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4734,7 +4768,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "文章 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4914,13 +4949,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -5083,15 +5120,6 @@ const docTemplate = `{
                 "operationId": "DecorationController_create",
                 "parameters": [
                     {
-                        "description": "装饰品字段（全部可选，不传=不改）",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DecorationInputRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -5193,13 +5221,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -5287,7 +5317,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/decoration/activity/claim/{activityId}": {
+        "/decoration/activity/claim/{activity_id}": {
             "post": {
                 "security": [
                     {
@@ -5305,8 +5335,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activityId",
-                        "name": "activityId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "activity_id",
                         "in": "path",
                         "required": true
                     }
@@ -5391,7 +5422,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5435,7 +5467,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5482,7 +5515,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5655,7 +5689,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/decoration/unuse/{decorationId}": {
+        "/decoration/unuse/{decoration_id}": {
             "post": {
                 "security": [
                     {
@@ -5673,8 +5707,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "decorationId",
-                        "name": "decorationId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "decorationId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "decoration_id",
                         "in": "path",
                         "required": true
                     }
@@ -5701,7 +5736,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/decoration/use/{decorationId}": {
+        "/decoration/use/{decoration_id}": {
             "post": {
                 "security": [
                     {
@@ -5719,8 +5754,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "装饰品 ID",
-                        "name": "decorationId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "decoration_id",
                         "in": "path",
                         "required": true
                     }
@@ -5836,7 +5872,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/decoration/user/{userId}": {
+        "/decoration/user/{user_id}": {
             "get": {
                 "security": [
                     {
@@ -5854,8 +5890,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -5915,7 +5952,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "装饰品 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5959,7 +5997,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "装饰品 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6006,7 +6045,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6107,15 +6147,6 @@ const docTemplate = `{
                 "summary": "创建表情",
                 "operationId": "EmojiController_create",
                 "parameters": [
-                    {
-                        "description": "表情字段（全部可选，不传=不改）",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.EmojiInputRequest"
-                        }
-                    },
                     {
                         "description": "请求体",
                         "name": "body",
@@ -6344,7 +6375,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "表情包 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "表情包 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6388,7 +6420,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6435,7 +6468,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6493,7 +6527,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6530,7 +6565,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/emoji/packs/{id}/emojis/{emojiId}": {
+        "/emoji/packs/{id}/emojis/{emoji_id}": {
             "delete": {
                 "security": [
                     {
@@ -6548,15 +6583,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "emojiId",
-                        "name": "emojiId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "emoji_id",
                         "in": "path",
                         "required": true
                     }
@@ -6602,15 +6639,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "emojiId",
-                        "name": "emojiId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "emoji_id",
                         "in": "path",
                         "required": true
                     },
@@ -6783,7 +6822,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "表情 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6827,7 +6867,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6874,7 +6915,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6929,7 +6971,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "表情 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6973,7 +7016,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7019,7 +7063,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7290,7 +7335,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "邀请码 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "邀请码 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -7336,13 +7382,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -7403,15 +7451,6 @@ const docTemplate = `{
                 "operationId": "MessageController_create",
                 "parameters": [
                     {
-                        "description": "CreateMessageInput{content,type,receiverId}",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateMessageRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -7466,15 +7505,6 @@ const docTemplate = `{
                 "operationId": "MessageController_batchOperation",
                 "parameters": [
                     {
-                        "description": "BatchMessageInput{messageIds,action}",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.BatchMessageRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -7506,7 +7536,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/message/private/block/{userId}": {
+        "/message/private/block/{user_id}": {
             "post": {
                 "security": [
                     {
@@ -7524,18 +7554,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "BlockUserInput{reason}",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/dto.BlockUserRequest"
-                        }
                     },
                     {
                         "description": "请求体",
@@ -7585,8 +7608,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -7668,13 +7692,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "游标（上一页最后一条的 cursor）",
+                        "example": "eyJpZCI6IjlmMWQyZTM0In0",
+                        "description": "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)",
                         "name": "cursor",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数，默认 20",
+                        "example": 10,
+                        "description": "每页条数，默认 20 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -7701,7 +7727,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/message/private/conversations/{userId}/messages": {
+        "/message/private/conversations/{user_id}/messages": {
             "get": {
                 "security": [
                     {
@@ -7719,8 +7745,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -7747,7 +7774,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/message/private/conversations/{userId}/read": {
+        "/message/private/conversations/{user_id}/read": {
             "post": {
                 "security": [
                     {
@@ -7765,8 +7792,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     },
@@ -7819,15 +7847,6 @@ const docTemplate = `{
                 "operationId": "MessageController_markPrivateMessagesRead",
                 "parameters": [
                     {
-                        "description": "PrivateReadBatchInput{messageIds}",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.PrivateReadBatchRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -7877,18 +7896,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "RecallPrivateInput{reason}",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/dto.RecallPrivateRequest"
-                        }
                     },
                     {
                         "description": "请求体",
@@ -7922,7 +7934,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/message/private/{userId}": {
+        "/message/private/{user_id}": {
             "post": {
                 "security": [
                     {
@@ -7944,19 +7956,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "接收者用户 ID",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "接收者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "SendPrivateInput{content,messageKind,payload}",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.SendPrivateRequest"
-                        }
                     },
                     {
                         "description": "请求体",
@@ -8062,13 +8066,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -8165,7 +8171,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8209,7 +8216,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8256,19 +8264,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "UpdateMessageInput",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateMessageRequest"
-                        }
                     },
                     {
                         "description": "请求体",
@@ -8320,7 +8320,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8375,37 +8376,43 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED",
+                        "example": "PUBLISHED",
+                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE",
+                        "example": "image",
+                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "买家用户 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "买家用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单号模糊搜索",
+                        "example": "风景",
+                        "description": "订单号模糊搜索 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -8561,7 +8568,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/order/no/{orderNo}": {
+        "/order/no/{order_no}": {
             "get": {
                 "security": [
                     {
@@ -8579,8 +8586,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "orderNo",
-                        "name": "orderNo",
+                        "example": "PA20261127000001",
+                        "description": "orderNo example(PA20261127000001)",
+                        "name": "order_no",
                         "in": "path",
                         "required": true
                     }
@@ -8665,31 +8673,36 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED",
+                        "example": "PUBLISHED",
+                        "description": "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE",
+                        "example": "image",
+                        "description": "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "订单号模糊搜索",
+                        "example": "风景",
+                        "description": "订单号模糊搜索 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -8786,7 +8799,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "订单 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8838,7 +8852,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8897,7 +8912,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "订单 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -8959,15 +8975,6 @@ const docTemplate = `{
                 "summary": "发起支付",
                 "operationId": "PaymentController_createPayment",
                 "parameters": [
-                    {
-                        "description": "支付入参",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePaymentRequest"
-                        }
-                    },
                     {
                         "description": "请求体",
                         "name": "body",
@@ -9078,7 +9085,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/payment/order/{orderId}": {
+        "/payment/order/{order_id}": {
             "get": {
                 "security": [
                     {
@@ -9097,8 +9104,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "orderId",
-                        "name": "orderId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "orderId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "order_id",
                         "in": "path",
                         "required": true
                     }
@@ -9143,7 +9151,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9240,13 +9249,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -9435,7 +9446,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "权限 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9479,7 +9491,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "权限 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9526,7 +9539,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "权限 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9576,13 +9590,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE",
+                        "example": "image",
+                        "description": "活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE example(image)",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "名称关键字",
+                        "example": "风景",
+                        "description": "名称关键字 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -9674,7 +9690,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "活动 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9718,7 +9735,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9765,7 +9783,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9820,7 +9839,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "活动 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -9867,15 +9887,6 @@ const docTemplate = `{
                 "summary": "加积分",
                 "operationId": "PointsController_addPoints",
                 "parameters": [
-                    {
-                        "description": "加分入参",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.AddPointsRequest"
-                        }
-                    },
                     {
                         "description": "请求体",
                         "name": "body",
@@ -10073,7 +10084,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/points/tasks/my/{activityId}": {
+        "/points/tasks/my/{activity_id}": {
             "get": {
                 "security": [
                     {
@@ -10091,8 +10102,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activityId",
-                        "name": "activityId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "activity_id",
                         "in": "path",
                         "required": true
                     }
@@ -10137,13 +10149,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10203,13 +10217,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10251,7 +10267,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/points/users/{userId}/balance": {
+        "/points/users/{user_id}/balance": {
             "get": {
                 "security": [
                     {
@@ -10269,8 +10285,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -10297,7 +10314,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/points/users/{userId}/transactions": {
+        "/points/users/{user_id}/transactions": {
             "get": {
                 "security": [
                     {
@@ -10315,20 +10332,23 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10477,15 +10497,6 @@ const docTemplate = `{
                 "operationId": "ReportController_create",
                 "parameters": [
                     {
-                        "description": "提交举报",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateReportRequest"
-                        }
-                    },
-                    {
                         "description": "请求体",
                         "name": "body",
                         "in": "body",
@@ -10572,7 +10583,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "举报 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10616,7 +10628,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "举报 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10663,7 +10676,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "举报 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10847,13 +10861,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -10913,7 +10929,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -10957,7 +10974,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11004,7 +11022,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11059,7 +11078,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "源角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "源角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11114,7 +11134,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11161,7 +11182,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11219,7 +11241,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11277,7 +11300,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "角色 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11327,19 +11351,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "关键字",
+                        "example": "风景",
+                        "description": "关键字 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -11589,13 +11616,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "起始日期 YYYY-MM-DD",
+                        "example": "2026-01-01",
+                        "description": "起始日期 YYYY-MM-DD example(2026-01-01)",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "结束日期 YYYY-MM-DD",
+                        "example": "2026-12-31",
+                        "description": "结束日期 YYYY-MM-DD example(2026-12-31)",
                         "name": "end_date",
                         "in": "query"
                     }
@@ -11686,15 +11715,6 @@ const docTemplate = `{
                 "summary": "创建标签",
                 "operationId": "TagController_create",
                 "parameters": [
-                    {
-                        "description": "创建标签",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateTagRequest"
-                        }
-                    },
                     {
                         "description": "请求体",
                         "name": "body",
@@ -11856,7 +11876,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "标签 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11900,7 +11921,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "标签 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -11947,7 +11969,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "标签 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12002,7 +12025,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "标签 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12046,7 +12070,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12092,13 +12117,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -12291,7 +12318,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "场景：article/avatar/comment",
+                        "example": "article",
+                        "description": "场景：article/avatar/comment example(article)",
                         "name": "scene",
                         "in": "formData"
                     }
@@ -12339,7 +12367,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "上传记录 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12385,7 +12414,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "本批上限（默认 100）",
+                        "example": 10,
+                        "description": "本批上限（默认 100） example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -12565,7 +12595,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "上传记录 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12612,19 +12643,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码，默认 1",
+                        "example": 1,
+                        "description": "页码，默认 1 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数，默认 10",
+                        "example": 10,
+                        "description": "每页条数，默认 10 example(10)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "用户名关键字",
+                        "example": "风景",
+                        "description": "用户名关键字 example(风景)",
                         "name": "keyword",
                         "in": "query"
                     }
@@ -12861,19 +12895,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "申请状态",
+                        "example": "PUBLISHED",
+                        "description": "申请状态 example(PUBLISHED)",
                         "name": "status",
                         "in": "query"
                     }
@@ -12936,7 +12973,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "申请 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12991,7 +13029,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "申请 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -13116,7 +13155,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/certification/identity/{userId}": {
+        "/user/certification/identity/{user_id}": {
             "get": {
                 "security": [
                     {
@@ -13134,8 +13173,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "userId",
-                        "name": "userId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -13618,7 +13658,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "设备标识，缺省 default",
+                        "example": "uuid-1",
+                        "description": "设备标识，缺省 default example(uuid-1)",
                         "name": "Device-Id",
                         "in": "header"
                     },
@@ -13869,14 +13910,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "平台 wechat / qq / github",
+                        "example": "wechat",
+                        "description": "平台 wechat / qq / github example(wechat)",
                         "name": "provider",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "渠道 web / app",
+                        "example": "web",
+                        "description": "渠道 web / app example(web)",
                         "name": "channel",
                         "in": "path",
                         "required": true
@@ -14549,13 +14592,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -14597,7 +14642,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/profile/favorites/{productId}": {
+        "/user/profile/favorites/{product_id}": {
             "get": {
                 "security": [
                     {
@@ -14615,8 +14660,9 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "productId",
-                        "name": "productId",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "productId example(9f1d2e34-5678-4abc-9def-0123456789ab)",
+                        "name": "product_id",
                         "in": "path",
                         "required": true
                     }
@@ -14756,13 +14802,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "设备标识",
+                        "example": "uuid-1",
+                        "description": "设备标识 example(uuid-1)",
                         "name": "Device-Id",
                         "in": "header",
                         "required": true
                     },
                     {
-                        "description": "refreshRequest{refreshToken}",
+                        "description": "刷新令牌请求体",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -14907,13 +14954,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15072,13 +15121,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15186,7 +15237,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15236,7 +15288,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "用户 ID",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15289,7 +15342,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15344,7 +15398,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15385,13 +15440,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15446,7 +15503,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15487,13 +15545,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "example": 1,
+                        "description": "页码 example(1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "每页条数",
+                        "example": 10,
+                        "description": "每页条数 example(10)",
                         "name": "limit",
                         "in": "query"
                     }
@@ -15548,7 +15608,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15594,7 +15655,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15640,7 +15702,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "example": "9f1d2e34-5678-4abc-9def-0123456789ab",
+                        "description": "id example(9f1d2e34-5678-4abc-9def-0123456789ab)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -15753,7 +15816,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "enabled": {
                     "type": "boolean",
@@ -15785,7 +15849,8 @@ const docTemplate = `{
                     "example": "COMMON"
                 },
                 "reward_decoration_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reward_exp": {
                     "type": "integer",
@@ -15921,7 +15986,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "materials": {
                     "type": "array",
@@ -15930,10 +15996,12 @@ const docTemplate = `{
                     }
                 },
                 "organization_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "某某工作室"
                 },
                 "real_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "张三"
                 },
                 "slogan": {
                     "type": "string",
@@ -16065,7 +16133,8 @@ const docTemplate = `{
                     "example": 0
                 },
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "\u003cp\u003e正文内容\u003c/p\u003e"
                 },
                 "cover": {
                     "type": "string",
@@ -16313,7 +16382,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "违规内容"
                 },
                 "status": {
                     "type": "string",
@@ -16558,7 +16628,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "id": {
                     "type": "string",
@@ -16874,10 +16945,12 @@ const docTemplate = `{
                     "example": 128
                 },
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "children": {
                     "description": "Children 子分类（tree=true 或详情时填充；叶节点是 [] 不是 null）。",
@@ -16887,14 +16960,16 @@ const docTemplate = `{
                     }
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "created_at": {
                     "type": "string",
                     "format": "date-time"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "follow_count": {
                     "type": "integer",
@@ -16905,7 +16980,8 @@ const docTemplate = `{
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "link": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com"
                 },
                 "name": {
                     "type": "string",
@@ -16962,7 +17038,8 @@ const docTemplate = `{
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "organization_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "某某工作室"
                 },
                 "real_name": {
                     "description": "字符串值类型：空时 \"\"（docs/21-JSON序列化规范.md）",
@@ -17647,16 +17724,20 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.AchievementConditionDto"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "enabled": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "hidden": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "icon": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon.png"
                 },
                 "name": {
                     "type": "string",
@@ -17667,7 +17748,8 @@ const docTemplate = `{
                     "example": "COMMON"
                 },
                 "reward_decoration_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reward_exp": {
                     "type": "integer",
@@ -17678,7 +17760,8 @@ const docTemplate = `{
                     "example": 10
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "type": {
                     "type": "string",
@@ -17709,20 +17792,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "activity_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "allow_reprint": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "category_id": {
                     "type": "string",
                     "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "\u003cp\u003e正文内容\u003c/p\u003e"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "downloads": {
                     "type": "array",
@@ -17740,28 +17827,36 @@ const docTemplate = `{
                     ]
                 },
                 "is_featured": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_pinned_on_profile": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "list_require_login": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_follow": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_login": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_membership": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_payment": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "status": {
                     "type": "string",
@@ -17806,7 +17901,8 @@ const docTemplate = `{
                     "example": "image"
                 },
                 "video_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/v.mp4"
                 },
                 "view_price": {
                     "type": "number",
@@ -17818,14 +17914,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "image_url": {
                     "type": "string",
                     "example": "https://cdn.example.com/banner.png"
                 },
                 "link_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com"
                 },
                 "sort_order": {
                     "type": "integer",
@@ -17848,21 +17946,26 @@ const docTemplate = `{
             ],
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "description": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "一句话说明"
                 },
                 "link": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "https://example.com"
                 },
                 "name": {
                     "type": "string",
@@ -17870,7 +17973,8 @@ const docTemplate = `{
                     "example": "风景摄影"
                 },
                 "parent_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "sort": {
                     "type": "integer",
@@ -17955,10 +18059,12 @@ const docTemplate = `{
                 },
                 "expired_at": {
                     "type": "string",
-                    "format": "date-time"
+                    "format": "date-time",
+                    "example": "2026-12-31T23:59:59Z"
                 },
                 "remark": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "备注"
                 },
                 "type": {
                     "type": "string",
@@ -18129,14 +18235,16 @@ const docTemplate = `{
                     "example": "每天首次登录获得积分"
                 },
                 "icon": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon.png"
                 },
                 "is_active": {
                     "type": "boolean",
                     "example": true
                 },
                 "link": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com"
                 },
                 "name": {
                     "type": "string",
@@ -18188,20 +18296,24 @@ const docTemplate = `{
                     "example": "spam"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "reason": {
                     "type": "string",
                     "example": "垃圾广告"
                 },
                 "reported_article_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reported_comment_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reported_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "type": {
                     "type": "string",
@@ -18250,17 +18362,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "description": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "一句话说明"
                 },
                 "name": {
                     "type": "string",
@@ -18285,7 +18401,8 @@ const docTemplate = `{
                     "example": "alice@example.com"
                 },
                 "invite_code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "AB12CD"
                 },
                 "nickname": {
                     "type": "string",
@@ -18439,7 +18556,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "article_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "decoration_id": {
                     "type": "string",
@@ -18711,7 +18829,8 @@ const docTemplate = `{
                     "example": false
                 },
                 "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "违规内容"
                 },
                 "scheduled_at": {
                     "type": "string",
@@ -19130,7 +19249,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "summary": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话摘要"
                 },
                 "title": {
                     "type": "string",
@@ -19211,10 +19331,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
                 }
             }
         },
@@ -19345,7 +19467,8 @@ const docTemplate = `{
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "remark": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "备注"
                 },
                 "status": {
                     "type": "string",
@@ -19898,10 +20021,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
                 }
             }
         },
@@ -19912,7 +20037,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 }
             }
         },
@@ -19924,24 +20050,28 @@ const docTemplate = `{
             ],
             "properties": {
                 "access_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "client-access-token"
                 },
                 "channel": {
                     "type": "string",
                     "example": "web"
                 },
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "open_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "OPENID1234567890"
                 },
                 "provider": {
                     "type": "string",
                     "example": "wechat"
                 },
                 "state": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "a1b2c3d4e5f6"
                 }
             }
         },
@@ -20616,7 +20746,8 @@ const docTemplate = `{
                 "expired_at": {
                     "description": "ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。",
                     "type": "string",
-                    "format": "date-time"
+                    "format": "date-time",
+                    "example": "2026-12-31T23:59:59Z"
                 },
                 "id": {
                     "type": "string",
@@ -20795,17 +20926,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PrivateReadBatchRequest": {
-            "type": "object",
-            "properties": {
-                "message_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "dto.ProfilePinResultDto": {
             "type": "object",
             "properties": {
@@ -20842,13 +20962,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "access_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "client-access-token"
                 },
                 "open_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "OPENID1234567890"
                 },
                 "payload": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "callback-payload-json"
                 }
             }
         },
@@ -20919,7 +21042,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "refresh_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIs..."
                 }
             }
         },
@@ -20995,7 +21119,8 @@ const docTemplate = `{
                     "format": "date-time"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "handled_at": {
                     "description": "时间：handledAt 未处理时不传",
@@ -21014,20 +21139,24 @@ const docTemplate = `{
                     "example": "垃圾广告"
                 },
                 "reported_article_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reported_comment_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reported_user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reporter_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "result": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "内容属违规"
                 },
                 "status": {
                     "type": "string",
@@ -21173,7 +21302,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "违规内容"
                 }
             }
         },
@@ -21371,7 +21501,8 @@ const docTemplate = `{
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
                 },
                 "category_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
                 "comment_count": {
                     "type": "integer",
@@ -21402,7 +21533,8 @@ const docTemplate = `{
                     "example": "PUBLISHED"
                 },
                 "summary": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话摘要"
                 },
                 "title": {
                     "type": "string",
@@ -21636,7 +21768,8 @@ const docTemplate = `{
                     "example": 5
                 },
                 "remark": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "备注"
                 },
                 "service_commission_rate": {
                     "type": "number",
@@ -22045,7 +22178,8 @@ const docTemplate = `{
                     "example": "https://cdn.example.com/tag.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "cover": {
                     "type": "string",
@@ -22170,43 +22304,55 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123456"
                 },
                 "condition": {
                     "$ref": "#/definitions/dto.AchievementConditionDto"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "enabled": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "hidden": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "icon": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon.png"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "示例名称"
                 },
                 "rarity": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "RARE"
                 },
                 "reward_decoration_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "reward_exp": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 50
                 },
                 "reward_points": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 100
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "image"
                 }
             }
         },
@@ -22214,19 +22360,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "activity_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "allow_reprint": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "category_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2b3c4d5e-0000-4f60-9bac-000000000002"
                 },
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "\u003cp\u003e正文内容\u003c/p\u003e"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "downloads": {
                     "type": "array",
@@ -22241,28 +22392,36 @@ const docTemplate = `{
                     }
                 },
                 "is_featured": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_pinned_on_profile": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "list_require_login": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_follow": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_login": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_membership": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "require_payment": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "status": {
                     "type": "string",
@@ -22271,10 +22430,12 @@ const docTemplate = `{
                         "PENDING",
                         "PUBLISHED",
                         "ARCHIVED"
-                    ]
+                    ],
+                    "example": "PUBLISHED"
                 },
                 "summary": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话摘要"
                 },
                 "tag_ids": {
                     "type": "array",
@@ -22298,13 +22459,16 @@ const docTemplate = `{
                         "image",
                         "mixed",
                         "video"
-                    ]
+                    ],
+                    "example": "image"
                 },
                 "video_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/v.mp4"
                 },
                 "view_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 0
                 }
             }
         },
@@ -22312,22 +22476,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "image_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/banner.png"
                 },
                 "link_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com"
                 },
                 "sort_order": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "PUBLISHED"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "我的第一篇作品"
                 }
             }
         },
@@ -22335,38 +22505,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "description": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "一句话说明"
                 },
                 "link": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "https://example.com"
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 50
+                    "maxLength": 50,
+                    "example": "示例名称"
                 },
                 "parent_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "status": {
                     "type": "string",
                     "enum": [
                         "ENABLED",
                         "DISABLED"
-                    ]
+                    ],
+                    "example": "PUBLISHED"
                 }
             }
         },
@@ -22374,17 +22553,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "description": {
                     "type": "string",
                     "example": "新描述"
                 },
                 "is_public": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "name": {
                     "type": "string",
@@ -22392,7 +22574,8 @@ const docTemplate = `{
                     "example": "新名字"
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -22423,10 +22606,12 @@ const docTemplate = `{
                     "example": "改后的正文"
                 },
                 "is_broadcast": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_read": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "metadata": {
                     "type": "object",
@@ -22442,7 +22627,8 @@ const docTemplate = `{
                         "private",
                         "system",
                         "notification"
-                    ]
+                    ],
+                    "example": "image"
                 }
             }
         },
@@ -22450,37 +22636,48 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "enable_comment_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_email_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "enable_follow_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_invite_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_like_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_message_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_order_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_payment_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_push_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 },
                 "enable_sms_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "enable_system_notification": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -22500,14 +22697,16 @@ const docTemplate = `{
                     "example": "每天首次登录获得积分"
                 },
                 "icon": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon.png"
                 },
                 "is_active": {
                     "type": "boolean",
                     "example": true
                 },
                 "link": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com"
                 },
                 "name": {
                     "type": "string",
@@ -22550,24 +22749,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "杭州"
                 },
                 "avatar": {
                     "type": "string",
                     "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "birth_date": {
                     "type": "string",
-                    "format": "date-time"
+                    "format": "date-time",
+                    "example": "1998-06-01"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "alice@example.com"
                 },
                 "gender": {
                     "type": "string",
@@ -22578,7 +22782,8 @@ const docTemplate = `{
                     "example": "新昵称"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "13800138000"
                 }
             }
         },
@@ -22590,7 +22795,8 @@ const docTemplate = `{
                     "example": "DELETE_CONTENT"
                 },
                 "result": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "内容属违规"
                 },
                 "status": {
                     "type": "string",
@@ -22633,24 +22839,30 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "cover": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.png"
                 },
                 "description": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "example": "一句话说明"
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 50
+                    "maxLength": 50,
+                    "example": "示例名称"
                 },
                 "sort": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -22658,19 +22870,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "article_commission_rate": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 0.1
                 },
                 "enable_custom_commission": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "membership_commission_rate": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 0.2
                 },
                 "product_commission_rate": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 0.15
                 },
                 "service_commission_rate": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 0.05
                 }
             }
         },
@@ -22678,22 +22895,28 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "杭州"
                 },
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
                 },
                 "background": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "一句话说明"
                 },
                 "gender": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "male"
                 },
                 "nickname": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "爱丽丝"
                 },
                 "role_ids": {
                     "type": "array",
@@ -22706,7 +22929,8 @@ const docTemplate = `{
                     "example": "ACTIVE"
                 },
                 "wallet": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 100.5
                 }
             }
         },
@@ -22741,7 +22965,8 @@ const docTemplate = `{
                     "example": true
                 },
                 "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "违规内容"
                 },
                 "score": {
                     "type": "number",
@@ -23389,7 +23614,8 @@ const docTemplate = `{
                     "example": 5
                 },
                 "remark": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "备注"
                 },
                 "service_commission_rate": {
                     "type": "number",
@@ -23803,7 +24029,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "remark": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "备注"
                 },
                 "type": {
                     "type": "string",

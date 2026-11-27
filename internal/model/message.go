@@ -74,11 +74,11 @@ type Message struct {
 	BaseModel
 	SenderID    string      `gorm:"type:varchar(36);index" json:"sender_id"`
 	ReceiverID  *string     `gorm:"type:varchar(36);index" json:"receiver_id"`
-	Content     string      `gorm:"type:text;not null" json:"content"`
+	Content     string      `gorm:"type:text;not null" json:"content" example:"<p>正文内容</p>"`
 	Type        string      `gorm:"type:varchar(20);not null;default:private;index" json:"type"` // private|system|notification
-	IsRead      bool        `gorm:"not null;default:false" json:"is_read"`
-	IsBroadcast bool        `gorm:"not null;default:false;index" json:"is_broadcast"`
-	Title       *string     `gorm:"type:varchar(255)" json:"title"`
+	IsRead      bool        `gorm:"not null;default:false" json:"is_read" example:"true"`
+	IsBroadcast bool        `gorm:"not null;default:false;index" json:"is_broadcast" example:"false"`
+	Title       *string     `gorm:"type:varchar(255)" json:"title" example:"我的第一篇作品"`
 	Metadata    MessageJSON `gorm:"type:jsonb" json:"metadata"`
 }
 
@@ -123,7 +123,7 @@ type PrivateMessage struct {
 	SenderID       string      `gorm:"type:varchar(36);not null" json:"sender_id"`
 	ReceiverID     string      `gorm:"type:varchar(36);not null;index:idx_pm_receiver_read,priority:1" json:"receiver_id"`
 	MessageKind    string      `gorm:"type:varchar(20);not null;default:text" json:"message_kind"` // text|image|file|card
-	Content        string      `gorm:"type:text" json:"content"`
+	Content        string      `gorm:"type:text" json:"content" example:"<p>正文内容</p>"`
 	Payload        MessageJSON `gorm:"type:jsonb" json:"payload"`
 	ReadAt         *time.Time  `gorm:"index:idx_pm_receiver_read,priority:2" json:"read_at"`
 	RecalledAt     *time.Time  `json:"recalled_at"`

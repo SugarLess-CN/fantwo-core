@@ -18,7 +18,7 @@ const (
 type Comment struct {
 	BaseModel
 
-	Content string  `gorm:"type:text;not null" json:"content"`
+	Content string  `gorm:"type:text;not null" json:"content" example:"<p>正文内容</p>"`
 	Images  *string `gorm:"type:text" json:"images"` // JSON 数组文本，最多 9 张
 
 	Likes      int `gorm:"not null;default:0" json:"likes"`
@@ -28,11 +28,11 @@ type Comment struct {
 	IsPinned bool       `gorm:"not null;default:false" json:"is_pinned"`
 	PinnedAt *time.Time `json:"pinned_at"`
 
-	Status string `gorm:"type:varchar(16);not null;default:PUBLISHED;index:idx_comments_root_status_created,priority:2" json:"status"`
+	Status string `gorm:"type:varchar(16);not null;default:PUBLISHED;index:idx_comments_root_status_created,priority:2" json:"status" example:"PUBLISHED"`
 
 	AuthorID  string  `gorm:"type:varchar(36);not null;index:idx_comments_author" json:"author_id"`
-	ArticleID string  `gorm:"type:varchar(36);not null;index:idx_comments_article" json:"article_id"`
-	ParentID  *string `gorm:"type:varchar(36);index:idx_comments_parent" json:"parent_id"`
+	ArticleID string  `gorm:"type:varchar(36);not null;index:idx_comments_article" json:"article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ParentID  *string `gorm:"type:varchar(36);index:idx_comments_parent" json:"parent_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	RootID    *string `gorm:"type:varchar(36);index:idx_comments_root_status_created,priority:1" json:"root_id"`
 }
 

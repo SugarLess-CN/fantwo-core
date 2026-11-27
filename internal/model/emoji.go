@@ -17,16 +17,16 @@ const (
 // Emoji 单个表情。
 type Emoji struct {
 	BaseModel
-	Name     string `gorm:"type:varchar(100);not null;comment:表情名称" json:"name"`
+	Name     string `gorm:"type:varchar(100);not null;comment:表情名称" json:"name" example:"示例名称"`
 	URL      string `gorm:"type:varchar(500);not null;comment:表情图片地址" json:"url"`
-	Code     string `gorm:"type:varchar(50);index;comment:表情代码，如 :smile:" json:"code"`
-	Type     string `gorm:"type:varchar(10);default:user;index;comment:system/user" json:"type"`
+	Code     string `gorm:"type:varchar(50);index;comment:表情代码，如 :smile:" json:"code" example:"123456"`
+	Type     string `gorm:"type:varchar(10);default:user;index;comment:system/user" json:"type" example:"image"`
 	UserID   string `gorm:"type:varchar(36);index;comment:所属用户（系统表情为空）" json:"user_id"`
 	Category string `gorm:"type:varchar(50);index;comment:分类" json:"category"`
 	Tags     string `gorm:"type:text;comment:标签，逗号分隔" json:"tags"`
 	UseCount int64  `gorm:"not null;default:0;index;comment:使用次数" json:"use_count"`
-	IsPublic bool   `gorm:"not null;default:true;comment:是否公开" json:"is_public"`
-	Status   string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status"`
+	IsPublic bool   `gorm:"not null;default:true;comment:是否公开" json:"is_public" example:"true"`
+	Status   string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status" example:"PUBLISHED"`
 	Width    int    `gorm:"not null;default:0;comment:宽" json:"width"`
 	Height   int    `gorm:"not null;default:0;comment:高" json:"height"`
 	FileSize int64  `gorm:"not null;default:0;comment:文件大小（字节）" json:"file_size"`
@@ -49,12 +49,12 @@ func (EmojiFavorite) TableName() string { return "emoji_favorites" }
 // EmojiPack 表情包。
 type EmojiPack struct {
 	BaseModel
-	Name        string `gorm:"type:varchar(100);not null;comment:表情包名称" json:"name"`
-	Description string `gorm:"type:text;comment:描述" json:"description"`
+	Name        string `gorm:"type:varchar(100);not null;comment:表情包名称" json:"name" example:"示例名称"`
+	Description string `gorm:"type:text;comment:描述" json:"description" example:"一句话说明"`
 	CoverURL    string `gorm:"type:varchar(500);comment:封面地址" json:"cover_url"`
 	UserID      string `gorm:"type:varchar(36);index;comment:创建者" json:"user_id"`
-	IsPublic    bool   `gorm:"not null;default:false;comment:是否公开" json:"is_public"`
-	Status      string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status"`
+	IsPublic    bool   `gorm:"not null;default:false;comment:是否公开" json:"is_public" example:"true"`
+	Status      string `gorm:"type:varchar(10);default:active;index;comment:状态" json:"status" example:"PUBLISHED"`
 }
 
 // TableName 表名。
@@ -65,7 +65,7 @@ type EmojiPackItem struct {
 	BaseModel
 	PackID  string `gorm:"type:varchar(36);index:idx_emoji_pack_item,priority:1;comment:表情包ID" json:"pack_id"`
 	EmojiID string `gorm:"type:varchar(36);index:idx_emoji_pack_item,priority:2;comment:表情ID" json:"emoji_id"`
-	Sort    int    `gorm:"not null;default:0;comment:排序" json:"sort"`
+	Sort    int    `gorm:"not null;default:0;comment:排序" json:"sort" example:"1"`
 }
 
 // TableName 表名。
@@ -89,18 +89,18 @@ type EmojiQuery struct {
 
 // EmojiInput 表情创建/更新入参。
 type EmojiInput struct {
-	Name     *string `json:"name"`
+	Name     *string `json:"name" example:"示例名称"`
 	URL      *string `json:"url"`
-	Code     *string `json:"code"`
-	Type     *string `json:"type"`
+	Code     *string `json:"code" example:"123456"`
+	Type     *string `json:"type" example:"image"`
 	Category *string `json:"category"`
 	Tags     *string `json:"tags"`
-	IsPublic *bool   `json:"is_public"`
+	IsPublic *bool   `json:"is_public" example:"true"`
 	Width    *int    `json:"width"`
 	Height   *int    `json:"height"`
 	FileSize *int64  `json:"file_size"`
 	MimeType *string `json:"mime_type"`
-	Status   *string `json:"status"`
+	Status   *string `json:"status" example:"PUBLISHED"`
 }
 
 // EmojiPackQuery 表情包列表查询条件。
@@ -115,9 +115,9 @@ type EmojiPackQuery struct {
 
 // EmojiPackInput 表情包创建/更新入参。
 type EmojiPackInput struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
+	Name        *string `json:"name" example:"示例名称"`
+	Description *string `json:"description" example:"一句话说明"`
 	CoverURL    *string `json:"cover_url"`
-	IsPublic    *bool   `json:"is_public"`
-	Status      *string `json:"status"`
+	IsPublic    *bool   `json:"is_public" example:"true"`
+	Status      *string `json:"status" example:"PUBLISHED"`
 }

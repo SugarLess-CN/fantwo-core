@@ -42,17 +42,17 @@ const (
 // 运营域不直接写 articles / comments / users 表。
 type Report struct {
 	BaseModel
-	Type              string     `gorm:"type:varchar(20);index;comment:举报类型" json:"type"`
-	Reason            string     `gorm:"type:text;not null;comment:举报原因" json:"reason"`
+	Type              string     `gorm:"type:varchar(20);index;comment:举报类型" json:"type" example:"image"`
+	Reason            string     `gorm:"type:text;not null;comment:举报原因" json:"reason" example:"违规内容"`
 	Category          string     `gorm:"type:varchar(20);index;comment:举报分类" json:"category"`
-	Description       string     `gorm:"type:text;comment:详细描述" json:"description"`
-	Status            string     `gorm:"type:varchar(20);default:PENDING;index;comment:处理状态" json:"status"`
-	Result            string     `gorm:"type:text;comment:处理结果" json:"result"`
+	Description       string     `gorm:"type:text;comment:详细描述" json:"description" example:"一句话说明"`
+	Status            string     `gorm:"type:varchar(20);default:PENDING;index;comment:处理状态" json:"status" example:"PUBLISHED"`
+	Result            string     `gorm:"type:text;comment:处理结果" json:"result" example:"内容属违规"`
 	Action            string     `gorm:"type:varchar(20);comment:处理动作" json:"action"`
 	ReporterID        string     `gorm:"type:varchar(36);index;comment:举报人ID" json:"reporter_id"`
-	ReportedUserID    string     `gorm:"type:varchar(36);index;comment:被举报用户ID" json:"reported_user_id"`
-	ReportedArticleID string     `gorm:"type:varchar(36);index;comment:被举报文章ID" json:"reported_article_id"`
-	ReportedCommentID string     `gorm:"type:varchar(36);index;comment:被举报评论ID" json:"reported_comment_id"`
+	ReportedUserID    string     `gorm:"type:varchar(36);index;comment:被举报用户ID" json:"reported_user_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedArticleID string     `gorm:"type:varchar(36);index;comment:被举报文章ID" json:"reported_article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedCommentID string     `gorm:"type:varchar(36);index;comment:被举报评论ID" json:"reported_comment_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	HandlerID         string     `gorm:"type:varchar(36);index;comment:处理人ID" json:"handler_id"`
 	HandledAt         *time.Time `json:"handled_at"`
 }
@@ -87,19 +87,19 @@ func (ReportTargetCommentView) TableName() string { return "comments" }
 
 // ReportCreateInput 创建举报入参（对齐原 CreateReportDto）。
 type ReportCreateInput struct {
-	Type              string `json:"type" binding:"required"`
-	Reason            string `json:"reason" binding:"required"`
+	Type              string `json:"type" binding:"required" example:"image"`
+	Reason            string `json:"reason" binding:"required" example:"违规内容"`
 	Category          string `json:"category" binding:"required"`
-	Description       string `json:"description"`
-	ReportedUserID    string `json:"reported_user_id"`
-	ReportedArticleID string `json:"reported_article_id"`
-	ReportedCommentID string `json:"reported_comment_id"`
+	Description       string `json:"description" example:"一句话说明"`
+	ReportedUserID    string `json:"reported_user_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedArticleID string `json:"reported_article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	ReportedCommentID string `json:"reported_comment_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 }
 
 // ReportUpdateInput 更新举报入参（对齐原 UpdateReportDto）。
 type ReportUpdateInput struct {
-	Status string `json:"status"`
-	Result string `json:"result"`
+	Status string `json:"status" example:"PUBLISHED"`
+	Result string `json:"result" example:"内容属违规"`
 	Action string `json:"action"`
 }
 

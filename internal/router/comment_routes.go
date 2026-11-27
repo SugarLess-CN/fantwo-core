@@ -17,7 +17,7 @@ func RegisterCommentRoutes(v1 *gin.RouterGroup, opt Option) {
 	// 文章维度（静态段优先于 /:id）
 	g.GET("/article/:id", opt1, h.FindByArticle)
 	g.GET("/article/:id/count", opt1, h.Count)
-	g.GET("/user/:userId", opt1, h.UserComments)
+	g.GET("/user/:user_id", opt1, h.UserComments)
 
 	g.GET("/:id", opt1, h.FindOne)
 	g.PATCH("/:id", auth, permMid("comment:update"), h.Update)

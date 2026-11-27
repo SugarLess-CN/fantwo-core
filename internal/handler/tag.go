@@ -24,7 +24,6 @@ type TagHandler struct {
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_create
-//	@Param		body body dto.CreateTagRequest true "创建标签"
 //	@Param		body body dto.CreateTagRequest true "请求体"
 //	@Router		/tag [post]
 func (h *TagHandler) Create(c *gin.Context) {
@@ -118,7 +117,7 @@ func (h *TagHandler) FollowedList(c *gin.Context) {
 //	@Summary	标签详情
 //	@Tags		标签
 //	@Produce	json
-//	@Param		id path string true "标签 ID"
+//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_findOne
 //	@Router		/tag/{id} [get]
@@ -138,7 +137,7 @@ func (h *TagHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID"
+//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateTagRequest true "tagRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagDto}
 //	@ID			TagController_update
@@ -163,7 +162,7 @@ func (h *TagHandler) Update(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID"
+//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			TagController_remove
 //	@Router		/tag/{id} [delete]
@@ -182,7 +181,7 @@ func (h *TagHandler) Remove(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "标签 ID"
+//	@Param		id path string true "标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@ID			TagController_follow
 //	@Router		/tag/{id}/follow [post]
@@ -201,7 +200,7 @@ func (h *TagHandler) Follow(c *gin.Context) {
 //	@Tags		标签
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.TagFollowDto}
 //	@ID			TagController_unfollow
 //	@Router		/tag/{id}/follow [delete]

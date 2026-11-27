@@ -31,10 +31,10 @@ type Download struct {
 	BaseModel
 
 	// ArticleID 所属文章（外键，文章删除时级联删除）。
-	ArticleID string `gorm:"column:article_id;type:varchar(36);not null;index:idx_downloads_article" json:"article_id"`
+	ArticleID string `gorm:"column:article_id;type:varchar(36);not null;index:idx_downloads_article" json:"article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 
 	// Type 下载类型，取值见 DownloadType* 常量。
-	Type string `gorm:"column:type;type:varchar(16);not null" json:"type"`
+	Type string `gorm:"column:type;type:varchar(16);not null" json:"type" example:"image"`
 
 	// URL 下载链接。
 	URL string `gorm:"column:url;type:text;not null" json:"url"`
@@ -50,10 +50,10 @@ type Download struct {
 
 	// VisibleWithoutPermission 文章设了门槛（付费/会员/关注）时，
 	// 该下载资源是否仍对无权限用户可见。默认 false（对齐原版）。
-	VisibleWithoutPermission bool `gorm:"column:visible_without_permission;not null;default:false" json:"visible_without_permission"`
+	VisibleWithoutPermission bool `gorm:"column:visible_without_permission;not null;default:false" json:"visible_without_permission" example:"false"`
 
 	// Sort 展示顺序（原版无此字段，我们按数组顺序落库时需要它）。
-	Sort int `gorm:"column:sort;not null;default:0" json:"sort"`
+	Sort int `gorm:"column:sort;not null;default:0" json:"sort" example:"1"`
 }
 
 // TableName 表名（对齐原 TypeORM downloads）。

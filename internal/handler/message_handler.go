@@ -92,7 +92,6 @@ func currentUID(c *gin.Context) (string, bool) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param	body	body	dto.CreateMessageRequest	true	"CreateMessageInput{content,type,receiverId}"
 //	@Param		body body dto.CreateMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@Failure	403	{object}	dto.ResponseBody
@@ -122,8 +121,8 @@ func (h *MessageHandler) Create(c *gin.Context) {
 //	@Tags			消息
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			page	query		int		false	"页码"
-//	@Param			limit	query		int		false	"每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_findAll
 //	@Router			/message [get]
@@ -147,8 +146,8 @@ func (h *MessageHandler) List(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.MessageDto}}
 //	@ID			MessageController_search
 //	@Router		/message/search [get]
@@ -189,7 +188,7 @@ func (h *MessageHandler) Search(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@ID			MessageController_findOne
 //	@Router		/message/{id} [get]
@@ -213,8 +212,7 @@ func (h *MessageHandler) Detail(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
-//	@Param	body	body	dto.UpdateMessageRequest	true	"UpdateMessageInput"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageDto}
 //	@ID			MessageController_update
@@ -243,7 +241,7 @@ func (h *MessageHandler) Update(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			MessageController_remove
 //	@Router		/message/{id} [delete]
@@ -265,7 +263,7 @@ func (h *MessageHandler) Remove(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.MarkAllReadRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@ID			MessageController_markAsRead
@@ -313,7 +311,6 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param	body	body	dto.BatchMessageRequest	true	"BatchMessageInput{messageIds,action}"
 //	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
 //	@ID			MessageController_batchOperation
@@ -368,13 +365,12 @@ func (h *MessageHandler) UnreadCount(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			userId	path		string	true	"接收者用户 ID"
-//	@Param	body	body	dto.SendPrivateRequest	true	"SendPrivateInput{content,messageKind,payload}"
+//	@Param		user_id path string true "接收者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.SendPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@Failure	403	{object}	dto.ResponseBody
 //	@ID			MessageController_sendPrivateMessage
-//	@Router			/message/private/{userId} [post]
+//	@Router			/message/private/{user_id} [post]
 func (h *MessageHandler) SendPrivate(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -385,7 +381,7 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 		response.Fail(c, errcode.ErrBadRequest)
 		return
 	}
-	out, err := h.Priv.Send(uid, c.Param("userId"), in)
+	out, err := h.Priv.Send(uid, c.Param("user_id"), in)
 	if err != nil {
 		msgFail(c, err)
 		return
@@ -399,8 +395,8 @@ func (h *MessageHandler) SendPrivate(c *gin.Context) {
 //	@Tags			消息
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			cursor	query		string	false	"游标（上一页最后一条的 cursor）"
-//	@Param			limit	query		int		false	"每页条数，默认 20"
+//	@Param		cursor query string false "游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)"
+//	@Param		limit query int false "每页条数，默认 20 example(10)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConversationListDto}
 //	@ID			MessageController_getPrivateConversations
 //	@Router			/message/private/conversations [get]
@@ -423,16 +419,16 @@ func (h *MessageHandler) PrivateConversations(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId path string true "userId"
+//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateHistoryDto}
 //	@ID			MessageController_getPrivateConversation
-//	@Router		/message/private/conversations/{userId}/messages [get]
+//	@Router		/message/private/conversations/{user_id}/messages [get]
 func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
 		return
 	}
-	out, err := h.Priv.ConversationMessages(uid, c.Param("userId"), c.Query("cursor"), queryInt(c, "limit", 20))
+	out, err := h.Priv.ConversationMessages(uid, c.Param("user_id"), c.Query("cursor"), queryInt(c, "limit", 20))
 	if err != nil {
 		msgFail(c, err)
 		return
@@ -446,17 +442,17 @@ func (h *MessageHandler) PrivateHistory(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId path string true "userId"
+//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReadResultDto}
 //	@ID			MessageController_markPrivateConversationRead
-//	@Router		/message/private/conversations/{userId}/read [post]
+//	@Router		/message/private/conversations/{user_id}/read [post]
 func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
 		return
 	}
-	out, err := h.Priv.MarkConversationRead(uid, c.Param("userId"))
+	out, err := h.Priv.MarkConversationRead(uid, c.Param("user_id"))
 	if err != nil {
 		msgFail(c, err)
 		return
@@ -470,7 +466,6 @@ func (h *MessageHandler) PrivateConversationRead(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param	body	body	dto.PrivateReadBatchRequest	true	"PrivateReadBatchInput{messageIds}"
 //	@Param		body body dto.BatchMessageRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MarkMessagesReadResultDto}
 //	@ID			MessageController_markPrivateMessagesRead
@@ -499,8 +494,7 @@ func (h *MessageHandler) PrivateReadBatch(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
-//	@Param		body	body	dto.RecallPrivateRequest	false	"RecallPrivateInput{reason}"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.RecallPrivateRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.PrivateMessageDto}
 //	@ID			MessageController_recallPrivateMessage
@@ -526,12 +520,11 @@ func (h *MessageHandler) RecallPrivate(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId path string true "userId"
-//	@Param		body	body	dto.BlockUserRequest	false	"BlockUserInput{reason}"
+//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.BlockUserRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@ID			MessageController_blockPrivateUser
-//	@Router		/message/private/block/{userId} [post]
+//	@Router		/message/private/block/{user_id} [post]
 func (h *MessageHandler) BlockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
@@ -543,7 +536,7 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 	if in.Reason != "" {
 		reason = &in.Reason
 	}
-	out, err := h.Priv.Block(uid, c.Param("userId"), reason)
+	out, err := h.Priv.Block(uid, c.Param("user_id"), reason)
 	if err != nil {
 		msgFail(c, err)
 		return
@@ -557,16 +550,16 @@ func (h *MessageHandler) BlockUser(c *gin.Context) {
 //	@Tags		消息
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId path string true "userId"
+//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BlockResultDto}
 //	@ID			MessageController_unblockPrivateUser
-//	@Router		/message/private/block/{userId} [delete]
+//	@Router		/message/private/block/{user_id} [delete]
 func (h *MessageHandler) UnblockUser(c *gin.Context) {
 	uid, ok := currentUID(c)
 	if !ok {
 		return
 	}
-	out, err := h.Priv.Unblock(uid, c.Param("userId"))
+	out, err := h.Priv.Unblock(uid, c.Param("user_id"))
 	if err != nil {
 		msgFail(c, err)
 		return

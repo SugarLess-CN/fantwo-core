@@ -256,9 +256,9 @@ type CreateMessageRequest struct {
 type UpdateMessageRequest struct {
 	Content     *string                 `json:"content" example:"改后的正文"`
 	Title       *string                 `json:"title" example:"改后的标题"`
-	Type        *string                 `json:"type" binding:"omitempty,oneof=private system notification"`
-	IsRead      *bool                   `json:"is_read"`
-	IsBroadcast *bool                   `json:"is_broadcast"`
+	Type        *string                 `json:"type" binding:"omitempty,oneof=private system notification" example:"image"`
+	IsRead      *bool                   `json:"is_read" example:"true"`
+	IsBroadcast *bool                   `json:"is_broadcast" example:"false"`
 	Metadata    *map[string]interface{} `json:"metadata"`
 }
 

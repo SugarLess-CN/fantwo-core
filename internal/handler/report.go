@@ -18,7 +18,6 @@ import (
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_create
-//	@Param		body body dto.CreateReportRequest true "提交举报"
 //	@Param		body body dto.CreateReportRequest true "请求体"
 //	@Router		/report [post]
 func (h *OpsHandler) ReportCreate(c *gin.Context) {
@@ -92,7 +91,7 @@ func (h *OpsHandler) ReportStatistics(c *gin.Context) {
 //	@Tags		举报
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "举报 ID"
+//	@Param		id path string true "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_findOne
 //	@Router		/report/{id} [get]
@@ -112,7 +111,7 @@ func (h *OpsHandler) ReportGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "举报 ID"
+//	@Param		id path string true "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateReportRequest true "handleRequest{status,remark}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ReportDto}
 //	@ID			ReportController_update
@@ -141,7 +140,7 @@ func (h *OpsHandler) ReportUpdate(c *gin.Context) {
 //	@Tags		举报
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "举报 ID"
+//	@Param		id path string true "举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			ReportController_remove
 //	@Router		/report/{id} [delete]

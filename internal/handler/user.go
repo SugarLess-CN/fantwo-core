@@ -199,8 +199,8 @@ func (h *UserHandler) DeletionCancel(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.FavoriteItemDto}}
 //	@ID			UserProfileController_findFavorites
 //	@Router		/user/profile/favorites [get]
@@ -214,18 +214,18 @@ func (h *UserHandler) Favorites(c *gin.Context) {
 	response.SuccessPage(c, list, total, page, limit)
 }
 
-// FavoriteDetail GET /user/profile/favorites/{productId}：收藏详情（productId 即 articleId）。
+// FavoriteDetail GET /user/profile/favorites/{product_id}：收藏详情（productId 即 articleId）。
 //
 //	@Summary	收藏项详情
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		productId path string true "productId"
+//	@Param		product_id path string true "productId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.FavoriteDetailDto}
 //	@ID			UserProfileController_findFavoriteDetail
-//	@Router		/user/profile/favorites/{productId} [get]
+//	@Router		/user/profile/favorites/{product_id} [get]
 func (h *UserHandler) FavoriteDetail(c *gin.Context) {
-	out, e := h.svc.FavoriteDetail(c.Request.Context(), middleware.CurrentUserID(c), c.Param("productId"))
+	out, e := h.svc.FavoriteDetail(c.Request.Context(), middleware.CurrentUserID(c), c.Param("product_id"))
 	if e != nil {
 		response.Fail(c, e)
 		return
@@ -240,9 +240,9 @@ func (h *UserHandler) FavoriteDetail(c *gin.Context) {
 //	@Tags			用户管理
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			page	query		int		false	"页码，默认 1"
-//	@Param			limit	query		int		false	"每页条数，默认 10"
-//	@Param			keyword	query		string	false	"用户名关键字"
+//	@Param		page query int false "页码，默认 1 example(1)"
+//	@Param		limit query int false "每页条数，默认 10 example(10)"
+//	@Param		keyword query string false "用户名关键字 example(风景)"
 //	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDto}}
 //	@ID			UserController_findAll
 //	@Router			/user [get]
@@ -293,7 +293,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id	path		string	true	"用户 ID"
+//	@Param		id path string true "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@Failure	404	{object}	dto.ResponseBody
 //	@ID			UserController_findOne
@@ -314,7 +314,7 @@ func (h *UserHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateUserRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.UserDto}
 //	@ID			UserController_update
@@ -338,7 +338,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id	path		string	true	"用户 ID"
+//	@Param		id path string true "用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SuccessDto}
 //	@Failure	403	{object}	dto.ResponseBody
 //	@ID			UserController_remove
@@ -507,7 +507,7 @@ func (h *UserHandler) CalculateCommission(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MembershipCheckDto}
 //	@ID			UserController_checkMembershipStatus
 //	@Router		/user/{id}/membership/check [get]

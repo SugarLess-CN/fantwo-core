@@ -24,10 +24,10 @@ func RegisterPaymentRoutes(v1 *gin.RouterGroup, opt Option) {
 	g := v1.Group("/payment")
 	{
 		// 用户侧（需登录）
-		g.POST("/create", auth, h.Create)         // 创建支付
-		g.GET("/record/:id", auth, h.Record)      // 查询支付记录
-		g.GET("/order/:orderId", auth, h.ByOrder) // 查询订单支付记录
-		g.GET("/user", auth, h.Mine)              // 查询用户支付记录
+		g.POST("/create", auth, h.Create)          // 创建支付
+		g.GET("/record/:id", auth, h.Record)       // 查询支付记录
+		g.GET("/order/:order_id", auth, h.ByOrder) // 查询订单支付记录
+		g.GET("/user", auth, h.Mine)               // 查询用户支付记录
 
 		// 回调（NoAuth，路径与 swagger 完全一致）
 		g.POST("/notify/alipay", h.NotifyAlipay)

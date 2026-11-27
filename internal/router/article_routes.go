@@ -107,8 +107,8 @@ func RegisterArticleRoutes(v1 *gin.RouterGroup, opt Option) {
 	g.GET("/browse/stats", auth, h.BrowseStats)
 	g.GET("/browse/recent", auth, h.BrowseRecent)
 	g.POST("/browse/batch-delete", auth, h.BrowseBatchDelete)
-	g.GET("/browse/:articleId", auth, h.BrowseOne)
-	g.DELETE("/browse/:articleId", auth, h.BrowseDelete)
+	g.GET("/browse/:article_id", auth, h.BrowseOne)
+	g.DELETE("/browse/:article_id", auth, h.BrowseDelete)
 
 	// ---------- 单篇文章：互动 ----------
 	g.GET("/:id/like/count", free, h.LikeCount)

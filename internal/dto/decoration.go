@@ -187,7 +187,7 @@ type DecorationActivityInputRequest struct {
 	Description        *string    `json:"description" example:"累计 100 赞得限定头像框"`
 	Type               *string    `json:"type" example:"LIKE"`
 	DecorationID       *string    `json:"decoration_id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
-	ArticleID          *string    `json:"article_id"`
+	ArticleID          *string    `json:"article_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	RequiredLikes      *int       `json:"required_likes" example:"100"`
 	RequiredComments   *int       `json:"required_comments" example:"0"`
 	RequiredShares     *int       `json:"required_shares" example:"0"`

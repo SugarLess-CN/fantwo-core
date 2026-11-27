@@ -27,7 +27,7 @@ func NewUserActionHandler(svc *service.UserService) *UserActionHandler {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.FollowResultDto}
 //	@ID			UserController_follow
 //	@Router		/user/{id}/follow [post]
@@ -46,7 +46,7 @@ func (h *UserActionHandler) Follow(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.FollowResultDto}
 //	@ID			UserController_unfollow
 //	@Router		/user/{id}/unfollow [post]
@@ -64,7 +64,7 @@ func (h *UserActionHandler) Unfollow(c *gin.Context) {
 //	@Summary	粉丝数
 //	@Tags		用户管理
 //	@Produce	json
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.FollowCountDto}
 //	@ID			UserController_getFollowerCount
 //	@Router		/user/{id}/followers/count [get]
@@ -82,7 +82,7 @@ func (h *UserActionHandler) FollowerCount(c *gin.Context) {
 //	@Summary	关注数
 //	@Tags		用户管理
 //	@Produce	json
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.FollowCountDto}
 //	@ID			UserController_getFollowingCount
 //	@Router		/user/{id}/followings/count [get]
@@ -100,8 +100,8 @@ func (h *UserActionHandler) FollowingCount(c *gin.Context) {
 //	@Summary	粉丝列表
 //	@Tags		用户管理
 //	@Produce	json
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDto}}
 //	@ID			UserController_getFollowers
 //	@Router		/user/{id}/followers [get]
@@ -123,8 +123,8 @@ func (h *UserActionHandler) Followers(c *gin.Context) {
 //	@Summary	关注列表
 //	@Tags		用户管理
 //	@Produce	json
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.UserDto}}
 //	@ID			UserController_getFollowings
 //	@Router		/user/{id}/followings [get]
@@ -165,8 +165,8 @@ func (h *UserActionHandler) SignIn(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.SignInRecordDto}
 //	@ID			UserController_getSignInRecords
 //	@Router		/user/sign-in/records [get]
@@ -222,8 +222,8 @@ func (h *UserActionHandler) WalletBalance(c *gin.Context) {
 //	@Tags		用户管理
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.WalletTransactionDto}}
 //	@ID			UserController_getWalletTransactions
 //	@Router		/user/wallet/transactions [get]
@@ -357,18 +357,18 @@ func (h *UserActionHandler) CertIdentity(c *gin.Context) {
 	response.Success(c, out)
 }
 
-// CertIdentityOf GET /user/certification/identity/{userId}。
+// CertIdentityOf GET /user/certification/identity/{user_id}。
 //
 //	@Summary	指定用户身份标识
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId path string true "userId"
+//	@Param		user_id path string true "userId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.IdentityDto}
 //	@ID			UserController_getIdentityByUserId
-//	@Router		/user/certification/identity/{userId} [get]
+//	@Router		/user/certification/identity/{user_id} [get]
 func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
-	out, e := h.svc.IdentityOf(c.Request.Context(), c.Param("userId"))
+	out, e := h.svc.IdentityOf(c.Request.Context(), c.Param("user_id"))
 	if e != nil {
 		response.Fail(c, e)
 		return
@@ -382,9 +382,9 @@ func (h *UserActionHandler) CertIdentityOf(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
-//	@Param		status query string false "申请状态"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		status query string false "申请状态 example(PUBLISHED)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CertificationDto}}
 //	@ID			UserController_findApplications
 //	@Router		/user/certification/admin/applications [get]
@@ -406,7 +406,7 @@ func (h *UserActionHandler) CertApplications(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "申请 ID"
+//	@Param		id path string true "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.AuditCertificationRequest true "auditRequest{pass,reason}"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CertificationDto}
 //	@ID			UserController_audit
@@ -431,7 +431,7 @@ func (h *UserActionHandler) CertAudit(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "申请 ID"
+//	@Param		id path string true "申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.RevokeCertificationRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CertificationDto}
 //	@ID			UserController_revoke

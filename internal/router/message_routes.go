@@ -61,14 +61,14 @@ func RegisterMessageRoutes(v1 *gin.RouterGroup, opt Option) {
 			priv := msg.Group("/private")
 			{
 				priv.GET("/conversations", h.PrivateConversations)
-				priv.GET("/conversations/:userId/messages", h.PrivateHistory)
-				priv.POST("/conversations/:userId/read", h.PrivateConversationRead)
+				priv.GET("/conversations/:user_id/messages", h.PrivateHistory)
+				priv.POST("/conversations/:user_id/read", h.PrivateConversationRead)
 				priv.POST("/read-batch", h.PrivateReadBatch)
 				priv.POST("/recall/:id", h.RecallPrivate)
 				priv.GET("/blocks", h.Blocks)
-				priv.POST("/block/:userId", h.BlockUser)
-				priv.DELETE("/block/:userId", h.UnblockUser)
-				priv.POST("/:userId", h.SendPrivate)
+				priv.POST("/block/:user_id", h.BlockUser)
+				priv.DELETE("/block/:user_id", h.UnblockUser)
+				priv.POST("/:user_id", h.SendPrivate)
 			}
 
 			// 列表（空路径 = /message）

@@ -71,8 +71,8 @@ type CreatePointsActivityRequest struct {
 	DailyLimit   *int    `json:"daily_limit" example:"0"`
 	TotalLimit   *int    `json:"total_limit" example:"0"`
 	ValidDays    *int    `json:"valid_days" example:"0"`
-	Icon         *string `json:"icon"`
-	Link         *string `json:"link"`
+	Icon         *string `json:"icon" example:"https://cdn.example.com/icon.png"`
+	Link         *string `json:"link" example:"https://example.com"`
 	IsActive     *bool   `json:"is_active" example:"true"`
 	Sort         *int    `json:"sort" example:"1"`
 }
@@ -125,7 +125,7 @@ type PointsTransactionDto struct {
 	Description string `json:"description" example:"每日登录奖励"`
 
 	// ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。
-	ExpiredAt *string `json:"expired_at,omitempty" format:"date-time"`
+	ExpiredAt *string `json:"expired_at,omitempty" format:"date-time" example:"2026-12-31T23:59:59Z"`
 
 	// Expired 过期积分是否已被回收（EXPIRE 清扫任务用）。
 	Expired bool `json:"expired" example:"false"`

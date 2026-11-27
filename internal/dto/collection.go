@@ -142,10 +142,10 @@ type CreateCollectionRequest struct {
 type UpdateCollectionRequest struct {
 	Name        *string `json:"name" binding:"omitempty,max=100" example:"新名字"`
 	Description *string `json:"description" example:"新描述"`
-	Avatar      *string `json:"avatar"`
-	Cover       *string `json:"cover"`
-	IsPublic    *bool   `json:"is_public"`
-	Sort        *int    `json:"sort"`
+	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
+	Cover       *string `json:"cover" example:"https://cdn.example.com/cover.png"`
+	IsPublic    *bool   `json:"is_public" example:"true"`
+	Sort        *int    `json:"sort" example:"1"`
 }
 
 // ReorderCollectionItemsRequest 合集内文章重排（PUT /collection/{id}/items/order）。

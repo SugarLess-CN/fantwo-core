@@ -124,9 +124,9 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 //	@Summary	搜索文章
 //	@Tags		搜索
 //	@Produce	json
-//	@Param		keyword query string false "关键字"
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		keyword query string false "关键字 example(风景)"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.SearchArticleItemDto}}
 //	@ID			SearchController_searchArticles
 //	@Router		/search [get]

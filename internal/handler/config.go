@@ -125,7 +125,7 @@ func (h *ConfigHandler) UpdateAll(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		group path string true "分组名"
+//	@Param		group path string true "分组名 example(upload)"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.ConfigDto}
 //	@ID			ConfigController_findByGroup
 //	@Router		/config/group/{group} [get]
@@ -145,7 +145,7 @@ func (h *ConfigHandler) ByGroup(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		group path string true "分组名"
+//	@Param		group path string true "分组名 example(upload)"
 //	@Param		body body []dto.ConfigRequest true "配置数组（按分组批量更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigUpdateResultDto}
 //	@ID			ConfigController_updateGroup
@@ -204,7 +204,7 @@ func (h *ConfigHandler) Advertisement(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		key path string true "配置键"
+//	@Param		key path string true "配置键 example(upload_max_image_size)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@ID			ConfigController_findByKey
 //	@Router		/config/key/{key} [get]
@@ -223,7 +223,7 @@ func (h *ConfigHandler) ByKey(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "配置 ID"
+//	@Param		id path string true "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@ID			ConfigController_findOne
 //	@Router		/config/{id} [get]
@@ -243,7 +243,7 @@ func (h *ConfigHandler) ByID(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.ConfigRequest true "配置项入参（PATCH 部分更新）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ConfigDto}
 //	@ID			ConfigController_update
@@ -268,7 +268,7 @@ func (h *ConfigHandler) UpdateByID(c *gin.Context) {
 //	@Tags		系统配置
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "配置 ID"
+//	@Param		id path string true "配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedFlagDto}
 //	@ID			ConfigController_remove
 //	@Router		/config/{id} [delete]

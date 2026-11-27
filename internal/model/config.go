@@ -205,8 +205,8 @@ type Config struct {
 
 	Key         string `gorm:"column:key;type:varchar(128);uniqueIndex;not null" json:"key"`
 	Value       string `gorm:"column:value;type:text" json:"value"`
-	Description string `gorm:"column:description;type:varchar(255)" json:"description"`
-	Type        string `gorm:"column:type;type:varchar(16);not null;default:string" json:"type"`
+	Description string `gorm:"column:description;type:varchar(255)" json:"description" example:"一句话说明"`
+	Type        string `gorm:"column:type;type:varchar(16);not null;default:string" json:"type" example:"image"`
 	Group       string `gorm:"column:group;type:varchar(64);not null;default:system;index:idx_config_group" json:"group"`
 	Public      bool   `gorm:"column:public;not null;default:false" json:"public"`
 }

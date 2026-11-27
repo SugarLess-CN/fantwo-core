@@ -53,12 +53,12 @@ func bindOrderQuery(c *gin.Context) model.OrderQuery {
 //	@Tags		订单
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page	query	int		false	"页码"
-//	@Param		limit	query	int		false	"每页条数"
-//	@Param		status	query	string	false	"订单状态 PENDING/PAID/CANCELLED/REFUNDED"
-//	@Param		type	query	string	false	"订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE"
-//	@Param		user_id	query	string	false	"买家用户 ID"
-//	@Param		keyword	query	string	false	"订单号模糊搜索"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		status query string false "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)"
+//	@Param		type query string false "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)"
+//	@Param		user_id query string false "买家用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		keyword query string false "订单号模糊搜索 example(风景)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.OrderDto}}
 //	@ID			OrderController_getAllOrders
 //	@Router		/order [get]
@@ -79,11 +79,11 @@ func (h *OrderHandler) ListAll(c *gin.Context) {
 //	@Tags		订单
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page	query	int		false	"页码"
-//	@Param		limit	query	int		false	"每页条数"
-//	@Param		status	query	string	false	"订单状态 PENDING/PAID/CANCELLED/REFUNDED"
-//	@Param		type	query	string	false	"订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE"
-//	@Param		keyword	query	string	false	"订单号模糊搜索"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
+//	@Param		status query string false "订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)"
+//	@Param		type query string false "订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)"
+//	@Param		keyword query string false "订单号模糊搜索 example(风景)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.OrderDto}}
 //	@ID			OrderController_getUserOrders
 //	@Router		/order/user [get]
@@ -122,7 +122,7 @@ func (h *OrderHandler) ListPending(c *gin.Context) {
 //	@Tags		订单
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id	path		string	true	"订单 ID"
+//	@Param		id path string true "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OrderDto}
 //	@Failure	404	{object}	dto.ResponseBody
 //	@ID			OrderController_findOne
@@ -142,12 +142,12 @@ func (h *OrderHandler) Get(c *gin.Context) {
 //	@Tags		订单
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		orderNo path string true "orderNo"
+//	@Param		order_no path string true "orderNo example(PA20261127000001)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OrderDto}
 //	@ID			OrderController_findByOrderNo
-//	@Router		/order/no/{orderNo} [get]
+//	@Router		/order/no/{order_no} [get]
 func (h *OrderHandler) GetByNo(c *gin.Context) {
-	order, err := h.Svc.GetOrderByNo(c.Param("orderNo"), middleware.CurrentUserID(c), hasManage(c))
+	order, err := h.Svc.GetOrderByNo(c.Param("order_no"), middleware.CurrentUserID(c), hasManage(c))
 	if err != nil {
 		failTx(c, err)
 		return
@@ -161,7 +161,7 @@ func (h *OrderHandler) GetByNo(c *gin.Context) {
 //	@Tags		订单
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.OrderRefundRequest true "请求体"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OrderDto}
 //	@ID			OrderController_cancelOrder
@@ -183,7 +183,7 @@ func (h *OrderHandler) Cancel(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id		path		string					true	"订单 ID"
+//	@Param		id path string true "订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param			body	body		dto.OrderRefundRequest	false	"退款原因（可不传）"
 //	@Success		200		{object}	dto.ResponseBody{data=dto.OrderDto}
 //	@Failure		400		{object}	dto.ResponseBody

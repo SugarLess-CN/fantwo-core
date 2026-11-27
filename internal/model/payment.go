@@ -30,7 +30,7 @@ type Payment struct {
 	PaymentMethod     string                 `gorm:"type:varchar(20);comment:支付方式" json:"payment_method"`
 	Amount            float64                `gorm:"type:decimal(10,2);comment:支付金额（元）" json:"amount"`
 	ThirdPartyOrderNo string                 `gorm:"type:varchar(128);comment:第三方支付订单号" json:"third_party_order_no"`
-	Status            string                 `gorm:"type:varchar(20);index;default:PENDING;comment:支付状态" json:"status"`
+	Status            string                 `gorm:"type:varchar(20);index;default:PENDING;comment:支付状态" json:"status" example:"PUBLISHED"`
 	PaidAt            *time.Time             `gorm:"comment:支付时间" json:"paid_at"`
 	Details           map[string]interface{} `gorm:"type:jsonb;serializer:json;comment:支付详情" json:"details"`
 	ErrorMessage      string                 `gorm:"type:text;comment:错误信息" json:"error_message"`
@@ -55,7 +55,7 @@ type CommissionRecord struct {
 	AuthorAmount   float64    `gorm:"type:decimal(10,2)" json:"author_amount"`
 	PlatformRate   float64    `gorm:"type:decimal(6,4)" json:"platform_rate"`
 	PlatformAmount float64    `gorm:"type:decimal(10,2)" json:"platform_amount"`
-	Status         string     `gorm:"type:varchar(20);default:PAID" json:"status"`
+	Status         string     `gorm:"type:varchar(20);default:PAID" json:"status" example:"PUBLISHED"`
 	PaidAt         *time.Time `json:"paid_at"`
 }
 
@@ -68,7 +68,7 @@ type ConfigKV struct {
 	Key   string `gorm:"type:varchar(128);primaryKey;column:key" json:"key"`
 	Value string `gorm:"type:text;column:value" json:"value"`
 	Group string `gorm:"type:varchar(64);column:group" json:"group"`
-	Type  string `gorm:"type:varchar(20);column:type" json:"type"`
+	Type  string `gorm:"type:varchar(20);column:type" json:"type" example:"image"`
 }
 
 // TableName 表名（对齐原 config 实体）。
@@ -78,7 +78,7 @@ func (ConfigKV) TableName() string { return "config" }
 // 权威 user 模型归 auth-user 域，本结构不参与 AutoMigrate）。
 type UserPaymentView struct {
 	ID                  string     `gorm:"type:varchar(36);primaryKey;column:id" json:"id"`
-	Wallet              float64    `gorm:"type:decimal(10,2);column:wallet" json:"wallet"`
+	Wallet              float64    `gorm:"type:decimal(10,2);column:wallet" json:"wallet" example:"100.50"`
 	InviterID           string     `gorm:"type:varchar(36);column:inviter_id" json:"inviter_id"`
 	InviteEarnings      float64    `gorm:"type:decimal(10,2);column:invite_earnings" json:"invite_earnings"`
 	MembershipStatus    string     `gorm:"type:varchar(20);column:membership_status" json:"membership_status"`

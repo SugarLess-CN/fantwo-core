@@ -17,14 +17,14 @@ const (
 type WalletTransaction struct {
 	BaseModel
 	UserID        string  `gorm:"column:user_id;type:varchar(36);index:idx_wallet_user,priority:1;not null" json:"user_id"`
-	Type          string  `gorm:"column:type;type:varchar(32);index:idx_wallet_user,priority:2;not null" json:"type"`
+	Type          string  `gorm:"column:type;type:varchar(32);index:idx_wallet_user,priority:2;not null" json:"type" example:"image"`
 	Amount        float64 `gorm:"column:amount;type:numeric(12,2);not null" json:"amount"`
 	BalanceBefore float64 `gorm:"column:balance_before;type:numeric(12,2)" json:"balance_before"`
 	BalanceAfter  float64 `gorm:"column:balance_after;type:numeric(12,2)" json:"balance_after"`
 	OrderID       *string `gorm:"column:order_id;type:varchar(36)" json:"order_id"`
 	PaymentID     *string `gorm:"column:payment_id;type:varchar(36)" json:"payment_id"`
-	Description   *string `gorm:"column:description;type:varchar(255)" json:"description"`
-	Remark        *string `gorm:"column:remark;type:varchar(255)" json:"remark"`
+	Description   *string `gorm:"column:description;type:varchar(255)" json:"description" example:"一句话说明"`
+	Remark        *string `gorm:"column:remark;type:varchar(255)" json:"remark" example:"备注"`
 }
 
 // TableName 表名。

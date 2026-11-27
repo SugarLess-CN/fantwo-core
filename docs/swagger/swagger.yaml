@@ -58,6 +58,7 @@ definitions:
         format: date-time
         type: string
       description:
+        example: 一句话说明
         type: string
       enabled:
         example: true
@@ -82,6 +83,7 @@ definitions:
         example: COMMON
         type: string
       reward_decoration_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reward_exp:
         example: 5
@@ -179,14 +181,17 @@ definitions:
   dto.ApplyCertificationRequest:
     properties:
       description:
+        example: 一句话说明
         type: string
       materials:
         items:
           type: string
         type: array
       organization_name:
+        example: 某某工作室
         type: string
       real_name:
+        example: 张三
         type: string
       slogan:
         example: 官方认证 · 签约摄影师
@@ -286,6 +291,7 @@ definitions:
         example: 0
         type: integer
       content:
+        example: <p>正文内容</p>
         type: string
       cover:
         example: https://cdn.example.com/cover.jpg
@@ -470,6 +476,7 @@ definitions:
   dto.AuditCertificationRequest:
     properties:
       reason:
+        example: 违规内容
         type: string
       status:
         example: APPROVED
@@ -657,6 +664,7 @@ definitions:
         format: date-time
         type: string
       description:
+        example: 一句话说明
         type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
@@ -879,8 +887,10 @@ definitions:
         example: 128
         type: integer
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       children:
         description: Children 子分类（tree=true 或详情时填充；叶节点是 [] 不是 null）。
@@ -888,11 +898,13 @@ definitions:
           $ref: '#/definitions/dto.CategoryDto'
         type: array
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       created_at:
         format: date-time
         type: string
       description:
+        example: 一句话说明
         type: string
       follow_count:
         example: 16
@@ -901,6 +913,7 @@ definitions:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       link:
+        example: https://example.com
         type: string
       name:
         example: 风景摄影
@@ -942,6 +955,7 @@ definitions:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       organization_name:
+        example: 某某工作室
         type: string
       real_name:
         description: 字符串值类型：空时 ""（docs/21-JSON序列化规范.md）
@@ -1443,12 +1457,16 @@ definitions:
       condition:
         $ref: '#/definitions/dto.AchievementConditionDto'
       description:
+        example: 一句话说明
         type: string
       enabled:
+        example: true
         type: boolean
       hidden:
+        example: false
         type: boolean
       icon:
+        example: https://cdn.example.com/icon.png
         type: string
       name:
         example: 初次创作
@@ -1457,6 +1475,7 @@ definitions:
         example: COMMON
         type: string
       reward_decoration_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reward_exp:
         example: 5
@@ -1465,6 +1484,7 @@ definitions:
         example: 10
         type: integer
       sort:
+        example: 1
         type: integer
       type:
         example: ARTICLE
@@ -1484,15 +1504,19 @@ definitions:
   dto.CreateArticleRequest:
     properties:
       activity_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       allow_reprint:
+        example: true
         type: boolean
       category_id:
         example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
       content:
+        example: <p>正文内容</p>
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       downloads:
         items:
@@ -1505,20 +1529,28 @@ definitions:
           type: string
         type: array
       is_featured:
+        example: false
         type: boolean
       is_pinned_on_profile:
+        example: false
         type: boolean
       list_require_login:
+        example: false
         type: boolean
       require_follow:
+        example: false
         type: boolean
       require_login:
+        example: false
         type: boolean
       require_membership:
+        example: false
         type: boolean
       require_payment:
+        example: false
         type: boolean
       sort:
+        example: 1
         type: integer
       status:
         enum:
@@ -1552,6 +1584,7 @@ definitions:
         example: image
         type: string
       video_url:
+        example: https://cdn.example.com/v.mp4
         type: string
       view_price:
         example: 0
@@ -1562,11 +1595,13 @@ definitions:
   dto.CreateBannerRequest:
     properties:
       description:
+        example: 一句话说明
         type: string
       image_url:
         example: https://cdn.example.com/banner.png
         type: string
       link_url:
+        example: https://example.com
         type: string
       sort_order:
         example: 1
@@ -1581,15 +1616,20 @@ definitions:
   dto.CreateCategoryRequest:
     properties:
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       description:
+        example: 一句话说明
         maxLength: 200
         type: string
       link:
+        example: https://example.com
         maxLength: 200
         type: string
       name:
@@ -1597,6 +1637,7 @@ definitions:
         maxLength: 50
         type: string
       parent_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       sort:
         example: 1
@@ -1659,9 +1700,11 @@ definitions:
         example: 0.05
         type: number
       expired_at:
+        example: "2026-12-31T23:59:59Z"
         format: date-time
         type: string
       remark:
+        example: 备注
         type: string
       type:
         example: GENERAL
@@ -1790,11 +1833,13 @@ definitions:
         example: 每天首次登录获得积分
         type: string
       icon:
+        example: https://cdn.example.com/icon.png
         type: string
       is_active:
         example: true
         type: boolean
       link:
+        example: https://example.com
         type: string
       name:
         example: 每日登录
@@ -1830,15 +1875,19 @@ definitions:
         example: spam
         type: string
       description:
+        example: 一句话说明
         type: string
       reason:
         example: 垃圾广告
         type: string
       reported_article_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reported_comment_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reported_user_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       type:
         example: article
@@ -1875,12 +1924,16 @@ definitions:
   dto.CreateTagRequest:
     properties:
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       description:
+        example: 一句话说明
         maxLength: 200
         type: string
       name:
@@ -1899,6 +1952,7 @@ definitions:
         example: alice@example.com
         type: string
       invite_code:
+        example: AB12CD
         type: string
       nickname:
         example: 爱丽丝
@@ -2015,6 +2069,7 @@ definitions:
   dto.DecorationActivityInputRequest:
     properties:
       article_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
@@ -2216,6 +2271,7 @@ definitions:
         example: false
         type: boolean
       reason:
+        example: 违规内容
         type: string
       scheduled_at:
         format: date-time
@@ -2517,6 +2573,7 @@ definitions:
         format: date-time
         type: string
       summary:
+        example: 一句话摘要
         type: string
       title:
         example: 我的第一篇作品
@@ -2570,8 +2627,10 @@ definitions:
   dto.GithubCallbackRequest:
     properties:
       code:
+        example: "123456"
         type: string
       state:
+        example: a1b2c3d4e5f6
         type: string
     required:
     - code
@@ -2668,6 +2727,7 @@ definitions:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       remark:
+        example: 备注
         type: string
       status:
         example: PENDING
@@ -3071,8 +3131,10 @@ definitions:
   dto.OAuthCallbackRequest:
     properties:
       code:
+        example: "123456"
         type: string
       state:
+        example: a1b2c3d4e5f6
         type: string
     required:
     - code
@@ -3081,6 +3143,7 @@ definitions:
   dto.OAuthCodeRequest:
     properties:
       code:
+        example: "123456"
         type: string
     required:
     - code
@@ -3088,18 +3151,22 @@ definitions:
   dto.OAuthLinkRequest:
     properties:
       access_token:
+        example: client-access-token
         type: string
       channel:
         example: web
         type: string
       code:
+        example: "123456"
         type: string
       open_id:
+        example: OPENID1234567890
         type: string
       provider:
         example: wechat
         type: string
       state:
+        example: a1b2c3d4e5f6
         type: string
     required:
     - channel
@@ -3617,6 +3684,7 @@ definitions:
         type: boolean
       expired_at:
         description: ExpiredAt 积分过期时间；无过期语义时不传该字段（不是 null）。
+        example: "2026-12-31T23:59:59Z"
         format: date-time
         type: string
       id:
@@ -3749,13 +3817,6 @@ definitions:
         example: "2026-11-25T10:00:00Z"
         type: string
     type: object
-  dto.PrivateReadBatchRequest:
-    properties:
-      message_ids:
-        items:
-          type: string
-        type: array
-    type: object
   dto.ProfilePinResultDto:
     properties:
       id:
@@ -3781,10 +3842,13 @@ definitions:
   dto.QqAppLoginRequest:
     properties:
       access_token:
+        example: client-access-token
         type: string
       open_id:
+        example: OPENID1234567890
         type: string
       payload:
+        example: callback-payload-json
         type: string
     type: object
   dto.ReadReceiptDto:
@@ -3832,6 +3896,7 @@ definitions:
   dto.RefreshTokenRequest:
     properties:
       refresh_token:
+        example: eyJhbGciOiJIUzI1NiIs...
         type: string
     required:
     - refresh_token
@@ -3887,6 +3952,7 @@ definitions:
         format: date-time
         type: string
       description:
+        example: 一句话说明
         type: string
       handled_at:
         description: 时间：handledAt 未处理时不传
@@ -3901,15 +3967,19 @@ definitions:
         example: 垃圾广告
         type: string
       reported_article_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reported_comment_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reported_user_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reporter_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       result:
+        example: 内容属违规
         type: string
       status:
         example: PENDING
@@ -4013,6 +4083,7 @@ definitions:
   dto.RevokeCertificationRequest:
     properties:
       reason:
+        example: 违规内容
         type: string
     type: object
   dto.RoleBriefDto:
@@ -4153,6 +4224,7 @@ definitions:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
       category_id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
       comment_count:
         example: 5
@@ -4176,6 +4248,7 @@ definitions:
         example: PUBLISHED
         type: string
       summary:
+        example: 一句话摘要
         type: string
       title:
         example: 我的第一篇作品
@@ -4340,6 +4413,7 @@ definitions:
         example: 5
         type: number
       remark:
+        example: 备注
         type: string
       service_commission_rate:
         example: 5
@@ -4629,6 +4703,7 @@ definitions:
         example: https://cdn.example.com/tag.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       cover:
         example: https://cdn.example.com/cover.jpg
@@ -4721,43 +4796,60 @@ definitions:
   dto.UpdateAchievementRequest:
     properties:
       code:
+        example: "123456"
         type: string
       condition:
         $ref: '#/definitions/dto.AchievementConditionDto'
       description:
+        example: 一句话说明
         type: string
       enabled:
+        example: true
         type: boolean
       hidden:
+        example: false
         type: boolean
       icon:
+        example: https://cdn.example.com/icon.png
         type: string
       name:
+        example: 示例名称
         type: string
       rarity:
+        example: RARE
         type: string
       reward_decoration_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       reward_exp:
+        example: 50
         type: integer
       reward_points:
+        example: 100
         type: integer
       sort:
+        example: 1
         type: integer
       type:
+        example: image
         type: string
     type: object
   dto.UpdateArticleRequest:
     properties:
       activity_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       allow_reprint:
+        example: true
         type: boolean
       category_id:
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
         type: string
       content:
+        example: <p>正文内容</p>
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       downloads:
         items:
@@ -4768,20 +4860,28 @@ definitions:
           type: string
         type: array
       is_featured:
+        example: false
         type: boolean
       is_pinned_on_profile:
+        example: false
         type: boolean
       list_require_login:
+        example: false
         type: boolean
       require_follow:
+        example: false
         type: boolean
       require_login:
+        example: false
         type: boolean
       require_membership:
+        example: false
         type: boolean
       require_payment:
+        example: false
         type: boolean
       sort:
+        example: 1
         type: integer
       status:
         enum:
@@ -4789,8 +4889,10 @@ definitions:
         - PENDING
         - PUBLISHED
         - ARCHIVED
+        example: PUBLISHED
         type: string
       summary:
+        example: 一句话摘要
         type: string
       tag_ids:
         items:
@@ -4808,70 +4910,92 @@ definitions:
         - image
         - mixed
         - video
+        example: image
         type: string
       video_url:
+        example: https://cdn.example.com/v.mp4
         type: string
       view_price:
+        example: 0
         type: number
     type: object
   dto.UpdateBannerRequest:
     properties:
       description:
+        example: 一句话说明
         type: string
       image_url:
+        example: https://cdn.example.com/banner.png
         type: string
       link_url:
+        example: https://example.com
         type: string
       sort_order:
+        example: 1
         type: integer
       status:
+        example: PUBLISHED
         type: string
       title:
+        example: 我的第一篇作品
         type: string
     type: object
   dto.UpdateCategoryRequest:
     properties:
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       description:
+        example: 一句话说明
         maxLength: 200
         type: string
       link:
+        example: https://example.com
         maxLength: 200
         type: string
       name:
+        example: 示例名称
         maxLength: 50
         type: string
       parent_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         type: string
       sort:
+        example: 1
         type: integer
       status:
         enum:
         - ENABLED
         - DISABLED
+        example: PUBLISHED
         type: string
     type: object
   dto.UpdateCollectionRequest:
     properties:
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       description:
         example: 新描述
         type: string
       is_public:
+        example: true
         type: boolean
       name:
         example: 新名字
         maxLength: 100
         type: string
       sort:
+        example: 1
         type: integer
     type: object
   dto.UpdateCommentRequest:
@@ -4893,8 +5017,10 @@ definitions:
         example: 改后的正文
         type: string
       is_broadcast:
+        example: false
         type: boolean
       is_read:
+        example: true
         type: boolean
       metadata:
         additionalProperties: true
@@ -4907,31 +5033,43 @@ definitions:
         - private
         - system
         - notification
+        example: image
         type: string
     type: object
   dto.UpdateNotificationRequest:
     properties:
       enable_comment_notification:
+        example: true
         type: boolean
       enable_email_notification:
+        example: false
         type: boolean
       enable_follow_notification:
+        example: true
         type: boolean
       enable_invite_notification:
+        example: true
         type: boolean
       enable_like_notification:
+        example: true
         type: boolean
       enable_message_notification:
+        example: true
         type: boolean
       enable_order_notification:
+        example: true
         type: boolean
       enable_payment_notification:
+        example: true
         type: boolean
       enable_push_notification:
+        example: true
         type: boolean
       enable_sms_notification:
+        example: false
         type: boolean
       enable_system_notification:
+        example: true
         type: boolean
     type: object
   dto.UpdatePointsActivityRequest:
@@ -4946,11 +5084,13 @@ definitions:
         example: 每天首次登录获得积分
         type: string
       icon:
+        example: https://cdn.example.com/icon.png
         type: string
       is_active:
         example: true
         type: boolean
       link:
+        example: https://example.com
         type: string
       name:
         example: 每日登录
@@ -4983,18 +5123,23 @@ definitions:
   dto.UpdateProfileRequest:
     properties:
       address:
+        example: 杭州
         type: string
       avatar:
         example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       birth_date:
+        example: "1998-06-01"
         format: date-time
         type: string
       description:
+        example: 一句话说明
         type: string
       email:
+        example: alice@example.com
         type: string
       gender:
         example: MALE
@@ -5003,6 +5148,7 @@ definitions:
         example: 新昵称
         type: string
       phone:
+        example: "13800138000"
         type: string
     type: object
   dto.UpdateReportRequest:
@@ -5011,6 +5157,7 @@ definitions:
         example: DELETE_CONTENT
         type: string
       result:
+        example: 内容属违规
         type: string
       status:
         example: RESOLVED
@@ -5041,46 +5188,63 @@ definitions:
   dto.UpdateTagRequest:
     properties:
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       cover:
+        example: https://cdn.example.com/cover.png
         type: string
       description:
+        example: 一句话说明
         maxLength: 200
         type: string
       name:
+        example: 示例名称
         maxLength: 50
         type: string
       sort:
+        example: 1
         type: integer
     type: object
   dto.UpdateUserConfigRequest:
     properties:
       article_commission_rate:
+        example: 0.1
         type: number
       enable_custom_commission:
+        example: false
         type: boolean
       membership_commission_rate:
+        example: 0.2
         type: number
       product_commission_rate:
+        example: 0.15
         type: number
       service_commission_rate:
+        example: 0.05
         type: number
     type: object
   dto.UpdateUserRequest:
     properties:
       address:
+        example: 杭州
         type: string
       avatar:
+        example: https://cdn.example.com/a.png
         type: string
       background:
+        example: https://cdn.example.com/bg.png
         type: string
       description:
+        example: 一句话说明
         type: string
       gender:
+        example: male
         type: string
       nickname:
+        example: 爱丽丝
         type: string
       role_ids:
         items:
@@ -5090,6 +5254,7 @@ definitions:
         example: ACTIVE
         type: string
       wallet:
+        example: 100.5
         type: number
     type: object
   dto.UploadAnimatedOptsDto:
@@ -5114,6 +5279,7 @@ definitions:
         example: true
         type: boolean
       reason:
+        example: 违规内容
         type: string
       score:
         example: 0
@@ -5577,6 +5743,7 @@ definitions:
         example: 5
         type: number
       remark:
+        example: 备注
         type: string
       service_commission_rate:
         example: 5
@@ -5888,6 +6055,7 @@ definitions:
       payment_id:
         type: string
       remark:
+        example: 备注
         type: string
       type:
         example: RECHARGE
@@ -5987,12 +6155,6 @@ paths:
       - application/json
       operationId: AchievementController_create
       parameters:
-      - description: 创建成就定义
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateAchievementRequest'
       - description: 请求体
         in: body
         name: body
@@ -6020,7 +6182,8 @@ paths:
     delete:
       operationId: AchievementController_remove
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6045,7 +6208,8 @@ paths:
     get:
       operationId: AchievementController_findOne
       parameters:
-      - description: 成就 ID
+      - description: 成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6070,7 +6234,8 @@ paths:
       - application/json
       operationId: AchievementController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6102,7 +6267,8 @@ paths:
     post:
       operationId: AchievementController_claimReward
       parameters:
-      - description: 成就 ID
+      - description: 成就 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6169,31 +6335,38 @@ paths:
       description: 分页浏览文章，支持标题/分类/标签/类型/状态筛选；携带 token 时返回当前用户互动状态
       operationId: ArticleController_findAll
       parameters:
-      - description: 页码，默认 1
+      - description: 页码，默认 1 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数，默认 10
+      - description: 每页条数，默认 10 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
-      - description: 标题关键字
+      - description: 标题关键字 example(秋日)
+        example: 秋日
         in: query
         name: title
         type: string
-      - description: 分类 ID
+      - description: 分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)
+        example: 2b3c4d5e-0000-4f60-9bac-000000000002
         in: query
         name: category_id
         type: string
-      - description: 标签 ID
+      - description: 标签 ID example(1a2b3c4d-0000-4e5f-8a9b-000000000001)
+        example: 1a2b3c4d-0000-4e5f-8a9b-000000000001
         in: query
         name: tag_id
         type: string
-      - description: image/mixed/video，默认 all
+      - description: image/mixed/video，默认 all example(image)
+        example: image
         in: query
         name: type
         type: string
-      - description: 状态筛选，逗号分隔
+      - description: 状态筛选，逗号分隔 example(PUBLISHED)
+        example: PUBLISHED
         in: query
         name: status
         type: string
@@ -6225,12 +6398,6 @@ paths:
       description: 提交文章（图片/混合/视频），入内容审核流程
       operationId: ArticleController_create
       parameters:
-      - description: 文章内容
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateArticleRequest'
       - description: 请求体
         in: body
         name: body
@@ -6266,7 +6433,8 @@ paths:
     delete:
       operationId: ArticleController_remove
       parameters:
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6295,7 +6463,8 @@ paths:
     get:
       operationId: ArticleController_findOne
       parameters:
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6324,17 +6493,12 @@ paths:
       - application/json
       operationId: ArticleController_update
       parameters:
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: 待更新字段（部分更新）
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateArticleRequest'
       - description: 请求体
         in: body
         name: body
@@ -6368,7 +6532,8 @@ paths:
       - application/json
       operationId: ArticleController_updateBrowseProgress
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6399,7 +6564,8 @@ paths:
     delete:
       operationId: ArticleController_cancelDislikeArticle
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6424,7 +6590,8 @@ paths:
     post:
       operationId: ArticleController_dislikeArticle
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6455,7 +6622,8 @@ paths:
     get:
       operationId: ArticleController_getDislikeStatus
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6481,7 +6649,8 @@ paths:
     delete:
       operationId: ArticleController_unfavoriteArticle
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6506,7 +6675,8 @@ paths:
     post:
       operationId: ArticleController_favoriteArticle
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6532,7 +6702,8 @@ paths:
     get:
       operationId: ArticleController_checkFavoriteStatus
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6560,7 +6731,8 @@ paths:
       - application/json
       operationId: ArticleController_setFeatured
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6592,7 +6764,8 @@ paths:
     post:
       operationId: ArticleController_like
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6623,7 +6796,8 @@ paths:
     get:
       operationId: ArticleController_getLikeCount
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6647,7 +6821,8 @@ paths:
     get:
       operationId: ArticleController_getLikeStatus
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6673,7 +6848,8 @@ paths:
       - application/json
       operationId: ArticleController_setProfilePin
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6705,7 +6881,8 @@ paths:
     post:
       operationId: ArticleController_share
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -6734,11 +6911,13 @@ paths:
     get:
       operationId: ArticleController_findByAuthor
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -6784,13 +6963,14 @@ paths:
       summary: 清空浏览历史
       tags:
       - 文章
-  /article/browse/{articleId}:
+  /article/browse/{article_id}:
     delete:
       operationId: ArticleController_deleteBrowseHistory
       parameters:
-      - description: articleId
+      - description: articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -6813,9 +6993,10 @@ paths:
     get:
       operationId: ArticleController_getBrowseHistory
       parameters:
-      - description: articleId
+      - description: articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -6866,11 +7047,13 @@ paths:
     get:
       operationId: ArticleController_getUserBrowseHistory
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -6944,11 +7127,13 @@ paths:
     get:
       operationId: ArticleController_getDislikedArticles
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -6980,11 +7165,13 @@ paths:
     get:
       operationId: ArticleController_getDrafts
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7016,11 +7203,13 @@ paths:
     get:
       operationId: ArticleController_getFavoritedArticles
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7072,11 +7261,13 @@ paths:
     get:
       operationId: ArticleController_getLikedArticles
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7128,7 +7319,8 @@ paths:
     get:
       operationId: ArticleController_findRecommendations
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7154,11 +7346,13 @@ paths:
     get:
       operationId: ArticleController_search
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7266,12 +7460,6 @@ paths:
       - application/json
       operationId: BannerController_create
       parameters:
-      - description: 创建轮播位
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateBannerRequest'
       - description: 请求体
         in: body
         name: body
@@ -7299,7 +7487,8 @@ paths:
     delete:
       operationId: BannerController_remove
       parameters:
-      - description: 轮播 ID
+      - description: 轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7324,7 +7513,8 @@ paths:
     get:
       operationId: BannerController_findOne
       parameters:
-      - description: 轮播 ID
+      - description: 轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7349,7 +7539,8 @@ paths:
       - application/json
       operationId: BannerController_update
       parameters:
-      - description: 轮播 ID
+      - description: 轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7452,7 +7643,8 @@ paths:
     delete:
       operationId: CategoryController_remove
       parameters:
-      - description: 分类 ID
+      - description: 分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7477,7 +7669,8 @@ paths:
     get:
       operationId: CategoryController_findOne
       parameters:
-      - description: 分类 ID
+      - description: 分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7502,7 +7695,8 @@ paths:
       - application/json
       operationId: CategoryController_update
       parameters:
-      - description: 分类 ID
+      - description: 分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7534,27 +7728,33 @@ paths:
     get:
       operationId: CollectionController_findAll
       parameters:
-      - description: 按作者过滤
+      - description: 按作者过滤 example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: query
         name: user_id
         type: string
-      - description: 按名称搜索
+      - description: 按名称搜索 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
-      - description: 排序字段
+      - description: 排序字段 example(created_at)
+        example: created_at
         in: query
         name: sort_by
         type: string
-      - description: 排序方向 ASC / DESC（默认 DESC）
+      - description: 排序方向 ASC / DESC（默认 DESC） example(desc)
+        example: desc
         in: query
         name: sort_order
         type: string
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7587,12 +7787,6 @@ paths:
       - application/json
       operationId: CollectionController_create
       parameters:
-      - description: 合集信息
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCollectionRequest'
       - description: 请求体
         in: body
         name: body
@@ -7620,7 +7814,8 @@ paths:
     delete:
       operationId: CollectionController_remove
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7645,7 +7840,8 @@ paths:
     get:
       operationId: CollectionController_findOne
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7672,7 +7868,8 @@ paths:
       - application/json
       operationId: CollectionController_update
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7700,18 +7897,20 @@ paths:
       summary: 更新合集
       tags:
       - 合集
-  /collection/{id}/article/{articleId}:
+  /collection/{id}/article/{article_id}:
     delete:
       operationId: CollectionController_removeArticle
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -7734,14 +7933,16 @@ paths:
     post:
       operationId: CollectionController_addArticle
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -7765,16 +7966,19 @@ paths:
     get:
       operationId: CollectionController_findItems
       parameters:
-      - description: 合集 ID
+      - description: 合集 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7808,7 +8012,8 @@ paths:
       - application/json
       operationId: CollectionController_reorderItems
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7836,13 +8041,14 @@ paths:
       summary: 调整合集内文章顺序
       tags:
       - 合集
-  /collection/article/{articleId}/info:
+  /collection/article/{article_id}/info:
     get:
       operationId: CollectionController_articleCollectionInfo
       parameters:
-      - description: articleId
+      - description: articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -7862,13 +8068,14 @@ paths:
       summary: 文章合集信息
       tags:
       - 合集
-  /collection/check/{articleId}:
+  /collection/check/{article_id}:
     get:
       operationId: CollectionController_checkArticle
       parameters:
-      - description: articleId
+      - description: articleId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: articleId
+        name: article_id
         required: true
         type: string
       produces:
@@ -7892,11 +8099,13 @@ paths:
     get:
       operationId: CommentController_findAllComments
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -7930,12 +8139,6 @@ paths:
       description: 对文章发表评论，入 text-audit 队列异步审核
       operationId: CommentController_create
       parameters:
-      - description: 评论内容
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCommentRequest'
       - description: 请求体
         in: body
         name: body
@@ -7967,7 +8170,8 @@ paths:
     delete:
       operationId: CommentController_remove
       parameters:
-      - description: 评论 ID
+      - description: 评论 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -7996,7 +8200,8 @@ paths:
     get:
       operationId: CommentController_findOne
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8021,7 +8226,8 @@ paths:
       - application/json
       operationId: CommentController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8053,7 +8259,8 @@ paths:
     post:
       operationId: CommentController_like
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8081,7 +8288,8 @@ paths:
       - application/json
       operationId: CommentController_setPin
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8113,16 +8321,19 @@ paths:
     get:
       operationId: CommentController_findAll
       parameters:
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -8152,7 +8363,8 @@ paths:
     get:
       operationId: CommentController_getCommentCount
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8172,15 +8384,17 @@ paths:
       summary: 文章评论数
       tags:
       - 评论
-  /comment/user/{userId}:
+  /comment/user/{user_id}:
     get:
       operationId: CommentController_getUserComments
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -8288,7 +8502,8 @@ paths:
     delete:
       operationId: ConfigController_remove
       parameters:
-      - description: 配置 ID
+      - description: 配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8313,7 +8528,8 @@ paths:
     get:
       operationId: ConfigController_findOne
       parameters:
-      - description: 配置 ID
+      - description: 配置 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8340,7 +8556,8 @@ paths:
       - application/json
       operationId: ConfigController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8390,7 +8607,8 @@ paths:
     get:
       operationId: ConfigController_findByGroup
       parameters:
-      - description: 分组名
+      - description: 分组名 example(upload)
+        example: upload
         in: path
         name: group
         required: true
@@ -8419,7 +8637,8 @@ paths:
       - application/json
       operationId: ConfigController_updateGroup
       parameters:
-      - description: 分组名
+      - description: 分组名 example(upload)
+        example: upload
         in: path
         name: group
         required: true
@@ -8453,7 +8672,8 @@ paths:
     get:
       operationId: ConfigController_findByKey
       parameters:
-      - description: 配置键
+      - description: 配置键 example(upload_max_image_size)
+        example: upload_max_image_size
         in: path
         name: key
         required: true
@@ -8644,7 +8864,8 @@ paths:
       - application/json
       operationId: ContentAuditController_reviewArticle
       parameters:
-      - description: 文章 ID
+      - description: 文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8745,11 +8966,13 @@ paths:
     get:
       operationId: ContentAuditController_getPendingArticles
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -8838,12 +9061,6 @@ paths:
       - application/json
       operationId: DecorationController_create
       parameters:
-      - description: 装饰品字段（全部可选，不传=不改）
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.DecorationInputRequest'
       - description: 请求体
         in: body
         name: body
@@ -8871,7 +9088,8 @@ paths:
     delete:
       operationId: DecorationController_remove
       parameters:
-      - description: 装饰品 ID
+      - description: 装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8896,7 +9114,8 @@ paths:
     get:
       operationId: DecorationController_findOne
       parameters:
-      - description: 装饰品 ID
+      - description: 装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8923,7 +9142,8 @@ paths:
       - application/json
       operationId: DecorationController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -8982,11 +9202,13 @@ paths:
     get:
       operationId: DecorationController_findAllActivities
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -9044,7 +9266,8 @@ paths:
     delete:
       operationId: DecorationController_removeActivity
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9069,7 +9292,8 @@ paths:
     get:
       operationId: DecorationController_findOneActivity
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9096,7 +9320,8 @@ paths:
       - application/json
       operationId: DecorationController_updateActivity
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9124,13 +9349,14 @@ paths:
       summary: 更新装饰品活动
       tags:
       - 装饰品
-  /decoration/activity/claim/{activityId}:
+  /decoration/activity/claim/{activity_id}:
     post:
       operationId: DecorationController_claimActivityReward
       parameters:
-      - description: activityId
+      - description: activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: activityId
+        name: activity_id
         required: true
         type: string
       produces:
@@ -9248,13 +9474,14 @@ paths:
       summary: 购买装饰品
       tags:
       - 装饰品
-  /decoration/unuse/{decorationId}:
+  /decoration/unuse/{decoration_id}:
     post:
       operationId: DecorationController_unuseDecoration
       parameters:
-      - description: decorationId
+      - description: decorationId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: decorationId
+        name: decoration_id
         required: true
         type: string
       produces:
@@ -9274,13 +9501,14 @@ paths:
       summary: 卸下装饰品
       tags:
       - 装饰品
-  /decoration/use/{decorationId}:
+  /decoration/use/{decoration_id}:
     post:
       operationId: DecorationController_useDecoration
       parameters:
-      - description: 装饰品 ID
+      - description: 装饰品 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: decorationId
+        name: decoration_id
         required: true
         type: string
       produces:
@@ -9300,13 +9528,14 @@ paths:
       summary: 佩戴装饰品
       tags:
       - 装饰品
-  /decoration/user/{userId}:
+  /decoration/user/{user_id}:
     get:
       operationId: DecorationController_getUserDecorations
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       produces:
@@ -9410,12 +9639,6 @@ paths:
       - application/json
       operationId: EmojiController_create
       parameters:
-      - description: 表情字段（全部可选，不传=不改）
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.EmojiInputRequest'
       - description: 请求体
         in: body
         name: body
@@ -9443,7 +9666,8 @@ paths:
     delete:
       operationId: EmojiController_remove
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9468,7 +9692,8 @@ paths:
     get:
       operationId: EmojiController_findOne
       parameters:
-      - description: 表情 ID
+      - description: 表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9493,7 +9718,8 @@ paths:
       - application/json
       operationId: EmojiController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9525,7 +9751,8 @@ paths:
     delete:
       operationId: EmojiController_removeFromFavorites
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9550,7 +9777,8 @@ paths:
     post:
       operationId: EmojiController_addToFavorites
       parameters:
-      - description: 表情 ID
+      - description: 表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9576,7 +9804,8 @@ paths:
     post:
       operationId: EmojiController_incrementUseCount
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9702,7 +9931,8 @@ paths:
     delete:
       operationId: EmojiPackController_remove
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9727,7 +9957,8 @@ paths:
     get:
       operationId: EmojiPackController_findOne
       parameters:
-      - description: 表情包 ID
+      - description: 表情包 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9752,7 +9983,8 @@ paths:
       - application/json
       operationId: EmojiPackController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9786,7 +10018,8 @@ paths:
       - application/json
       operationId: EmojiPackController_addEmoji
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -9814,18 +10047,20 @@ paths:
       summary: 向表情包添加表情
       tags:
       - 表情包
-  /emoji/packs/{id}/emojis/{emojiId}:
+  /emoji/packs/{id}/emojis/{emoji_id}:
     delete:
       operationId: EmojiPackController_removeEmoji
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: emojiId
+      - description: emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: emojiId
+        name: emoji_id
         required: true
         type: string
       produces:
@@ -9850,14 +10085,16 @@ paths:
       - application/json
       operationId: EmojiPackController_updateEmojiSort
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: emojiId
+      - description: emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: emojiId
+        name: emoji_id
         required: true
         type: string
       - description: sort
@@ -9984,7 +10221,8 @@ paths:
     get:
       operationId: InviteController_getInviteDetail
       parameters:
-      - description: 邀请码 ID
+      - description: 邀请码 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10106,11 +10344,13 @@ paths:
     get:
       operationId: MessageController_findAll
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -10144,12 +10384,6 @@ paths:
       description: 创建全员/部分/个人通知；管理员（message:manage）可指定接收范围
       operationId: MessageController_create
       parameters:
-      - description: CreateMessageInput{content,type,receiverId}
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateMessageRequest'
       - description: 请求体
         in: body
         name: body
@@ -10181,7 +10415,8 @@ paths:
     delete:
       operationId: MessageController_remove
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10206,7 +10441,8 @@ paths:
     get:
       operationId: MessageController_findOne
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10233,17 +10469,12 @@ paths:
       - application/json
       operationId: MessageController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: UpdateMessageInput
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateMessageRequest'
       - description: 请求体
         in: body
         name: body
@@ -10271,7 +10502,8 @@ paths:
     post:
       operationId: MessageController_markAsRead
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10303,12 +10535,6 @@ paths:
     post:
       operationId: MessageController_batchOperation
       parameters:
-      - description: BatchMessageInput{messageIds,action}
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.BatchMessageRequest'
       - description: 请求体
         in: body
         name: body
@@ -10332,24 +10558,19 @@ paths:
       summary: 批量操作（已读/删除）
       tags:
       - 消息
-  /message/private/{userId}:
+  /message/private/{user_id}:
     post:
       consumes:
       - application/json
       description: 向指定用户发私信；被拉黑时返回 403。发送成功后经 WS 推送 privateMessage
       operationId: MessageController_sendPrivateMessage
       parameters:
-      - description: 接收者用户 ID
+      - description: 接收者用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
-      - description: SendPrivateInput{content,messageKind,payload}
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.SendPrivateRequest'
       - description: 请求体
         in: body
         name: body
@@ -10377,13 +10598,14 @@ paths:
       summary: 发送私信
       tags:
       - 消息
-  /message/private/block/{userId}:
+  /message/private/block/{user_id}:
     delete:
       operationId: MessageController_unblockPrivateUser
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       produces:
@@ -10406,16 +10628,12 @@ paths:
     post:
       operationId: MessageController_blockPrivateUser
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
-      - description: BlockUserInput{reason}
-        in: body
-        name: body
-        schema:
-          $ref: '#/definitions/dto.BlockUserRequest'
       - description: 请求体
         in: body
         name: body
@@ -10463,11 +10681,13 @@ paths:
     get:
       operationId: MessageController_getPrivateConversations
       parameters:
-      - description: 游标（上一页最后一条的 cursor）
+      - description: 游标（上一页最后一条的 cursor） example(eyJpZCI6IjlmMWQyZTM0In0)
+        example: eyJpZCI6IjlmMWQyZTM0In0
         in: query
         name: cursor
         type: string
-      - description: 每页条数，默认 20
+      - description: 每页条数，默认 20 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -10488,13 +10708,14 @@ paths:
       summary: 私信会话列表
       tags:
       - 消息
-  /message/private/conversations/{userId}/messages:
+  /message/private/conversations/{user_id}/messages:
     get:
       operationId: MessageController_getPrivateConversation
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       produces:
@@ -10514,13 +10735,14 @@ paths:
       summary: 私信历史
       tags:
       - 消息
-  /message/private/conversations/{userId}/read:
+  /message/private/conversations/{user_id}/read:
     post:
       operationId: MessageController_markPrivateConversationRead
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       - description: 请求体
@@ -10550,12 +10772,6 @@ paths:
     post:
       operationId: MessageController_markPrivateMessagesRead
       parameters:
-      - description: PrivateReadBatchInput{messageIds}
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.PrivateReadBatchRequest'
       - description: 请求体
         in: body
         name: body
@@ -10583,16 +10799,12 @@ paths:
     post:
       operationId: MessageController_recallPrivateMessage
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
         type: string
-      - description: RecallPrivateInput{reason}
-        in: body
-        name: body
-        schema:
-          $ref: '#/definitions/dto.RecallPrivateRequest'
       - description: 请求体
         in: body
         name: body
@@ -10647,11 +10859,13 @@ paths:
     get:
       operationId: MessageController_search
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -10703,27 +10917,33 @@ paths:
     get:
       operationId: OrderController_getAllOrders
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
-      - description: 订单状态 PENDING/PAID/CANCELLED/REFUNDED
+      - description: 订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)
+        example: PUBLISHED
         in: query
         name: status
         type: string
-      - description: 订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE
+      - description: 订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)
+        example: image
         in: query
         name: type
         type: string
-      - description: 买家用户 ID
+      - description: 买家用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: query
         name: user_id
         type: string
-      - description: 订单号模糊搜索
+      - description: 订单号模糊搜索 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
@@ -10755,7 +10975,8 @@ paths:
     get:
       operationId: OrderController_findOne
       parameters:
-      - description: 订单 ID
+      - description: 订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10785,7 +11006,8 @@ paths:
     put:
       operationId: OrderController_cancelOrder
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10820,7 +11042,8 @@ paths:
       description: 余额支付原路退余额；第三方支付提交原路退款申请（均落 payment 记录）
       operationId: OrderController_requestRefund
       parameters:
-      - description: 订单 ID
+      - description: 订单 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -10917,13 +11140,14 @@ paths:
       summary: 创建会员订单
       tags:
       - 订单
-  /order/no/{orderNo}:
+  /order/no/{order_no}:
     get:
       operationId: OrderController_findByOrderNo
       parameters:
-      - description: orderNo
+      - description: orderNo example(PA20261127000001)
+        example: PA20261127000001
         in: path
-        name: orderNo
+        name: order_no
         required: true
         type: string
       produces:
@@ -10969,23 +11193,28 @@ paths:
     get:
       operationId: OrderController_getUserOrders
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
-      - description: 订单状态 PENDING/PAID/CANCELLED/REFUNDED
+      - description: 订单状态 PENDING/PAID/CANCELLED/REFUNDED example(PUBLISHED)
+        example: PUBLISHED
         in: query
         name: status
         type: string
-      - description: 订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE
+      - description: 订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE example(image)
+        example: image
         in: query
         name: type
         type: string
-      - description: 订单号模糊搜索
+      - description: 订单号模糊搜索 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
@@ -11040,12 +11269,6 @@ paths:
       description: 按渠道（alipay/wechat/epay/balance）生成支付参数；渠道开关与密钥来自系统配置表
       operationId: PaymentController_createPayment
       parameters:
-      - description: 支付入参
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreatePaymentRequest'
       - description: 请求体
         in: body
         name: body
@@ -11121,14 +11344,15 @@ paths:
       summary: 微信支付异步回调
       tags:
       - 支付
-  /payment/order/{orderId}:
+  /payment/order/{order_id}:
     get:
       description: 该订单尚无支付记录时返回 200 且 data 省略（不是 null）
       operationId: PaymentController_findPaymentByOrderId
       parameters:
-      - description: orderId
+      - description: orderId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: orderId
+        name: order_id
         required: true
         type: string
       produces:
@@ -11152,7 +11376,8 @@ paths:
     get:
       operationId: PaymentController_findPaymentRecord
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11207,11 +11432,13 @@ paths:
     get:
       operationId: PaymentController_findUserPayments
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -11293,7 +11520,8 @@ paths:
     delete:
       operationId: PermissionController_remove
       parameters:
-      - description: 权限 ID
+      - description: 权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11318,7 +11546,8 @@ paths:
     get:
       operationId: PermissionController_findOne
       parameters:
-      - description: 权限 ID
+      - description: 权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11345,7 +11574,8 @@ paths:
       - application/json
       operationId: PermissionController_update
       parameters:
-      - description: 权限 ID
+      - description: 权限 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11399,11 +11629,13 @@ paths:
     get:
       operationId: PointsController_findAllActivities
       parameters:
-      - description: 活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE
+      - description: 活动类型 INSTANT/DAILY/WEEKLY/MONTHLY/ONCE example(image)
+        example: image
         in: query
         name: type
         type: string
-      - description: 名称关键字
+      - description: 名称关键字 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
@@ -11456,7 +11688,8 @@ paths:
     delete:
       operationId: PointsController_removeActivity
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11481,7 +11714,8 @@ paths:
     get:
       operationId: PointsController_findOneActivity
       parameters:
-      - description: 活动 ID
+      - description: 活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11506,7 +11740,8 @@ paths:
       - application/json
       operationId: PointsController_updateActivity
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11538,7 +11773,8 @@ paths:
     post:
       operationId: PointsController_claimTaskReward
       parameters:
-      - description: 活动 ID
+      - description: 活动 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11566,12 +11802,6 @@ paths:
       - application/json
       operationId: PointsController_addPoints
       parameters:
-      - description: 加分入参
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.AddPointsRequest'
       - description: 请求体
         in: body
         name: body
@@ -11686,13 +11916,14 @@ paths:
       summary: 我的积分任务
       tags:
       - 积分
-  /points/tasks/my/{activityId}:
+  /points/tasks/my/{activity_id}:
     get:
       operationId: PointsController_getMyTaskProgress
       parameters:
-      - description: activityId
+      - description: activityId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: activityId
+        name: activity_id
         required: true
         type: string
       produces:
@@ -11716,11 +11947,13 @@ paths:
     get:
       operationId: PointsController_getTransactions
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -11752,11 +11985,13 @@ paths:
     get:
       operationId: PointsController_getAllTransactions
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -11784,13 +12019,14 @@ paths:
       summary: 全部积分流水（管理端）
       tags:
       - 积分
-  /points/users/{userId}/balance:
+  /points/users/{user_id}/balance:
     get:
       operationId: PointsController_getUserBalance
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       produces:
@@ -11810,20 +12046,23 @@ paths:
       summary: 指定用户积分余额
       tags:
       - 积分
-  /points/users/{userId}/transactions:
+  /points/users/{user_id}/transactions:
     get:
       operationId: PointsController_getUserTransactions
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -11903,12 +12142,6 @@ paths:
       - application/json
       operationId: ReportController_create
       parameters:
-      - description: 提交举报
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateReportRequest'
       - description: 请求体
         in: body
         name: body
@@ -11936,7 +12169,8 @@ paths:
     delete:
       operationId: ReportController_remove
       parameters:
-      - description: 举报 ID
+      - description: 举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11961,7 +12195,8 @@ paths:
     get:
       operationId: ReportController_findOne
       parameters:
-      - description: 举报 ID
+      - description: 举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -11988,7 +12223,8 @@ paths:
       - application/json
       operationId: ReportController_update
       parameters:
-      - description: 举报 ID
+      - description: 举报 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12090,7 +12326,8 @@ paths:
     delete:
       operationId: RoleController_remove
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12115,7 +12352,8 @@ paths:
     get:
       operationId: RoleController_findOne
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12142,7 +12380,8 @@ paths:
       - application/json
       operationId: RoleController_update
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12174,7 +12413,8 @@ paths:
     post:
       operationId: RoleController_copyRole
       parameters:
-      - description: 源角色 ID
+      - description: 源角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12206,7 +12446,8 @@ paths:
     get:
       operationId: RoleController_getMenus
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12233,7 +12474,8 @@ paths:
       - application/json
       operationId: RoleController_bindMenus
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12267,7 +12509,8 @@ paths:
       - application/json
       operationId: RoleController_assignPermissions
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12301,7 +12544,8 @@ paths:
       - application/json
       operationId: RoleController_toggleStatus
       parameters:
-      - description: 角色 ID
+      - description: 角色 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12355,11 +12599,13 @@ paths:
     get:
       operationId: RoleController_findWithPagination
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -12391,15 +12637,18 @@ paths:
     get:
       operationId: SearchController_searchArticles
       parameters:
-      - description: 关键字
+      - description: 关键字 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -12533,11 +12782,13 @@ paths:
     get:
       operationId: StatisticsController_getTrends
       parameters:
-      - description: 起始日期 YYYY-MM-DD
+      - description: 起始日期 YYYY-MM-DD example(2026-01-01)
+        example: "2026-01-01"
         in: query
         name: start_date
         type: string
-      - description: 结束日期 YYYY-MM-DD
+      - description: 结束日期 YYYY-MM-DD example(2026-12-31)
+        example: "2026-12-31"
         in: query
         name: end_date
         type: string
@@ -12588,12 +12839,6 @@ paths:
       - application/json
       operationId: TagController_create
       parameters:
-      - description: 创建标签
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateTagRequest'
       - description: 请求体
         in: body
         name: body
@@ -12621,7 +12866,8 @@ paths:
     delete:
       operationId: TagController_remove
       parameters:
-      - description: 标签 ID
+      - description: 标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12646,7 +12892,8 @@ paths:
     get:
       operationId: TagController_findOne
       parameters:
-      - description: 标签 ID
+      - description: 标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12671,7 +12918,8 @@ paths:
       - application/json
       operationId: TagController_update
       parameters:
-      - description: 标签 ID
+      - description: 标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12703,7 +12951,8 @@ paths:
     delete:
       operationId: TagController_unfollow
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12728,7 +12977,8 @@ paths:
     post:
       operationId: TagController_follow
       parameters:
-      - description: 标签 ID
+      - description: 标签 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12817,11 +13067,13 @@ paths:
     get:
       operationId: UploadController_findAll
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -12853,7 +13105,8 @@ paths:
     delete:
       operationId: UploadController_remove
       parameters:
-      - description: 上传记录 ID
+      - description: 上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -12955,7 +13208,8 @@ paths:
         name: file
         required: true
         type: file
-      - description: 场景：article/avatar/comment
+      - description: 场景：article/avatar/comment example(article)
+        example: article
         in: formData
         name: scene
         type: string
@@ -12982,7 +13236,8 @@ paths:
     get:
       operationId: UploadController_getFileInfo
       parameters:
-      - description: 上传记录 ID
+      - description: 上传记录 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13008,7 +13263,8 @@ paths:
     post:
       operationId: UploadController_fillMissingMetadata
       parameters:
-      - description: 本批上限（默认 100）
+      - description: 本批上限（默认 100） example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -13109,15 +13365,18 @@ paths:
       description: 分页查询用户，支持 keyword（或 username）模糊搜索
       operationId: UserController_findAll
       parameters:
-      - description: 页码，默认 1
+      - description: 页码，默认 1 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数，默认 10
+      - description: 每页条数，默认 10 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
-      - description: 用户名关键字
+      - description: 用户名关键字 example(风景)
+        example: 风景
         in: query
         name: keyword
         type: string
@@ -13181,7 +13440,8 @@ paths:
     delete:
       operationId: UserController_remove
       parameters:
-      - description: 用户 ID
+      - description: 用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13210,7 +13470,8 @@ paths:
     get:
       operationId: UserController_findOne
       parameters:
-      - description: 用户 ID
+      - description: 用户 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13241,7 +13502,8 @@ paths:
       - application/json
       operationId: UserController_update
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13273,7 +13535,8 @@ paths:
     post:
       operationId: UserController_follow
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13299,11 +13562,13 @@ paths:
     get:
       operationId: UserController_getFollowers
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -13333,7 +13598,8 @@ paths:
     get:
       operationId: UserController_getFollowerCount
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13357,11 +13623,13 @@ paths:
     get:
       operationId: UserController_getFollowings
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -13391,7 +13659,8 @@ paths:
     get:
       operationId: UserController_getFollowingCount
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13415,7 +13684,8 @@ paths:
     get:
       operationId: UserController_checkMembershipStatus
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13441,7 +13711,8 @@ paths:
     post:
       operationId: UserController_unfollow
       parameters:
-      - description: id
+      - description: id example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13534,15 +13805,18 @@ paths:
     get:
       operationId: UserController_findApplications
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
-      - description: 申请状态
+      - description: 申请状态 example(PUBLISHED)
+        example: PUBLISHED
         in: query
         name: status
         type: string
@@ -13576,7 +13850,8 @@ paths:
       - application/json
       operationId: UserController_audit
       parameters:
-      - description: 申请 ID
+      - description: 申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13608,7 +13883,8 @@ paths:
     post:
       operationId: UserController_revoke
       parameters:
-      - description: 申请 ID
+      - description: 申请 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
         name: id
         required: true
@@ -13685,13 +13961,14 @@ paths:
       summary: 我的身份标识
       tags:
       - 用户认证
-  /user/certification/identity/{userId}:
+  /user/certification/identity/{user_id}:
     get:
       operationId: UserController_getIdentityByUserId
       parameters:
-      - description: userId
+      - description: userId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: userId
+        name: user_id
         required: true
         type: string
       produces:
@@ -13964,7 +14241,8 @@ paths:
       description: 账号（用户名或邮箱）+ 密码登录；Device-Id 头用于多端会话管理
       operationId: UserController_login
       parameters:
-      - description: 设备标识，缺省 default
+      - description: 设备标识，缺省 default example(uuid-1)
+        example: uuid-1
         in: header
         name: Device-Id
         type: string
@@ -14080,12 +14358,14 @@ paths:
     delete:
       operationId: OAuthBindingController_unbind
       parameters:
-      - description: 平台 wechat / qq / github
+      - description: 平台 wechat / qq / github example(wechat)
+        example: wechat
         in: path
         name: provider
         required: true
         type: string
-      - description: 渠道 web / app
+      - description: 渠道 web / app example(web)
+        example: web
         in: path
         name: channel
         required: true
@@ -14504,11 +14784,13 @@ paths:
     get:
       operationId: UserProfileController_findFavorites
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -14536,13 +14818,14 @@ paths:
       summary: 我的收藏夹
       tags:
       - 用户管理
-  /user/profile/favorites/{productId}:
+  /user/profile/favorites/{product_id}:
     get:
       operationId: UserProfileController_findFavoriteDetail
       parameters:
-      - description: productId
+      - description: productId example(9f1d2e34-5678-4abc-9def-0123456789ab)
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
         in: path
-        name: productId
+        name: product_id
         required: true
         type: string
       produces:
@@ -14623,12 +14906,13 @@ paths:
       description: 用 refreshToken 换取新的 access token；需 Device-Id 头（服务端据此校验设备会话）
       operationId: UserController_refreshToken
       parameters:
-      - description: 设备标识
+      - description: 设备标识 example(uuid-1)
+        example: uuid-1
         in: header
         name: Device-Id
         required: true
         type: string
-      - description: refreshRequest{refreshToken}
+      - description: 刷新令牌请求体
         in: body
         name: body
         required: true
@@ -14709,11 +14993,13 @@ paths:
     get:
       operationId: UserController_getSignInRecords
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer
@@ -14800,11 +15086,13 @@ paths:
     get:
       operationId: UserController_getWalletTransactions
       parameters:
-      - description: 页码
+      - description: 页码 example(1)
+        example: 1
         in: query
         name: page
         type: integer
-      - description: 每页条数
+      - description: 每页条数 example(10)
+        example: 10
         in: query
         name: limit
         type: integer

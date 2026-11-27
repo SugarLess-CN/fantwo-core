@@ -43,16 +43,16 @@ type AuditRecord struct {
 	// OperatorID 发起人（自动审核为空）。
 	OperatorID string `gorm:"type:varchar(36)" json:"operator_id"`
 	// Content 文本内容（text-audit）。
-	Content string `gorm:"type:text" json:"content,omitempty"`
+	Content string `gorm:"type:text" json:"content,omitempty" example:"<p>正文内容</p>"`
 	// ImageURL 图片地址（image-audit）。
-	ImageURL string `gorm:"type:varchar(512)" json:"image_url,omitempty"`
+	ImageURL string `gorm:"type:varchar(512)" json:"image_url,omitempty" example:"https://cdn.example.com/banner.png"`
 	// Provider aliyun / tencent / none
 	Provider string `gorm:"type:varchar(20)" json:"provider"`
 	// Status PENDING / PASSED / BLOCKED / REVIEW / FAILED
-	Status string  `gorm:"type:varchar(20);index" json:"status"`
+	Status string  `gorm:"type:varchar(20);index" json:"status" example:"PUBLISHED"`
 	Action string  `gorm:"type:varchar(20)" json:"action"`
 	Label  string  `gorm:"type:varchar(128)" json:"label"`
-	Reason string  `gorm:"type:text" json:"reason"`
+	Reason string  `gorm:"type:text" json:"reason" example:"违规内容"`
 	Score  float64 `gorm:"type:decimal(8,4)" json:"score"`
 	// ResultDetail provider 原始返回摘要。
 	ResultDetail map[string]interface{} `gorm:"type:jsonb;serializer:json" json:"result_detail"`

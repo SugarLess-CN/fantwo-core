@@ -29,7 +29,6 @@ const emojiMaxSize = 5 * 1024 * 1024
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body dto.EmojiInputRequest true "表情字段（全部可选，不传=不改）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@ID			EmojiController_create
 //	@Param		body body dto.EmojiInputRequest true "请求体"
@@ -127,7 +126,7 @@ func (h *OpsHandler) EmojiList(c *gin.Context) {
 //	@Summary	表情详情
 //	@Tags		表情包
 //	@Produce	json
-//	@Param		id path string true "表情 ID"
+//	@Param		id path string true "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@ID			EmojiController_findOne
 //	@Router		/emoji/{id} [get]
@@ -147,7 +146,7 @@ func (h *OpsHandler) EmojiGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.EmojiInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiDto}
 //	@ID			EmojiController_update
@@ -176,7 +175,7 @@ func (h *OpsHandler) EmojiUpdate(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@ID			EmojiController_remove
 //	@Router		/emoji/{id} [delete]
@@ -276,7 +275,7 @@ func (h *OpsHandler) EmojiFavorites(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "表情 ID"
+//	@Param		id path string true "表情 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
 //	@ID			EmojiController_addToFavorites
 //	@Router		/emoji/{id}/favorite [post]
@@ -298,7 +297,7 @@ func (h *OpsHandler) EmojiFavoriteAdd(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiFavoriteDto}
 //	@ID			EmojiController_removeFromFavorites
 //	@Router		/emoji/{id}/favorite [delete]
@@ -320,7 +319,7 @@ func (h *OpsHandler) EmojiFavoriteRemove(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiUseDto}
 //	@ID			EmojiController_incrementUseCount
 //	@Router		/emoji/{id}/use [post]
@@ -392,7 +391,7 @@ func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 //	@Summary	表情包详情
 //	@Tags		表情包
 //	@Produce	json
-//	@Param		id path string true "表情包 ID"
+//	@Param		id path string true "表情包 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDetailDto}
 //	@ID			EmojiPackController_findOne
 //	@Router		/emoji/packs/{id} [get]
@@ -412,7 +411,7 @@ func (h *OpsHandler) EmojiPackGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.EmojiPackInputRequest true "要改的字段（全部可选）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackDto}
 //	@ID			EmojiPackController_update
@@ -441,7 +440,7 @@ func (h *OpsHandler) EmojiPackUpdate(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeletedDto}
 //	@ID			EmojiPackController_remove
 //	@Router		/emoji/packs/{id} [delete]
@@ -464,7 +463,7 @@ func (h *OpsHandler) EmojiPackDelete(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.EmojiPackAddEmojiRequest true "emojiId"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
 //	@ID			EmojiPackController_addEmoji
@@ -494,12 +493,12 @@ func (h *OpsHandler) EmojiPackAddEmoji(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
-//	@Param		emojiId path string true "emojiId"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		emoji_id path string true "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.EmojiPackUpdateEmojiRequest true "sort"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackItemDto}
 //	@ID			EmojiPackController_updateEmojiSort
-//	@Router		/emoji/packs/{id}/emojis/{emojiId} [patch]
+//	@Router		/emoji/packs/{id}/emojis/{emoji_id} [patch]
 func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
@@ -510,7 +509,7 @@ func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 		response.FailWith(c, errcode.ErrBadRequest, bindingMsg(err))
 		return
 	}
-	item, err := h.Emoji.PackUpdateEmojiSort(uid, c.Param("id"), c.Param("emojiId"), body.Sort)
+	item, err := h.Emoji.PackUpdateEmojiSort(uid, c.Param("id"), c.Param("emoji_id"), body.Sort)
 	if err != nil {
 		fail(c, err)
 		return
@@ -524,17 +523,17 @@ func (h *OpsHandler) EmojiPackUpdateEmoji(c *gin.Context) {
 //	@Tags		表情包
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
-//	@Param		emojiId path string true "emojiId"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
+//	@Param		emoji_id path string true "emojiId example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.EmojiPackRemoveEmojiDto}
 //	@ID			EmojiPackController_removeEmoji
-//	@Router		/emoji/packs/{id}/emojis/{emojiId} [delete]
+//	@Router		/emoji/packs/{id}/emojis/{emoji_id} [delete]
 func (h *OpsHandler) EmojiPackRemoveEmoji(c *gin.Context) {
 	uid := requireUser(c)
 	if uid == "" {
 		return
 	}
-	if err := h.Emoji.PackRemoveEmoji(uid, c.Param("id"), c.Param("emojiId")); err != nil {
+	if err := h.Emoji.PackRemoveEmoji(uid, c.Param("id"), c.Param("emoji_id")); err != nil {
 		fail(c, err)
 		return
 	}

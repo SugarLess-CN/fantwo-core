@@ -18,11 +18,11 @@ const (
 // Role 角色表。
 type Role struct {
 	BaseModel
-	Name        string  `gorm:"column:name;type:varchar(64);uniqueIndex;not null" json:"name"`
+	Name        string  `gorm:"column:name;type:varchar(64);uniqueIndex;not null" json:"name" example:"示例名称"`
 	DisplayName *string `gorm:"column:display_name;type:varchar(64)" json:"display_name"`
-	Description *string `gorm:"column:description;type:varchar(255)" json:"description"`
-	IsActive    bool    `gorm:"column:is_active;default:true" json:"is_active"`
-	IsSystem    bool    `gorm:"column:is_system;default:false" json:"is_system"`
+	Description *string `gorm:"column:description;type:varchar(255)" json:"description" example:"一句话说明"`
+	IsActive    bool    `gorm:"column:is_active;default:true" json:"is_active" example:"true"`
+	IsSystem    bool    `gorm:"column:is_system;default:false" json:"is_system" example:"false"`
 
 	// Permissions 角色权限（join 表 role_permissions，eager 语义由 repository 预加载）。
 	Permissions []Permission `gorm:"many2many:role_permissions;" json:"permissions,omitempty"`
@@ -34,8 +34,8 @@ func (Role) TableName() string { return "role" }
 // Permission 权限表。
 type Permission struct {
 	BaseModel
-	Name        string  `gorm:"column:name;type:varchar(64);uniqueIndex;not null" json:"name"`
-	Description *string `gorm:"column:description;type:varchar(255)" json:"description"`
+	Name        string  `gorm:"column:name;type:varchar(64);uniqueIndex;not null" json:"name" example:"示例名称"`
+	Description *string `gorm:"column:description;type:varchar(255)" json:"description" example:"一句话说明"`
 }
 
 // TableName 表名。

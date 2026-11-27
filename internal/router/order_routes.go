@@ -24,7 +24,7 @@ func RegisterOrderRoutes(v1 *gin.RouterGroup, opt Option) {
 		g.GET("/user", auth, perm("order:read"), h.ListMine)                  // 我的订单分页
 		g.GET("/pending", auth, perm("order:read"), h.ListPending)            // 待支付订单
 		g.GET("/wallet/balance", auth, perm("user:read"), h.WalletBalance)    // 钱包余额
-		g.GET("/no/:orderNo", auth, perm("order:read"), h.GetByNo)            // 按订单号查
+		g.GET("/no/:order_no", auth, perm("order:read"), h.GetByNo)           // 按订单号查
 		g.GET("/:id", auth, perm("order:read"), h.Get)                        // 订单详情
 		g.PUT("/:id/cancel", auth, perm("order:cancel"), h.Cancel)            // 取消订单
 		g.POST("/:id/refund", auth, perm("order:refund"), h.Refund)           // 申请退款

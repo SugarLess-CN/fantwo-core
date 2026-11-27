@@ -20,7 +20,6 @@ import (
 //	@Security	BearerAuth
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_create
-//	@Param		body body dto.CreateBannerRequest true "创建轮播位"
 //	@Param		body body dto.CreateBannerRequest true "请求体"
 //	@Router		/banners [post]
 func (h *OpsHandler) BannerCreate(c *gin.Context) {
@@ -86,7 +85,7 @@ func (h *OpsHandler) BannerActive(c *gin.Context) {
 //	@Summary	轮播位详情
 //	@Tags		轮播
 //	@Produce	json
-//	@Param		id path string true "轮播 ID"
+//	@Param		id path string true "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_findOne
 //	@Router		/banners/{id} [get]
@@ -106,7 +105,7 @@ func (h *OpsHandler) BannerGet(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "轮播 ID"
+//	@Param		id path string true "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateBannerRequest true "bannerRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.BannerDto}
 //	@ID			BannerController_update
@@ -131,7 +130,7 @@ func (h *OpsHandler) BannerUpdate(c *gin.Context) {
 //	@Tags		轮播
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "轮播 ID"
+//	@Param		id path string true "轮播 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			BannerController_remove
 //	@Router		/banners/{id} [delete]

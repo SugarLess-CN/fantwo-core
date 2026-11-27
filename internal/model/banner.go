@@ -10,12 +10,12 @@ const (
 // Banner 首页轮播图。
 type Banner struct {
 	BaseModel
-	Title       string `gorm:"type:varchar(255);not null;comment:标题" json:"title"`
-	Description string `gorm:"type:varchar(500);comment:描述" json:"description"`
-	ImageURL    string `gorm:"type:varchar(500);not null;comment:图片地址" json:"image_url"`
-	LinkURL     string `gorm:"type:varchar(500);comment:跳转链接" json:"link_url"`
-	SortOrder   int    `gorm:"not null;default:0;index;comment:排序" json:"sort_order"`
-	Status      string `gorm:"type:varchar(20);default:active;index;comment:状态" json:"status"`
+	Title       string `gorm:"type:varchar(255);not null;comment:标题" json:"title" example:"我的第一篇作品"`
+	Description string `gorm:"type:varchar(500);comment:描述" json:"description" example:"一句话说明"`
+	ImageURL    string `gorm:"type:varchar(500);not null;comment:图片地址" json:"image_url" example:"https://cdn.example.com/banner.png"`
+	LinkURL     string `gorm:"type:varchar(500);comment:跳转链接" json:"link_url" example:"https://example.com"`
+	SortOrder   int    `gorm:"not null;default:0;index;comment:排序" json:"sort_order" example:"1"`
+	Status      string `gorm:"type:varchar(20);default:active;index;comment:状态" json:"status" example:"PUBLISHED"`
 }
 
 // TableName 表名。
@@ -23,12 +23,12 @@ func (Banner) TableName() string { return "banners" }
 
 // BannerInput 轮播创建/更新入参。
 type BannerInput struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	ImageURL    *string `json:"image_url"`
-	LinkURL     *string `json:"link_url"`
-	SortOrder   *int    `json:"sort_order"`
-	Status      *string `json:"status"`
+	Title       *string `json:"title" example:"我的第一篇作品"`
+	Description *string `json:"description" example:"一句话说明"`
+	ImageURL    *string `json:"image_url" example:"https://cdn.example.com/banner.png"`
+	LinkURL     *string `json:"link_url" example:"https://example.com"`
+	SortOrder   *int    `json:"sort_order" example:"1"`
+	Status      *string `json:"status" example:"PUBLISHED"`
 }
 
 // BannerQuery 轮播列表查询条件。

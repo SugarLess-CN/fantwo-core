@@ -84,7 +84,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 //	@Summary	分类详情
 //	@Tags		分类
 //	@Produce	json
-//	@Param		id path string true "分类 ID"
+//	@Param		id path string true "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@ID			CategoryController_findOne
 //	@Router		/category/{id} [get]
@@ -104,7 +104,7 @@ func (h *CategoryHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "分类 ID"
+//	@Param		id path string true "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateCategoryRequest true "categoryRequest"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.CategoryDto}
 //	@ID			CategoryController_update
@@ -129,7 +129,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 //	@Tags		分类
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "分类 ID"
+//	@Param		id path string true "分类 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@ID			CategoryController_remove
 //	@Router		/category/{id} [delete]

@@ -124,8 +124,8 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		// 我的菜单树（swagger /profile/menus；此前未注册）
 		me.GET("/profile/menus", roleH.MyMenus)
 		me.GET("/user/profile/menus", roleH.MyMenus)
-		me.GET("/user/profile/favorites/:productId", userH.FavoriteDetail)
-		me.GET("/profile/favorites/:productId", userH.FavoriteDetail) // 任务书别名
+		me.GET("/user/profile/favorites/:product_id", userH.FavoriteDetail)
+		me.GET("/profile/favorites/:product_id", userH.FavoriteDetail) // 任务书别名
 
 		// 账号注销三态
 		me.POST("/user/account/deletion", userH.DeletionRequest)
@@ -174,7 +174,7 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		rel.GET("/user/:id/followings", actionH.Followings)
 		rel.GET("/user/:id/followers/count", actionH.FollowerCount)
 		rel.GET("/user/:id/followings/count", actionH.FollowingCount)
-		rel.GET("/user/certification/identity/:userId", actionH.CertIdentityOf)
+		rel.GET("/user/certification/identity/:user_id", actionH.CertIdentityOf)
 	}
 
 	// ---------- 用户管理（管理员） ----------

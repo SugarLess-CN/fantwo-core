@@ -24,7 +24,6 @@ type ArticleHandler struct {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			body	body		dto.CreateArticleRequest	true	"文章内容"
 //	@Success		200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		400		{object}	ResponseBody
 //	@Failure		403		{object}	ResponseBody
@@ -51,13 +50,13 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Description	分页浏览文章，支持标题/分类/标签/类型/状态筛选；携带 token 时返回当前用户互动状态
 //	@Tags			文章
 //	@Produce		json
-//	@Param			page		query		int		false	"页码，默认 1"
-//	@Param			limit		query		int		false	"每页条数，默认 10"
-//	@Param			title		query		string	false	"标题关键字"
-//	@Param			category_id	query		string	false	"分类 ID"
-//	@Param			tag_id		query		string	false	"标签 ID"
-//	@Param			type		query		string	false	"image/mixed/video，默认 all"
-//	@Param			status		query		string	false	"状态筛选，逗号分隔"
+//	@Param		page query int false "页码，默认 1 example(1)"
+//	@Param		limit query int false "每页条数，默认 10 example(10)"
+//	@Param		title query string false "标题关键字 example(秋日)"
+//	@Param		category_id query string false "分类 ID example(2b3c4d5e-0000-4f60-9bac-000000000002)"
+//	@Param		tag_id query string false "标签 ID example(1a2b3c4d-0000-4e5f-8a9b-000000000001)"
+//	@Param		type query string false "image/mixed/video，默认 all example(image)"
+//	@Param		status query string false "状态筛选，逗号分隔 example(PUBLISHED)"
 //	@Success		200			{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_findAll
 //	@Router			/article [get]
@@ -86,8 +85,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_getDrafts
 //	@Router		/article/drafts [get]
@@ -106,7 +105,7 @@ func (h *ArticleHandler) Drafts(c *gin.Context) {
 //	@Summary	相关文章推荐
 //	@Tags		文章
 //	@Produce	json
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=[]dto.ArticleDto}
 //	@ID			ArticleController_findRecommendations
 //	@Router		/article/recommend/{id} [get]
@@ -124,8 +123,8 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 //	@Summary	文章搜索（ES）
 //	@Tags		文章
 //	@Produce	json
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_search
 //	@Router		/article/search [get]
@@ -169,8 +168,8 @@ func (h *ArticleHandler) HotSearch(c *gin.Context) {
 //	@Summary	作者主页文章
 //	@Tags		文章
 //	@Produce	json
-//	@Param		page query int false "页码"
-//	@Param		limit query int false "每页条数"
+//	@Param		page query int false "页码 example(1)"
+//	@Param		limit query int false "每页条数 example(10)"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
 //	@ID			ArticleController_findByAuthor
 //	@Router		/article/author/{id} [get]
@@ -213,7 +212,7 @@ func (h *ArticleHandler) PublishedIDs(c *gin.Context) {
 //	@Summary		文章详情
 //	@Tags			文章
 //	@Produce		json
-//	@Param			id	path		string	true	"文章 ID"
+//	@Param		id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success		200	{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure		404	{object}	ResponseBody
 //	@ID			ArticleController_findOne
@@ -234,8 +233,7 @@ func (h *ArticleHandler) FindOne(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id		path		string	true	"文章 ID"
-//	@Param		body	body		dto.UpdateArticleRequest	true	"待更新字段（部分更新）"
+//	@Param		id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.UpdateArticleRequest true "请求体"
 //	@Success	200		{object}	dto.ResponseBody{data=dto.ArticleDto}
 //	@Failure	403		{object}	ResponseBody
@@ -261,7 +259,7 @@ func (h *ArticleHandler) Update(c *gin.Context) {
 //	@Tags		文章
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id	path		string	true	"文章 ID"
+//	@Param		id path string true "文章 ID example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.DeleteResultDto}
 //	@Failure	403	{object}	ResponseBody
 //	@ID			ArticleController_remove
@@ -282,7 +280,7 @@ func (h *ArticleHandler) Remove(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.SetFeaturedRequest true "是否设精"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.SetFeaturedResultDto}
 //	@ID			ArticleController_setFeatured
@@ -308,7 +306,7 @@ func (h *ArticleHandler) SetFeatured(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		id path string true "id"
+//	@Param		id path string true "id example(9f1d2e34-5678-4abc-9def-0123456789ab)"
 //	@Param		body body dto.SetProfilePinRequest true "是否主页置顶"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.ProfilePinResultDto}
 //	@ID			ArticleController_setProfilePin

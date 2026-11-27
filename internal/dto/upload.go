@@ -58,7 +58,7 @@ type UploadAuditResultDto struct {
 	Passed     bool    `json:"passed" example:"true"`
 	Action     string  `json:"action" example:"pass"`
 	Label      string  `json:"label"`
-	Reason     string  `json:"reason"`
+	Reason     string  `json:"reason" example:"违规内容"`
 	Score      float64 `json:"score" example:"0"`
 	DetailJSON string  `json:"detail_json"`
 }
