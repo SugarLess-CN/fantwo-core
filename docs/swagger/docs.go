@@ -1344,7 +1344,7 @@ const docTemplate = `{
                 "tags": [
                     "文章"
                 ],
-                "summary": "文章搜索（ES）",
+                "summary": "文章搜索（ES 优先，ES 不可用时回落 DB）",
                 "operationId": "ArticleController_search",
                 "parameters": [
                     {

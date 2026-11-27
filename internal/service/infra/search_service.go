@@ -653,25 +653,32 @@ type SearchResult struct {
 	Total int64                    `json:"total"`
 }
 
-// SearchArticles 文章检索：ES 出 id 与顺序 → 回库取完整行（保持 ES 排序）。
+// SearchIDs 只走 ES，返回命中的文章 id（**保持 ES 相关性排序**）与命中总数。
 //
-// ES 未配置时返回 503（errcode 5030 语义，见 handler 的分支处理）；
-// 运行期把 search_enabled 关掉时短路为空结果（不报 500，前端退化为空列表）。
-func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleSearchRequest) (*SearchResult, error) {
+// 与 SearchArticles 的分工：
+//
+//	· SearchIDs  只负责 ES，不碰 DB —— 调用方自己决定回库怎么取；
+//	· SearchArticles 在它之上补 DB 行，产出 /search 的精简 map 契约。
+//
+// 之所以要拆：/article/search 需要完整 ArticleDto（含 author/tags/category 对象），
+// 得走 ArticleService.BuildViews —— 那要 model.Article，不是 map。共用 ES 段即可。
+//
+// 返回值语义：
+//
+//	· ES 未启用 → (nil, 0, nil)：明确告诉调用方「没有可用 ES」，应回落 DB；
+//	· ES 报错   → (nil, 0, error)：调用方同样可决定回落（是否回落由业务层定）。
+func (s *Searcher) SearchIDs(ctx context.Context, req ArticleSearchRequest) ([]string, int64, error) {
 	if !s.Enabled() {
-		return &SearchResult{List: []map[string]interface{}{}, Total: 0}, nil
+		return nil, 0, nil
 	}
 	c, err := s.clientOrInit()
 	if err != nil {
-		return nil, err
-	}
-	if db == nil {
-		return nil, svcUnavailable()
+		return nil, 0, err
 	}
 	query := s.buildQuery(req)
 	var body bytes.Buffer
 	if err := json.NewEncoder(&body).Encode(query); err != nil {
-		return nil, svcInternal("构造检索请求失败: %v", err)
+		return nil, 0, svcInternal("构造检索请求失败: %v", err)
 	}
 	ctx, cancel := context.WithTimeout(ctx, searchTimeout)
 	defer cancel()
@@ -683,12 +690,12 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 		c.Search.WithSize(req.Limit),
 	)
 	if err != nil {
-		return nil, svcInternal("ES 检索失败: %v", err)
+		return nil, 0, svcInternal("ES 检索失败: %v", err)
 	}
 	defer res.Body.Close()
 	if res.IsError() {
 		msg, _ := io.ReadAll(res.Body)
-		return nil, svcInternal("ES 检索失败: %s %s", res.Status(), string(msg))
+		return nil, 0, svcInternal("ES 检索失败: %s %s", res.Status(), string(msg))
 	}
 	var parsed struct {
 		Hits struct {
@@ -701,13 +708,28 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 		} `json:"hits"`
 	}
 	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
-		return nil, svcInternal("解析 ES 响应失败: %v", err)
+		return nil, 0, svcInternal("解析 ES 响应失败: %v", err)
 	}
 	ids := make([]string, 0, len(parsed.Hits.Hits))
 	for _, h := range parsed.Hits.Hits {
 		ids = append(ids, h.ID)
 	}
-	out := &SearchResult{Total: parsed.Hits.Total.Value, List: []map[string]interface{}{}}
+	return ids, parsed.Hits.Total.Value, nil
+}
+
+// SearchArticles 文章检索：ES 出 id 与顺序 → 回库取完整行（保持 ES 排序）。
+//
+// ES 未配置时返回 503（errcode 5030 语义，见 handler 的分支处理）；
+// 运行期把 search_enabled 关掉时短路为空结果（不报 500，前端退化为空列表）。
+func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleSearchRequest) (*SearchResult, error) {
+	ids, total, err := s.SearchIDs(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if db == nil {
+		return nil, svcUnavailable()
+	}
+	out := &SearchResult{Total: total, List: []map[string]interface{}{}}
 	if len(ids) == 0 {
 		s.recordSearch(req, 0)
 		return out, nil
@@ -727,7 +749,7 @@ func (s *Searcher) SearchArticles(ctx context.Context, db *gorm.DB, req ArticleS
 	// 直接透出会违反「对外 JSON 一律 camelCase」的全局口径）。
 	for _, id := range ids {
 		if r, ok := byID[id]; ok {
-			out.List = append(out.List, articleRowToAPI(r))
+			out.List = append(out.List, RowToAPI(r))
 		}
 	}
 	s.recordSearch(req, int(out.Total))
@@ -755,26 +777,31 @@ func (s *Searcher) recordSearch(req ArticleSearchRequest, resultCount int) {
 	}()
 }
 
-// articleRowToAPI 把 DB 原生查询行（snake_case 列）转成对外 camelCase 视图。
+// RowToAPI 把 DB 原生查询行（snake_case 列）转成对外视图。
+//
+// ⚠️ 对外一律 **snake_case**（AGENTS「JSON 字段命名口径」2026-11-27）。
+// 这里曾长期输出 camelCase（authorId / favoriteCount / createdAt），
+// 是全站改名时漏掉的一处 —— 因为它是 map 字面量的 key，不是 struct tag，
+// json-naming-check.py 扫不到，只能靠人读或真机响应发现。
 //
 // 与 buildArticleDoc 的区别：不返回正文 content（列表页无需全文，避免响应膨胀），
 // 只给列表展示需要的字段。
-func articleRowToAPI(r map[string]interface{}) map[string]interface{} {
+func RowToAPI(r map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"id":            asString(r["id"]),
-		"title":         asString(r["title"]),
-		"summary":       asString(r["summary"]),
-		"cover":         asString(r["cover"]),
-		"type":          asString(r["type"]),
-		"status":        asString(r["status"]),
-		"authorId":      asString(r["author_id"]),
-		"categoryId":    asString(r["category_id"]),
-		"views":         asInt(r["views"]),
-		"likes":         asInt(r["likes"]),
-		"favoriteCount": asInt(r["favorite_count"]),
-		"commentCount":  asInt(r["comment_count"]),
-		"createdAt":     asTime(r["created_at"]),
-		"updatedAt":     asTime(r["updated_at"]),
+		"id":             asString(r["id"]),
+		"title":          asString(r["title"]),
+		"summary":        asString(r["summary"]),
+		"cover":          asString(r["cover"]),
+		"type":           asString(r["type"]),
+		"status":         asString(r["status"]),
+		"author_id":      asString(r["author_id"]),
+		"category_id":    asString(r["category_id"]),
+		"views":          asInt(r["views"]),
+		"likes":          asInt(r["likes"]),
+		"favorite_count": asInt(r["favorite_count"]),
+		"comment_count":  asInt(r["comment_count"]),
+		"created_at":     asTime(r["created_at"]),
+		"updated_at":     asTime(r["updated_at"]),
 	}
 }
 

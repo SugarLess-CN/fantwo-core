@@ -73,6 +73,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 		Page:       page,
 		Limit:      limit,
 	}
+	// 搜索优先走 ES，DB 回落（用户 2026-11-27 指定）。
+
 	list, total, e := h.svc.List(c.Request.Context(), q, actorOf(c))
 	if e != nil {
 		ctFail(c, e)
@@ -122,7 +124,7 @@ func (h *ArticleHandler) Recommendations(c *gin.Context) {
 
 // Search 搜索文章 GET /article/search。
 //
-//	@Summary	文章搜索（ES）
+//	@Summary	文章搜索（ES 优先，ES 不可用时回落 DB）
 //	@Tags		文章
 //	@Produce	json
 //	@Param		page query int false "页码" example(1)
@@ -142,7 +144,7 @@ func (h *ArticleHandler) Search(c *gin.Context) {
 		Page:       page,
 		Limit:      limit,
 	}
-	list, total, e := h.svc.List(c.Request.Context(), q, actorOf(c))
+	list, total, e := h.svc.ListWithSearch(c.Request.Context(), q, actorOf(c))
 	if e != nil {
 		ctFail(c, e)
 		return

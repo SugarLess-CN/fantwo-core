@@ -558,3 +558,60 @@ cmp-js-go-fields                     → 字段缺失 3（全是 Decoration 枚�
 新增 schema：`dto.UserSearchItemDto`（14 属性，含 2 个 omitempty）
 
 测试数据已清：`tags` T43 系列 0 条、`user_certification` t43 系列 0 条。
+
+
+---
+
+# 第四轮：搜索改 ES 优先 + relevance 修复
+
+用户指定：**文章搜索一律优先走 ES，DB 是回落**（ES 未配置/不可用时才用 DB）。
+
+## 十四、改动
+
+| 文件 | 改动 |
+|---|---|
+| `internal/service/infra/search_service.go` | 从 `SearchArticles` 抽出 `SearchIDs`（只走 ES，返回命中 id + 顺序）；`articleRowToAPI` → 导出 `RowToAPI` 并改 **snake_case**（map key，命名工具扫不到的盲区） |
+| `internal/service/article.go` | +`search` 字段 + `SetSearcher`；新增 `ListWithSearch`（ES 优先 → `SearchIDs` → 按序回库 → `BuildViews`；ES 未注入/未启用/报错一律回落 `List`） |
+| `internal/handler/article.go` | `Search` 改调 `ListWithSearch`（⚠️ 第一次 replace 误命中 `List` 的同文行，用函数体精确替换修正）；摘要改「ES 优先，ES 不可用时回落 DB」 |
+| `internal/handler/article_deps.go` | +`BindSearcher` |
+| `internal/router/article_routes.go` | `contentSet.BindSearcher(infraSearchSvc(opt))` |
+| `internal/handler/search.go` | `/search` 从「ES 未配置即 503」改为 **DB 回落**（`searchByDB`：LIKE + 与 ES 同语义排序，产出同套精简字段） |
+
+**为什么不用 `infra.SearchArticles` 直接喂 `/article/search`**：它返回精简 map
+（无 author/tags/category 对象），满足不了 `ArticleDto` 契约；`ListWithSearch`
+走 `SearchIDs` + `BuildViews`，DTO 完整且顺序与 ES 一致。
+
+## 十五、真机验证（ES 正常与故障两态）
+
+```
+① ES 正常（真实 9201，索引 15 文档）
+   /article/search?keyword=审核 → 3 条，无回落告警（走 ES）
+   /search?keyword=审核        → 3 条，字段 snake_case（author_id/favorite_count/created_at）
+
+② ES 指向死端口 9999
+   /article/search → 200 + 3 条，日志 "ES 检索失败，回落 DB"
+   /search         → 200 + 3 条，同上
+   （DB 回落用临时日志证实走了 ListWithSearch：search_nil=false, search_enabled=true；
+    验证后已删日志代码）
+
+③ 排序四态（relevance 修复后）
+   relevance ≡ likes（两篇 L1 排前，4be831 出现在第 2 位）
+   latest / views 各自不同 —— 四种排序两两可区分
+```
+
+## 十六、两个修复（详见 docs/fixes/F-009）
+
+1. **`sort_by=relevance` 失效**：`List` 的映射 switch 缺 `relevance` 分支 → 默认值落到
+   `orderBy` 初值 `"sort"`（人工置顶位）。补 `case "likes", "relevance"`。
+2. **`/article` 列表被误接 ES**：replace 命中了同文调用行。教训：**同文行多处出现时
+   必须用函数体锚定替换**，不能裸 replace。
+3. **`articleRowToAPI` 输出 camelCase**：map 字面量 key 是 `json-naming-check.py`
+   的盲区（它只扫 struct tag 与 c.Query）。已改 snake_case 并导出为 `RowToAPI`。
+
+## 十七、质量门
+
+```
+gofmt 空 / build OK / vet 零输出 / 16 包全绿
+swag exit=0 危险词 0，paths 248 defs 292 无污染
+json-naming-check ✓ / verify-t39 22 过 0 败
+```

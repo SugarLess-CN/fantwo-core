@@ -45,7 +45,7 @@ func infraSearchLogsSvc(opt Option) *infra.SearchLogService {
 
 // RegisterSearchRoutes 注册搜索管理路由（挂载在 /api/v1 下）。
 func RegisterSearchRoutes(v1 *gin.RouterGroup, opt Option) {
-	h := handler.NewSearchHandler(infraSearchSvc(opt), opt.DB, infraSearchLogsSvc(opt))
+	h := handler.NewSearchHandler(infraSearchSvc(opt), opt.DB, infraSearchLogsSvc(opt), opt.Logger)
 	g := v1.Group("/search")
 
 	// 管理端点（article:manage）

@@ -7651,7 +7651,7 @@ paths:
                         type: array
                     type: object
               type: object
-      summary: 文章搜索（ES）
+      summary: 文章搜索（ES 优先，ES 不可用时回落 DB）
       tags:
       - 文章
   /auth/sms/login:

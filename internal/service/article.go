@@ -82,7 +82,13 @@ type ArticleService struct {
 	follow     FollowProvider
 	audit      ArticleAuditor
 	searchLogs *infra.SearchLogService
-	log        *zap.Logger
+	// search ES 检索器（nil 表示未接入 → 搜索直接走 DB）。
+	//
+	// 语义（用户 2026-11-27 指定）：**搜索优先走 ES，DB 是回落**。
+	// 判定顺序见 ListWithSearch：ES 未接入 / 未启用 / 报错 → 一律回落 DB，
+	// 绝不因为 ES 不可用就让搜索整体 5xx（那是把可降级功能做成硬依赖）。
+	search *infra.Searcher
+	log    *zap.Logger
 }
 
 // NewArticleService 构造文章服务。
@@ -107,6 +113,9 @@ func (s *ArticleService) SetAuthorResolver(r AuthorResolver) { s.authors = r }
 // SetSearchLogs 运行期注入搜索日志服务（infra 域；/article/hot-search 真实聚合来源）。
 // 未注入或聚合为空时回退到「热门标签 + 热门分类」合成，保证端点始终可用。
 func (s *ArticleService) SetSearchLogs(l *infra.SearchLogService) { s.searchLogs = l }
+
+// SetSearcher 注入 ES 检索器（nil 安全：不注入则搜索全部走 DB）。
+func (s *ArticleService) SetSearcher(sr *infra.Searcher) { s.search = sr }
 
 // SetFollowProvider 运行期注入关注关系提供者（user 域 UserAuthorResolver 实现）。
 // 未注入时 type=following 退化为最新排序，不返回错误。
@@ -570,7 +579,13 @@ func (s *ArticleService) List(ctx context.Context, q ArticleListQuery, actor Act
 			orderBy = "latest"
 		case "views":
 			orderBy = "popular"
-		case "likes":
+		// likes 与 relevance 都映射到「热度优先」（likes DESC, views DESC, created_at DESC）。
+		//
+		// relevance 必须显式列出：它是 /article/search 的**默认值**
+		// （handler 里 DefaultQuery("sort_by","relevance")），漏了它就会落到
+		// orderBy 的初值 "sort"（人工排序位 DESC）—— 实测 sort_by=relevance
+		// 与 sort_by=latest 返回完全相同的顺序，热度排序失效。
+		case "likes", "relevance":
 			orderBy = "relevance"
 		}
 	}
@@ -1014,4 +1029,51 @@ func fromDownloadModels(in []model.Download) []ArticleDownloadRequest {
 		})
 	}
 	return out
+}
+
+// ListWithSearch 文章搜索：**ES 优先，DB 回落**（用户 2026-11-27 指定）。
+//
+// 判定顺序：
+//  1. 有 keyword 且 Searcher 已注入且 Enabled → ES 取「命中 id + 相关性排序」，
+//     再按该顺序回库取完整实体 → BuildViews，保证 ArticleDto 完整且顺序与 ES 一致；
+//  2. ES 未注入 / 未启用 / 查询报错 / 回库失败 → **一律回落 DB**（s.List）；
+//  3. 无 keyword → 直接 DB（ES 对空关键词无意义，列表页也不需要相关性排序）。
+//
+// 为什么不用 infra.SearchArticles：那个返回精简 map（无 author/tags/category 对象），
+// 满足不了 /article/search 的 ArticleDto 契约。共用它的 ES 段（SearchIDs）即可。
+//
+// **绝不因 ES 不可用而 5xx** —— 搜索是可降级能力，做成硬依赖等于把 DB 能扛的活
+// 绑死在 ES 的可用性上。
+func (s *ArticleService) ListWithSearch(ctx context.Context, q ArticleListQuery, actor Actor) ([]ArticleView, int64, *errcode.Err) {
+	if q.Keyword == "" || s.search == nil || !s.search.Enabled() {
+		return s.List(ctx, q, actor)
+	}
+	ids, total, err := s.search.SearchIDs(ctx, infra.ArticleSearchRequest{
+		Keyword:    q.Keyword,
+		CategoryID: q.CategoryID,
+		SortBy:     q.SortBy,
+		Page:       q.Page,
+		Limit:      q.Limit,
+		UserID:     actor.UserID,
+	})
+	if err != nil {
+		s.log.Warn("ES 检索失败，回落 DB 搜索", zap.Error(err))
+		return s.List(ctx, q, actor)
+	}
+	if len(ids) == 0 {
+		return []ArticleView{}, total, nil
+	}
+	byID, err := s.repo.FindByIDs(ctx, ids)
+	if err != nil {
+		s.log.Warn("按 ES 顺序回库失败，回落 DB 搜索", zap.Error(err))
+		return s.List(ctx, q, actor)
+	}
+	// 按 ES 顺序重排（IN 查询不保序；ES 的相关性排序是搜索的核心价值）。
+	rows := make([]model.Article, 0, len(ids))
+	for _, id := range ids {
+		if a, ok := byID[id]; ok && a != nil {
+			rows = append(rows, *a)
+		}
+	}
+	return s.BuildViews(ctx, rows, actor, false), total, nil
 }

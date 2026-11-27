@@ -22,6 +22,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"github.com/SugarLess-CN/fantwo-core/internal/service/infra"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -41,11 +42,15 @@ type SearchHandler struct {
 	svc  *infra.Searcher
 	db   *gorm.DB
 	logs *infra.SearchLogService // 热门搜索词聚合（nil 表示未接入）
+	log  *zap.Logger             // nil 安全：仅用于 ES 失败回落时的告警
 }
 
-// NewSearchHandler 构造搜索 handler（db 可为 nil）。
-func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogService) *SearchHandler {
-	return &SearchHandler{svc: svc, db: db, logs: logs}
+// NewSearchHandler 构造搜索 handler（db / log 可为 nil）。
+func NewSearchHandler(svc *infra.Searcher, db *gorm.DB, logs *infra.SearchLogService, log *zap.Logger) *SearchHandler {
+	if log == nil {
+		log = zap.NewNop()
+	}
+	return &SearchHandler{svc: svc, db: db, logs: logs, log: log}
 }
 
 // SyncArticles POST /search/sync/articles（对齐 syncArticles）。
@@ -119,7 +124,9 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 
 // SearchArticles GET /search（文章检索：keyword / categoryId / sortBy / page / limit）。
 //
-// ES 未配置时按任务书要求返回 5030（区别于管理端 status 的宽容语义）。
+// **ES 优先，DB 回落**（用户 2026-11-27 指定）：ES 未配置 / 查询失败时回落 DB
+// （LIKE 检索 + 与 ES 同语义的排序），不再像旧版那样直接 503 —— 搜索是可降级能力，
+// 不该把 DB 能扛的活绑死在 ES 的可用性上。只有 DB 也不可用时才报错。
 //
 //	@Summary	搜索文章
 //	@Tags		搜索
@@ -133,10 +140,6 @@ func (h *SearchHandler) ClearArticles(c *gin.Context) {
 //	@ID			SearchController_searchArticles
 //	@Router		/search [get]
 func (h *SearchHandler) SearchArticles(c *gin.Context) {
-	if !h.svc.Enabled() {
-		response.Fail(c, ErrServiceNotConfigured)
-		return
-	}
 	keyword := c.Query("keyword")
 	if keyword == "" {
 		response.FailKey(c, errcode.ErrBadRequest, i18n.SearchKeywordRequired)
@@ -150,7 +153,7 @@ func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	if limit < 1 || limit > 50 {
 		limit = 10
 	}
-	res, err := h.svc.SearchArticles(c.Request.Context(), h.db, infra.ArticleSearchRequest{
+	req := infra.ArticleSearchRequest{
 		Keyword:    keyword,
 		CategoryID: c.Query("category_id"),
 		SortBy:     c.DefaultQuery("sort_by", "relevance"),
@@ -158,12 +161,71 @@ func (h *SearchHandler) SearchArticles(c *gin.Context) {
 		Limit:      limit,
 		UserID:     infraCurrentUserID(c),
 		IP:         c.ClientIP(),
-	})
-	if err != nil {
-		response.Fail(c, infraErrOrNil(err))
+	}
+	// **ES 优先，DB 回落**（用户 2026-11-27 指定）。
+	//
+	// 三种回落情形（都不再直接失败，除非 DB 也查不了）：
+	//   ① ES 未配置/未启用 → SearchArticles 返回空结果集 → 检测到后走 DB；
+	//   ② ES 报错（连不上/查询失败）→ 走 DB；
+	//   ③ DB 也为 nil（降级启动）→ 才真的报错。
+	if h.svc.Enabled() {
+		res, err := h.svc.SearchArticles(c.Request.Context(), h.db, req)
+		if err == nil {
+			response.SuccessPage(c, res.List, res.Total, page, limit)
+			return
+		}
+		// ES 报错：记日志后回落 DB，不把 ES 的可用性变成搜索的硬依赖。
+		if h.log != nil {
+			h.log.Warn("ES 检索失败，/search 回落 DB", zap.Error(err))
+		}
+	}
+	// ---- DB 回落 ----
+	list, total, ok := h.searchByDB(c, req, page, limit)
+	if !ok {
+		response.Fail(c, ErrServiceNotConfigured)
 		return
 	}
-	response.SuccessPage(c, res.List, res.Total, page, limit)
+	response.SuccessPage(c, list, total, page, limit)
+}
+
+// searchByDB /search 的 DB 回落路径
+// （与 ES 路径产出同一套精简字段，前端无需分支处理）。
+func (h *SearchHandler) searchByDB(c *gin.Context, req infra.ArticleSearchRequest, page, limit int) ([]map[string]interface{}, int64, bool) {
+	if h.db == nil {
+		return nil, 0, false
+	}
+	q := h.db.Table("articles").
+		Select("id, title, summary, cover, type, author_id, category_id, status, views, likes, favorite_count, comment_count, created_at, updated_at").
+		Where("deleted_at = 0").
+		Where("status = ?", "PUBLISHED")
+	if req.Keyword != "" {
+		like := "%" + req.Keyword + "%"
+		q = q.Where("(title LIKE ? OR summary LIKE ?)", like, like)
+	}
+	if req.CategoryID != "" {
+		q = q.Where("category_id = ?", req.CategoryID)
+	}
+	var total int64
+	if err := q.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+		return nil, 0, false
+	}
+	// 排序与 ES 路径保持同一套语义（见 articleOrder 的 relevance/latest/views/likes）。
+	order := "likes DESC, views DESC, created_at DESC"
+	switch req.SortBy {
+	case "latest":
+		order = "created_at DESC"
+	case "views":
+		order = "views DESC, created_at DESC"
+	}
+	var rows []map[string]interface{}
+	if err := q.Order(order).Offset((page - 1) * limit).Limit(limit).Find(&rows).Error; err != nil {
+		return nil, 0, false
+	}
+	out := make([]map[string]interface{}, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, infra.RowToAPI(r))
+	}
+	return out, total, true
 }
 
 // infraItoa64 int64 转字符串（避免 handler 层引入 strconv 依赖链）。

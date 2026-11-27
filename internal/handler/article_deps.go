@@ -72,6 +72,17 @@ func NewContentHandlers(db *gorm.DB, log *zap.Logger) *ContentHandlers {
 	}
 }
 
+// BindSearcher 注入 ES 检索器（infra 域），使 /article/search **优先走 ES**。
+//
+// 不注入或 ES 未配置时，/article/search 走 DB（行为与引入本注入前一致）——
+// 这保证了「装配遗漏」只会让搜索退化，不会让接口 5xx。
+func (cs *ContentHandlers) BindSearcher(sr *infra.Searcher) {
+	if cs == nil || cs.Article == nil || cs.Article.svc == nil {
+		return
+	}
+	cs.Article.svc.SetSearcher(sr)
+}
+
 // BindSearchLogs 注入搜索日志服务（infra 域），使 /article/hot-search 走真实检索聚合。
 // rdb 可为 nil（无 Redis 时服务内部退化为 DB 判重）。
 func (cs *ContentHandlers) BindSearchLogs(rdb *redis.Client) {

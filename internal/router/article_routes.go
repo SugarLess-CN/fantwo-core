@@ -38,6 +38,8 @@ func contentHandlers(opt Option) *handler.ContentHandlers {
 			}
 			// 热门搜索词走 infra 域 search_logs 真实聚合（无表时内部回退标签/分类合成）。
 			contentSet.BindSearchLogs(opt.Redis)
+			// /article/search 优先走 ES（ES 未配置/不可用时该服务内部回落 DB）。
+			contentSet.BindSearcher(infraSearchSvc(opt))
 		}
 	})
 	return contentSet
