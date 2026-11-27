@@ -5879,11 +5879,11 @@ paths:
         type: string
       - description: 分类 ID
         in: query
-        name: categoryId
+        name: category_id
         type: string
       - description: 标签 ID
         in: query
-        name: tagId
+        name: tag_id
         type: string
       - description: image/mixed/video，默认 all
         in: query
@@ -7200,7 +7200,7 @@ paths:
       parameters:
       - description: 按作者过滤
         in: query
-        name: userId
+        name: user_id
         type: string
       - description: 按名称搜索
         in: query
@@ -7208,11 +7208,11 @@ paths:
         type: string
       - description: 排序字段
         in: query
-        name: sortBy
+        name: sort_by
         type: string
       - description: 排序方向 ASC / DESC（默认 DESC）
         in: query
-        name: sortOrder
+        name: sort_order
         type: string
       - description: 页码
         in: query
@@ -10293,7 +10293,7 @@ paths:
         type: string
       - description: 买家用户 ID
         in: query
-        name: userId
+        name: user_id
         type: string
       - description: 订单号模糊搜索
         in: query
@@ -12077,11 +12077,11 @@ paths:
       parameters:
       - description: 起始日期 YYYY-MM-DD
         in: query
-        name: startDate
+        name: start_date
         type: string
       - description: 结束日期 YYYY-MM-DD
         in: query
-        name: endDate
+        name: end_date
         type: string
       produces:
       - application/json

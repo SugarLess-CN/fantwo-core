@@ -104,7 +104,7 @@ type PointsTxQuery struct {
 	Limit  int    `form:"limit"`
 	Type   string `form:"type"`
 	Source string `form:"source"`
-	UserID string `form:"userId"`
+	UserID string `form:"user_id"`
 }
 
 // PointsActivityInput 活动创建/更新入参（PATCH 时指针字段表示「未传即不改」）。

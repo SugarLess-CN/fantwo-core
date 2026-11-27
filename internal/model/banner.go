@@ -36,6 +36,6 @@ type BannerQuery struct {
 	Page      int    `form:"page"`
 	Limit     int    `form:"limit"`
 	Status    string `form:"status"`
-	SortBy    string `form:"sortBy"`
-	SortOrder string `form:"sortOrder"`
+	SortBy    string `form:"sort_by"`
+	SortOrder string `form:"sort_order"`
 }

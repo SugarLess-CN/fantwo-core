@@ -53,8 +53,8 @@ func (h *ArticleHandler) Create(c *gin.Context) {
 //	@Param			page		query		int		false	"页码，默认 1"
 //	@Param			limit		query		int		false	"每页条数，默认 10"
 //	@Param			title		query		string	false	"标题关键字"
-//	@Param			categoryId	query		string	false	"分类 ID"
-//	@Param			tagId		query		string	false	"标签 ID"
+//	@Param			category_id	query		string	false	"分类 ID"
+//	@Param			tag_id		query		string	false	"标签 ID"
 //	@Param			type		query		string	false	"image/mixed/video，默认 all"
 //	@Param			status		query		string	false	"状态筛选，逗号分隔"
 //	@Success		200			{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.ArticleDto}}
@@ -64,8 +64,8 @@ func (h *ArticleHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
 		Title:      c.Query("title"),
-		CategoryID: c.Query("categoryId"),
-		TagID:      c.Query("tagId"),
+		CategoryID: c.Query("category_id"),
+		TagID:      c.Query("tag_id"),
 		Type:       c.DefaultQuery("type", "all"),
 		Status:     splitIDs(c.Query("status")),
 		Page:       page,
@@ -132,8 +132,8 @@ func (h *ArticleHandler) Search(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
 		Keyword:    c.Query("keyword"),
-		CategoryID: c.Query("categoryId"),
-		SortBy:     c.DefaultQuery("sortBy", "relevance"),
+		CategoryID: c.Query("category_id"),
+		SortBy:     c.DefaultQuery("sort_by", "relevance"),
 		Page:       page,
 		Limit:      limit,
 	}
@@ -177,7 +177,7 @@ func (h *ArticleHandler) ByAuthor(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := service.ArticleListQuery{
 		Keyword:    c.Query("keyword"),
-		CategoryID: c.Query("categoryId"),
+		CategoryID: c.Query("category_id"),
 		Type:       c.DefaultQuery("type", "all"),
 		Page:       page,
 		Limit:      limit,
@@ -330,8 +330,8 @@ func parseTagQuery(c *gin.Context) repository.TagListQuery {
 	page, limit := pageOf(c)
 	return repository.TagListQuery{
 		Name:    c.Query("name"),
-		SortBy:  c.Query("sortBy"),
-		SortOrd: c.DefaultQuery("sortOrder", "DESC"),
+		SortBy:  c.Query("sort_by"),
+		SortOrd: c.DefaultQuery("sort_order", "DESC"),
 		Page:    page,
 		Limit:   limit,
 	}

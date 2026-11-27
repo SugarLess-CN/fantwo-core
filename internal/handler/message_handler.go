@@ -170,8 +170,8 @@ func (h *MessageHandler) Search(c *gin.Context) {
 		uid,
 		c.Query("keyword"),
 		c.Query("type"),
-		c.Query("senderId"),
-		c.Query("receiverId"),
+		c.Query("sender_id"),
+		c.Query("receiver_id"),
 		isRead, isBroadcast,
 		page, limit,
 	)

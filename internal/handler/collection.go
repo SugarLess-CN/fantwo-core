@@ -48,10 +48,10 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 //	@Tags		合集
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		userId		query	string	false	"按作者过滤"
+//	@Param		user_id		query	string	false	"按作者过滤"
 //	@Param		keyword		query	string	false	"按名称搜索"
-//	@Param		sortBy		query	string	false	"排序字段"
-//	@Param		sortOrder	query	string	false	"排序方向 ASC / DESC（默认 DESC）"
+//	@Param		sort_by		query	string	false	"排序字段"
+//	@Param		sort_order	query	string	false	"排序方向 ASC / DESC（默认 DESC）"
 //	@Param		page		query	int		false	"页码"
 //	@Param		limit		query	int		false	"每页条数"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CollectionDto}}
@@ -60,10 +60,10 @@ func (h *CollectionHandler) Create(c *gin.Context) {
 func (h *CollectionHandler) List(c *gin.Context) {
 	page, limit := pageOf(c)
 	q := repository.CollectionListQuery{
-		UserID:  c.Query("userId"),
+		UserID:  c.Query("user_id"),
 		Keyword: c.Query("keyword"),
-		SortBy:  c.Query("sortBy"),
-		SortOrd: c.DefaultQuery("sortOrder", "DESC"),
+		SortBy:  c.Query("sort_by"),
+		SortOrd: c.DefaultQuery("sort_order", "DESC"),
 		Page:    page,
 		Limit:   limit,
 	}

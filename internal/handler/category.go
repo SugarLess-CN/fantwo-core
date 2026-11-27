@@ -22,14 +22,14 @@ func parseCategoryQuery(c *gin.Context) repository.CategoryListQuery {
 	q := repository.CategoryListQuery{
 		Name:     c.Query("name"),
 		Status:   c.Query("status"),
-		ParentID: c.Query("parentId"),
-		SortBy:   c.Query("sortBy"),
-		SortOrd:  c.DefaultQuery("sortOrder", "DESC"),
+		ParentID: c.Query("parent_id"),
+		SortBy:   c.Query("sort_by"),
+		SortOrd:  c.DefaultQuery("sort_order", "DESC"),
 		Page:     page,
 		Limit:    limit,
 	}
 	// parentId=0 视为「只取根分类」（对齐原 DTO 把 0 转 null 的语义）
-	if c.Query("parentId") == "0" {
+	if c.Query("parent_id") == "0" {
 		q.ParentID = ""
 		q.OnlyRoot = true
 	}

@@ -409,13 +409,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "分类 ID",
-                        "name": "categoryId",
+                        "name": "category_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "标签 ID",
-                        "name": "tagId",
+                        "name": "tag_id",
                         "in": "query"
                     },
                     {
@@ -2739,7 +2739,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "按作者过滤",
-                        "name": "userId",
+                        "name": "user_id",
                         "in": "query"
                     },
                     {
@@ -2751,13 +2751,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "排序字段",
-                        "name": "sortBy",
+                        "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "排序方向 ASC / DESC（默认 DESC）",
-                        "name": "sortOrder",
+                        "name": "sort_order",
                         "in": "query"
                     },
                     {
@@ -8203,7 +8203,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "买家用户 ID",
-                        "name": "userId",
+                        "name": "user_id",
                         "in": "query"
                     },
                     {
@@ -11347,13 +11347,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "起始日期 YYYY-MM-DD",
-                        "name": "startDate",
+                        "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "结束日期 YYYY-MM-DD",
-                        "name": "endDate",
+                        "name": "end_date",
                         "in": "query"
                     }
                 ],

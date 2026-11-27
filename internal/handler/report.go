@@ -54,10 +54,10 @@ func (h *OpsHandler) ReportList(c *gin.Context) {
 		Type:       c.Query("type"),
 		Status:     c.Query("status"),
 		Category:   c.Query("category"),
-		ReporterID: c.Query("reporterId"),
+		ReporterID: c.Query("reporter_id"),
 		Keyword:    c.Query("keyword"),
-		SortBy:     c.Query("sortBy"),
-		SortOrder:  c.Query("sortOrder"),
+		SortBy:     c.Query("sort_by"),
+		SortOrder:  c.Query("sort_order"),
 	}
 	lr, err := h.Report.List(q)
 	if err != nil {

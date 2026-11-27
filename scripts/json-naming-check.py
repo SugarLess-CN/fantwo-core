@@ -65,6 +65,22 @@ def classify(type_name: str) -> str:
     return 'other'
 
 
+def scan_form_tags():
+    """扫描 form:"xxx"（query 参数），同样要求 snake_case。"""
+    issues = []
+    for f in sorted(glob.glob(f'{DTO_DIR}/*.go')) + sorted(glob.glob('internal/model/*.go')):
+        if f.endswith('_test.go'):
+            continue
+        src = open(f, encoding='utf-8').read()
+        for m in re.finditer(r'form:"([a-zA-Z][^",]*)"', src):
+            name = m.group(1)
+            if '_' in name or not re.search(r'[a-z][A-Z]', name):
+                continue
+            issues.append((f, '(form)', 'query', name, camel_to_snake(name),
+                           m.start(1), m.end(1)))
+    return issues
+
+
 def scan():
     """返回 [(file, type, kind, field_json_name, expected_name, abs_start, abs_end)]"""
     issues = []
@@ -109,7 +125,7 @@ def main():
     ap.add_argument('--list', action='store_true', help='只列违规')
     args = ap.parse_args()
 
-    issues = scan()
+    issues = scan() + scan_form_tags()
     if not issues:
         print('✓ 命名全部合规（全站 snake_case）')
         return 0

@@ -52,8 +52,8 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 		Type:      c.Query("type"),
 		Status:    c.Query("status"),
 		Keyword:   c.Query("keyword"),
-		SortBy:    c.Query("sortBy"),
-		SortOrder: c.Query("sortOrder"),
+		SortBy:    c.Query("sort_by"),
+		SortOrder: c.Query("sort_order"),
 	}
 	lr, err := h.Decoration.List(q)
 	if err != nil {

@@ -57,7 +57,7 @@ func bindOrderQuery(c *gin.Context) model.OrderQuery {
 //	@Param		limit	query	int		false	"每页条数"
 //	@Param		status	query	string	false	"订单状态 PENDING/PAID/CANCELLED/REFUNDED"
 //	@Param		type	query	string	false	"订单类型 MEMBERSHIP/PRODUCT/SERVICE/ARTICLE"
-//	@Param		userId	query	string	false	"买家用户 ID"
+//	@Param		user_id	query	string	false	"买家用户 ID"
 //	@Param		keyword	query	string	false	"订单号模糊搜索"
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.OrderDto}}
 //	@ID			OrderController_getAllOrders

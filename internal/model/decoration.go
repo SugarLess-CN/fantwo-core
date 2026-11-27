@@ -145,8 +145,8 @@ type DecorationQuery struct {
 	Type      string `form:"type"`
 	Status    string `form:"status"`
 	Keyword   string `form:"keyword"`
-	SortBy    string `form:"sortBy"`
-	SortOrder string `form:"sortOrder"`
+	SortBy    string `form:"sort_by"`
+	SortOrder string `form:"sort_order"`
 }
 
 // DecorationInput 装饰品创建/更新入参。

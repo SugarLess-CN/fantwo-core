@@ -47,8 +47,8 @@ func (h *StatisticsHandler) Overview(c *gin.Context) {
 //	@Tags		统计
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		startDate query string false "起始日期 YYYY-MM-DD"
-//	@Param		endDate query string false "结束日期 YYYY-MM-DD"
+//	@Param		start_date query string false "起始日期 YYYY-MM-DD"
+//	@Param		end_date query string false "结束日期 YYYY-MM-DD"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.StatisticsTrendsDto}
 //	@ID			StatisticsController_getTrends
 //	@Router		/statistics/trends [get]

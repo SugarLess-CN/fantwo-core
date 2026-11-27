@@ -110,8 +110,8 @@ type ReportQuery struct {
 	Type       string `form:"type"`
 	Status     string `form:"status"`
 	Category   string `form:"category"`
-	ReporterID string `form:"reporterId"`
+	ReporterID string `form:"reporter_id"`
 	Keyword    string `form:"keyword"`
-	SortBy     string `form:"sortBy"`
-	SortOrder  string `form:"sortOrder"`
+	SortBy     string `form:"sort_by"`
+	SortOrder  string `form:"sort_order"`
 }

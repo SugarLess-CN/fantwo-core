@@ -21,10 +21,10 @@ func commentListQuery(c *gin.Context) service.CommentListQuery {
 	return service.CommentListQuery{
 		Page:       page,
 		Limit:      limit,
-		SortBy:     c.DefaultQuery("sortBy", "latest"),
+		SortBy:     c.DefaultQuery("sort_by", "latest"),
 		OnlyAuthor: boolQuery(c, "onlyAuthor"),
 		Keyword:    c.Query("keyword"),
-		UserID:     c.Query("userId"),
+		UserID:     c.Query("user_id"),
 	}
 }
 

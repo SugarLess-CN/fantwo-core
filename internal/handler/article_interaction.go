@@ -162,7 +162,7 @@ func (h *ArticleHandler) FavoriteStatus(c *gin.Context) {
 //	@Router		/article/favorited/list [get]
 func (h *ArticleHandler) FavoritedList(c *gin.Context) {
 	page, limit := pageOf(c)
-	list, total, e := h.svc.FavoritedArticles(c.Request.Context(), actorOf(c), c.Query("userId"), page, limit)
+	list, total, e := h.svc.FavoritedArticles(c.Request.Context(), actorOf(c), c.Query("user_id"), page, limit)
 	if e != nil {
 		ctFail(c, e)
 		return

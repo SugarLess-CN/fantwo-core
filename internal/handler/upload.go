@@ -71,7 +71,7 @@ func (h *UploadHandler) List(c *gin.Context) {
 			return
 		}
 	}
-	list, total, err := h.svc.ListUpload(page, limit, c.Query("sortBy"), c.Query("sortOrder"), onlyUserID)
+	list, total, err := h.svc.ListUpload(page, limit, c.Query("sort_by"), c.Query("sort_order"), onlyUserID)
 	if err != nil {
 		response.Fail(c, infraErrOrNil(err))
 		return
@@ -284,7 +284,7 @@ func (h *UploadHandler) MigrationStats(c *gin.Context) {
 //	@Router		/upload/migration/process [post]
 func (h *UploadHandler) MigrationProcess(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
-	dryRun := c.Query("dryRun") == "true"
+	dryRun := c.Query("dry_run") == "true"
 	// body 覆盖 query（原 controller 只读 query，但 swagger 声明了 body，取并集更宽容）
 	var body dto.MigrationProcessRequest
 	if err := c.ShouldBindJSON(&body); err == nil {

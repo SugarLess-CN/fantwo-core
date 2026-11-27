@@ -46,8 +46,8 @@ func (h *OpsHandler) AchievementList(c *gin.Context) {
 	list, err := h.Achievement.List(
 		currentUserID(c),
 		c.Query("keyword"),
-		c.Query("sortBy"),
-		c.Query("sortOrder"),
+		c.Query("sort_by"),
+		c.Query("sort_order"),
 	)
 	if err != nil {
 		fail(c, err)

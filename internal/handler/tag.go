@@ -104,7 +104,7 @@ func (h *TagHandler) Hot(c *gin.Context) {
 //	@Router		/tag/followed/list [get]
 func (h *TagHandler) FollowedList(c *gin.Context) {
 	page, limit := pageOf(c)
-	list, total, e := h.svc.FollowedList(c.Request.Context(), actorOf(c), c.Query("userId"), c.Query("name"), page, limit)
+	list, total, e := h.svc.FollowedList(c.Request.Context(), actorOf(c), c.Query("user_id"), c.Query("name"), page, limit)
 	if e != nil {
 		ctFail(c, e)
 		return

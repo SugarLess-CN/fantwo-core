@@ -50,8 +50,8 @@ func (h *OpsHandler) BannerList(c *gin.Context) {
 		Page:      atoiDefault(c.Query("page"), 1),
 		Limit:     atoiDefault(c.Query("limit"), 0),
 		Status:    c.Query("status"),
-		SortBy:    c.Query("sortBy"),
-		SortOrder: c.Query("sortOrder"),
+		SortBy:    c.Query("sort_by"),
+		SortOrder: c.Query("sort_order"),
 	}
 	// 对齐原实现：无 banner:manage 权限的用户只能看到 active
 	q.Status = service.EffectiveBannerStatus(q.Status, isAdmin(c))

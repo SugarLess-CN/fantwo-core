@@ -102,12 +102,12 @@ func (h *OpsHandler) EmojiList(c *gin.Context) {
 		Type:          c.Query("type"),
 		Category:      c.Query("category"),
 		Keyword:       c.Query("keyword"),
-		IsPublic:      boolPtr(c.Query("isPublic")),
+		IsPublic:      boolPtr(c.Query("is_public")),
 		Status:        c.Query("status"),
-		UserID:        c.Query("userId"),
-		OnlyFavorites: c.Query("onlyFavorites") == "true",
-		SortBy:        c.Query("sortBy"),
-		SortOrder:     c.Query("sortOrder"),
+		UserID:        c.Query("user_id"),
+		OnlyFavorites: c.Query("only_favorites") == "true",
+		SortBy:        c.Query("sort_by"),
+		SortOrder:     c.Query("sort_order"),
 	}
 	if q.OnlyFavorites && currentUserID(c) == "" {
 		response.Fail(c, errcode.ErrUnauthorized)
@@ -374,7 +374,7 @@ func (h *OpsHandler) EmojiPackList(c *gin.Context) {
 	q := model.EmojiPackQuery{
 		Page:    atoiDefault(c.Query("page"), 1),
 		Limit:   atoiDefault(c.Query("limit"), 0),
-		UserID:  c.Query("userId"),
+		UserID:  c.Query("user_id"),
 		Keyword: c.Query("keyword"),
 		Status:  c.Query("status"),
 	}

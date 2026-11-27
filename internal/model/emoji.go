@@ -79,12 +79,12 @@ type EmojiQuery struct {
 	Type          string `form:"type"`
 	Category      string `form:"category"`
 	Keyword       string `form:"keyword"`
-	IsPublic      *bool  `form:"isPublic"`
+	IsPublic      *bool  `form:"is_public"`
 	Status        string `form:"status"`
-	UserID        string `form:"userId"`
-	OnlyFavorites bool   `form:"onlyFavorites"`
-	SortBy        string `form:"sortBy"`
-	SortOrder     string `form:"sortOrder"`
+	UserID        string `form:"user_id"`
+	OnlyFavorites bool   `form:"only_favorites"`
+	SortBy        string `form:"sort_by"`
+	SortOrder     string `form:"sort_order"`
 }
 
 // EmojiInput 表情创建/更新入参。
@@ -107,10 +107,10 @@ type EmojiInput struct {
 type EmojiPackQuery struct {
 	Page     int    `form:"page"`
 	Limit    int    `form:"limit"`
-	UserID   string `form:"userId"`
+	UserID   string `form:"user_id"`
 	Keyword  string `form:"keyword"`
 	Status   string `form:"status"`
-	IsPublic *bool  `form:"isPublic"`
+	IsPublic *bool  `form:"is_public"`
 }
 
 // EmojiPackInput 表情包创建/更新入参。

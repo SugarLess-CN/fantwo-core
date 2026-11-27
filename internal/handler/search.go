@@ -152,8 +152,8 @@ func (h *SearchHandler) SearchArticles(c *gin.Context) {
 	}
 	res, err := h.svc.SearchArticles(c.Request.Context(), h.db, infra.ArticleSearchRequest{
 		Keyword:    keyword,
-		CategoryID: c.Query("categoryId"),
-		SortBy:     c.DefaultQuery("sortBy", "relevance"),
+		CategoryID: c.Query("category_id"),
+		SortBy:     c.DefaultQuery("sort_by", "relevance"),
 		Page:       page,
 		Limit:      limit,
 		UserID:     infraCurrentUserID(c),
@@ -226,7 +226,7 @@ func infraAtoi(s string, def int) int {
 func (h *SearchHandler) HotKeywords(c *gin.Context) {
 	days := infraAtoi(c.Query("days"), 7)
 	limit := infraAtoi(c.Query("limit"), 10)
-	minResults := infraAtoi(c.Query("minResults"), 1)
+	minResults := infraAtoi(c.Query("min_results"), 1)
 	scene := c.Query("scene")
 
 	logs := h.logs
