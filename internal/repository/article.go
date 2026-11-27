@@ -510,3 +510,57 @@ func (r *ArticleRepository) DislikedSet(ctx context.Context, userID string, arti
 	}
 	return out, err
 }
+
+// ---------------------------------------------------------------------------
+// 下载资源（downloads 表，对齐原 NestJS article.downloads 一对多）
+// ---------------------------------------------------------------------------
+
+// ReplaceDownloads 全量替换某文章的下载资源（先删后插，事务内调用）。
+//
+// 为什么全量替换而不是增量 diff：原版的语义就是「提交什么就是什么」，
+// 增量 diff 需要客户端带 ID 才能区分新增/修改/删除，而前端表单通常不维护 ID。
+func (r *ArticleRepository) ReplaceDownloads(ctx context.Context, articleID string, items []model.Download) error {
+	db := r.db.WithContext(ctx)
+	if err := db.Where("article_id = ?", articleID).Delete(&model.Download{}).Error; err != nil {
+		return err
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	for i := range items {
+		items[i].ArticleID = articleID
+		items[i].Sort = i
+	}
+	return db.Create(&items).Error
+}
+
+// FindDownloadsByArticle 查单篇文章的下载资源（按 sort 升序）。
+func (r *ArticleRepository) FindDownloadsByArticle(ctx context.Context, articleID string) ([]model.Download, error) {
+	var out []model.Download
+	err := r.db.WithContext(ctx).
+		Where("article_id = ?", articleID).
+		Order("sort ASC").
+		Find(&out).Error
+	return out, err
+}
+
+// FindDownloadsByArticles 批量查多篇文章的下载资源（避免列表页 N+1）。
+//
+// 返回 map[articleID][]Download，未命中的文章不在 map 里（调用方按空切片处理）。
+func (r *ArticleRepository) FindDownloadsByArticles(ctx context.Context, articleIDs []string) (map[string][]model.Download, error) {
+	out := make(map[string][]model.Download, len(articleIDs))
+	if len(articleIDs) == 0 {
+		return out, nil
+	}
+	var rows []model.Download
+	if err := r.db.WithContext(ctx).
+		Where("article_id IN ?", articleIDs).
+		Order("sort ASC").
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	for _, d := range rows {
+		out[d.ArticleID] = append(out[d.ArticleID], d)
+	}
+	return out, nil
+}

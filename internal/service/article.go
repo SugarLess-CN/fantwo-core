@@ -235,6 +235,12 @@ func (s *ArticleService) Create(ctx context.Context, actor Actor, req CreateArti
 				return err
 			}
 		}
+		// 下载资源（对齐原 article.downloads 一对多）：与文章同事务写入。
+		if len(req.Downloads) > 0 {
+			if err := repo.ReplaceDownloads(ctx, a.ID, toDownloadModels(req.Downloads)); err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -409,6 +415,16 @@ func (s *ArticleService) Update(ctx context.Context, id string, actor Actor, req
 				return err
 			}
 			if err := tagRepo.IncrCounters(ctx, added, "article_count", 1); err != nil {
+				return err
+			}
+		}
+
+		// 下载资源：传了才替换（nil = 不改，空数组 = 清空）。
+		//
+		// 这个语义很重要：PATCH 里「没传 downloads」和「传了空数组」是两件事，
+		// 前者不动、后者清空。用 nil 切片区分（JSON 里缺字段 → nil）。
+		if req.Downloads != nil {
+			if err := repo.ReplaceDownloads(ctx, id, toDownloadModels(req.Downloads)); err != nil {
 				return err
 			}
 		}
@@ -941,4 +957,44 @@ func samePtr(a, b *string) bool {
 		return false
 	}
 	return *a == *b
+}
+
+// toDownloadModels 请求里的下载资源 → 表记录（对齐原 DownloadDto → Download）。
+//
+// 空字符串按「未填写」处理：原版 password / extractionCode 都是 nullable，
+// 传空串等于不填，落库统一写 NULL（数据库要区分 NULL 与空串）。
+func toDownloadModels(in []ArticleDownloadRequest) []model.Download {
+	out := make([]model.Download, 0, len(in))
+	for _, d := range in {
+		m := model.Download{
+			Type:                     d.Type,
+			URL:                      d.URL,
+			VisibleWithoutPermission: d.VisibleWithoutPermission,
+		}
+		if d.Password != "" {
+			v := d.Password
+			m.Password = &v
+		}
+		if d.ExtractionCode != "" {
+			v := d.ExtractionCode
+			m.ExtractionCode = &v
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
+// fromDownloadModels 表记录 → 对外 DTO（空值按 docs/21：字符串 ""、数组 []）。
+func fromDownloadModels(in []model.Download) []ArticleDownloadRequest {
+	out := make([]ArticleDownloadRequest, 0, len(in))
+	for _, d := range in {
+		out = append(out, ArticleDownloadRequest{
+			Type:                     d.Type,
+			URL:                      d.URL,
+			Password:                 strOrEmpty(d.Password),
+			ExtractionCode:           strOrEmpty(d.ExtractionCode),
+			VisibleWithoutPermission: d.VisibleWithoutPermission,
+		})
+	}
+	return out
 }

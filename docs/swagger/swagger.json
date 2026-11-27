@@ -15990,30 +15990,46 @@
         },
         "dto.ArticleDownloadRequest": {
             "type": "object",
+            "required": [
+                "type",
+                "url"
+            ],
             "properties": {
-                "code": {
+                "extraction_code": {
+                    "description": "ExtractionCode 下载提取码（可空，与 password 是两回事）。",
                     "type": "string",
                     "example": "abcd"
                 },
-                "name": {
+                "password": {
+                    "description": "Password 网盘分享密码（可空）。",
                     "type": "string",
-                    "example": "原图.zip"
-                },
-                "note": {
-                    "type": "string",
-                    "example": "解压密码见简介"
-                },
-                "size": {
-                    "type": "string",
-                    "example": "12MB"
+                    "example": "1234"
                 },
                 "type": {
+                    "description": "Type 下载类型，取值固定 10 个（对齐原 DownloadType 枚举）。",
                     "type": "string",
-                    "example": "zip"
+                    "enum": [
+                        "baidu",
+                        "onedrive",
+                        "google",
+                        "quark",
+                        "aliyun",
+                        "dropbox",
+                        "direct",
+                        "lanzou",
+                        "mega",
+                        "other"
+                    ],
+                    "example": "baidu"
                 },
                 "url": {
                     "type": "string",
-                    "example": "https://cdn.example.com/a.zip"
+                    "example": "https://pan.baidu.com/s/1ABC123"
+                },
+                "visible_without_permission": {
+                    "description": "VisibleWithoutPermission 文章设了门槛时该资源是否仍对无权限用户可见。",
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -16060,6 +16076,13 @@
                 "download_count": {
                     "type": "integer",
                     "example": 0
+                },
+                "downloads": {
+                    "description": "Downloads 下载资源列表（对齐原 article.downloads 一对多）。\n\n空时输出 []（不是 null）—— 见 docs/21 §一 规则 ②。",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ArticleDownloadRequest"
+                    }
                 },
                 "favorite_count": {
                     "type": "integer",

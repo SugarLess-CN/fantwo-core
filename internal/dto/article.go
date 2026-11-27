@@ -110,6 +110,11 @@ type ArticleDto struct {
 	Shares        int    `json:"shares" example:"0"`
 	DownloadCount int    `json:"download_count" example:"0"`
 
+	// Downloads 下载资源列表（对齐原 article.downloads 一对多）。
+	//
+	// 空时输出 []（不是 null）—— 见 docs/21 §一 规则 ②。
+	Downloads []ArticleDownloadRequest `json:"downloads"`
+
 	IsFeatured        bool       `json:"is_featured" example:"false"`
 	FeaturedAt        *time.Time `json:"featured_at,omitempty"`
 	IsPinnedOnProfile bool       `json:"is_pinned_on_profile" example:"false"`
@@ -257,12 +262,19 @@ type BrowseStatsDto struct {
 
 // ArticleDownloadRequest 下载资源项（对齐原 DownloadDto）。
 type ArticleDownloadRequest struct {
-	Name string `json:"name" example:"原图.zip"`
-	URL  string `json:"url" example:"https://cdn.example.com/a.zip"`
-	Size string `json:"size" example:"12MB"`
-	Type string `json:"type" example:"zip"`
-	Code string `json:"code" example:"abcd"`
-	Note string `json:"note" example:"解压密码见简介"`
+	// Type 下载类型，取值固定 10 个（对齐原 DownloadType 枚举）。
+	Type string `json:"type" binding:"required,oneof=baidu onedrive google quark aliyun dropbox direct lanzou mega other" example:"baidu" enums:"baidu,onedrive,google,quark,aliyun,dropbox,direct,lanzou,mega,other"`
+
+	URL string `json:"url" binding:"required" example:"https://pan.baidu.com/s/1ABC123"`
+
+	// Password 网盘分享密码（可空）。
+	Password string `json:"password" example:"1234"`
+
+	// ExtractionCode 下载提取码（可空，与 password 是两回事）。
+	ExtractionCode string `json:"extraction_code" example:"abcd"`
+
+	// VisibleWithoutPermission 文章设了门槛时该资源是否仍对无权限用户可见。
+	VisibleWithoutPermission bool `json:"visible_without_permission" example:"false"`
 }
 
 // CreateArticleRequest 创建文章请求体（service.CreateArticleRequest）。

@@ -14,6 +14,7 @@ func ContentModels() []interface{} {
 		&model.ArticleFavorite{},
 		&model.ArticleDislike{},
 		&model.BrowseHistory{},
+		&model.Download{},
 		&model.Comment{},
 		&model.CommentLike{},
 		&model.Collection{},

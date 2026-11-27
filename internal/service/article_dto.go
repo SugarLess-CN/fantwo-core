@@ -108,15 +108,11 @@ type BrowseHistoryView = dto.BrowseHistoryDto
 
 // ---------- 文章请求 DTO ----------
 
-// ArticleDownloadRequest 下载资源项（对齐原 DownloadDto）。
-type ArticleDownloadRequest struct {
-	Name *string `json:"name" binding:"omitempty,max=200"`
-	URL  string  `json:"url" binding:"omitempty,max=1000"`
-	Size *string `json:"size" binding:"omitempty,max=64"`
-	Type *string `json:"type" binding:"omitempty,max=32"`
-	Code *string `json:"code" binding:"omitempty,max=64"`
-	Note *string `json:"note" binding:"omitempty,max=500"`
-}
+// ArticleDownloadRequest 下载资源项（对齐原 DownloadDto，5 字段）。
+//
+// 用 dto 别名而不是复制定义：字段与对外 JSON 必须物理同一份，
+// 否则 service 加字段、dto 没加，会静默偏离（docs/18 §一）。
+type ArticleDownloadRequest = dto.ArticleDownloadRequest
 
 // CreateArticleRequest 创建文章。
 type CreateArticleRequest struct {

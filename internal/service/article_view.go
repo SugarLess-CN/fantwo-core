@@ -85,6 +85,14 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 	favorited, _ := s.repo.FavoritedSet(ctx, actor.UserID, ids)
 	disliked, _ := s.repo.DislikedSet(ctx, actor.UserID, ids)
 
+	// 下载资源（对齐原 article.downloads）：一次批量查，避免列表页 N+1。
+	dlMap := map[string][]model.Download{}
+	if m, err := s.repo.FindDownloadsByArticles(ctx, ids); err == nil {
+		dlMap = m
+	} else {
+		s.log.Warn("批量查询下载资源失败", zap.Error(err))
+	}
+
 	for _, r := range rows {
 		// 空值口径（docs/21）：字符串指针 → 值（空即 ""）、数组初始化（空即 []）、
 		// 对象与时间保持指针 + omitempty（空即整个字段不传）。
@@ -123,6 +131,10 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 			IsDisliked:        disliked[r.ID],
 			CreatedAt:         r.CreatedAt,
 			UpdatedAt:         r.UpdatedAt,
+			// 下载资源：空时 []，不是 null（docs/21 §一 规则 ②）。
+			Downloads: fromDownloadModels(dlMap[r.ID]),
+			// download_count 对齐原版 @AfterLoad：等于 downloads 数组长度，动态计算不入库。
+			DownloadCount: len(dlMap[r.ID]),
 		}
 		if withContent {
 			v.Content = strOrEmpty(r.Content)
