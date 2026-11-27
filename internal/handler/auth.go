@@ -57,9 +57,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	out := service.ViewUser(user, true)
-	response.Success(c, gin.H{"user": out, "token": token, "refreshToken": refresh,
-		"username": user.Username, "id": user.ID})
+	response.Success(c, service.LoginResult(user, token, refresh))
 }
 
 // Register POST /user/register（另挂 POST /auth/register）。
@@ -217,10 +215,7 @@ func (h *AuthHandler) SmsLogin(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{
-		"user": service.ViewUser(user, true), "token": token,
-		"refreshToken": refresh, "id": user.ID,
-	})
+	response.Success(c, service.LoginResult(user, token, refresh))
 }
 
 // SendEmailCode POST /user/email/verification：邮箱验证码。
@@ -357,10 +352,7 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, gin.H{
-		"user": service.ViewUser(user, true), "token": token,
-		"refreshToken": refresh, "id": user.ID, "isMember": service.IsMember(user),
-	})
+	response.Success(c, service.LoginResult(user, token, refresh))
 }
 
 // GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。

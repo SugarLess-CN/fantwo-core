@@ -40,11 +40,8 @@ import (
 //
 // **必须与既有 GitHub 端点逐字一致**（前端已按这个结构解析）：
 // user 走 service.ViewUser 脱敏视图、附带 isMember、id 单独给一份（前端历史习惯）。
-func oauthLoginResult(user *model.User, token, refresh string) gin.H {
-	return gin.H{
-		"user": service.ViewUser(user, true), "token": token,
-		"refreshToken": refresh, "id": user.ID, "isMember": service.IsMember(user),
-	}
+func oauthLoginResult(user *model.User, token, refresh string) *dto.LoginResultDto {
+	return service.LoginResult(user, token, refresh)
 }
 
 // ---------------------------------------------------------------------------

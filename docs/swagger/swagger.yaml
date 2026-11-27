@@ -2574,21 +2574,111 @@ definitions:
     type: object
   dto.LoginResultDto:
     properties:
+      address:
+        example: 杭州
+        type: string
+      articleCount:
+        example: 12
+        type: integer
+      avatar:
+        example: https://cdn.example.com/a.png
+        type: string
+      background:
+        example: https://cdn.example.com/bg.png
+        type: string
+      birthDate:
+        description: '---- 时间字段：空时不传（时间没有"空"的自然表示，见规范 §一）----'
+        example: "1998-06-01T00:00:00Z"
+        format: date-time
+        type: string
+      createdAt:
+        example: "2026-11-25T10:00:00Z"
+        format: date-time
+        type: string
+      description:
+        example: 喜欢拍风景
+        type: string
+      email:
+        example: a***@example.com
+        type: string
+      experience:
+        example: 430
+        type: integer
+      followerCount:
+        example: 128
+        type: integer
+      followingCount:
+        example: 36
+        type: integer
+      gender:
+        example: FEMALE
+        type: string
       id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
+      inviteCount:
+        example: 0
+        type: integer
+      inviteEarnings:
+        example: 0
+        type: number
       isMember:
         example: false
         type: boolean
+      level:
+        example: 5
+        type: integer
+      likes:
+        example: 512
+        type: integer
+      membershipEndDate:
+        format: date-time
+        type: string
+      membershipLevel:
+        example: 1
+        type: integer
+      membershipLevelName:
+        example: 普通用户
+        type: string
+      membershipStatus:
+        example: INACTIVE
+        type: string
+      myInviteCode:
+        example: AB12CD
+        type: string
+      nickname:
+        description: |-
+          ---- 字符串字段：值类型，空时 ""（不是 null、不是省略）----
+          见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），
+          转换发生在 service.buildUserView → strOrEmpty()。
+        example: 爱丽丝
+        type: string
+      phone:
+        example: 138****8000
+        type: string
+      points:
+        example: 320
+        type: integer
       refreshToken:
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+      roles:
+        description: '---- 数组字段：去掉 omitempty，空时输出 []（不是省略、不是 null）----'
+        items:
+          $ref: '#/definitions/dto.RoleBriefDto'
+        type: array
+      status:
+        example: ACTIVE
         type: string
       token:
+        example: eyJhbGciOiJIUzI1NiIs...
         type: string
-      user:
-        $ref: '#/definitions/dto.UserDto'
       username:
         example: alice
         type: string
+      wallet:
+        example: 100.5
+        type: number
     type: object
   dto.MarkMessagesReadResultDto:
     properties:

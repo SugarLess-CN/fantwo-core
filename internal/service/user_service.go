@@ -776,3 +776,12 @@ func (s *UserService) Deps() *Deps { return s.d }
 
 // IsMember 会员是否有效（对外暴露给 handler 拼装响应）。
 func IsMember(u *model.User) bool { return isMembershipActive(u) }
+
+// LoginResult 组装登录成功的响应（用户字段**扁平展开**，不嵌套在 user 里）。
+//
+// 所有登录入口（账密 / 短信 / 微信 web+app / QQ web+app / GitHub）都必须走这里。
+// 不要在 handler 里手写 gin.H —— 之前 4 处手写导致「dto 声明一份、运行时另一份」，
+// 字段加漏了编译期发现不了（docs/21 §四之三 契约漂移）。
+func LoginResult(u *model.User, token, refresh string) *dto.LoginResultDto {
+	return &dto.LoginResultDto{UserDto: *ViewUser(u, true), Token: token, RefreshToken: refresh}
+}

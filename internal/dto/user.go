@@ -156,14 +156,32 @@ type RefreshTokenRequest struct {
 
 // LoginResultDto 登录成功的 data。
 //
-// Login 额外带 username；微信/QQ/GitHub 的 OAuth 登录额外带 isMember。
+// **用户字段是扁平展开的，不是嵌套在 `user` 里**（用户 2026-11-27 指定）：
+//
+//	{"id":"...","username":"alice","nickname":"爱丽丝",...,"token":"...","refreshToken":"..."}
+//
+// 而不是：
+//
+//	{"user":{"id":"...","nickname":"..."},"token":"..."}
+//
+// 为什么展平：前端登录后马上要用 id/username/avatar 等字段，嵌一层只是多写 `.user`；
+// 而且 UserDto 与 LoginResultDto 的字段名本来就不冲突（token/refreshToken 是登录独有的）。
+//
+// 组装必须走 service.LoginResult()，**不要在 handler 里手写 gin.H** ——
+// 之前 4 处都用 gin.H 手写，导致「DTO 声明一份、运行时另一份」的契约漂移
+// （docs/21 §四之三），而且字段加漏了编译期发现不了。
 type LoginResultDto struct {
-	User         *UserDto `json:"user"`
-	Token        string   `json:"token"`
-	RefreshToken string   `json:"refreshToken"`
-	ID           string   `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Username     string   `json:"username,omitempty" example:"alice"`
-	IsMember     bool     `json:"isMember,omitempty" example:"false"`
+	// 内嵌 UserDto：字段全部提升到本层
+	UserDto
+
+	Token        string `json:"token" example:"eyJhbGciOiJIUzI1NiIs..."`
+	RefreshToken string `json:"refreshToken" example:"eyJhbGciOiJIUzI1NiIs..."`
+
+	// ID 与内嵌 UserDto.ID 同值，为兼容前端历史习惯额外保留一份顶层副本。
+	//
+	// Deprecated: 用内嵌的 id（同名字段，序列化后只出现一次，值相同）。
+	// 保留它不产生任何输出差异，仅作为明确的兼容声明。
+	ID string `json:"-" swaggerignore:"true"`
 }
 
 // RefreshTokenResultDto 刷新结果（只回新 token）。

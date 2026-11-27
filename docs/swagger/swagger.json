@@ -18835,26 +18835,140 @@
         "dto.LoginResultDto": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "杭州"
+                },
+                "articleCount": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "avatar": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/a.png"
+                },
+                "background": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/bg.png"
+                },
+                "birthDate": {
+                    "description": "---- 时间字段：空时不传（时间没有\"空\"的自然表示，见规范 §一）----",
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "1998-06-01T00:00:00Z"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-11-25T10:00:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "喜欢拍风景"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "a***@example.com"
+                },
+                "experience": {
+                    "type": "integer",
+                    "example": 430
+                },
+                "followerCount": {
+                    "type": "integer",
+                    "example": 128
+                },
+                "followingCount": {
+                    "type": "integer",
+                    "example": 36
+                },
+                "gender": {
+                    "type": "string",
+                    "example": "FEMALE"
+                },
                 "id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "inviteCount": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "inviteEarnings": {
+                    "type": "number",
+                    "example": 0
                 },
                 "isMember": {
                     "type": "boolean",
                     "example": false
                 },
+                "level": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "likes": {
+                    "type": "integer",
+                    "example": 512
+                },
+                "membershipEndDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "membershipLevel": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "membershipLevelName": {
+                    "type": "string",
+                    "example": "普通用户"
+                },
+                "membershipStatus": {
+                    "type": "string",
+                    "example": "INACTIVE"
+                },
+                "myInviteCode": {
+                    "type": "string",
+                    "example": "AB12CD"
+                },
+                "nickname": {
+                    "description": "---- 字符串字段：值类型，空时 \"\"（不是 null、不是省略）----\n见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），\n转换发生在 service.buildUserView → strOrEmpty()。",
+                    "type": "string",
+                    "example": "爱丽丝"
+                },
+                "phone": {
+                    "type": "string",
+                    "example": "138****8000"
+                },
+                "points": {
+                    "type": "integer",
+                    "example": 320
+                },
                 "refreshToken": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIs..."
+                },
+                "roles": {
+                    "description": "---- 数组字段：去掉 omitempty，空时输出 []（不是省略、不是 null）----",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RoleBriefDto"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ACTIVE"
                 },
                 "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/dto.UserDto"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIs..."
                 },
                 "username": {
                     "type": "string",
                     "example": "alice"
+                },
+                "wallet": {
+                    "type": "number",
+                    "example": 100.5
                 }
             }
         },
