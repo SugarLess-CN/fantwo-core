@@ -7,7 +7,8 @@
 > ```
 > 容器名    1Panel-postgresql-Oyls
 > 数据库用户  user_ceE5Jc
-> 库名      见 §0（POSTGRES_DB 未设，必须查）
+> 库名      fantwo_core      ← 已确认（同容器还有 cms / postgres / user_ceE5Jc）
+> 版本      PostgreSQL 18
 > ```
 > PostgreSQL **18**（PGDATA=/var/lib/postgresql/18/docker）。
 >
@@ -48,11 +49,18 @@ PGDATA=/var/lib/postgresql/18/docker
 ### 0.2 列出现有库（确认 `-d` 的值）
 
 ```bash
-docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -lqt \
+docker exec 1Panel-postgresql-Oyls psql -U user_ceE5Jc -lqt \
   | cut -d'|' -f1 | grep -vE "template|^\s*$" | sed 's/^ *//'
 ```
 
-输出里找业务库（`fantwo_core` 或其它），那就是 `-d` 的值。
+本环境实际输出（本地 socket 走 trust，无需密码）：
+
+```
+cms
+fantwo_core      ← 业务库，就是 -d 的值
+postgres
+user_ceE5Jc
+```
 
 （`-u postgres` 是**系统用户**，与数据库角色无关；若容器内也没有该用户会报错，
 那就看 0.3。）
@@ -138,7 +146,7 @@ ERROR:  column "nick_id" does not exist
 ERROR:  relation "user_nick_id_seq" does not exist
 ```
 
-> 容器名 `1Panel-postgresql-Oyls`，库名默认 `fantwo_core`（见 §0 确认）。
+> 容器名 `1Panel-postgresql-Oyls`，库名 `fantwo_core`（已确认）。
 
 ---
 
