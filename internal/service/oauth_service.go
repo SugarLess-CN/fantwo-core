@@ -974,7 +974,8 @@ func (s *OAuthService) LinkToCurrentUser(ctx context.Context, userID string, in 
 		}
 	} else {
 		// web 渠道：state 校验（fail-closed，与登录共用同一套 Redis 键与一次性消费）。
-		if e := authSvc.verifyOAuthState(ctx, in.Provider, in.Channel, in.State); e != nil {
+		// 绑定流程不需要 did（不签发 token），忽略返回的设备标识。
+		if _, e := authSvc.verifyOAuthState(ctx, in.Provider, in.Channel, in.State); e != nil {
 			return nil, e
 		}
 		if strings.TrimSpace(in.Code) == "" {

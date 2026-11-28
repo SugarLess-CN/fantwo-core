@@ -54,10 +54,11 @@ func oauthLoginResult(c *gin.Context, svc *service.AuthService, user *model.User
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
+//	@Param			did query string false "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）" example(dev-abc123)
 //	@Router		/user/oauth/wechat/web/url [get]
 //	@ID			WechatOAuthController_webURL
 func (h *AuthHandler) WechatWebURL(c *gin.Context) {
-	out, e := h.svc.WechatWebAuthURL(c.Request.Context())
+	out, e := h.svc.WechatWebAuthURL(c.Request.Context(), deviceIDOf(c))
 	if e != nil {
 		response.Fail(c, e)
 		return
@@ -140,10 +141,11 @@ func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
+//	@Param			did query string false "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）" example(dev-abc123)
 //	@Router		/user/oauth/qq/web/url [get]
 //	@ID			QqOAuthController_webURL
 func (h *AuthHandler) QQWebURL(c *gin.Context) {
-	out, e := h.svc.QQWebAuthURL(c.Request.Context())
+	out, e := h.svc.QQWebAuthURL(c.Request.Context(), deviceIDOf(c))
 	if e != nil {
 		response.Fail(c, e)
 		return

@@ -15241,6 +15241,15 @@ const docTemplate = `{
                 ],
                 "summary": "GitHub 授权链接",
                 "operationId": "UserController_getGithubOAuthUrl",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "dev-abc123",
+                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "name": "did",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -15386,6 +15395,15 @@ const docTemplate = `{
                 ],
                 "summary": "QQ 网页登录（取授权链接）",
                 "operationId": "QqOAuthController_webURL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "dev-abc123",
+                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "name": "did",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -15531,6 +15549,15 @@ const docTemplate = `{
                 ],
                 "summary": "微信扫码登录（取授权链接）",
                 "operationId": "WechatOAuthController_webURL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "dev-abc123",
+                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "name": "did",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

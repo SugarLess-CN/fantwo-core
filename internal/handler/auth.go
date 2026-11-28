@@ -294,12 +294,25 @@ func bindJSON(c *gin.Context, out interface{}) bool {
 	return true
 }
 
-// deviceIDOf 读取 device-id 头（对齐原 getHeaderValue(headers,"device-id")）。
+// deviceIDOf 读取设备标识。
+//
+// 优先级：header `device-id` → header `Device-Id` → **query `did`**。
+//
+// 为什么需要 query 兜底：OAuth 回调是**浏览器 302 跳转**（微信/QQ/GitHub 平台发起），
+// 前端无法给这个请求加自定义 header。所以两条路支持传设备标识：
+//
+//	① 发起授权时调 `GET /user/oauth/{p}/web/url?did=xxx`，后端把它存进 state，
+//	   回调时从 state 取回（**推荐**，不用改 redirect_uri）；
+//	② 平台允许 redirect_uri 带 query 时，直接 `?did=xxx` 回传（QQ 要求
+//	   redirect_uri 与登记地址完全一致，这条不一定可用，故只作兜底）。
 func deviceIDOf(c *gin.Context) string {
 	if v := c.GetHeader("device-id"); v != "" {
 		return v
 	}
-	return c.GetHeader("Device-Id")
+	if v := c.GetHeader("Device-Id"); v != "" {
+		return v
+	}
+	return c.Query("did")
 }
 
 // GithubURL GET /user/oauth/github/url：返回 GitHub 授权链接 + state。
@@ -310,9 +323,10 @@ func deviceIDOf(c *gin.Context) string {
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
 //	@ID			UserController_getGithubOAuthUrl
+//	@Param			did query string false "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）" example(dev-abc123)
 //	@Router		/user/oauth/github/url [get]
 func (h *AuthHandler) GithubURL(c *gin.Context) {
-	out, e := h.svc.GithubAuthURL(c.Request.Context())
+	out, e := h.svc.GithubAuthURL(c.Request.Context(), deviceIDOf(c))
 	if e != nil {
 		response.Fail(c, e)
 		return

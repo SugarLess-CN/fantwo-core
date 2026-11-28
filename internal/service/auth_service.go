@@ -618,6 +618,19 @@ func (s *AuthService) SmsLogin(ctx context.Context, phone, code, deviceID string
 	if e := s.d.ready(); e != nil {
 		return nil, "", "", e
 	}
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
+	}
 	if phone == "" || code == "" {
 		return nil, "", "", errcode.ErrInvalidParam
 	}
@@ -748,7 +761,7 @@ func (s *AuthService) oauthSuccessURL(provider, channel string) string {
 // 回调时 VerifyState 又因为「Redis 不可用 → return true」放行 —— 两道防线同时失效，
 // 等于 CSRF 防护完全不存在（docs/14 §6.4 记录的缺陷）。
 // 新实现：state 写不进去就不发授权链接，直接 503 让前端稍后重试。
-func (s *AuthService) issueOAuthState(ctx context.Context, provider, channel string) (string, *errcode.Err) {
+func (s *AuthService) issueOAuthState(ctx context.Context, provider, channel, did string) (string, *errcode.Err) {
 	if s.d.AuthTok == nil {
 		s.d.Logger.Error("oauth state store unavailable (AuthTok nil), refuse to start oauth flow",
 			zap.String("provider", provider), zap.String("channel", channel))
@@ -759,7 +772,13 @@ func (s *AuthService) issueOAuthState(ctx context.Context, provider, channel str
 		s.d.Logger.Error("oauth generate state", zapErr(err))
 		return "", errcode.ErrInternal
 	}
-	if err := s.d.AuthTok.Set(ctx, oauthStatePrefix(provider, channel)+state, 1, oauthStateTTL); err != nil {
+	// 值里携带发起方的 device-id（空则存占位 "-"）。
+	//
+	// 为什么需要：OAuth 回调用的是**浏览器 302 跳转**，前端无法加自定义 header，
+	// 而 refresh_token 必须与设备绑定。把 did 存进 state（我们自己的随机串，
+	// 平台只负责原样回传）是唯一不用改 redirect_uri 的办法 ——
+	// QQ 明确要求 redirect_uri 与登记地址**完全一致**，加 query 有被拒风险。
+	if err := s.d.AuthTok.Set(ctx, oauthStatePrefix(provider, channel)+state, statePayload(did), oauthStateTTL); err != nil {
 		s.d.Logger.Error("oauth persist state failed, refuse to start oauth flow",
 			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
 		return "", errcode.ErrDependencyUnavailable
@@ -773,44 +792,66 @@ func (s *AuthService) issueOAuthState(ctx context.Context, provider, channel str
 //   - state 为空 → 400 参数错误（禁令 3：调用方没传，重试无用）
 //   - Redis 不可用 / 读写报错 → 503（依赖故障，可重试；**绝不放行**）
 //   - 未命中 / 已用过 → 400 AuthOAuthFailed（过期或被重放）
-func (s *AuthService) verifyOAuthState(ctx context.Context, provider, channel, state string) *errcode.Err {
+//
+// 返回值 did：发起授权时随 state 存下的设备标识（可能为空字符串 —— 调用方自己兜底）。
+func (s *AuthService) verifyOAuthState(ctx context.Context, provider, channel, state string) (string, *errcode.Err) {
 	if strings.TrimSpace(state) == "" {
-		return errcode.ErrInvalidParam
+		return "", errcode.ErrInvalidParam
 	}
 	if s.d.AuthTok == nil {
 		s.d.Logger.Error("oauth state store unavailable (AuthTok nil), refuse to verify state",
 			zap.String("provider", provider), zap.String("channel", channel))
-		return errcode.ErrDependencyUnavailable
+		return "", errcode.ErrDependencyUnavailable
 	}
 	key := oauthStatePrefix(provider, channel) + state
-	n, err := s.d.AuthTok.Exists(ctx, key)
+	raw, err := s.d.AuthTok.Get(ctx, key)
 	if err != nil {
 		s.d.Logger.Error("oauth verify state failed, refuse the callback",
 			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
-		return errcode.ErrDependencyUnavailable
+		return "", errcode.ErrDependencyUnavailable
 	}
-	if n == 0 {
+	if raw == "" {
 		// state 未命中 = 链接已过期 / 已用过 / 伪造 —— 用户可自行修复（重新发起登录），
 		// 必须与「上游失败」区分开：上游失败要等，state 失效要重来（T-37f）。
 		// 注意仍然是 400 而不是 401：这不是本站认证态失效，是本次登录参数失效。
-		return errcode.ErrOAuthStateInvalid
+		return "", errcode.ErrOAuthStateInvalid
 	}
 	// 一次性消费：删不掉也当失败处理（否则同一 state 可被重放换 token）。
 	if err := s.d.AuthTok.Del(ctx, key); err != nil {
 		s.d.Logger.Error("oauth consume state failed, refuse the callback",
 			zap.String("provider", provider), zap.String("channel", channel), zapErr(err))
-		return errcode.ErrDependencyUnavailable
+		return "", errcode.ErrDependencyUnavailable
 	}
-	return nil
+	return stateDID(raw), nil
+}
+
+// statePlaceholder 表示「发起授权时没带 device-id」。
+//
+// 为什么要有占位而不是存空串：Redis 的 GET 对不存在的 key 与空值都返回 ""，
+// 无法区分「state 存在但没 did」与「state 不存在」。用占位就能靠 raw == "" 判未命中。
+const statePlaceholder = "-"
+
+func statePayload(did string) string {
+	if did == "" {
+		return statePlaceholder
+	}
+	return did
+}
+
+func stateDID(raw string) string {
+	if raw == statePlaceholder {
+		return ""
+	}
+	return raw
 }
 
 // oauthAuthURL 取授权链接 + 签发 state（web 渠道通用）。
-func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel string) (*dto.OAuthURLDto, *errcode.Err) {
+func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel, did string) (*dto.OAuthURLDto, *errcode.Err) {
 	p, e := s.oauthProvider(provider, channel)
 	if e != nil {
 		return nil, e
 	}
-	state, e := s.issueOAuthState(ctx, provider, channel)
+	state, e := s.issueOAuthState(ctx, provider, channel, did)
 	if e != nil {
 		return nil, e
 	}
@@ -835,6 +876,19 @@ func (s *AuthService) oauthWebCallback(ctx context.Context, provider, channel, c
 	if e := s.d.ready(); e != nil {
 		return nil, "", "", e
 	}
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
+	}
 	// 禁令 3：空 code 先本地拦掉，别白耗一次上游配额。
 	if strings.TrimSpace(code) == "" {
 		return nil, "", "", errcode.ErrInvalidParam
@@ -843,8 +897,14 @@ func (s *AuthService) oauthWebCallback(ctx context.Context, provider, channel, c
 	if e != nil {
 		return nil, "", "", e
 	}
-	if e := s.verifyOAuthState(ctx, provider, channel, state); e != nil {
+	stateDIDVal, e := s.verifyOAuthState(ctx, provider, channel, state)
+	if e != nil {
 		return nil, "", "", e
+	}
+	// device-id 兜底：回调是浏览器 302，前端加不了 header。
+	// 优先用发起授权时随 state 存下的 did，其次才用调用方传进来的。
+	if deviceID == "" {
+		deviceID = stateDIDVal
 	}
 
 	tok, err := p.Exchange(ctx, code)
@@ -909,7 +969,17 @@ func (s *AuthService) oauthAppLoginByToken(ctx context.Context, provider, channe
 	}
 	accessToken = strings.TrimSpace(accessToken)
 	openID = strings.TrimSpace(openID)
-	if accessToken == "" || openID == "" {
+	// **只要求 access_token**：open_id 是**可选**的。
+	//
+	// 为什么 openID 不再是必填（2026-11-28 用户指出的流程差异）：
+	// 官方 OAuth2.0 流程是「access_token → /oauth2.0/me → openid」，
+	// openid 由**后端**向平台查询，前端根本不需要知道它（QQ Step5）。
+	// 之前把 openID 也判成必填，导致「前端只传 ak + did」的标准流程被 10008 挡住。
+	//
+	// 安全性不变：openid 是账号绑定主键，**绝不以客户端上报值为准** ——
+	// 上报了只做一致性校验（ValidateToken 内 `tok.OpenID != me.OpenID` → ErrTokenMismatch），
+	// 最终落库的一律是平台返回的权威值（`tok.OpenID = me.OpenID`）。
+	if accessToken == "" {
 		return nil, "", "", errcode.ErrInvalidParam
 	}
 	p, e := s.oauthProvider(provider, channel)
@@ -960,8 +1030,9 @@ func (s *AuthService) finishOAuthLogin(ctx context.Context, tok *oauthkit.Token,
 }
 
 // GithubAuthURL 生成 GitHub 授权链接（state 随机生成并存入 Redis）。
-func (s *AuthService) GithubAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
-	return s.oauthAuthURL(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb)
+// did 发起方的 device-id（可空）：随 state 存下，回调时用作签发 token 的设备标识。
+func (s *AuthService) GithubAuthURL(ctx context.Context, did string) (*dto.OAuthURLDto, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb, did)
 }
 
 // GithubCallback GitHub 登录（SPA 模式：用 code 换 token 并签发本站双 token）。
@@ -969,6 +1040,19 @@ func (s *AuthService) GithubAuthURL(ctx context.Context) (*dto.OAuthURLDto, *err
 // 账号归属（按 github_id / 邮箱合并 / 自动建号）已统一收敛到
 // OAuthService.FindOrCreateByOAuth，本方法只负责流程串联。
 func (s *AuthService) GithubCallback(ctx context.Context, code, state, deviceID string) (*model.User, string, string, *errcode.Err) {
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
+	}
 	return s.oauthWebCallback(ctx, oauthkit.ProviderGitHub, oauthkit.ChannelWeb, code, state, deviceID)
 }
 
@@ -996,8 +1080,9 @@ func (s *AuthService) oauthRedirectURL(ctx context.Context, provider, channel, c
 // ---- 微信 ----
 
 // WechatWebAuthURL 微信网站应用（PC 扫码）授权链接。
-func (s *AuthService) WechatWebAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
-	return s.oauthAuthURL(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb)
+// did 发起方的 device-id（可空）：随 state 存下，回调时用作签发 token 的设备标识。
+func (s *AuthService) WechatWebAuthURL(ctx context.Context, did string) (*dto.OAuthURLDto, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, did)
 }
 
 // WechatWebCallback 微信网站应用回调（state 前缀 oauth:wechat:web:state:）。
@@ -1014,14 +1099,28 @@ func (s *AuthService) WechatWebRedirectURL(ctx context.Context, code, state, oau
 //
 // 无 state（App 不走浏览器跳转）；不调 ValidateToken（token 是后端自己换的，天然可信）。
 func (s *AuthService) WechatAppLogin(ctx context.Context, code, deviceID string) (*model.User, string, string, *errcode.Err) {
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
+	}
 	return s.oauthAppLoginByCode(ctx, oauthkit.ProviderWechat, oauthkit.ChannelApp, code, deviceID)
 }
 
 // ---- QQ ----
 
 // QQWebAuthURL QQ 网站应用授权链接。
-func (s *AuthService) QQWebAuthURL(ctx context.Context) (*dto.OAuthURLDto, *errcode.Err) {
-	return s.oauthAuthURL(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb)
+// did 发起方的 device-id（可空）：随 state 存下，回调时用作签发 token 的设备标识。
+func (s *AuthService) QQWebAuthURL(ctx context.Context, did string) (*dto.OAuthURLDto, *errcode.Err) {
+	return s.oauthAuthURL(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, did)
 }
 
 // QQWebCallback QQ 网站应用回调（state 前缀 oauth:qq:web:state:）。
@@ -1040,6 +1139,19 @@ func (s *AuthService) QQWebRedirectURL(ctx context.Context, code, state, oauthEr
 // 因此这里直接手工构造 Token 而不走 ParseQQAppLoginPayload（那份 JSON 里的
 // expires_in 对后端登录没有任何用处，少一个被污染的字段）。
 func (s *AuthService) QQAppLogin(ctx context.Context, accessToken, openID, deviceID string) (*model.User, string, string, *errcode.Err) {
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
+	}
 	return s.oauthAppLoginByToken(ctx, oauthkit.ProviderQQ, oauthkit.ChannelApp, accessToken, openID, deviceID)
 }
 
@@ -1051,6 +1163,19 @@ func (s *AuthService) QQAppLogin(ctx context.Context, accessToken, openID, devic
 func (s *AuthService) QQAppLoginPayload(ctx context.Context, raw []byte, deviceID string) (*model.User, string, string, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, "", "", e
+	}
+
+	// device-id 必填（与 Login 同口径 20016）。
+	//
+	// 为什么每个登录入口都要判：refresh_token 与设备绑定（user_device 按
+	// (user_id, device_id) 唯一）。空 device_id 会让所有「没传头」的客户端
+	// 被合并成同一条设备，多端登录与全端登出全部失效。
+	//
+	// 放 service 而不是 handler：redirect 类入口（WechatWebRedirect / QQWebRedirect）
+	// 不返回 JSON，service 返回 error 后由 oauthRedirectURL 自动回跳 `?error=<key>`，
+	// 一处判断同时覆盖 JSON 与 302 两种形态。
+	if deviceID == "" {
+		return nil, "", "", errcode.ErrDeviceIDRequired
 	}
 	if len(raw) == 0 {
 		return nil, "", "", errcode.ErrInvalidParam

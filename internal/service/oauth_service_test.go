@@ -872,14 +872,14 @@ func TestOAuthStateChannelIsolation(t *testing.T) {
 	}
 
 	// ② 微信 web 签发的 state → QQ web 校验必须拒绝。
-	stateWx, e := svc.issueOAuthState(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb)
+	stateWx, e := svc.issueOAuthState(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, "")
 	if e != nil {
 		t.Fatalf("签发微信 state 失败: %v", e)
 	}
 	if !kv.has("oauth:wechat:web:state:" + stateWx) {
 		t.Fatal("微信 state 未按 wechat:web 前缀落库")
 	}
-	if e := svc.verifyOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateWx); e == nil {
+	if _, e := svc.verifyOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateWx); e == nil {
 		t.Error("微信 state 用于 QQ 渠道必须拒绝")
 	}
 	// 拒绝不得消费原 state：键仍在（真正的消费放在 ④ 验证一次性）。
@@ -888,14 +888,14 @@ func TestOAuthStateChannelIsolation(t *testing.T) {
 	}
 
 	// ③ QQ web 签发 → 微信校验拒绝；web 签发 → app 校验拒绝。
-	stateQQ, e := svc.issueOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb)
+	stateQQ, e := svc.issueOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelWeb, "")
 	if e != nil {
 		t.Fatalf("签发 QQ state 失败: %v", e)
 	}
-	if e := svc.verifyOAuthState(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, stateQQ); e == nil {
+	if _, e := svc.verifyOAuthState(ctx, oauthkit.ProviderWechat, oauthkit.ChannelWeb, stateQQ); e == nil {
 		t.Error("QQ state 用于微信渠道必须拒绝")
 	}
-	if e := svc.verifyOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelApp, stateQQ); e == nil {
+	if _, e := svc.verifyOAuthState(ctx, oauthkit.ProviderQQ, oauthkit.ChannelApp, stateQQ); e == nil {
 		t.Error("web 签发的 state 用于 app 渠道必须拒绝")
 	}
 
@@ -904,10 +904,10 @@ func TestOAuthStateChannelIsolation(t *testing.T) {
 		{oauthkit.ProviderWechat, oauthkit.ChannelWeb, stateWx},
 		{oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateQQ},
 	} {
-		if e := svc.verifyOAuthState(ctx, pair.provider, pair.channel, pair.state); e != nil {
+		if _, e := svc.verifyOAuthState(ctx, pair.provider, pair.channel, pair.state); e != nil {
 			t.Fatalf("%s/%s 首次校验应通过: %v", pair.provider, pair.channel, e)
 		}
-		if e := svc.verifyOAuthState(ctx, pair.provider, pair.channel, pair.state); e == nil {
+		if _, e := svc.verifyOAuthState(ctx, pair.provider, pair.channel, pair.state); e == nil {
 			t.Errorf("%s/%s 同一 state 二次校验应失败（一次性）", pair.provider, pair.channel)
 		}
 	}
@@ -918,7 +918,7 @@ func TestOAuthStateWechatAppNoState(t *testing.T) {
 	d := NewDeps(nil, nil, nil, nil, nil)
 	d.AuthTok = newMemKV()
 	svc := NewAuthService(d)
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderWechat, oauthkit.ChannelApp, ""); e == nil ||
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderWechat, oauthkit.ChannelApp, ""); e == nil ||
 		e.BizCode != errcode.BizInvalidParam {
 		t.Errorf("空 state 应返回 10008，实际 %v", e)
 	}

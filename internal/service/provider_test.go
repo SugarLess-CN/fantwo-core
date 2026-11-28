@@ -114,7 +114,7 @@ func TestGithubAuthorizeURL(t *testing.T) {
 		oauthkit.ConfigKeyGitHubClientSecret: "secret",
 		oauthkit.ConfigKeyGitHubRedirectURI:  "https://api.example.com/api/v1/user/oauth/github/callback",
 	}
-	out, e := NewAuthService(d).GithubAuthURL(context.Background())
+	out, e := NewAuthService(d).GithubAuthURL(context.Background(), "")
 	if e != nil {
 		t.Fatalf("生成授权链接失败: %v", e)
 	}
@@ -139,7 +139,7 @@ func TestGithubAuthorizeURL(t *testing.T) {
 func TestOAuthStateFailClosed(t *testing.T) {
 	// ① AuthTok 为 nil（降级模式）→ 503，不放行。
 	d := NewDeps(nil, nil, nil, nil, nil)
-	if e := NewAuthService(d).verifyOAuthState(context.Background(),
+	if _, e := NewAuthService(d).verifyOAuthState(context.Background(),
 		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "anything"); e == nil ||
 		e.BizCode != errcode.BizDependencyDown {
 		t.Errorf("AuthTok 为 nil 时应拒绝并返回 503，实际 %v", e)
@@ -149,19 +149,19 @@ func TestOAuthStateFailClosed(t *testing.T) {
 	kv.fail = true
 	d2 := NewDeps(nil, nil, nil, nil, nil)
 	d2.AuthTok = kv
-	if e := NewAuthService(d2).verifyOAuthState(context.Background(),
+	if _, e := NewAuthService(d2).verifyOAuthState(context.Background(),
 		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "anything"); e == nil ||
 		e.BizCode != errcode.BizDependencyDown {
 		t.Errorf("Redis 报错时应拒绝并返回 503，实际 %v", e)
 	}
 	// ③ 签发 state 也 fail-closed。
 	if _, e := NewAuthService(d2).issueOAuthState(context.Background(),
-		oauthkit.ProviderGitHub, oauthkit.ChannelWeb); e == nil ||
+		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, ""); e == nil ||
 		e.BizCode != errcode.BizDependencyDown {
 		t.Errorf("Redis 报错时不得签发 state，实际 %v", e)
 	}
 	// ④ 空 state 先判参数错（禁令 3）。
-	if e := NewAuthService(d).verifyOAuthState(context.Background(),
+	if _, e := NewAuthService(d).verifyOAuthState(context.Background(),
 		oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "  "); e == nil || e.BizCode != errcode.BizInvalidParam {
 		t.Errorf("空 state 应返回参数错误，实际 %v", e)
 	}
@@ -249,28 +249,28 @@ func TestGithubStateOneTimeUse(t *testing.T) {
 		oauthkit.ConfigKeyGitHubClientSecret: "secret",
 	}
 	svc := NewAuthService(d)
-	state, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb)
+	state, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "")
 	if e != nil {
 		t.Fatalf("签发 state 失败: %v", e)
 	}
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e != nil {
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e != nil {
 		t.Fatalf("首次校验应通过: %v", e)
 	}
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e == nil {
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, state); e == nil {
 		t.Error("同一 state 第二次校验应失败（一次性）")
 	}
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, ""); e == nil {
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, ""); e == nil {
 		t.Error("空 state 应校验失败")
 	}
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "never-issued"); e == nil {
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderGitHub, oauthkit.ChannelWeb, "never-issued"); e == nil {
 		t.Error("未签发的 state 应校验失败")
 	}
 	// 跨渠道重放：微信 web 的 state 不能拿去校验 QQ web 的回调。
-	stateWx, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderWechat, oauthkit.ChannelWeb)
+	stateWx, e := svc.issueOAuthState(context.Background(), oauthkit.ProviderWechat, oauthkit.ChannelWeb, "")
 	if e != nil {
 		t.Fatalf("签发微信 state 失败: %v", e)
 	}
-	if e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateWx); e == nil {
+	if _, e := svc.verifyOAuthState(context.Background(), oauthkit.ProviderQQ, oauthkit.ChannelWeb, stateWx); e == nil {
 		t.Error("跨渠道复用 state 应校验失败")
 	}
 }

@@ -16030,6 +16030,13 @@ paths:
   /user/oauth/github/url:
     get:
       operationId: UserController_getGithubOAuthUrl
+      parameters:
+      - description: 设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query
+          或 state 传）
+        example: dev-abc123
+        in: query
+        name: did
+        type: string
       produces:
       - application/json
       responses:
@@ -16116,6 +16123,13 @@ paths:
   /user/oauth/qq/web/url:
     get:
       operationId: QqOAuthController_webURL
+      parameters:
+      - description: 设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query
+          或 state 传）
+        example: dev-abc123
+        in: query
+        name: did
+        type: string
       produces:
       - application/json
       responses:
@@ -16202,6 +16216,13 @@ paths:
   /user/oauth/wechat/web/url:
     get:
       operationId: WechatOAuthController_webURL
+      parameters:
+      - description: 设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query
+          或 state 传）
+        example: dev-abc123
+        in: query
+        name: did
+        type: string
       produces:
       - application/json
       responses:
