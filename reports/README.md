@@ -37,6 +37,7 @@
 | 14 | [T-39 JS→Go 字段补齐](14-T39-JS到Go字段补齐.md) | 前端交接单 A~E 五段逐项核对：`UserDto.config`、`UpdateUserConfigRequest` 5→**24** 字段、`RegisterRequest` +邀请码/验证码、`UpdateContactRequest` **补验证码校验**（原可无码改邮箱=账号接管）、9 类接口补查询参数、**4 处** camelCase query 改正名；新建 `cmp-js-go-fields.py` / `verify-t39.py`（22 项） | 2026-11-27 |
 | 15 | [T-40 QQ 官方机器人：发邀请码 + 后台对话](15-T40-QQ机器人.md) | 独立 SDK `pkg/qqbot`（13 文件 / 32 用例 / 零第三方依赖）+ 业务侧 12 端点 + **发件池状态机**（窗口过期 `DEFERRED` 留池等激活）。**官方签名锚点端到端逐字匹配**。审出并修复 6 处（含官方 DEMO 不可复现、`40034122` 语义矛盾、群消息 openid 字段错、业务侧零测试） | 2026-11-27 |
 | 16 | [T-40 交接单第三版 9 项字段补齐](16-T40-交接单字段补齐.md) | 前端交接单 §二 的 9 项缺口全补齐（评论内嵌 article/parent、用户/列表 is_followed、装扮归属、浏览历史 id、评论 sort_by、read-all type、登录 brief certification）；`verify-t40.py` **19 过 0 败**。**修 4 处**：`deleted_at IS NULL` 恒不匹配（装扮恒空）、`/user/{id}` 恢复公开+敏感字段收紧、装扮 key 改大写（原 JS 依据）、AuthorBriefDto 接线。**顺带消灭评论 N+1**（20 条 40+→7 SQL） | 2026-11-28 |
+| 17 | [注册即登录：返回 token](17-注册返回token.md) | `POST /user/register` 的 `data` 从 `UserDto` 改为 `LoginResultDto`（内嵌 UserDto，+token/refresh_token/config/certification/equipped_decorations）；注册与登录字段集实测 **32/32 完全一致**；`device-id` 改为必填（与登录同口径 20016） | 2026-11-28 |
 
 ## 当前任务线：配置迁移到 DB
 

@@ -63,12 +63,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // Register POST /user/register（另挂 POST /auth/register）。
 //
 //	@Summary		用户注册
-//	@Description	用户名 + 密码注册，可选昵称/邮箱/手机号；返回用户信息
+//	@Description	用户名 + 密码注册，可选昵称/邮箱/手机号/邀请码/邮箱验证码。**注册即登录**：响应与 /user/login 完全一致（含 token 与 refresh_token），前端无需再调一次 login
 //	@Tags			用户认证
 //	@Accept			json
 //	@Produce		json
-//	@Param			body body dto.RegisterRequest	true	"registerRequest{username,nickname,password,email,phone}"
-//	@Success		200		{object}	dto.ResponseBody{data=dto.UserDto}
+//	@Param			device-id header string true "设备标识（与登录同口径，缺省 20016）" example(device-abc123)
+//	@Param			body body dto.RegisterRequest	true	"registerRequest{username,nickname,password,email,phone,invite_code,verification_code}"
+//	@Success		200		{object}	dto.ResponseBody{data=dto.LoginResultDto}
 //	@Failure		409		{object}	dto.ResponseBody
 //	@ID			UserController_registerUser
 //	@Router			/user/register [post]
@@ -77,19 +78,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	user, e := h.svc.Register(c.Request.Context(), service.RegisterInput{
+	// 注册即登录：直接返回与 /user/login 完全一致的结构
+	// （user 全字段 + config + equipped_decorations + certification + token + refresh_token）。
+	// 前端不用再调一次 login，也不会出现「注册成功但登录失败」的中间态。
+	out, e := h.svc.RegisterResult(c.Request.Context(), service.RegisterInput{
 		Username: req.Username, Nickname: req.Nickname, Password: req.Password,
 		Email: req.Email, Phone: req.Phone,
-		// 新增两字段必须在这里显式转发 —— 漏了这一段就等于「DTO 加了、service 支持了、
+		// 这三个字段必须在这里显式转发 —— 漏了就等于「DTO 加了、service 支持了、
 		// 但请求进不到业务层」（本项目已踩过同类：docs/21 §四之三 契约漂移）。
 		InviteCode:       req.InviteCode,
 		VerificationCode: req.VerificationCode,
+		DeviceID:         deviceIDOf(c),
 	})
 	if e != nil {
 		response.Fail(c, e)
 		return
 	}
-	response.Success(c, service.ViewUser(user, false))
+	response.Success(c, out)
 }
 
 // RefreshToken POST /user/refresh-token（另挂 POST /auth/refresh）。滑动过期：access 重签。

@@ -134,6 +134,8 @@ type RegisterInput struct {
 	// 等价于注册后再调一次 POST /invite/use，省一次往返、避免
 	// 「注册成功但邀请码失败」的中间态（docs/28 §三 B1）。
 	InviteCode string
+	// DeviceID 设备标识（注册即登录时用于签发 token；管理端建号可不传）。
+	DeviceID string
 	// VerificationCode 邮箱验证码（可空）：**非空才校验**。
 	// 空值不校验是为了不把现有客户端一次性打成 400；
 	// 要改成「注册必须验邮箱」只需删掉这一层 if（产品决策）。
@@ -252,6 +254,35 @@ func (s *AuthService) LoginResultWithConfig(ctx context.Context, u *model.User, 
 	// 佩戴装扮：与 profile / user/{id} 同一套装配，登录后主页头像框不用再拉一次。
 	out.EquippedDecorations = us.userDecorationsOne(u.ID)
 	return out
+}
+
+// RegisterResult 注册并**直接签发 token**（注册即登录）。
+//
+// 为什么需要它：`Register` 只返回 `*model.User`，注册端点因此只能返回 `UserDto`，
+// 前端必须再调一次 `POST /user/login` 才能拿到 token —— 多一次往返，
+// 而且会产生「注册成功但登录失败」的无意义中间态。
+//
+// 这里复用 `issueTokens` + `LoginResultWithConfig`，返回结构与登录**完全一致**
+// （user 全字段 + config + equipped_decorations + certification + token + refresh_token）。
+//
+// deviceID 校验与 Login 同口径（20016）：refresh_token 与设备绑定，
+// 空 device_id 会让多端登录/全端登出失效（todo 里记录的已知问题）。
+func (s *AuthService) RegisterResult(ctx context.Context, in RegisterInput) (*dto.LoginResultDto, *errcode.Err) {
+	if e := s.d.ready(); e != nil {
+		return nil, e
+	}
+	if in.DeviceID == "" {
+		return nil, errcode.ErrDeviceIDRequired
+	}
+	user, e := s.Register(ctx, in)
+	if e != nil {
+		return nil, e
+	}
+	access, refresh, e := s.issueTokens(ctx, user, in.DeviceID)
+	if e != nil {
+		return nil, e
+	}
+	return s.LoginResultWithConfig(ctx, user, access, refresh), nil
 }
 
 // briefCertification 已通过的认证摘要（无认证 / 查库失败都返回 nil）。

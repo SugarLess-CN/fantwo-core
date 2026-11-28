@@ -16516,10 +16516,17 @@ paths:
     post:
       consumes:
       - application/json
-      description: 用户名 + 密码注册，可选昵称/邮箱/手机号；返回用户信息
+      description: 用户名 + 密码注册，可选昵称/邮箱/手机号/邀请码/邮箱验证码。**注册即登录**：响应与 /user/login 完全一致（含
+        token 与 refresh_token），前端无需再调一次 login
       operationId: UserController_registerUser
       parameters:
-      - description: registerRequest{username,nickname,password,email,phone}
+      - description: 设备标识（与登录同口径，缺省 20016）
+        example: device-abc123
+        in: header
+        name: device-id
+        required: true
+        type: string
+      - description: registerRequest{username,nickname,password,email,phone,invite_code,verification_code}
         in: body
         name: body
         required: true
@@ -16535,7 +16542,7 @@ paths:
             - $ref: '#/definitions/dto.ResponseBody'
             - properties:
                 data:
-                  $ref: '#/definitions/dto.UserDto'
+                  $ref: '#/definitions/dto.LoginResultDto'
               type: object
         "409":
           description: Conflict

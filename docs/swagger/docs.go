@@ -16068,7 +16068,7 @@ const docTemplate = `{
         },
         "/user/register": {
             "post": {
-                "description": "用户名 + 密码注册，可选昵称/邮箱/手机号；返回用户信息",
+                "description": "用户名 + 密码注册，可选昵称/邮箱/手机号/邀请码/邮箱验证码。**注册即登录**：响应与 /user/login 完全一致（含 token 与 refresh_token），前端无需再调一次 login",
                 "consumes": [
                     "application/json"
                 ],
@@ -16082,7 +16082,15 @@ const docTemplate = `{
                 "operationId": "UserController_registerUser",
                 "parameters": [
                     {
-                        "description": "registerRequest{username,nickname,password,email,phone}",
+                        "type": "string",
+                        "example": "device-abc123",
+                        "description": "设备标识（与登录同口径，缺省 20016）",
+                        "name": "device-id",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "registerRequest{username,nickname,password,email,phone,invite_code,verification_code}",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -16103,7 +16111,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/dto.UserDto"
+                                            "$ref": "#/definitions/dto.LoginResultDto"
                                         }
                                     }
                                 }
