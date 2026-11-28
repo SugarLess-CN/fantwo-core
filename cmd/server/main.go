@@ -37,6 +37,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/config"
 	"github.com/SugarLess-CN/fantwo-core/internal/database"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/jwtx"
+	loggerpkg "github.com/SugarLess-CN/fantwo-core/internal/pkg/logger"
 	"github.com/SugarLess-CN/fantwo-core/internal/queue"
 	"github.com/SugarLess-CN/fantwo-core/internal/router"
 	"github.com/SugarLess-CN/fantwo-core/internal/service"
@@ -60,13 +61,19 @@ func main() {
 		log.Fatalf("配置加载失败: %v", err)
 	}
 
-	// 2. 日志
-	logger, _ := zap.NewProduction()
+	// 2. 日志（级别由 LOG_LEVEL 决定，语义见 internal/pkg/logger 包注释）
+	//
+	// 此前是硬编码 zap.NewProduction()，LOG_LEVEL 配了也不生效 —— 已修。
+	logger, levelWarn := loggerpkg.New(loggerpkg.Options{
+		Level:       cfg.Log.Level,
+		Format:      cfg.Log.Format,
+		Development: cfg.Log.Format == "console" || cfg.Server.Mode == "debug",
+	})
 	defer func() { _ = logger.Sync() }()
-	if cfg.Log.Format == "console" {
-		logger, _ = zap.NewDevelopment()
-	}
 	zap.ReplaceGlobals(logger)
+	if levelWarn != "" {
+		logger.Warn(levelWarn)
+	}
 
 	// .env 加载结果（放在 logger 之后打，才能进统一日志）
 	switch {

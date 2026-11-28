@@ -140,6 +140,14 @@ services:
       # 想用绑定挂载（便于 1panel 备份）需先：chown 10001:10001 ./data/uploads
       - uploads:/app/uploads
     # Linux 下访问宿主机端口（PG/Redis 只在宿主机监听时用）
+    # 日志上限（**必配**）：不配的话 Docker 默认 json-file 驱动无限增长，
+    # 长期跑会把磁盘吃满（本项目一天正常量约几百 KB，但异常刷屏时无上限）。
+    # 10MB × 3 个文件 = 单容器最多 30MB，滚动覆盖。
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
