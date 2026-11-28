@@ -292,6 +292,22 @@ python .dsh/skills/fantwo-server-ops/ssh.py 'docker inspect fantwo-core-binary -
 
 ---
 
+## 八之一、任务结束清理 tmp/
+
+**每次任务结束前**把 tmp/ 清到只剩三项：
+
+```bash
+for f in tmp/*; do case "$(basename "$f")" in
+  server-creds.env|ssh.py|picart) ;;
+  *) rm -rf "$f" ;; esac; done
+```
+
+保留：`server-creds.env`（凭据）、`ssh.py`（若存在）、`picart/`（原仓库克隆）。
+其余全删（exe / log / 调试 json / 一次性 py / 测试图）。
+实测一次清理 **8.32 GB → 3.8 MB**（88 个 exe 占 8.4 GB）。
+
+---
+
 ## 九、安全约束
 
 1. **凭据只放 `tmp/`**，已 gitignore。任何情况下不写进 `docs/`、`reports/`、提交信息。
