@@ -143,6 +143,8 @@ type ArticleDto struct {
 //
 // article 是文章概要（不含正文）；文章已被删除时整个字段不传。
 type BrowseHistoryDto struct {
+	// ID 浏览记录主键（唯一稳定 key；前端 keyExtractor / 去重用它，别再用 article_id@viewed_at 拼）。
+	ID        string      `json:"id" example:"7f8e9d0c-1b2a-4c3d-8e9f-0123456789ab"`
 	ArticleID string      `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
 	ViewCount int         `json:"view_count" example:"2"`
 	Progress  int         `json:"progress" example:"80"`

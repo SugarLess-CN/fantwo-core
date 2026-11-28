@@ -258,7 +258,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		keyword = c.Query("username")
 	}
 	list, total, e := h.svc.ListUsers(c.Request.Context(), service.ListUsersInput{
-		Page: page, Limit: limit, Keyword: keyword,
+		Page: page, Limit: limit, Keyword: keyword, Actor: actorOf(c),
 	})
 	if e != nil {
 		response.Fail(c, e)
@@ -304,7 +304,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@ID			UserController_findOne
 //	@Router		/user/{id} [get]
 func (h *UserHandler) FindOne(c *gin.Context) {
-	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"))
+	view, e := h.svc.FindUser(c.Request.Context(), c.Param("id"), actorOf(c))
 	if e != nil {
 		response.Fail(c, e)
 		return

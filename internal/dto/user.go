@@ -69,6 +69,20 @@ type UserDto struct {
 	Roles    []RoleBriefDto `json:"roles"`
 	IsMember bool           `json:"is_member" example:"false"`
 
+	// IsFollowed 当前登录用户是否已关注此人。
+	//
+	// 三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表
+	// 的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。
+	// 值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。
+	// 看自己主页恒为 false（不能出现「关注自己」）。
+	IsFollowed bool `json:"is_followed" example:"false"`
+
+	// EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。
+	//
+	// 空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。
+	// 列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。
+	EquippedDecorations map[string]EquippedDecorationDto `json:"equipped_decorations,omitempty"`
+
 	// Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。
 	//
 	// 为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，
@@ -221,6 +235,13 @@ type LoginResultDto struct {
 	// Deprecated: 用内嵌的 id（同名字段，序列化后只出现一次，值相同）。
 	// 保留它不产生任何输出差异，仅作为明确的兼容声明。
 	ID string `json:"-" swaggerignore:"true"`
+
+	// Certification 已通过的认证摘要（brief 版，未认证时不传）。
+	//
+	// 为什么用 brief 而不是完整 CertificationDto：登录响应已经很大
+	// （UserDto 33 字段 + config 28 字段），完整认证 12 字段里申请材料/审核记录
+	// 前端在登录后根本不用（交接单 §二.9）。需要完整版走 GET /user/certification/status。
+	Certification *CertificationBriefDto `json:"certification,omitempty"`
 }
 
 // RefreshTokenResultDto 刷新结果（只回新 token）。

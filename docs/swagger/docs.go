@@ -3509,6 +3509,18 @@ const docTemplate = `{
                         "description": "只看帖主（文章作者）的评论",
                         "name": "only_author",
                         "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hot",
+                            "oldest",
+                            "latest"
+                        ],
+                        "type": "string",
+                        "example": "latest",
+                        "description": "排序方式（置顶恒在最前）",
+                        "name": "sort_by",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3642,6 +3654,18 @@ const docTemplate = `{
                         "example": false,
                         "description": "只看帖主（文章作者）的评论",
                         "name": "only_author",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hot",
+                            "oldest",
+                            "latest"
+                        ],
+                        "type": "string",
+                        "example": "latest",
+                        "description": "排序方式（置顶恒在最前，仅影响非置顶部分）",
+                        "name": "sort_by",
                         "in": "query"
                     }
                 ],
@@ -8125,6 +8149,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -8135,10 +8162,21 @@ const docTemplate = `{
                 "operationId": "MessageController_markAllAsRead",
                 "parameters": [
                     {
-                        "description": "请求体",
+                        "enum": [
+                            "private",
+                            "system",
+                            "notification"
+                        ],
+                        "type": "string",
+                        "example": "notification",
+                        "description": "只标记该类型的消息，缺省=全部类型",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "description": "请求体（可空；type 与 query 二选一，query 优先）",
                         "name": "body",
                         "in": "body",
-                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/dto.MarkAllReadRequest"
                         }
@@ -8161,6 +8199,12 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResponseBody"
                         }
                     }
                 }
@@ -18003,6 +18047,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 120
                 },
+                "id": {
+                    "description": "ID 浏览记录主键（唯一稳定 key；前端 keyExtractor / 去重用它，别再用 article_id@viewed_at 拼）。",
+                    "type": "string",
+                    "example": "7f8e9d0c-1b2a-4c3d-8e9f-0123456789ab"
+                },
                 "progress": {
                     "type": "integer",
                     "example": 80
@@ -18534,9 +18583,45 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CommentArticleBriefDto": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+                },
+                "category": {
+                    "$ref": "#/definitions/dto.CategoryBriefDto"
+                },
+                "cover": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.jpg"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "summary": {
+                    "type": "string",
+                    "example": "一句话摘要"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "我的第一篇作品"
+                }
+            }
+        },
         "dto.CommentDto": {
             "type": "object",
             "properties": {
+                "article": {
+                    "description": "Article 内嵌文章精简视图（读接口填充；写接口只回本体，不带内嵌）。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CommentArticleBriefDto"
+                        }
+                    ]
+                },
                 "article_id": {
                     "type": "string",
                     "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
@@ -18582,6 +18667,14 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 2
                 },
+                "parent": {
+                    "description": "Parent 被回复的评论（仅回复有值；一级评论不传该字段）。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CommentParentBriefDto"
+                        }
+                    ]
+                },
                 "parent_id": {
                     "description": "被回复的评论 ID / 楼层根评论 ID；一级评论两者均为 \"\"。",
                     "type": "string",
@@ -18617,6 +18710,30 @@ const docTemplate = `{
                 "is_liked": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "dto.CommentParentBriefDto": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/dto.AuthorBriefDto"
+                },
+                "author_id": {
+                    "type": "string",
+                    "example": "9f1d2e34-5678-4abc-9def-0123456789ab"
+                },
+                "content": {
+                    "type": "string",
+                    "example": "拍得真好"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-11-25T10:00:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "5c6d7e8f-0000-4a1b-9c2d-000000000003"
                 }
             }
         },
@@ -19655,6 +19772,14 @@ const docTemplate = `{
         "dto.DecorationActivityDto": {
             "type": "object",
             "properties": {
+                "article": {
+                    "description": "---- 内嵌引用（前端交接单第三版 §二.4）----\n\n活动卡片要能渲染文章封面并点进文章、要能显示奖励装扮的图，只给 id 前端做不到。\n两者都是**对象 + omitempty**：article_id 为空（不关联文章的纯门槛活动）或\n关联行已被删除时，整个字段不传；绝不下发 ` + "`" + `null` + "`" + `（docs/21）。\n组装方式：列表接口对整页做 **IN 批量预取**（2 条额外查询，与页大小无关），\n不是逐条查询 —— 见 service.decorationService.activityViews。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.DecorationArticleBriefDto"
+                        }
+                    ]
+                },
                 "article_id": {
                     "type": "string",
                     "example": ""
@@ -19667,6 +19792,9 @@ const docTemplate = `{
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-11-25T10:00:00Z"
+                },
+                "decoration": {
+                    "$ref": "#/definitions/dto.DecorationBriefDto"
                 },
                 "decoration_id": {
                     "type": "string",
@@ -19811,6 +19939,66 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DecorationArticleBriefDto": {
+            "type": "object",
+            "properties": {
+                "cover": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/cover.jpg"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "64b59ed4-1a2b-4c3d-8e9f-0123456789ab"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "summary": {
+                    "type": "string",
+                    "example": "一句话摘要"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "双十一摄影大赛"
+                }
+            }
+        },
+        "dto.DecorationBriefDto": {
+            "type": "object",
+            "properties": {
+                "bubble_color": {
+                    "type": "string",
+                    "example": "#FFD700"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/deco/frame.png"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "金色边框"
+                },
+                "preview_url": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/deco/frame-preview.png"
+                },
+                "rarity": {
+                    "type": "string",
+                    "example": "COMMON"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "AVATAR_FRAME"
+                }
+            }
+        },
         "dto.DecorationDto": {
             "type": "object",
             "properties": {
@@ -19845,6 +20033,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "https://cdn.example.com/deco/frame.png"
                 },
+                "is_owned": {
+                    "description": "---- 归属 / 装备状态（前端交接单第三版 §二.5）----\n\nGET /decoration（商城列表）与 GET /decoration/{id} 会带上登录用户语境填充；\n管理端 CRUD、持有记录里的嵌套定义不计算归属，这两个字段**不传**。\n\n为什么是 *bool + omitempty 而不是 bool：\n  - nil = 「本次响应没有归属语境」，整个字段不传（docs/21 对象/未计算态）；\n  - false = **明确未拥有**，必须出现 —— 前端要靠它显示「未解锁」。\n  直接用 bool + omitempty 会把 false 吃掉，前端永远看不到「未拥有」，\n  等于装饰页仍然全坏的（这正是本次要修的缺陷）。",
+                    "type": "boolean",
+                    "example": false
+                },
                 "is_permanent": {
                     "type": "boolean",
                     "example": false
@@ -19852,6 +20045,10 @@ const docTemplate = `{
                 "is_purchasable": {
                     "type": "boolean",
                     "example": true
+                },
+                "is_using": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "name": {
                     "type": "string",
@@ -19874,6 +20071,15 @@ const docTemplate = `{
                     "description": "COMMON / RARE / EPIC / LEGENDARY",
                     "type": "string",
                     "example": "COMMON"
+                },
+                "required_comments": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "required_likes": {
+                    "description": "---- 解锁门槛（同一交接单 §二.5 的「门槛文案」）----\n\n⚠️ 事实核对：model.Decoration **没有** required_likes / required_comments 这两列\n（` + "`" + `grep -n \"RequiredLikes\" internal/model/decoration.go` + "`" + ` 只命中 DecorationActivity）。\n所以这里**不是**装饰品自身的列，而是它的**来源活动**（activity_id 指向的\ndecoration_activities 行）上声明的门槛 —— 对「活动获取」的装饰品这就是真实的\n解锁条件，不是编造。非活动来源（购买/赠送/成就）不传该字段（nil）。\n若产品需要「每个装饰品独立门槛」，必须给 decorations 表加列，那是另一个决策。",
+                    "type": "integer",
+                    "example": 100
                 },
                 "sort": {
                     "type": "integer",
@@ -20760,6 +20966,14 @@ const docTemplate = `{
                     "format": "date-time",
                     "example": "1998-06-01T00:00:00Z"
                 },
+                "certification": {
+                    "description": "Certification 已通过的认证摘要（brief 版，未认证时不传）。\n\n为什么用 brief 而不是完整 CertificationDto：登录响应已经很大\n（UserDto 33 字段 + config 28 字段），完整认证 12 字段里申请材料/审核记录\n前端在登录后根本不用（交接单 §二.9）。需要完整版走 GET /user/certification/status。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.CertificationBriefDto"
+                        }
+                    ]
+                },
                 "config": {
                     "description": "Config 用户的配置全集（通知 / 隐私 / 水印 / 佣金）。\n\n为什么挂在 UserDto 而不是各自加：LoginResultDto 与 UserProfileDto 都内嵌它，\n加一处两个接口同时满足；登录一次就要拿到全部配置，否则前端进设置页要再发一次\nGET /user/config（docs/28 §四 C 段）。\n\n**只在详情类接口填充**（login / profile / user/{id}），列表接口留 nil ——\nUserDto 被 GET /user、关注/粉丝列表复用，N 个用户各带 28 字段配置会让响应体爆炸。\n指针 + omitempty：不加载时整个字段不传（docs/21 规则 ③），不会出现 config: null。",
                     "allOf": [
@@ -20780,6 +20994,13 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "a***@example.com"
+                },
+                "equipped_decorations": {
+                    "description": "EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。\n\n空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。\n列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dto.EquippedDecorationDto"
+                    }
                 },
                 "experience": {
                     "type": "integer",
@@ -20808,6 +21029,11 @@ const docTemplate = `{
                 "invite_earnings": {
                     "type": "number",
                     "example": 0
+                },
+                "is_followed": {
+                    "description": "IsFollowed 当前登录用户是否已关注此人。\n\n三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表\n的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。\n值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。\n看自己主页恒为 false（不能出现「关注自己」）。",
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_member": {
                     "type": "boolean",
@@ -20892,6 +21118,11 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string",
+                    "enum": [
+                        "private",
+                        "system",
+                        "notification"
+                    ],
                     "example": "notification"
                 }
             }
@@ -25600,6 +25831,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "a***@example.com"
                 },
+                "equipped_decorations": {
+                    "description": "EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。\n\n空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。\n列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dto.EquippedDecorationDto"
+                    }
+                },
                 "experience": {
                     "type": "integer",
                     "example": 430
@@ -25627,6 +25865,11 @@ const docTemplate = `{
                 "invite_earnings": {
                     "type": "number",
                     "example": 0
+                },
+                "is_followed": {
+                    "description": "IsFollowed 当前登录用户是否已关注此人。\n\n三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表\n的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。\n值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。\n看自己主页恒为 false（不能出现「关注自己」）。",
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_member": {
                     "type": "boolean",
@@ -25743,6 +25986,13 @@ const docTemplate = `{
                     "type": "string",
                     "example": "a***@example.com"
                 },
+                "equipped_decorations": {
+                    "description": "EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。\n\n空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。\n列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/dto.EquippedDecorationDto"
+                    }
+                },
                 "experience": {
                     "type": "integer",
                     "example": 430
@@ -25770,6 +26020,11 @@ const docTemplate = `{
                 "invite_earnings": {
                     "type": "number",
                     "example": 0
+                },
+                "is_followed": {
+                    "description": "IsFollowed 当前登录用户是否已关注此人。\n\n三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表\n的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。\n值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。\n看自己主页恒为 false（不能出现「关注自己」）。",
+                    "type": "boolean",
+                    "example": false
                 },
                 "is_member": {
                     "type": "boolean",

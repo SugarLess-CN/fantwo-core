@@ -802,6 +802,11 @@ definitions:
       duration:
         example: 120
         type: integer
+      id:
+        description: ID 浏览记录主键（唯一稳定 key；前端 keyExtractor / 去重用它，别再用 article_id@viewed_at
+          拼）。
+        example: 7f8e9d0c-1b2a-4c3d-8e9f-0123456789ab
+        type: string
       progress:
         example: 80
         type: integer
@@ -1195,8 +1200,32 @@ definitions:
         example: 3
         type: integer
     type: object
+  dto.CommentArticleBriefDto:
+    properties:
+      author_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
+        type: string
+      category:
+        $ref: '#/definitions/dto.CategoryBriefDto'
+      cover:
+        example: https://cdn.example.com/cover.jpg
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      summary:
+        example: 一句话摘要
+        type: string
+      title:
+        example: 我的第一篇作品
+        type: string
+    type: object
   dto.CommentDto:
     properties:
+      article:
+        allOf:
+        - $ref: '#/definitions/dto.CommentArticleBriefDto'
+        description: Article 内嵌文章精简视图（读接口填充；写接口只回本体，不带内嵌）。
       article_id:
         example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
         type: string
@@ -1230,6 +1259,10 @@ definitions:
       likes:
         example: 2
         type: integer
+      parent:
+        allOf:
+        - $ref: '#/definitions/dto.CommentParentBriefDto'
+        description: Parent 被回复的评论（仅回复有值；一级评论不传该字段）。
       parent_id:
         description: 被回复的评论 ID / 楼层根评论 ID；一级评论两者均为 ""。
         example: ""
@@ -1256,6 +1289,23 @@ definitions:
       is_liked:
         example: true
         type: boolean
+    type: object
+  dto.CommentParentBriefDto:
+    properties:
+      author:
+        $ref: '#/definitions/dto.AuthorBriefDto'
+      author_id:
+        example: 9f1d2e34-5678-4abc-9def-0123456789ab
+        type: string
+      content:
+        example: 拍得真好
+        type: string
+      created_at:
+        example: "2026-11-25T10:00:00Z"
+        type: string
+      id:
+        example: 5c6d7e8f-0000-4a1b-9c2d-000000000003
+        type: string
     type: object
   dto.CommentPinResultDto:
     properties:
@@ -2023,6 +2073,17 @@ definitions:
     type: object
   dto.DecorationActivityDto:
     properties:
+      article:
+        allOf:
+        - $ref: '#/definitions/dto.DecorationArticleBriefDto'
+        description: |-
+          ---- 内嵌引用（前端交接单第三版 §二.4）----
+
+          活动卡片要能渲染文章封面并点进文章、要能显示奖励装扮的图，只给 id 前端做不到。
+          两者都是**对象 + omitempty**：article_id 为空（不关联文章的纯门槛活动）或
+          关联行已被删除时，整个字段不传；绝不下发 `null`（docs/21）。
+          组装方式：列表接口对整页做 **IN 批量预取**（2 条额外查询，与页大小无关），
+          不是逐条查询 —— 见 service.decorationService.activityViews。
       article_id:
         example: ""
         type: string
@@ -2033,6 +2094,8 @@ definitions:
         example: "2026-11-25T10:00:00Z"
         format: date-time
         type: string
+      decoration:
+        $ref: '#/definitions/dto.DecorationBriefDto'
       decoration_id:
         example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
         type: string
@@ -2141,6 +2204,49 @@ definitions:
         example: 30
         type: integer
     type: object
+  dto.DecorationArticleBriefDto:
+    properties:
+      cover:
+        example: https://cdn.example.com/cover.jpg
+        type: string
+      id:
+        example: 64b59ed4-1a2b-4c3d-8e9f-0123456789ab
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      summary:
+        example: 一句话摘要
+        type: string
+      title:
+        example: 双十一摄影大赛
+        type: string
+    type: object
+  dto.DecorationBriefDto:
+    properties:
+      bubble_color:
+        example: '#FFD700'
+        type: string
+      id:
+        example: 9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab
+        type: string
+      image_url:
+        example: https://cdn.example.com/deco/frame.png
+        type: string
+      name:
+        example: 金色边框
+        type: string
+      preview_url:
+        example: https://cdn.example.com/deco/frame-preview.png
+        type: string
+      rarity:
+        example: COMMON
+        type: string
+      type:
+        example: AVATAR_FRAME
+        type: string
+    type: object
   dto.DecorationDto:
     properties:
       achievement_id:
@@ -2167,11 +2273,28 @@ definitions:
       image_url:
         example: https://cdn.example.com/deco/frame.png
         type: string
+      is_owned:
+        description: |-
+          ---- 归属 / 装备状态（前端交接单第三版 §二.5）----
+
+          GET /decoration（商城列表）与 GET /decoration/{id} 会带上登录用户语境填充；
+          管理端 CRUD、持有记录里的嵌套定义不计算归属，这两个字段**不传**。
+
+          为什么是 *bool + omitempty 而不是 bool：
+            - nil = 「本次响应没有归属语境」，整个字段不传（docs/21 对象/未计算态）；
+            - false = **明确未拥有**，必须出现 —— 前端要靠它显示「未解锁」。
+            直接用 bool + omitempty 会把 false 吃掉，前端永远看不到「未拥有」，
+            等于装饰页仍然全坏的（这正是本次要修的缺陷）。
+        example: false
+        type: boolean
       is_permanent:
         example: false
         type: boolean
       is_purchasable:
         example: true
+        type: boolean
+      is_using:
+        example: false
         type: boolean
       name:
         example: 金色边框
@@ -2190,6 +2313,21 @@ definitions:
         description: COMMON / RARE / EPIC / LEGENDARY
         example: COMMON
         type: string
+      required_comments:
+        example: 0
+        type: integer
+      required_likes:
+        description: |-
+          ---- 解锁门槛（同一交接单 §二.5 的「门槛文案」）----
+
+          ⚠️ 事实核对：model.Decoration **没有** required_likes / required_comments 这两列
+          （`grep -n "RequiredLikes" internal/model/decoration.go` 只命中 DecorationActivity）。
+          所以这里**不是**装饰品自身的列，而是它的**来源活动**（activity_id 指向的
+          decoration_activities 行）上声明的门槛 —— 对「活动获取」的装饰品这就是真实的
+          解锁条件，不是编造。非活动来源（购买/赠送/成就）不传该字段（nil）。
+          若产品需要「每个装饰品独立门槛」，必须给 decorations 表加列，那是另一个决策。
+        example: 100
+        type: integer
       sort:
         example: 0
         type: integer
@@ -2826,6 +2964,15 @@ definitions:
         example: "1998-06-01T00:00:00Z"
         format: date-time
         type: string
+      certification:
+        allOf:
+        - $ref: '#/definitions/dto.CertificationBriefDto'
+        description: |-
+          Certification 已通过的认证摘要（brief 版，未认证时不传）。
+
+          为什么用 brief 而不是完整 CertificationDto：登录响应已经很大
+          （UserDto 33 字段 + config 28 字段），完整认证 12 字段里申请材料/审核记录
+          前端在登录后根本不用（交接单 §二.9）。需要完整版走 GET /user/certification/status。
       config:
         allOf:
         - $ref: '#/definitions/dto.UserConfigDto'
@@ -2849,6 +2996,15 @@ definitions:
       email:
         example: a***@example.com
         type: string
+      equipped_decorations:
+        additionalProperties:
+          $ref: '#/definitions/dto.EquippedDecorationDto'
+        description: |-
+          EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。
+
+          空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。
+          列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。
+        type: object
       experience:
         example: 430
         type: integer
@@ -2870,6 +3026,16 @@ definitions:
       invite_earnings:
         example: 0
         type: number
+      is_followed:
+        description: |-
+          IsFollowed 当前登录用户是否已关注此人。
+
+          三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表
+          的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。
+          值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。
+          看自己主页恒为 false（不能出现「关注自己」）。
+        example: false
+        type: boolean
       is_member:
         example: false
         type: boolean
@@ -2934,6 +3100,10 @@ definitions:
         example: false
         type: boolean
       type:
+        enum:
+        - private
+        - system
+        - notification
         example: notification
         type: string
     type: object
@@ -6380,6 +6550,15 @@ definitions:
       email:
         example: a***@example.com
         type: string
+      equipped_decorations:
+        additionalProperties:
+          $ref: '#/definitions/dto.EquippedDecorationDto'
+        description: |-
+          EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。
+
+          空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。
+          列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。
+        type: object
       experience:
         example: 430
         type: integer
@@ -6401,6 +6580,16 @@ definitions:
       invite_earnings:
         example: 0
         type: number
+      is_followed:
+        description: |-
+          IsFollowed 当前登录用户是否已关注此人。
+
+          三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表
+          的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。
+          值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。
+          看自己主页恒为 false（不能出现「关注自己」）。
+        example: false
+        type: boolean
       is_member:
         example: false
         type: boolean
@@ -6497,6 +6686,15 @@ definitions:
       email:
         example: a***@example.com
         type: string
+      equipped_decorations:
+        additionalProperties:
+          $ref: '#/definitions/dto.EquippedDecorationDto'
+        description: |-
+          EquippedDecorations 佩戴中的装饰品，按 type 分组（avatar_frame / comment_bubble）。
+
+          空时不传（不是 null、不是空对象）—— docs/21 §一 规则 ③。
+          列表接口批量装配走「一次 IN 查询」，不做逐用户查询（见 service.attachUserDecorations）。
+        type: object
       experience:
         example: 430
         type: integer
@@ -6518,6 +6716,16 @@ definitions:
       invite_earnings:
         example: 0
         type: number
+      is_followed:
+        description: |-
+          IsFollowed 当前登录用户是否已关注此人。
+
+          三个列表接口（GET /user、关注列表、粉丝列表）与详情都用它 —— 关注/粉丝列表
+          的按钮原本全是「关注」态，用户点一次才准（交接单 §二.3）。
+          值类型 bool（不 omitempty、不是 null）：未登录即 false，前端可直接判。
+          看自己主页恒为 false（不能出现「关注自己」）。
+        example: false
+        type: boolean
       is_member:
         example: false
         type: boolean
@@ -8758,6 +8966,15 @@ paths:
         in: query
         name: only_author
         type: boolean
+      - description: 排序方式（置顶恒在最前）
+        enum:
+        - hot
+        - oldest
+        - latest
+        example: latest
+        in: query
+        name: sort_by
+        type: string
       produces:
       - application/json
       responses:
@@ -9001,6 +9218,15 @@ paths:
         in: query
         name: only_author
         type: boolean
+      - description: 排序方式（置顶恒在最前，仅影响非置顶部分）
+        enum:
+        - hot
+        - oldest
+        - latest
+        example: latest
+        in: query
+        name: sort_by
+        type: string
       produces:
       - application/json
       responses:
@@ -11523,12 +11749,22 @@ paths:
       - 消息
   /message/read-all:
     post:
+      consumes:
+      - application/json
       operationId: MessageController_markAllAsRead
       parameters:
-      - description: 请求体
+      - description: 只标记该类型的消息，缺省=全部类型
+        enum:
+        - private
+        - system
+        - notification
+        example: notification
+        in: query
+        name: type
+        type: string
+      - description: 请求体（可空；type 与 query 二选一，query 优先）
         in: body
         name: body
-        required: true
         schema:
           $ref: '#/definitions/dto.MarkAllReadRequest'
       produces:
@@ -11543,6 +11779,10 @@ paths:
                 data:
                   $ref: '#/definitions/dto.MessageCreateResultDto'
               type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ResponseBody'
       security:
       - BearerAuth: []
       summary: 全部已读

@@ -64,6 +64,7 @@ func (h *CommentHandler) Create(c *gin.Context) {
 //	@Param		page query int false "页码" example(1)
 //	@Param		limit query int false "每页条数" example(10)
 //	@Param		only_author query bool false "只看帖主（文章作者）的评论" example(false)
+//	@Param		sort_by query string false "排序方式（置顶恒在最前）" enums(hot, oldest, latest) example(latest)
 //	@Success	200	{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAllComments
 //	@Router		/comment [get]
@@ -86,6 +87,7 @@ func (h *CommentHandler) FindAll(c *gin.Context) {
 //	@Param		page query int false "页码" example(1)
 //	@Param		limit query int false "每页条数" example(10)
 //	@Param		only_author query bool false "只看帖主（文章作者）的评论" example(false)
+//	@Param		sort_by query string false "排序方式（置顶恒在最前，仅影响非置顶部分）" enums(hot, oldest, latest) example(latest)
 //	@Success		200		{object}	dto.ResponsePageBody{data=dto.PageBody{list=[]dto.CommentDto}}
 //	@ID			CommentController_findAll
 //	@Router			/comment/article/{id} [get]

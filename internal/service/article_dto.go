@@ -81,16 +81,21 @@ type AuthorBrief struct {
 	Username   string  `json:"username,omitempty"`
 	Avatar     *string `json:"avatar,omitempty"`
 	IsFollowed bool    `json:"is_followed"`
+	// EquippedDecorations 作者当前佩戴的装扮，key 是大写枚举原值
+	// （AVATAR_FRAME / COMMENT_BUBBLE / ACHIEVEMENT_BADGE，见 decorationTypeKey）。
+	// nil 时走 omitempty → 整个字段不传（不是 null）。
+	EquippedDecorations map[string]dto.EquippedDecorationDto `json:"equipped_decorations,omitempty"`
 }
 
 // authorBriefDto 作者简要 → 对外 DTO（avatar 空指针转 ""，绝不输出 null）。
 func authorBriefDto(a AuthorBrief) dto.AuthorBriefDto {
 	return dto.AuthorBriefDto{
-		ID:         a.ID,
-		Nickname:   a.Nickname,
-		Username:   a.Username,
-		Avatar:     strOrEmpty(a.Avatar),
-		IsFollowed: a.IsFollowed,
+		ID:                  a.ID,
+		Nickname:            a.Nickname,
+		Username:            a.Username,
+		Avatar:              strOrEmpty(a.Avatar),
+		IsFollowed:          a.IsFollowed,
+		EquippedDecorations: a.EquippedDecorations,
 	}
 }
 

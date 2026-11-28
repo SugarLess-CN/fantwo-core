@@ -94,6 +94,33 @@ func (r *CommentRepository) FindByID(ctx context.Context, id string) (*model.Com
 	return &c, nil
 }
 
+// FindBriefByIDs 批量取评论**精简**字段（评论内嵌 parent 用，禁止在循环里查）。
+//
+// 只 select 展示「回复 @某某」需要的列（id/content/author_id/created_at），
+// 不读 images/root_id/状态计数 —— parent 只是引用，不该把它整条评论再展开一遍。
+func (r *CommentRepository) FindBriefByIDs(ctx context.Context, ids []string) ([]model.Comment, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	uniq := make([]string, 0, len(ids))
+	seen := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		uniq = append(uniq, id)
+	}
+	if len(uniq) == 0 {
+		return nil, nil
+	}
+	var rows []model.Comment
+	err := r.db.WithContext(ctx).
+		Select("id", "content", "author_id", "created_at").
+		Where("id IN ?", uniq).Find(&rows).Error
+	return rows, err
+}
+
 // FindReplies 取一组根评论下的全部回复（一次查询，service 侧组树）。
 func (r *CommentRepository) FindReplies(ctx context.Context, rootIDs []string) ([]model.Comment, error) {
 	if len(rootIDs) == 0 {

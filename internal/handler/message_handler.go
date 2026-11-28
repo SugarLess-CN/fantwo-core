@@ -291,14 +291,24 @@ func (h *MessageHandler) MarkRead(c *gin.Context) {
 	response.SuccessMsg(c, i18n.MessageMarkedRead, gin.H{"success": true})
 }
 
-// MarkAllRead POST /message/read-all：全部已读。
+// MarkAllRead POST /message/read-all：全部已读（可按 type 只标一类）。
+//
+// 为什么 type 有两个入口（query + body）：
+//   - 前端交接单要的是 query 形态（`?type=notification`，docs/api-compat-handover §二.8），
+//     前端 MessageCategoryList.tsx 按这个调；
+//   - body 里的 `type` 是本项目既有契约，删会破坏已有调用方 → 保留，**query 优先**。
+//
+// 不传 type = 全部类型都标（历史行为，向后兼容）。
 //
 //	@Summary	全部已读
 //	@Tags		消息
+//	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		body body dto.MarkAllReadRequest true "请求体"
+//	@Param		type query string false "只标记该类型的消息，缺省=全部类型" Enums(private, system, notification) example(notification)
+//	@Param		body body dto.MarkAllReadRequest false "请求体（可空；type 与 query 二选一，query 优先）"
 //	@Success	200	{object}	dto.ResponseBody{data=dto.MessageCreateResultDto}
+//	@Failure	400	{object}	dto.ResponseBody
 //	@ID			MessageController_markAllAsRead
 //	@Router		/message/read-all [post]
 func (h *MessageHandler) MarkAllRead(c *gin.Context) {
@@ -307,7 +317,11 @@ func (h *MessageHandler) MarkAllRead(c *gin.Context) {
 		return
 	}
 	var in service.MarkAllReadInput
-	_ = c.ShouldBindJSON(&in) // body 可空
+	_ = c.ShouldBindJSON(&in) // body 可空（c.ShouldBindJSON 对空 body 返回 EOF，忽略即可）
+	// query 优先于 body：前端按 ?type= 调，必须让 query 覆盖 body 里的空值
+	if q := c.Query("type"); q != "" {
+		in.Type = q
+	}
 	out, err := h.Svc.MarkAllAsRead(uid, in)
 	if err != nil {
 		msgFail(c, err)

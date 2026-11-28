@@ -122,6 +122,41 @@ func (r *ArticleRepository) FindByID(ctx context.Context, id string) (*model.Art
 }
 
 // FindByIDs 批量取文章，返回 id→文章 映射。
+// FindBriefByIDs 批量取文章**精简**字段（评论内嵌 article 用，禁止在循环里查）。
+//
+// 只 select 卡片需要的列（id/title/cover/summary/author_id/category_id），
+// 不读 content / images / 互动计数 —— 评论列表里每条评论都带一份文章摘要，
+// 查全列会把正文一起拉回来，20 条评论就是 20 份正文。
+func (r *ArticleRepository) FindBriefByIDs(ctx context.Context, ids []string) (map[string]*model.Article, error) {
+	out := make(map[string]*model.Article, len(ids))
+	if len(ids) == 0 {
+		return out, nil
+	}
+	uniq := make([]string, 0, len(ids))
+	seen := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		uniq = append(uniq, id)
+	}
+	if len(uniq) == 0 {
+		return out, nil
+	}
+	var rows []model.Article
+	err := r.db.WithContext(ctx).
+		Select("id", "title", "cover", "summary", "author_id", "category_id").
+		Where("id IN ?", uniq).Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for i := range rows {
+		out[rows[i].ID] = &rows[i]
+	}
+	return out, nil
+}
+
 func (r *ArticleRepository) FindByIDs(ctx context.Context, ids []string) (map[string]*model.Article, error) {
 	out := make(map[string]*model.Article, len(ids))
 	if len(ids) == 0 {

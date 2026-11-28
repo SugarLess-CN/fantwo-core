@@ -90,12 +90,15 @@ func (s *DecorationService) Delete(id string) error {
 }
 
 // Get 装饰品详情。对外返回 dto。
-func (s *DecorationService) Get(id string) (*dto.DecorationDto, error) {
+//
+// viewerID 为空（未登录/无语境）时 is_owned / is_using 不传，不影响其它字段。
+func (s *DecorationService) Get(id, viewerID string) (*dto.DecorationDto, error) {
 	d, err := s.getModel(id)
 	if err != nil {
 		return nil, err
 	}
-	return decoViewPtr(d), nil
+	views := s.shopViews(viewerID, []model.Decoration{*d})
+	return &views[0], nil
 }
 
 // getModel 装饰品详情（内部：改删与归属校验需要 model 本体）。
@@ -111,13 +114,13 @@ func (s *DecorationService) getModel(id string) (*model.Decoration, error) {
 }
 
 // List 装饰品列表。
-func (s *DecorationService) List(q model.DecorationQuery) (*ListResult, error) {
+func (s *DecorationService) List(q model.DecorationQuery, viewerID string) (*ListResult, error) {
 	q.Page, q.Limit = normPage(q.Page, q.Limit)
 	list, total, err := s.decorations.List(s.DB, q)
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(decoViews(list), total, q.Page, q.Limit)}, nil
+	return &ListResult{PageData: pageData(s.shopViews(viewerID, list), total, q.Page, q.Limit)}, nil
 }
 
 // ListResult 分页结果包装（handler 直接塞进统一响应）。
@@ -473,7 +476,7 @@ func (s *DecorationService) GetActivity(id string) (*dto.DecorationActivityDto, 
 	if err != nil {
 		return nil, err
 	}
-	return decoActivityViewPtr(a), nil
+	return s.activityViewPtrFor(a), nil
 }
 
 // getActivityModel 活动详情（内部：改删与领奖校验需要 model 本体）。
@@ -495,7 +498,7 @@ func (s *DecorationService) Activities(status, actType string, page, limit int) 
 	if err != nil {
 		return nil, err
 	}
-	return &ListResult{PageData: pageData(decoActivityViews(list), total, page, limit)}, nil
+	return &ListResult{PageData: pageData(s.activityViews(list), total, page, limit)}, nil
 }
 
 // MyActivityProgress 我的活动进度。
@@ -768,7 +771,11 @@ func (s *DecorationService) userDecoView(ud *model.UserDecoration) *dto.UserDeco
 	}
 	v := userDecoBase(ud)
 	if d, err := s.decorations.FindByID(s.DB, ud.DecorationID); err == nil && d != nil {
-		v.Decoration = decoViewPtr(d)
+		nested := decoView(*d)
+		// 嵌套的定义同样带归属：能出现在「我的装饰品」里的必然已拥有，
+		// is_using 直接取这条持有行的状态 —— 零额外查询（数据就在手上）。
+		attachOwnership(&nested, *ud, true)
+		v.Decoration = &nested
 	}
 	return &v
 }
@@ -803,7 +810,10 @@ func (s *DecorationService) userDecoViews(list []model.UserDecoration) []dto.Use
 	for _, ud := range list {
 		v := userDecoBase(&ud)
 		if d, ok := decos[ud.DecorationID]; ok {
-			v.Decoration = decoViewPtr(&d)
+			nested := decoView(d)
+			// 同 userDecoView：归属直接由持有行得出，不需要再查 user_decorations。
+			attachOwnership(&nested, ud, true)
+			v.Decoration = &nested
 		}
 		out = append(out, v)
 	}
@@ -917,4 +927,196 @@ func decoTimePtr(t *time.Time) *string {
 	}
 	s := t.Format(time.RFC3339)
 	return &s
+}
+
+// ---------------------------------------------------------------------------
+// 商城视图：归属 / 装备状态 / 解锁门槛（前端交接单第三版 §二.5）
+// ---------------------------------------------------------------------------
+//
+// 性能约定（本文件所有「批量」方法共享同一原则）：
+//   查询次数必须与**页大小**无关，只与「有几种实体」有关。
+//   一页 20 条装饰品 = 固定 3 条 SQL（本体 + 持有 + 来源活动门槛），不是 1+2*20 条。
+//   禁止在 for 循环里查库。
+
+// shopViews 商城/详情视图：装饰品本体 + 当前用户的归属状态 + 活动来源的解锁门槛。
+//
+// viewerID 为空时不查询持有表（省一次查询），is_owned / is_using 保持 nil（不传）。
+func (s *DecorationService) shopViews(viewerID string, list []model.Decoration) []dto.DecorationDto {
+	out := make([]dto.DecorationDto, 0, len(list))
+	if len(list) == 0 {
+		return out
+	}
+	ids := make([]string, 0, len(list))
+	for _, d := range list {
+		ids = append(ids, d.ID)
+	}
+	owned := s.ownedMap(viewerID, ids) // 1 条查询
+	limits := s.unlockLimitsMap(ids)   // 1 条查询
+	for _, d := range list {
+		v := decoView(d)
+		attachOwnership(&v, owned[d.ID], viewerID != "")
+		if act, ok := limits[d.ID]; ok {
+			v.RequiredLikes = intPtr(act.RequiredLikes)
+			v.RequiredComments = intPtr(act.RequiredComments)
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+// ownedMap 批量取当前用户对一批装饰品的持有记录（1 条 SQL，key = decoration_id）。
+//
+// 只查未软删、且「仍有效」的持有记录之外不过滤租期：过期记录仍算「曾经拥有」，
+// 前端若要区分「已过期」可再结合 expires_at —— 这里只回答「有没有这条持有记录」。
+func (s *DecorationService) ownedMap(userID string, decorationIDs []string) map[string]model.UserDecoration {
+	out := make(map[string]model.UserDecoration, len(decorationIDs))
+	if userID == "" || len(decorationIDs) == 0 || s.DB == nil {
+		return out
+	}
+	var rows []model.UserDecoration
+	if err := s.DB.Where("user_id = ? AND decoration_id IN ?", userID, decorationIDs).
+		Find(&rows).Error; err != nil {
+		return out
+	}
+	for _, ud := range rows {
+		out[ud.DecorationID] = ud
+	}
+	return out
+}
+
+// unlockLimitsMap 批量取「活动来源」装饰品对应的活动门槛（1 条 SQL，key = decoration_id）。
+//
+// 为什么读活动而不是装饰品表：model.Decoration **没有** required_likes /
+// required_comments 这两列（它们只在 decoration_activities 上）。对活动获取的装饰品，
+// 活动声明的门槛就是真实解锁条件；同一装饰品可能被多个活动引用，取要求最高的那个
+// （先满足最严的门槛才算解锁，语义最保守也最诚实）。
+func (s *DecorationService) unlockLimitsMap(decorationIDs []string) map[string]model.DecorationActivity {
+	out := make(map[string]model.DecorationActivity, len(decorationIDs))
+	if len(decorationIDs) == 0 || s.DB == nil {
+		return out
+	}
+	var acts []model.DecorationActivity
+	if err := s.DB.Where("decoration_id IN ?", decorationIDs).Find(&acts).Error; err != nil {
+		return out
+	}
+	for _, a := range acts {
+		prev, seen := out[a.DecorationID]
+		if !seen || a.RequiredLikes > prev.RequiredLikes ||
+			a.RequiredComments > prev.RequiredComments {
+			out[a.DecorationID] = a
+		}
+	}
+	return out
+}
+
+// attachOwnership 把归属状态写到 dto。hasViewer=false 时保持 nil（字段不传）。
+//
+// 注意：false 必须**显式出现**，不能被 omitempty 吃掉 —— 这是 *bool 而非 bool 的原因。
+func attachOwnership(v *dto.DecorationDto, ud model.UserDecoration, hasViewer bool) {
+	if !hasViewer {
+		return
+	}
+	isOwned := ud.ID != "" // 查不到持有记录 = 未拥有
+	isUsing := ud.ID != "" && ud.IsUsing
+	v.IsOwned = &isOwned
+	v.IsUsing = &isUsing
+}
+
+// intPtr 取地址（解锁门槛用 *int 表达「该装饰品没有门槛声明」= nil）。
+func intPtr(v int) *int { return &v }
+
+// ---------------------------------------------------------------------------
+// 活动视图：内嵌 article / decoration（前端交接单第三版 §二.4）
+// ---------------------------------------------------------------------------
+
+// activityViews 活动列表 → dto 列表，批量预取内嵌引用。
+//
+// 固定 **3 条 SQL**（活动本体 + 文章 IN + 装饰品 IN），与页大小无关。
+func (s *DecorationService) activityViews(list []model.DecorationActivity) []dto.DecorationActivityDto {
+	out := make([]dto.DecorationActivityDto, 0, len(list))
+	if len(list) == 0 {
+		return out
+	}
+	articleIDs := make([]string, 0, len(list))
+	decoIDs := make([]string, 0, len(list))
+	for _, a := range list {
+		if a.ArticleID != "" {
+			articleIDs = append(articleIDs, a.ArticleID)
+		}
+		if a.DecorationID != "" {
+			decoIDs = append(decoIDs, a.DecorationID)
+		}
+	}
+	articles := s.articleBriefsMap(articleIDs) // 1 条查询
+	decos := s.decoBriefsMap(decoIDs)          // 1 条查询
+	for _, a := range list {
+		v := decoActivityView(a)
+		if br, ok := articles[a.ArticleID]; ok {
+			v.Article = &br
+		}
+		if br, ok := decos[a.DecorationID]; ok {
+			v.Decoration = &br
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+// activityViewPtrFor 单条活动（详情）→ dto，复用批量实现（两条 IN 查询，各 1 条）。
+func (s *DecorationService) activityViewPtrFor(a *model.DecorationActivity) *dto.DecorationActivityDto {
+	if a == nil {
+		return nil
+	}
+	views := s.activityViews([]model.DecorationActivity{*a})
+	return &views[0]
+}
+
+// articleBriefsMap 批量取文章概要（1 条 SQL，key = article_id）。
+//
+// 只查活动卡片需要的 5 列，不 SELECT *（image 列表是 text 大字段，但只 5 列可接受）。
+func (s *DecorationService) articleBriefsMap(ids []string) map[string]dto.DecorationArticleBriefDto {
+	out := make(map[string]dto.DecorationArticleBriefDto, len(ids))
+	if len(ids) == 0 || s.DB == nil {
+		return out
+	}
+	var rows []model.Article
+	if err := s.DB.Select("id, title, cover, images, summary").
+		Where("id IN ?", ids).Find(&rows).Error; err != nil {
+		return out
+	}
+	for _, a := range rows {
+		out[a.ID] = dto.DecorationArticleBriefDto{
+			ID:      a.ID,
+			Title:   a.Title,
+			Cover:   strOrEmpty(a.Cover),
+			Images:  ParseImagesList(a.Images),
+			Summary: strOrEmpty(a.Summary),
+		}
+	}
+	return out
+}
+
+// decoBriefsMap 批量取装饰品概要（1 条 SQL，key = decoration_id）。
+func (s *DecorationService) decoBriefsMap(ids []string) map[string]dto.DecorationBriefDto {
+	out := make(map[string]dto.DecorationBriefDto, len(ids))
+	if len(ids) == 0 || s.DB == nil {
+		return out
+	}
+	var rows []model.Decoration
+	if err := s.DB.Select("id, name, type, image_url, preview_url, rarity, bubble_color").
+		Where("id IN ?", ids).Find(&rows).Error; err != nil {
+		return out
+	}
+	for _, d := range rows {
+		out[d.ID] = dto.DecorationBriefDto{
+			ID:          d.ID,
+			Name:        d.Name,
+			Type:        d.Type,
+			ImageURL:    d.ImageURL,
+			PreviewURL:  d.PreviewURL,
+			Rarity:      d.Rarity,
+			BubbleColor: d.BubbleColor,
+		}
+	}
+	return out
 }

@@ -156,6 +156,9 @@ func (s *UserService) listRelatedUsers(ctx context.Context, ids []string, in Fol
 	for i := range users {
 		views = append(views, buildUserView(&users[i], true, isMembershipActive(&users[i])))
 	}
+	// 关注/粉丝列表的每一行都要带 is_followed + 佩戴装扮 —— 否则按钮全显示「未关注」，
+	// 用户点一次才准（交接单 §二.3）。批量装配，两次查询覆盖整页。
+	s.attachListContext(ctx, views, Actor{UserID: in.ViewerID})
 	return views, total, nil
 }
 

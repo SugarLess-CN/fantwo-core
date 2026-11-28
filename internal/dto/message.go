@@ -270,8 +270,16 @@ type UpdateMessageRequest struct {
 }
 
 // MarkAllReadRequest 全部已读（service.MarkAllReadInput；body 可空）。
+//
+// `type` 也可从 **query 参数** 传（`POST /message/read-all?type=notification`），
+// 两者同时给时 **query 优先**。为什么两个入口都留：
+//   - query 是前端交接单要的形态（docs/api-compat-handover §二.8），前端按 ?type= 调；
+//   - body 是本项目既有契约，删掉会破坏已有调用方。
+//
+// 取值：private / system / notification（与 GET /message 的 `type` 枚举同源）。
+// 不传 / 空串 = 全部类型（保持历史行为）。
 type MarkAllReadRequest struct {
-	Type        string `json:"type" example:"notification"`
+	Type        string `json:"type" enums:"private,system,notification" example:"notification"`
 	IsBroadcast bool   `json:"is_broadcast" example:"false"`
 }
 

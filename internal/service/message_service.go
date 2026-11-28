@@ -468,15 +468,39 @@ func (s *MessageService) MarkAsRead(userID, id string) error {
 	return s.Msgs.MarkReadPersonal(s.DB, id)
 }
 
-// MarkAllAsRead 全部已读。
+// MarkAllAsRead 全部已读（可按 type 只标一类）。
 //
 // 对齐源端 markAllAsRead 的三分支：
 //   - type=private：只清私信（PrivateMessage.read_at），不动站内消息；
-//   - is_broadcast=true：为全部广播消息补写已读回执；
-//   - 其它：把本人收件箱（可按 type 过滤）的非广播消息置已读。
+//   - is_broadcast=true：只标广播（保留历史行为，供显式只标广播的调用方）；
+//   - 其它：**广播与个人两种载体一起标**（见下）。
+//
+// # 为什么「其它」分支必须两种都标
+//
+// 站内消息有**两套已读载体**：
+//   - 广播（is_broadcast=true）：已读存在 message_read 回执表里，行内 is_read 不参与；
+//   - 个人（is_broadcast=false）：已读是行内 is_read 列。
+//
+// 原实现用 `if is_broadcast { ... } else { ... }` **二选一**，导致前端只传 `?type=system`
+// （不带 is_broadcast）时只标了个人消息，**广播型通知永远标不掉** ——
+// 这正是「在通知页点全部已读没反应」的另一半根因（真机实测 system 未读仍为 1）。
+// 「全部已读」对用户就是「这一类的都清了」，与消息是广播还是点对点无关，故作并集处理。
+//
+// `in.Type` 为空 = 全部类型（历史行为，向后兼容）；非空时必须是
+// private/system/notification 之一，否则 400 —— 避免「传错值静默当全部」把用户所有消息标掉。
+//
+// 每个载体都是**单条 UPDATE / 批量 INSERT（带 WHERE）**，不逐条刷新，无 N+1；
+// 无匹配行时 affected=0，正常返回不报错（未登录/无消息都不是错误）。
 func (s *MessageService) MarkAllAsRead(userID string, in MarkAllReadInput) (*MessageCreateResult, error) {
 	if e := s.ready(); e != nil {
 		return nil, e
+	}
+	if in.Type != "" {
+		switch in.Type {
+		case MsgTypePrivate, MsgTypeSystem, MsgTypeNotification:
+		default:
+			return nil, errcode.ErrBadRequest.WithKey(i18n.MessageKindInvalid)
+		}
 	}
 	nowT := time.Now()
 	if in.Type == MsgTypePrivate {
@@ -486,19 +510,29 @@ func (s *MessageService) MarkAllAsRead(userID string, in MarkAllReadInput) (*Mes
 		s.publishUnreadCount(userID)
 		return &MessageCreateResult{Success: true, Message: "全部消息已标记为已读"}, nil
 	}
-	if in.IsBroadcast {
-		ids, err := s.Msgs.BroadcastIDs(s.DB, in.Type)
-		if err != nil {
-			return nil, err
-		}
-		if err := s.Msgs.InsertReadRecords(s.DB, userID, ids); err != nil {
-			return nil, err
-		}
-	} else if err := s.Msgs.MarkReadAllPersonal(s.DB, userID, in.Type); err != nil {
+
+	// 广播：批量写 message_read 回执（幂等）
+	if err := s.markAllBroadcastRead(userID, in.Type); err != nil {
 		return nil, err
+	}
+	// 个人：仅当调用方没显式限定「只要广播」时才一起标
+	if !in.IsBroadcast {
+		if err := s.Msgs.MarkReadAllPersonal(s.DB, userID, in.Type); err != nil {
+			return nil, err
+		}
 	}
 	s.publishUnreadCount(userID)
 	return &MessageCreateResult{Success: true, Message: "全部消息已标记为已读"}, nil
+}
+
+// markAllBroadcastRead 为「我可见的全部广播消息」补写已读回执（可按 type 过滤）。
+// 内部小函数：一次查 id + 一次批量 insert，不是 N+1。
+func (s *MessageService) markAllBroadcastRead(userID, msgType string) error {
+	ids, err := s.Msgs.BroadcastIDs(s.DB, msgType)
+	if err != nil {
+		return err
+	}
+	return s.Msgs.InsertReadRecords(s.DB, userID, ids)
 }
 
 // BatchOperation 批量标记已读 / 删除（对齐源端 batchOperation）。

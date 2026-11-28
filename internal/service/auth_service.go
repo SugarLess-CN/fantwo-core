@@ -244,8 +244,30 @@ func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.Us
 // 两处各写一份迟早会漂移（一处 warn 一处直接返回 err）。
 func (s *AuthService) LoginResultWithConfig(ctx context.Context, u *model.User, token, refresh string) *dto.LoginResultDto {
 	out := LoginResult(u, token, refresh)
-	out.Config = NewUserService(s.d).configOf(ctx, u.ID)
+	us := NewUserService(s.d)
+	out.Config = us.configOf(ctx, u.ID)
+	// 认证摘要（brief 版）：登录后进自己主页要立刻看到认证标识，
+	// 否则得等 GET /user/profile 才出现（交接单 §二.9）。失败留 nil，不影响登录。
+	out.Certification = briefCertification(s.d, u.ID)
+	// 佩戴装扮：与 profile / user/{id} 同一套装配，登录后主页头像框不用再拉一次。
+	out.EquippedDecorations = us.userDecorationsOne(u.ID)
 	return out
+}
+
+// briefCertification 已通过的认证摘要（无认证 / 查库失败都返回 nil）。
+//
+// 只取展示用的 3 字段（type / real_name / slogan），不带申请材料与审核记录 ——
+// 登录响应已经很大，完整版走 GET /user/certification/status。
+func briefCertification(d *Deps, userID string) *dto.CertificationBriefDto {
+	cert, err := d.Users.FindApprovedCert(d.DB, userID)
+	if err != nil || cert == nil {
+		return nil
+	}
+	return &dto.CertificationBriefDto{
+		Type:     cert.Type,
+		RealName: strOrEmpty(cert.RealName),
+		Slogan:   strOrEmpty(cert.Slogan),
+	}
 }
 
 // RefreshInput 刷新入参。

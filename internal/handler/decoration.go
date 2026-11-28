@@ -55,7 +55,9 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 		SortBy:    c.Query("sort_by"),
 		SortOrder: c.Query("sort_order"),
 	}
-	lr, err := h.Decoration.List(q)
+	// viewerID 让归属/装备状态按当前用户算（交接单 §二.5）；空值时不查持有表、
+	// 两个字段不传，不影响管理端/匿名场景。
+	lr, err := h.Decoration.List(q, currentUserID(c))
 	if err != nil {
 		fail(c, err)
 		return
@@ -74,7 +76,7 @@ func (h *OpsHandler) DecorationList(c *gin.Context) {
 //	@ID			DecorationController_findOne
 //	@Router		/decoration/{id} [get]
 func (h *OpsHandler) DecorationGet(c *gin.Context) {
-	d, err := h.Decoration.Get(c.Param("id"))
+	d, err := h.Decoration.Get(c.Param("id"), currentUserID(c))
 	if err != nil {
 		fail(c, err)
 		return

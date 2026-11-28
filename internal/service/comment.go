@@ -90,7 +90,11 @@ func nextCommentFloor(maxFloor int) int {
 
 // CommentService 评论业务逻辑（对齐原 NestJS CommentService）。
 type CommentService struct {
-	repo    *repository.CommentRepository
+	repo *repository.CommentRepository
+	// arts 文章仓储（评论内嵌 article 精简视图的批量来源；为 nil 时降级为不内嵌）。
+	arts *repository.ArticleRepository
+	// cats 分类仓储（内嵌文章的 category 来源）。
+	cats    *repository.CategoryRepository
 	log     *zap.Logger
 	owner   ArticleOwnerChecker
 	authors AuthorResolver
@@ -126,12 +130,15 @@ func NewCommentService(
 	}
 	svc := &CommentService{
 		repo:    repo,
+		arts:    articleRepo,
 		log:     log,
 		owner:   articleOwnerChecker{repo: articleRepo},
 		authors: authors,
 	}
 	if articleRepo != nil {
 		svc.owner = articleOwnerChecker{repo: articleRepo}
+		// 分类仓储从文章仓储的连接派生，避免改动 NewCommentService 的调用方（路由装配）
+		svc.cats = repository.NewCategoryRepository(articleRepo.DB())
 	}
 	return svc
 }
@@ -434,8 +441,6 @@ func (s *CommentService) FindCommentDetail(ctx context.Context, id string, actor
 	if e != nil {
 		return nil, e
 	}
-	v := s.BuildView(ctx, *c, actor)
-
 	rootID := c.ID
 	if c.RootID != nil && *c.RootID != "" {
 		rootID = *c.RootID
@@ -446,34 +451,21 @@ func (s *CommentService) FindCommentDetail(ctx context.Context, id string, actor
 		s.log.Error("查询评论回复失败", zap.Error(err))
 		return nil, errcode.ErrInternal
 	}
-	if len(rows) == 0 {
-		return v, nil
-	}
 
-	// 回复的作者与点赞态批量取（与 buildTree 同口径，避免 N+1）
-	authorIDs := make(map[string]bool, len(rows))
-	replyIDs := make([]string, 0, len(rows))
-	for _, r := range rows {
-		authorIDs[r.AuthorID] = true
-		replyIDs = append(replyIDs, r.ID)
-	}
-	authorMap := s.resolveAuthorMap(ctx, authorIDs)
-	likedSet := map[string]bool{}
-	if !actor.Anonymous() {
-		var ids []string
-		if err := s.repo.DB().WithContext(ctx).Model(&model.CommentLike{}).
-			Where("user_id = ? AND comment_id IN ?", actor.UserID, replyIDs).
-			Pluck("comment_id", &ids).Error; err == nil {
-			for _, cid := range ids {
-				likedSet[cid] = true
-			}
+	// 本体 + 回复一次预取（作者 / 点赞 / 文章 / 父评论），组装阶段不再触库
+	all := make([]model.Comment, 0, len(rows)+1)
+	all = append(all, *c)
+	all = append(all, rows...)
+	rc := s.buildRenderCtx(ctx, actor, all)
+
+	v := renderComment(*c, rc)
+	if len(rows) > 0 {
+		v.Replies = make([]CommentView, 0, len(rows))
+		for _, r := range rows {
+			v.Replies = append(v.Replies, renderComment(r, rc))
 		}
 	}
-	v.Replies = make([]CommentView, 0, len(rows))
-	for _, r := range rows {
-		v.Replies = append(v.Replies, buildCommentView(r, authorMap, likedSet))
-	}
-	return v, nil
+	return &v, nil
 }
 
 // FindAllComments 全部评论（管理端，对齐 GET /comment）。
@@ -498,9 +490,11 @@ func (s *CommentService) FindAllComments(ctx context.Context, actor Actor, q Com
 		s.log.Error("查询全部评论失败", zap.Error(err))
 		return nil, 0, errcode.ErrInternal
 	}
+	// 批量组装（原来逐条 BuildView 会 N+1；顺带把内嵌 article 一并预取）
+	rc := s.buildRenderCtx(ctx, actor, rows)
 	out := make([]CommentView, 0, len(rows))
 	for _, c := range rows {
-		out = append(out, *s.BuildView(ctx, c, actor))
+		out = append(out, renderComment(c, rc))
 	}
 	return out, total, nil
 }
@@ -524,9 +518,11 @@ func (s *CommentService) UserComments(ctx context.Context, userID string, actor 
 		s.log.Error("查询用户评论失败", zap.Error(err))
 		return nil, 0, errcode.ErrInternal
 	}
+	// 批量组装（含内嵌 article：前端「我的评论」卡片要显示文章封面/标题/分类）
+	rc := s.buildRenderCtx(ctx, actor, rows)
 	out := make([]CommentView, 0, len(rows))
 	for _, c := range rows {
-		out = append(out, *s.BuildView(ctx, c, actor))
+		out = append(out, renderComment(c, rc))
 	}
 	return out, total, nil
 }
@@ -543,6 +539,164 @@ func (s *CommentService) CommentCount(ctx context.Context, articleID string) (*d
 
 // ---------- 视图组装 ----------
 
+// commentRenderCtx 一次请求内的批量预取结果（文章 / 父评论 / 作者 / 点赞态）。
+//
+// 为什么要有它：评论列表要内嵌 article 与 parent。若照「每条评论查一次文章、
+// 再查一次父评论」写，20 条评论就是 40+ 次查询（N+1）。这里统一改成
+// 「收集 ID 集合 → 每类一条 IN 查询」，与 article_view.go 的预取同思路：
+// **查询次数固定 5 次，与评论条数无关**。
+type commentRenderCtx struct {
+	actor   Actor
+	author  map[string]AuthorBrief
+	liked   map[string]bool
+	article map[string]*dto.CommentArticleBriefDto
+	parent  map[string]*dto.CommentParentBriefDto
+}
+
+// buildRenderCtx 批量预取（固定 5 次查询）：
+//
+//  1. 父评论        WHERE id IN (parentIds)
+//  2. 文章精简      WHERE id IN (articleIds)
+//  3. 分类          WHERE id IN (categoryIds)   —— 仅当文章带分类
+//  4. 作者          WHERE id IN (评论作者 ∪ 父评论作者)
+//  5. 点赞态        WHERE user_id=? AND comment_id IN (commentIds)
+func (s *CommentService) buildRenderCtx(ctx context.Context, actor Actor, cmts []model.Comment) *commentRenderCtx {
+	rc := &commentRenderCtx{
+		actor:   actor,
+		author:  map[string]AuthorBrief{},
+		liked:   map[string]bool{},
+		article: map[string]*dto.CommentArticleBriefDto{},
+		parent:  map[string]*dto.CommentParentBriefDto{},
+	}
+	if len(cmts) == 0 {
+		return rc
+	}
+
+	commentIDs := make([]string, 0, len(cmts))
+	parentIDs := make([]string, 0, len(cmts))
+	articleIDs := make([]string, 0, len(cmts))
+	authorIDs := map[string]bool{}
+	for i := range cmts {
+		c := &cmts[i]
+		commentIDs = append(commentIDs, c.ID)
+		articleIDs = append(articleIDs, c.ArticleID)
+		authorIDs[c.AuthorID] = true
+		if c.ParentID != nil && *c.ParentID != "" {
+			parentIDs = append(parentIDs, *c.ParentID)
+		}
+	}
+
+	// 1) 父评论：一次 IN 查询
+	parents, err := s.repo.FindBriefByIDs(ctx, parentIDs)
+	if err != nil {
+		s.log.Warn("批量查询父评论失败", zap.Error(err))
+	}
+	for i := range parents {
+		authorIDs[parents[i].AuthorID] = true // 父评论作者也要昵称（「回复 @某某」）
+	}
+
+	// 2) + 3) 文章精简 + 分类：各一次 IN 查询
+	if s.arts != nil {
+		arts, err2 := s.arts.FindBriefByIDs(ctx, articleIDs)
+		if err2 != nil {
+			s.log.Warn("批量查询评论内嵌文章失败", zap.Error(err2))
+		} else {
+			catIDs := make([]string, 0, len(arts))
+			for _, a := range arts {
+				if a.CategoryID != nil && *a.CategoryID != "" {
+					catIDs = append(catIDs, *a.CategoryID)
+				}
+			}
+			cats := s.loadCategoryBriefs(ctx, catIDs)
+			for id, a := range arts {
+				brief := &dto.CommentArticleBriefDto{
+					ID:       id,
+					Title:    a.Title,
+					Cover:    strOrEmpty(a.Cover),
+					Summary:  strOrEmpty(a.Summary),
+					AuthorID: strOrEmpty(a.AuthorID),
+				}
+				if a.CategoryID != nil {
+					if cv, ok := cats[*a.CategoryID]; ok {
+						c := cv
+						brief.Category = &c
+					}
+				}
+				rc.article[id] = brief
+			}
+		}
+	}
+
+	// 4) 作者：一次批量解析
+	rc.author = s.resolveAuthorMap(ctx, authorIDs)
+
+	// 父评论组装（此时作者昵称已就绪）
+	for i := range parents {
+		p := &parents[i]
+		brief := &dto.CommentParentBriefDto{
+			ID:        p.ID,
+			Content:   p.Content,
+			AuthorID:  p.AuthorID,
+			CreatedAt: p.CreatedAt,
+		}
+		if a, ok := rc.author[p.AuthorID]; ok {
+			ab := authorBriefDto(a)
+			brief.Author = &ab
+		}
+		rc.parent[p.ID] = brief
+	}
+
+	// 5) 点赞态：一次 IN 查询
+	if !actor.Anonymous() {
+		var liked []string
+		if err := s.repo.DB().WithContext(ctx).Model(&model.CommentLike{}).
+			Where("user_id = ? AND comment_id IN ?", actor.UserID, commentIDs).
+			Pluck("comment_id", &liked).Error; err == nil {
+			for _, id := range liked {
+				rc.liked[id] = true
+			}
+		}
+	}
+	return rc
+}
+
+// loadCategoryBriefs 批量取分类精简信息（内嵌文章的分类）。
+func (s *CommentService) loadCategoryBriefs(ctx context.Context, ids []string) map[string]dto.CategoryBriefDto {
+	out := map[string]dto.CategoryBriefDto{}
+	if s.cats == nil || len(ids) == 0 {
+		return out
+	}
+	cats, err := s.cats.FindByIDs(ctx, ids)
+	if err != nil {
+		s.log.Warn("批量查询分类失败", zap.Error(err))
+		return out
+	}
+	for _, c := range cats {
+		out[c.ID] = dto.CategoryBriefDto{
+			ID:     c.ID,
+			Name:   c.Name,
+			Link:   strOrEmpty(c.Link),
+			Avatar: strOrEmpty(c.Avatar),
+			Status: c.Status,
+		}
+	}
+	return out
+}
+
+// renderComment 组装单条评论视图，并挂载批量预取到的 article / parent。
+func renderComment(c model.Comment, rc *commentRenderCtx) CommentView {
+	v := buildCommentView(c, rc.author, rc.liked)
+	if a := rc.article[c.ArticleID]; a != nil {
+		v.Article = a
+	}
+	if v.ParentID != "" {
+		if p := rc.parent[v.ParentID]; p != nil {
+			v.Parent = p
+		}
+	}
+	return v
+}
+
 // buildTree 一级评论 + 回复组树。
 func (s *CommentService) buildTree(ctx context.Context, roots []model.Comment, actor Actor) []CommentView {
 	if len(roots) == 0 {
@@ -557,40 +711,16 @@ func (s *CommentService) buildTree(ctx context.Context, roots []model.Comment, a
 		s.log.Warn("查询评论回复失败", zap.Error(err))
 	}
 
-	// 点赞状态（批量）
-	allIDs := make([]string, 0, len(roots)+len(replies))
-	for _, r := range roots {
-		allIDs = append(allIDs, r.ID)
-	}
-	for _, r := range replies {
-		allIDs = append(allIDs, r.ID)
-	}
-	likedSet := map[string]bool{}
-	if !actor.Anonymous() && len(allIDs) > 0 {
-		var ids []string
-		if err := s.repo.DB().WithContext(ctx).Model(&model.CommentLike{}).
-			Where("user_id = ? AND comment_id IN ?", actor.UserID, allIDs).
-			Pluck("comment_id", &ids).Error; err == nil {
-			for _, id := range ids {
-				likedSet[id] = true
-			}
-		}
-	}
-
-	// 作者信息
-	authorIDs := map[string]bool{}
-	for _, r := range roots {
-		authorIDs[r.AuthorID] = true
-	}
-	for _, r := range replies {
-		authorIDs[r.AuthorID] = true
-	}
-	authorMap := s.resolveAuthorMap(ctx, authorIDs)
+	// 一次预取（作者 / 点赞 / 文章 / 父评论），此后组装不再触库
+	all := make([]model.Comment, 0, len(roots)+len(replies))
+	all = append(all, roots...)
+	all = append(all, replies...)
+	rc := s.buildRenderCtx(ctx, actor, all)
 
 	views := make([]CommentView, 0, len(roots))
 	byID := map[string]int{}
 	for _, r := range roots {
-		v := buildCommentView(r, authorMap, likedSet)
+		v := renderComment(r, rc)
 		v.Replies = []CommentView{}
 		byID[r.ID] = len(views)
 		views = append(views, v)
@@ -600,7 +730,7 @@ func (s *CommentService) buildTree(ctx context.Context, roots []model.Comment, a
 			continue
 		}
 		if idx, ok := byID[*r.RootID]; ok {
-			views[idx].Replies = append(views[idx].Replies, buildCommentView(r, authorMap, likedSet))
+			views[idx].Replies = append(views[idx].Replies, renderComment(r, rc))
 		}
 	}
 	return views

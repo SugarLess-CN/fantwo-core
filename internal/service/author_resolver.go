@@ -56,6 +56,11 @@ func (r *UserAuthorResolver) ResolveAuthors(ctx context.Context, userIDs []strin
 		r.d.Logger.Warn("ResolveAuthors 查询失败: " + err.Error())
 		return out, err
 	}
+	// 作者佩戴的装扮：**一次批量查询**（与用户域共用 batchEquippedDecorations）。
+	//
+	// 此前 AuthorBriefDto.equipped_decorations 只有声明、全仓无填充点 ——
+	// 文章列表 / 评论区的作者头像框因此一直不显示。
+	decos := batchEquippedDecorations(r.d.DB, r.d.Logger, uniq)
 	for i := range users {
 		u := &users[i]
 		brief := AuthorBrief{ID: u.ID, Username: u.Username, Avatar: u.Avatar}
@@ -63,6 +68,10 @@ func (r *UserAuthorResolver) ResolveAuthors(ctx context.Context, userIDs []strin
 			brief.Nickname = *u.Nickname
 		} else {
 			brief.Nickname = u.Username
+		}
+		// 没装扮时保持 nil + omitempty → 整个字段不传（不是 null）
+		if d, ok := decos[u.ID]; ok {
+			brief.EquippedDecorations = d
 		}
 		out[u.ID] = brief
 	}

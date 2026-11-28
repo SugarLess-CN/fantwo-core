@@ -6,6 +6,31 @@ package dto
 
 import "time"
 
+// CommentArticleBriefDto 评论内嵌的文章精简视图（「我的评论」卡片 / 评论通知定位文章）。
+//
+// 刻意**只到 card 需要的粒度**（id/title/cover/summary/author_id/category），
+// 不复用 ArticleDto —— 后者 38 个字段、含正文与互动态，评论列表里每条都带一份会让响应爆掉。
+type CommentArticleBriefDto struct {
+	ID       string            `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	Title    string            `json:"title" example:"我的第一篇作品"`
+	Cover    string            `json:"cover" example:"https://cdn.example.com/cover.jpg"`
+	Summary  string            `json:"summary" example:"一句话摘要"`
+	AuthorID string            `json:"author_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Category *CategoryBriefDto `json:"category,omitempty"`
+}
+
+// CommentParentBriefDto 被回复评论的精简视图（回复列表显示「回复 @某某」）。
+//
+// **刻意不嵌 article、不嵌 replies**：parent 里再带 article 会让「评论→父评论→文章→评论」
+// 无限递归且响应指数膨胀；这里只给「谁、说了什么、什么时候」。
+type CommentParentBriefDto struct {
+	ID        string          `json:"id" example:"5c6d7e8f-0000-4a1b-9c2d-000000000003"`
+	Content   string          `json:"content" example:"拍得真好"`
+	AuthorID  string          `json:"author_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	Author    *AuthorBriefDto `json:"author,omitempty"`
+	CreatedAt time.Time       `json:"created_at" example:"2026-11-25T10:00:00Z"`
+}
+
 // CommentDto 评论对外视图（service.CommentView）。
 //
 // 一级评论带 replies（二级回复，已组树）；replies 恒为数组，无回复时是 [] 不是 null。
@@ -24,6 +49,11 @@ type CommentDto struct {
 	AuthorID  string          `json:"author_id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Author    *AuthorBriefDto `json:"author,omitempty"`
 	ArticleID string          `json:"article_id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+
+	// Article 内嵌文章精简视图（读接口填充；写接口只回本体，不带内嵌）。
+	Article *CommentArticleBriefDto `json:"article,omitempty"`
+	// Parent 被回复的评论（仅回复有值；一级评论不传该字段）。
+	Parent *CommentParentBriefDto `json:"parent,omitempty"`
 
 	// 被回复的评论 ID / 楼层根评论 ID；一级评论两者均为 ""。
 	ParentID string `json:"parent_id" example:""`

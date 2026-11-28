@@ -673,6 +673,50 @@ func (UserDecorationRepo) FindUsingByType(db *gorm.DB, userID, decoType string) 
 	return &ud, nil
 }
 
+// UserUsingDecoration 批量查询的行结果（user_decorations JOIN decorations）。
+//
+// 单独一个结构而不是复用 model：JOIN 出来的行是「佩戴关系 + 装饰品本体」的
+// 扁平静态视图，给 model.UserDecoration 加关联字段会污染实体（且装配时还要再判 nil）。
+type UserUsingDecoration struct {
+	UserID       string `gorm:"column:user_id"`
+	DecorationID string `gorm:"column:decoration_id"`
+	Type         string `gorm:"column:type"`
+	Name         string `gorm:"column:name"`
+	ImageURL     string `gorm:"column:image_url"`
+	Rarity       string `gorm:"column:rarity"`
+	BubbleColor  string `gorm:"column:bubble_color"`
+}
+
+// FindUsingByUsers 批量查多个用户「佩戴中」的装饰品（**一次 SQL，避免 N+1**）。
+//
+// 用于列表接口：N 个用户 × 2 类装饰逐个查 = 2N 次往返，一页 20 人就 40 次。
+// 这里 IN 一次捞完，装配在 Go 侧做 map。
+func (UserDecorationRepo) FindUsingByUsers(db *gorm.DB, userIDs []string) ([]UserUsingDecoration, error) {
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
+	var rows []UserUsingDecoration
+	err := db.Table("user_decorations").
+		Select("user_decorations.user_id, user_decorations.decoration_id, "+
+			"decorations.type, decorations.name, decorations.image_url, "+
+			"decorations.rarity, decorations.bubble_color").
+		Joins("JOIN decorations ON decorations.id = user_decorations.decoration_id").
+		Where("user_decorations.user_id IN ? AND user_decorations.is_using = ?", userIDs, true).
+		// ⚠️ 软删判 `= 0` 不是 `IS NULL`。
+		//
+		// 本项目的 DeletedAt 是 `soft_delete.DeletedAt`（**int 型**，0=未删，非 0=删除时刻），
+		// 库里存的是 0 而不是 NULL。写成 `IS NULL` 会永远匹配不上 → 查询恒返回空，
+		// 而库里肉眼可见数据齐全，极难发现（用 gorm 日志看 `rows:0` 才能定位）。
+		//
+		// 同一个坑在造测试数据时也踩过：插入时 `deleted_at` 留 NULL 同样查不出来。
+		Where("user_decorations.deleted_at = 0 AND decorations.deleted_at = 0").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
 // UnsetType 同类型全部取消使用（佩戴切换用）。
 func (UserDecorationRepo) UnsetType(db *gorm.DB, userID, decoType string) error {
 	return db.Exec(

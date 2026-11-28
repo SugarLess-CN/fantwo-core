@@ -51,6 +51,61 @@ type DecorationDto struct {
 	// 归属来源（反查唯一来源；非来源方向时为空串，不是 null）
 	ActivityID    string `json:"activity_id" example:""`
 	AchievementID string `json:"achievement_id" example:""`
+
+	// ---- 归属 / 装备状态（前端交接单第三版 §二.5）----
+	//
+	// GET /decoration（商城列表）与 GET /decoration/{id} 会带上登录用户语境填充；
+	// 管理端 CRUD、持有记录里的嵌套定义不计算归属，这两个字段**不传**。
+	//
+	// 为什么是 *bool + omitempty 而不是 bool：
+	//   - nil = 「本次响应没有归属语境」，整个字段不传（docs/21 对象/未计算态）；
+	//   - false = **明确未拥有**，必须出现 —— 前端要靠它显示「未解锁」。
+	//   直接用 bool + omitempty 会把 false 吃掉，前端永远看不到「未拥有」，
+	//   等于装饰页仍然全坏的（这正是本次要修的缺陷）。
+	IsOwned *bool `json:"is_owned,omitempty" example:"false"`
+	IsUsing *bool `json:"is_using,omitempty" example:"false"`
+
+	// ---- 解锁门槛（同一交接单 §二.5 的「门槛文案」）----
+	//
+	// ⚠️ 事实核对：model.Decoration **没有** required_likes / required_comments 这两列
+	//（`grep -n "RequiredLikes" internal/model/decoration.go` 只命中 DecorationActivity）。
+	// 所以这里**不是**装饰品自身的列，而是它的**来源活动**（activity_id 指向的
+	// decoration_activities 行）上声明的门槛 —— 对「活动获取」的装饰品这就是真实的
+	// 解锁条件，不是编造。非活动来源（购买/赠送/成就）不传该字段（nil）。
+	// 若产品需要「每个装饰品独立门槛」，必须给 decorations 表加列，那是另一个决策。
+	RequiredLikes    *int `json:"required_likes,omitempty" example:"100"`
+	RequiredComments *int `json:"required_comments,omitempty" example:"0"`
+}
+
+// ---------------------------------------------------------------------------
+// 活动内嵌的引用结构（交接单第三版 §二.4）
+// ---------------------------------------------------------------------------
+
+// DecorationArticleBriefDto 活动内嵌的文章概要（5 个字段）。
+//
+// 为什么不嵌 dto.ArticleDto：那是 38 字段的完整视图，一个活动列表里每条都带一份
+// 会让响应体爆掉（交接单明确要求「不要嵌完整 ArticleDto」）。
+// 首页「活动」卡片只需要能渲染封面 + 点进文章。
+type DecorationArticleBriefDto struct {
+	ID      string   `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	Title   string   `json:"title" example:"双十一摄影大赛"`
+	Cover   string   `json:"cover" example:"https://cdn.example.com/cover.jpg"`
+	Images  []string `json:"images"`
+	Summary string   `json:"summary" example:"一句话摘要"`
+}
+
+// DecorationBriefDto 活动内嵌的装饰品概要（7 个字段）。
+//
+// 为什么不嵌 dto.DecorationDto：那是 20+ 字段的完整视图，活动卡片只需要图 + 名字。
+// 字段名与 DecorationDto 完全一致（同样是 snake_case），前端可以复用同一个渲染函数。
+type DecorationBriefDto struct {
+	ID          string `json:"id" example:"9f8c7b6a-5d4e-3f2a-1b0c-0123456789ab"`
+	Name        string `json:"name" example:"金色边框"`
+	Type        string `json:"type" example:"AVATAR_FRAME"`
+	ImageURL    string `json:"image_url" example:"https://cdn.example.com/deco/frame.png"`
+	PreviewURL  string `json:"preview_url" example:"https://cdn.example.com/deco/frame-preview.png"`
+	Rarity      string `json:"rarity" example:"COMMON"`
+	BubbleColor string `json:"bubble_color" example:"#FFD700"`
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +184,16 @@ type DecorationActivityDto struct {
 	Status           string `json:"status" example:"ACTIVE"` // ACTIVE / INACTIVE / ENDED
 	ParticipantCount int64  `json:"participant_count" example:"128"`
 	CompletedCount   int64  `json:"completed_count" example:"36"`
+
+	// ---- 内嵌引用（前端交接单第三版 §二.4）----
+	//
+	// 活动卡片要能渲染文章封面并点进文章、要能显示奖励装扮的图，只给 id 前端做不到。
+	// 两者都是**对象 + omitempty**：article_id 为空（不关联文章的纯门槛活动）或
+	// 关联行已被删除时，整个字段不传；绝不下发 `null`（docs/21）。
+	// 组装方式：列表接口对整页做 **IN 批量预取**（2 条额外查询，与页大小无关），
+	// 不是逐条查询 —— 见 service.decorationService.activityViews。
+	Article    *DecorationArticleBriefDto `json:"article,omitempty"`
+	Decoration *DecorationBriefDto        `json:"decoration,omitempty"`
 }
 
 // UserActivityProgressDto 用户活动进度对外视图（model.UserActivityProgress，14 业务字段 + id/时间）。

@@ -41,7 +41,9 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 
 	auth := middleware.JWTAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
 	optAuth := middleware.OptionalAuthV2(opt.Signer, authtoken.NewRedisStore(opt.Redis))
-	canUserRead := middleware.RequireAnyPermission("user:read", "user:manage")
+	// canUserRead 已随 GET /user/:id 的公开化一并移除：
+	// 该端点现在是 OptionalAuth（对齐原 @NoAuth），不再需要 user:read。
+	// 如将来出现其它「读用户」的管理端点，从这里恢复。
 	// 注意：`user:update` 只是「改自己资料」的权限点（PATCH /user/profile 用它），
 	// 不可用于任何「改他人」的路由 —— 2026-11-25 的 P0 越权写就是这么来的。
 	canUserCreate := middleware.RequireAnyPermission("user:create")
@@ -175,6 +177,16 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		rel.GET("/user/:id/followers/count", actionH.FollowerCount)
 		rel.GET("/user/:id/followings/count", actionH.FollowingCount)
 		rel.GET("/user/certification/identity/:user_id", actionH.CertIdentityOf)
+
+		// 用户详情（公开，可选登录）—— 对齐原 NestJS `user.controller.ts:342`：
+		//   @Get(":id") @UseGuards(JwtAuthGuard) @NoAuth()
+		// 即「游客能看，登录后额外拿到 is_followed / equipped_decorations」。
+		//
+		// 2026-11-25 曾收紧成 user:read 强制鉴权，但那偏离原契约（原版是 @NoAuth），
+		// 且导致「他人主页」对游客 401。此处恢复公开；
+		// 敏感字段（Config / Wallet）已在 service.FindUser 里按「是不是自己」收口，
+		// 公开不等于泄漏余额 —— 改这里之前先读那段注释。
+		rel.GET("/user/:id", userH.FindOne)
 	}
 
 	// ---------- 用户管理（管理员） ----------
@@ -196,7 +208,8 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		// 与同组 DELETE /user/:id（user:delete）保持同一收紧口径。
 		admin.PATCH("/:id", canUserManage, userH.Update)
 		admin.DELETE("/:id", canUserDelete, userH.Remove)
-		admin.GET("/:id", canUserRead, userH.FindOne)
+		// GET /user/:id 已移到上方 rel 组（公开 + 可选登录，对齐原 @NoAuth）。
+		// 不要在这里重复注册 —— Gin 同 method + 同路径会 panic。
 		admin.GET("/:id/membership/check", canUserManage, userH.CheckMembership)
 		admin.POST("/membership/batch-check", canUserManage, userH.BatchCheckMembership)
 		// 认证审核（管理员）

@@ -414,6 +414,7 @@ func (s *ArticleService) UserBrowseHistory(ctx context.Context, actor Actor, pag
 	out := make([]BrowseHistoryView, 0, len(rows))
 	for _, r := range rows {
 		item := BrowseHistoryView{
+			ID:        r.ID, // 历史记录主键（前端 keyExtractor / 去重）
 			ArticleID: r.ArticleID,
 			ViewCount: r.ViewCount,
 			Progress:  r.Progress,

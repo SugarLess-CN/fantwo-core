@@ -20,6 +20,8 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/repository"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -165,6 +167,8 @@ func (s *UserService) Profile(ctx context.Context, userID string) (*dto.UserProf
 	}
 	base := buildUserView(user, true, isMembershipActive(user))
 	base.Config = s.configOf(ctx, userID)
+	// 自己看自己：is_followed 恒 false（不能出现「关注自己」）；装扮显示自己戴的。
+	base.EquippedDecorations = s.userDecorationsOne(userID)
 	out := &dto.UserProfileDto{UserDto: *base}
 	if cert, err := s.d.Users.FindApprovedCert(s.d.DB, userID); err == nil {
 		out.Certification = certDto(cert)
@@ -371,7 +375,7 @@ func (s *UserService) BindPhone(ctx context.Context, userID string, in BindPhone
 //
 // 详情类接口：带上 config（docs/28 §四：列表 N 个用户各带 28 字段配置会让响应体爆炸，
 // 所以只有详情填）。
-func (s *UserService) FindUser(ctx context.Context, id string) (*UserView, *errcode.Err) {
+func (s *UserService) FindUser(ctx context.Context, id string, actor Actor) (*UserView, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
@@ -383,7 +387,19 @@ func (s *UserService) FindUser(ctx context.Context, id string) (*UserView, *errc
 		return nil, errcode.ErrInternal
 	}
 	view := buildUserView(user, true, isMembershipActive(user))
-	view.Config = s.configOf(ctx, id)
+	// ⚠️ 该端点是**公开**的（OptionalAuth，对齐原 JS 的 @NoAuth），所以敏感字段必须按「是不是自己」收：
+	//   · Config（佣金比例 / 隐私开关 / 通知偏好）—— 只有自己看自己才给；
+	//   · Wallet（真实余额）—— 只有自己看自己才给，他人一律 0。
+	// 原 NestJS 的 findOne 会把 config 一并返回（它那版是 @NoAuth 却也带 config，属原版缺陷），
+	// 我们恢复公开语义的同时收紧字段，不把缺陷一起复刻。
+	if actor.UserID != "" && actor.UserID == id {
+		view.Config = s.configOf(ctx, id)
+	} else {
+		view.Wallet = 0
+	}
+	// 佩戴装扮 + 关注态：单个用户各一次查询（详情页不讲究这点开销，
+	// 但复用批量装配保证两条路径的装配逻辑只有一份实现）。
+	s.attachListContext(ctx, []*UserView{view}, actor)
 	return view, nil
 }
 
@@ -405,6 +421,8 @@ type ListUsersInput struct {
 	Page    int
 	Limit   int
 	Keyword string
+	// Actor 当前登录用户（用于标注 is_followed；匿名时一律 false）。
+	Actor Actor
 }
 
 // ListUsers 用户分页列表。
@@ -421,7 +439,127 @@ func (s *UserService) ListUsers(ctx context.Context, in ListUsersInput) ([]*User
 	for i := range users {
 		views = append(views, buildUserView(&users[i], true, isMembershipActive(&users[i])))
 	}
+	// 批量补齐列表项的关注态与佩戴装扮（各一次查询，不随行数增长）。
+	s.attachListContext(ctx, views, in.Actor)
 	return views, total, nil
+}
+
+// attachListContext 给一批用户视图补齐「按当前观察者算」的字段：
+// is_followed + equipped_decorations。
+//
+// **两次查询搞定整页**，不做逐行查询：
+//   - 关注集合：1 次 FollowingIDs（当前用户）
+//   - 装扮：1 次 user_decorations IN (...) JOIN decorations
+//
+// 失败一律降级（不中断列表）：列表页少一个角标，比整页 500 好。
+func (s *UserService) attachListContext(ctx context.Context, views []*UserView, actor Actor) {
+	if len(views) == 0 {
+		return
+	}
+	// ---- is_followed ----
+	// 匿名：全部 false（bool 零值，字段照样输出，前端不用判 null）。
+	if !actor.Anonymous() {
+		following := map[string]struct{}{}
+		if ids, err := s.followingIDs(ctx, actor.UserID); err == nil {
+			for _, id := range ids {
+				following[id] = struct{}{}
+			}
+		}
+		for _, v := range views {
+			// 自己永远不算「已关注自己」
+			_, ok := following[v.ID]
+			v.IsFollowed = ok && v.ID != actor.UserID
+		}
+	}
+	// ---- equipped_decorations（一次批量）----
+	ids := make([]string, 0, len(views))
+	for _, v := range views {
+		ids = append(ids, v.ID)
+	}
+	decos := s.userDecorationsBatch(ids)
+	for _, v := range views {
+		v.EquippedDecorations = decos[v.ID]
+	}
+}
+
+// userDecorationsBatch 批量取「用户 → 佩戴中的装扮 map」。
+//
+// 返回 map[userID]map[decorationType]EquippedDecorationDto。
+// 单次查询覆盖整页；某用户没戴任何装扮时不出现在 map 里（调用方赋 nil
+// → dto 侧 omitempty 让字段整个不传，符合 docs/21）。
+// userDecorationsBatch 是包级实现 —— 用户域和内容域（AuthorResolver）共用一份装配。
+//
+// 为什么抽成包级：`AuthorBriefDto.equipped_decorations`（文章列表/评论区的作者头像框）
+// 由内容域装配，如果各写一份，两条路径迟早漂移（历史教训：同一字段两处装配，改一处漏一处）。
+func (s *UserService) userDecorationsBatch(userIDs []string) map[string]map[string]dto.EquippedDecorationDto {
+	if s.d == nil {
+		return nil
+	}
+	return batchEquippedDecorations(s.d.DB, s.d.Logger, userIDs)
+}
+
+// batchEquippedDecorations 批量取多用户的佩戴装扮，按 userID → 装饰类型 分组。
+func batchEquippedDecorations(db *gorm.DB, log *zap.Logger, userIDs []string) map[string]map[string]dto.EquippedDecorationDto {
+	if len(userIDs) == 0 {
+		return nil
+	}
+	rows, err := repository.UserDecorationRepo{}.FindUsingByUsers(db, userIDs)
+	if err != nil {
+		if log != nil {
+			log.Warn("load equipped decorations failed")
+		}
+		return nil
+	}
+	out := make(map[string]map[string]dto.EquippedDecorationDto, len(rows))
+	for _, r := range rows {
+		key := decorationTypeKey(r.Type)
+		if key == "" {
+			continue
+		}
+		if out[r.UserID] == nil {
+			out[r.UserID] = map[string]dto.EquippedDecorationDto{}
+		}
+		out[r.UserID][key] = dto.EquippedDecorationDto{
+			ID:          r.DecorationID,
+			Name:        r.Name,
+			Type:        r.Type,
+			ImageURL:    r.ImageURL,
+			Rarity:      r.Rarity,
+			BubbleColor: r.BubbleColor,
+		}
+	}
+	return out
+}
+
+// decorationTypeKey model 装饰类型 → 对外 map key。
+//
+// **key 用大写枚举原值**（AVATAR_FRAME / COMMENT_BUBBLE / ACHIEVEMENT_BADGE），不是 snake_case。
+//
+// 依据原 NestJS 实现 `common/utils/user-decorator.util.ts:114`：
+//
+//	equippedDecorations[decoration.type] = transformDecorationToFrontend(decoration)
+//
+// key 直接取 `decoration.type` 的原值，而该枚举在库里就是大写
+// （见 `model.DecorationTypeAvatarFrame` 等常量，也见原仓库
+// `achievement/USER-DECORATIONS-INTEGRATION.md:47` 的
+// `AVATAR_FRAME: { id, name, type, imageUrl, rarity }`）。
+//
+// 这**不是**违反「全站 snake_case」口径：那条规则管的是「字段名」，
+// 这里是 map 的**动态 key**（key 本身是另一个枚举的取值），属于 docs/21 §四 认可的例外形态。
+// 前端若按小写取值会拿不到 —— 改动前先看这段注释。
+func decorationTypeKey(t string) string {
+	switch t {
+	case model.DecorationTypeAvatarFrame,
+		model.DecorationTypeCommentBubble,
+		model.DecorationTypeAchievementBadge:
+		return t
+	}
+	return ""
+}
+
+// userDecorationsOne 单个用户的佩戴装扮（详情类接口用，等价于批量版的 len=1）。
+func (s *UserService) userDecorationsOne(userID string) map[string]dto.EquippedDecorationDto {
+	return s.userDecorationsBatch([]string{userID})[userID]
 }
 
 // CreateUserInput 管理员创建用户入参。
