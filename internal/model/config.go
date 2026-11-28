@@ -332,7 +332,7 @@ func DefaultConfigSeeds() []ConfigSeed {
 		// 微信 - 网站应用扫码
 		{oauthkit.ConfigKeyWechatWebAppID, "", "微信网站应用 AppID", ConfigTypeString, ConfigGroupOAuth, false},
 		{oauthkit.ConfigKeyWechatWebSecret, "", "微信网站应用 AppSecret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
-		{oauthkit.ConfigKeyWechatWebRedirectURI, "", "微信网站应用回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyWechatWebRedirectURI, "", "微信网站应用回调地址（**填前端域名的回调页**，如 https://fantwo.cc/oauth/callback —— 平台回跳前端，前端拿 code 调 POST /user/oauth/wechat/web/callback）", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyWechatWebSuccessURL, "", "微信登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
 		// 微信 - 移动应用（App 内微信 SDK 授权后把 code 交后端换 token）
 		{oauthkit.ConfigKeyWechatAppAppID, "", "微信移动应用 AppID（与网站应用是两个独立应用）", ConfigTypeString, ConfigGroupOAuth, false},
@@ -341,7 +341,7 @@ func DefaultConfigSeeds() []ConfigSeed {
 		// QQ - 网页登录
 		{oauthkit.ConfigKeyQQWebAppID, "", "QQ 网站应用 AppID", ConfigTypeString, ConfigGroupOAuth, false},
 		{oauthkit.ConfigKeyQQWebAppKey, "", "QQ 网站应用 AppKey（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
-		{oauthkit.ConfigKeyQQWebRedirectURI, "", "QQ 网站应用回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyQQWebRedirectURI, "", "QQ 网站应用回调地址（**填前端域名的回调页**，如 https://fantwo.cc/oauth/callback —— 平台回跳前端，前端拿 code 调 POST /user/oauth/qq/web/callback）", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyQQWebSuccessURL, "", "QQ 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
 		// QQ - 移动应用（QQ SDK 直接给 access_token + openid，后端不换 token、不需要 AppKey）
 		{oauthkit.ConfigKeyQQAppAppID, "", "QQ 移动应用 AppID（后端只校验 token，不需要 AppKey）", ConfigTypeString, ConfigGroupOAuth, false},
@@ -349,7 +349,7 @@ func DefaultConfigSeeds() []ConfigSeed {
 		// GitHub - 网页 OAuth（唯一渠道）
 		{oauthkit.ConfigKeyGitHubClientID, "", "GitHub OAuth Client ID", ConfigTypeString, ConfigGroupOAuth, false},
 		{oauthkit.ConfigKeyGitHubClientSecret, "", "GitHub OAuth Client Secret（敏感：管理端返回打码）", ConfigTypeString, ConfigGroupOAuth, false},
-		{oauthkit.ConfigKeyGitHubRedirectURI, "", "GitHub OAuth 回调地址", ConfigTypeString, ConfigGroupOAuth, true},
+		{oauthkit.ConfigKeyGitHubRedirectURI, "", "GitHub OAuth 回调地址（**填前端域名的回调页**，如 https://fantwo.cc/oauth/callback —— 平台回跳前端，前端拿 code 调 POST /user/oauth/github/callback）", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubScope, "read:user user:email", "GitHub 授权作用域", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubSuccessURL, "", "GitHub 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
 

@@ -312,6 +312,11 @@ func deviceIDOf(c *gin.Context) string {
 	if v := c.GetHeader("Device-Id"); v != "" {
 		return v
 	}
+	// 历史写法（原 NestJS 客户端用过 X- 前缀）。CORS 已放行，这里也要能读到，
+	// 否则「预检通过但业务层拿不到」—— 表现为莫名其妙的 20016。
+	if v := c.GetHeader("X-Device-Id"); v != "" {
+		return v
+	}
 	return c.Query("did")
 }
 

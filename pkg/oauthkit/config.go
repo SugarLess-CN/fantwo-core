@@ -26,7 +26,16 @@ type Config struct {
 	// ClientSecret 应用密钥。微信=secret，QQ=appkey，GitHub=client_secret。
 	// QQ app 渠道留空（不需要）。
 	ClientSecret string
-	// RedirectURI 回调地址。GO 侧拼授权 URL 与换 token 都要带，必须与开放平台登记一致。
+	// RedirectURI 回调地址。拼授权 URL 与换 token 都要带，**必须与开放平台登记的一致**
+	// （QQ 不一致会直接返回 100010 回调地址不合法）。
+	//
+	// **本项目的约定：这里填「前端域名」的回调页**（如 https://fantwo.cc/oauth/callback）。
+	// 流程：平台回跳前端 → 前端从 URL 取 code+state → 调
+	// `POST /user/oauth/{provider}/web/callback` 换本站 token。
+	//
+	// 为什么不让后端做回调：token 若走后端 302 回前端（`?token=xxx`），
+	// 会出现在浏览器历史、Referer、代理日志里；让前端用 POST 交换更干净。
+	// 后端的 GET /.../web/callback（302 模式）保留可用，但仅当这里填后端域名时才生效。
 	RedirectURI string
 	// Scope 授权作用域。
 	//
