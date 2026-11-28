@@ -65,7 +65,13 @@ type UploadVideoJob struct {
 type Upload struct {
 	BaseModel
 
-	Hash         string `gorm:"column:hash;type:varchar(128);uniqueIndex;not null" json:"hash"` // 文件 sha256，去重标识
+	// Hash 文件 sha256（去重标识）。
+	//
+	// ⚠️ **不能是单列唯一索引**（2026-11-28 修）：水印图（image）与无水印图（avatar）
+	// 内容完全相同但产物不同，必须各存一行。单列唯一会让第二次插入直接 500
+	// （duplicate key value violates unique constraint）。
+	// 唯一性由 (hash, scene) 复合索引表达，见下方 TableName 之后的注释。
+	Hash         string `gorm:"column:hash;type:varchar(128);not null;index:idx_upload_hash_scene,priority:1" json:"hash"`
 	OriginalName string `gorm:"column:original_name;type:varchar(255);not null" json:"original_name"`
 	Storage      string `gorm:"column:storage;type:varchar(16);not null;default:local" json:"storage"`
 	Filename     string `gorm:"column:filename;type:varchar(255);not null" json:"filename"`
@@ -86,7 +92,11 @@ type Upload struct {
 	VideoJobJSON           string `gorm:"column:video_compression_job;type:jsonb" json:"-"`
 
 	// Scene 上传场景（avatar / image / other）：avatar 不加水印（对齐原 skipScenes）
-	Scene string `gorm:"column:scene;type:varchar(16);not null;default:image;index:idx_upload_scene" json:"scene"`
+	// Scene 上传场景（avatar / image / other）：avatar 不加水印。
+	//
+	// 与 Hash 组成**复合唯一索引** idx_upload_hash_scene：
+	// 同一份内容在每个场景下只存一行，跨场景互不影响。
+	Scene string `gorm:"column:scene;type:varchar(16);not null;default:image;index:idx_upload_scene;uniqueIndex:idx_upload_hash_scene,priority:2" json:"scene"`
 	// UserID 上传者（游客上传为 NULL）；水印取昵称、管理端按人筛选都用它
 	UserID *string `gorm:"column:user_id;type:varchar(36);index:idx_upload_user" json:"user_id"`
 

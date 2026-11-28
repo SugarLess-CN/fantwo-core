@@ -18,6 +18,7 @@
 | F-010 | [装饰购买恒 10007](F-010-装饰购买恒10007.md) | `POST /decoration/purchase` 一律 500：0 元装饰被 `DeductBalance` 的 `amount<=0` 拒绝，余额不足返回普通 `error` 被 `fail()` 收敛成 `ErrInternal`。修：0 元跳过扣款 + 余额不足映射 `20019 points.insufficient` | P1 | 2026-11-28 | ✅ 已修复 |
 | F-011 | [普通用户改头像 403](F-011-普通用户改头像403.md) | `PATCH /user/{id}` 被 2026-11-25「安全收紧」从 `user:update` 改到 `user:manage`，导致普通用户改自己资料 403。**原 JS 的防护在 service 层（字段白名单），不在中间件**。修：中间件恢复 `user:update` + service 补 `actor` 判断与 `selfUpdatableFields` 白名单（wallet/status/role_ids 等静默剔除） | P1 | 2026-11-28 | ✅ 已修复 |
 | F-012 | [权限改为数据库实时读取](F-012-权限改为数据库实时读取.md) | 权限判定原先只比对 JWT 里的签发快照，管理员改完角色对方必须重登才生效。改为每次从数据库实时读（5 秒进程内缓存 + 变更处主动失效），JWT 只负责「你是谁」；查库失败回退 token 快照避免全站 403 | P1 | 2026-11-28 | ✅ 已重构 |
+| F-013 | [上传去重串场景](F-013-上传去重串场景.md) | `/upload/file`（带水印）与 `/upload/avatar`（无水印）按 hash 单键去重，导致同一张图第二个接口复用第一个的记录 → 头像带水印；且 DB 唯一索引是单列 `(hash)`，改成复合 `(hash, scene)` 时若不删旧索引会变 500。修：去重键加 scene + 迁移显式换索引 + scene 提前归一化 | P1 | 2026-11-28 | ✅ 已修复 |
 
 ---
 

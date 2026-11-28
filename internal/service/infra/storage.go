@@ -248,8 +248,23 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 		ident = h
 	}
 
-	// 4) hash 命中即复用（引用计数 +1），不再落盘
-	existing, err := f.findByHash(ident)
+	// 3.5) scene 归一化 —— 必须在去重判定**之前**做。
+	//
+	// 去重是按 (hash, scene) 复合判定的（见下面的说明），空 scene 若不是
+	// 提前归一化成 image，会比不上任何已有记录，导致去重静默失效。
+	scene = orDefaultStr(scene, SceneImage)
+
+	// 4) hash 命中即复用（引用计数 +1），不再落盘。
+	//
+	// ⚠️ **必须带上 scene**（2026-11-28 用户报障修复）：
+	// 此前只按 hash 查，导致同一张图先传 /upload/file（加水印）再传
+	// /upload/avatar（不加）时，第二次直接复用第一次的记录 ——
+	// 头像拿到了带水印的图，两个接口的产物串了。
+	// 现在 (hash, scene) 作为去重键：不同场景各自独立存一份。
+	//
+	// 代价是同一张图在不同场景下会存多份（占用翻倍），
+	// 这是**故意接受的**：水印图与无水印图本就是不同产物，混用是功能错误。
+	existing, err := f.findByHash(ident, scene)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +321,7 @@ func (f *Infra) uploadOne(fh *multipart.FileHeader, meta UploadMetaItem, scene, 
 		Size:                   fh.Size,
 		MimeType:               filecheck.NormalizeMime(fh.Header.Get("Content-Type")),
 		ReferenceCount:         1,
-		Scene:                  orDefaultStr(scene, SceneImage),
+		Scene:                  scene,
 		UserID:                 nullableID(userID),
 		Processed:              false,
 		Watermarked:            false,
@@ -756,12 +771,14 @@ func (f *Infra) ConfirmS3Upload(req S3Confirm, userID string) (*model.Upload, er
 	if !filecheck.IsAllowedMime(req.MimeType) {
 		return nil, errcode.ErrBadRequest.WithKeyf(i18n.UploadTypeNotAllowed, req.MimeType)
 	}
-	// 去重：hash 或 key
+	// 去重：hash 或 key。scene 同样必须参与判定（与 uploadOne 同口径）——
+	// S3 直传确认也不能让头像复用带水印的图。
 	ident := req.Hash
 	if ident == "" {
 		ident = req.Key
 	}
-	existing, err := f.findByHash(ident)
+	scene := orDefaultStr(req.Scene, SceneImage)
+	existing, err := f.findByHash(ident, scene)
 	if err != nil {
 		return nil, err
 	}
@@ -780,7 +797,7 @@ func (f *Infra) ConfirmS3Upload(req S3Confirm, userID string) (*model.Upload, er
 		Size:                   req.Size,
 		MimeType:               filecheck.NormalizeMime(req.MimeType),
 		ReferenceCount:         1,
-		Scene:                  orDefaultStr(req.Scene, SceneImage),
+		Scene:                  scene,
 		UserID:                 nullableID(userID),
 		AuditStatus:            model.UploadAuditPending,
 		VideoCompressionStatus: model.VideoCompressionPending,
@@ -1055,12 +1072,16 @@ func (f *Infra) GetUploadConfig(c *gin.Context) *dto.UploadConfigDto {
 }
 
 // findByHash 按哈希查已有上传记录；未命中返回 (nil, nil)。
-func (f *Infra) findByHash(hash string) (*model.Upload, error) {
+// findByHash 按 (hash, scene) 查已有记录（去重用）。
+//
+// scene 必须参与判定：水印图（image）与无水印图（avatar）是**不同产物**，
+// 只按 hash 查会让两个上传接口互相复用，头像拿到带水印的图（2026-11-28 报障）。
+func (f *Infra) findByHash(hash, scene string) (*model.Upload, error) {
 	if f.db == nil {
 		return nil, svcUnavailable()
 	}
 	var up model.Upload
-	err := f.db.Where("hash = ?", hash).First(&up).Error
+	err := f.db.Where("hash = ? AND scene = ?", hash, scene).First(&up).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
