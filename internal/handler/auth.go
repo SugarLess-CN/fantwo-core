@@ -363,15 +363,19 @@ func (h *AuthHandler) GithubCallback(c *gin.Context) {
 
 // GithubRedirect GET /user/oauth/github/callback：重定向模式，成功跳前端并带 token。
 //
+// **已废弃（2026-11-28）**：改用「redirect_uri 填前端域名 + 前端 POST 换 token」，
+// 见 docs/15 §2.2.1。保留仅为兼容存量部署；token 走 URL 有泄漏面。
+//
 // 302 重定向，**响应体为空**（不是统一响应体）：token 走 Location 的 query。
 // 因此不声明 data 的 $ref —— 硬编一个 200 的 data 会让前端/生成器以为这里有 JSON。
 //
-//	@Summary	GitHub 回调（重定向模式）
+//	@Summary	[已删除 2026-11-28] GitHub 回调（重定向模式）
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
 //	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
 //	@ID			UserController_githubOAuthRedirectCallback
+//	@Deprecated
 //	@Router		/user/oauth/github/callback [get]
 func (h *AuthHandler) GithubRedirect(c *gin.Context) {
 	loc := h.svc.GithubRedirectURL(c.Request.Context(),

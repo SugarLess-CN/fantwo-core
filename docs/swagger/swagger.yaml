@@ -15990,6 +15990,7 @@ paths:
       - 用户认证
   /user/oauth/github/callback:
     get:
+      deprecated: true
       operationId: UserController_githubOAuthRedirectCallback
       produces:
       - application/json
@@ -16000,7 +16001,7 @@ paths:
             Location:
               description: 前端回调地址?token=...&refreshToken=...（失败时带 error=...）
               type: string
-      summary: GitHub 回调（重定向模式）
+      summary: '[已删除 2026-11-28] GitHub 回调（重定向模式）'
       tags:
       - 用户认证
     post:
@@ -16081,6 +16082,7 @@ paths:
       - 用户认证
   /user/oauth/qq/web/callback:
     get:
+      deprecated: true
       operationId: QqOAuthController_webRedirect
       produces:
       - application/json
@@ -16091,7 +16093,7 @@ paths:
             Location:
               description: 前端回调地址?token=...&refreshToken=...（失败时带 error=...）
               type: string
-      summary: QQ 网页回调（重定向模式，302 回前端带 token）
+      summary: '[已删除 2026-11-28] QQ 网页回调（重定向模式，302 回前端带 token）'
       tags:
       - 用户认证
     post:
@@ -16174,6 +16176,7 @@ paths:
       - 用户认证
   /user/oauth/wechat/web/callback:
     get:
+      deprecated: true
       operationId: WechatOAuthController_webRedirect
       produces:
       - application/json
@@ -16184,7 +16187,7 @@ paths:
             Location:
               description: 前端回调地址?token=...&refreshToken=...（失败时带 error=...）
               type: string
-      summary: 微信扫码回调（重定向模式，302 回前端带 token）
+      summary: '[已删除 2026-11-28] 微信扫码回调（重定向模式，302 回前端带 token）'
       tags:
       - 用户认证
     post:

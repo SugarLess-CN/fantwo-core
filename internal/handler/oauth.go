@@ -91,11 +91,16 @@ func (h *AuthHandler) WechatWebCallback(c *gin.Context) {
 
 // WechatWebRedirect GET /user/oauth/wechat/web/callback
 //
-//	@Summary	微信扫码回调（重定向模式，302 回前端带 token）
+// **已废弃（2026-11-28）**：改用「redirect_uri 填前端域名 + 前端 POST 换 token」，
+// 见 docs/15 §2.2.1。保留仅为兼容「redirect_uri 已配成后端域名」的存量部署。
+// 废弃理由：token 走 URL 会留在浏览器历史 / Referer / 反代 access log / 埋点里。
+//
+//	@Summary	[已删除 2026-11-28] 微信扫码回调（重定向模式，302 回前端带 token）
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
 //	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
+//	@Deprecated
 //	@Router		/user/oauth/wechat/web/callback [get]
 //	@ID			WechatOAuthController_webRedirect
 func (h *AuthHandler) WechatWebRedirect(c *gin.Context) {
@@ -178,11 +183,14 @@ func (h *AuthHandler) QQWebCallback(c *gin.Context) {
 
 // QQWebRedirect GET /user/oauth/qq/web/callback
 //
-//	@Summary	QQ 网页回调（重定向模式，302 回前端带 token）
+// **已废弃（2026-11-28）**：同 WechatWebRedirect，改用前端域名回调 + POST 换 token。
+//
+//	@Summary	[已删除 2026-11-28] QQ 网页回调（重定向模式，302 回前端带 token）
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	302	"重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）"
 //	@Header		302	{string}	Location	"前端回调地址?token=...&refreshToken=...（失败时带 error=...）"
+//	@Deprecated
 //	@Router		/user/oauth/qq/web/callback [get]
 //	@ID			QqOAuthController_webRedirect
 func (h *AuthHandler) QQWebRedirect(c *gin.Context) {

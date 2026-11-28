@@ -15175,8 +15175,9 @@ const docTemplate = `{
                 "tags": [
                     "用户认证"
                 ],
-                "summary": "GitHub 回调（重定向模式）",
+                "summary": "[已删除 2026-11-28] GitHub 回调（重定向模式）",
                 "operationId": "UserController_githubOAuthRedirectCallback",
+                "deprecated": true,
                 "responses": {
                     "302": {
                         "description": "重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）",
@@ -15326,8 +15327,9 @@ const docTemplate = `{
                 "tags": [
                     "用户认证"
                 ],
-                "summary": "QQ 网页回调（重定向模式，302 回前端带 token）",
+                "summary": "[已删除 2026-11-28] QQ 网页回调（重定向模式，302 回前端带 token）",
                 "operationId": "QqOAuthController_webRedirect",
+                "deprecated": true,
                 "responses": {
                     "302": {
                         "description": "重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）",
@@ -15480,8 +15482,9 @@ const docTemplate = `{
                 "tags": [
                     "用户认证"
                 ],
-                "summary": "微信扫码回调（重定向模式，302 回前端带 token）",
+                "summary": "[已删除 2026-11-28] 微信扫码回调（重定向模式，302 回前端带 token）",
                 "operationId": "WechatOAuthController_webRedirect",
+                "deprecated": true,
                 "responses": {
                     "302": {
                         "description": "重定向到前端，token 由 Location 的 query 携带（响应体为空，不是 JSON）",
