@@ -211,11 +211,30 @@ func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.Us
 		Phone:    nilIfEmpty(in.Phone),
 		Status:   model.UserStatusActive,
 	}
-	// 默认挂普通用户角色（对齐原注册流程初始化 user 角色）。
-	if role, err := s.d.Roles.FindByName(s.d.DB, model.RoleNameUser); err == nil {
-		user.Roles = []model.Role{*role}
-	}
 	if err := s.d.DB.Transaction(func(tx *gorm.DB) error {
+		// ---- 角色分配（在事务内，防并发抢第一个用户）----
+		//
+		// 规则（用户 2026-11-28 指定）：**第一个注册的用户自动成为管理员**。
+		// 否则全新部署后没有任何人能进管理后台，必须先手动改库，体验很差。
+		//
+		// 为什么必须在事务内数：两个并发注册都读到 count=0 的话会把两人都提成管理员。
+		// 用事务级 advisory lock 串行化「数总数 + 建用户」这一步。
+		// 为什么不 LOCK TABLE：那是表级排他锁，会把注册期间的读请求全部阻塞；
+		// advisory lock 只锁住我们自己的这个常量键，代价小得多，语义也更明确。
+		// 键值任意固定（907150002 = 注册角色分配的专用号，与 nick_id 回填脚本的键区分）。
+		if err := tx.Exec("SELECT pg_advisory_xact_lock(907150002)").Error; err != nil && tx.Dialector.Name() == "postgres" {
+			s.d.Logger.Warn("register advisory lock failed, fallback to normal role", zapErr(err))
+		}
+		roleName := model.RoleNameUser
+		if n, cerr := s.d.Users.CountAll(tx); cerr == nil && n == 0 {
+			roleName = model.RoleNameSuperAdmin
+			s.d.Logger.Info("first user registered, grant super-admin",
+				zap.String("username", user.Username))
+		}
+		if role, rerr := s.d.Roles.FindByName(tx, roleName); rerr == nil {
+			user.Roles = []model.Role{*role}
+		}
+
 		// 分配对外展示号码（10000 起自增）。
 		// 在事务内取号：SEQUENCE 的 nextval 不受事务回滚影响，取号本身是安全的；
 		// 这里放事务内只是为了与用户创建保持同一节奏，失败时整笔回滚。

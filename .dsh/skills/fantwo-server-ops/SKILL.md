@@ -212,6 +212,30 @@ python .dsh/skills/fantwo-server-ops/ssh.py "curl -s -X PATCH 'http://127.0.0.1:
 
 ---
 
+## 六、第一个用户自动是管理员
+
+注册逻辑（`auth_service.go` 的 `Register`，事务内）：
+
+```
+库里 user 总数为 0  →  第一个注册者自动获得 super-admin
+否则                →  普通 user
+```
+
+全新部署后**不用手动改库**，直接注册第一个账号即可进管理后台。
+
+并发保护：用 `pg_advisory_xact_lock(907150002)` 把「数总数 + 建用户」串行化，
+避免两个并发注册都读到 `count=0` 而双双提成管理员。
+
+真机验证（空库）：
+```
+第一个 firstuser  → roles: ['super-admin']   GET /user → 200
+第二个 seconduser → roles: ['user']          GET /user → 20003 forbidden
+```
+
+> 已有数据的老库不受影响（总数 > 0），要补管理员仍走下面的 SQL。
+
+---
+
 ## 六、给用户授权限
 
 ```sql

@@ -136,6 +136,17 @@ func (r *UserRepo) FindByGithubID(db *gorm.DB, githubID string) (*model.User, er
 }
 
 // ExistsUsername 用户名是否占用（excludeID 非空时排除自身）。
+// CountAll 统计用户总数（软删不计）。
+//
+// 用途：注册时判断「是不是第一个用户」—— 第一个用户自动授予 super-admin，
+// 否则全新部署后没有任何人能进管理后台（必须先手动改库才能管理，体验很差）。
+func (r *UserRepo) CountAll(db *gorm.DB) (int64, error) {
+	var n int64
+	err := db.Model(&model.User{}).Count(&n).Error
+	return n, err
+}
+
+// ExistsUsername 用户名是否已占用（username 列 varchar(64) + uniqueIndex）。
 func (r *UserRepo) ExistsUsername(db *gorm.DB, username, excludeID string) (bool, error) {
 	var n int64
 	q := db.Model(&model.User{}).Where("username = ?", username)
