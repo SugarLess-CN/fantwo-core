@@ -49,6 +49,8 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 	canUserCreate := middleware.RequireAnyPermission("user:create")
 	canUserDelete := middleware.RequireAnyPermission("user:delete", "user:manage")
 	canUserManage := middleware.RequireAnyPermission("user:manage")
+	// canUserWrite 「改自己资料」的权限点；改别人由 service 层的 user:manage 判断兜住。
+	canUserWrite := middleware.RequireAnyPermission("user:update", "user:manage")
 	canRoleRead := middleware.RequireAnyPermission("role:read")
 	canRoleCreate := middleware.RequireAnyPermission("role:create")
 	canRoleUpdate := middleware.RequireAnyPermission("role:update")
@@ -200,13 +202,20 @@ func RegisterUserRoutes(v1 *gin.RouterGroup, opt Option) {
 		admin.GET("", canUserManage, userH.FindAll)
 		// 修改他人资料属管理能力：必须 user:manage。
 		//
-		// P0 教训（2026-11-25 接口测试发现）：这里原用 canUserWrite（`user:update`），
-		// 而 `user:update` 是「改自己资料」的权限点（`PATCH /user/profile` 就用它），
-		// 普通用户人人都有 → 任何登录用户都能改任意人的资料。
-		// 而 UserService.UpdateUser 支持 status / wallet / roleIds，危害是：
-		// 封禁任何人、直接改钱包余额、给自己加管理员角色（提权）。
-		// 与同组 DELETE /user/:id（user:delete）保持同一收紧口径。
-		admin.PATCH("/:id", canUserManage, userH.Update)
+		// PATCH /user/:id —— 权限点 `user:update`（**对齐原 NestJS**，2026-11-28 修正）。
+		//
+		// 历史：2026-11-25 曾收紧成 `user:manage`，理由是「user:update 人人都有 →
+		// 任何登录用户都能改任意人资料（含 wallet/roleIds/status）」。那个判断**只看了中间件**，
+		// 漏了原版在 service 层还有两道防护：
+		//   ① 改别人 → 要 user:manage
+		//   ② 改自己非管理员 → 字段白名单（nickname/avatar/username/background/
+		//      birth_date/gender/address/description），其余静默剔除
+		// 所以原版并没有提权漏洞。过度收紧的副作用是：普通用户按原契约调
+		// `PATCH /user/{自己id}` 改头像会 403（用户实测报障）。
+		//
+		// 现在两层防护已补进 UserService.UpdateUser（含 selfUpdatableFields 白名单），
+		// 中间件恢复 user:update。安全性不降，兼容原契约。
+		admin.PATCH("/:id", canUserWrite, userH.Update)
 		admin.DELETE("/:id", canUserDelete, userH.Remove)
 		// GET /user/:id 已移到上方 rel 组（公开 + 可选登录，对齐原 @NoAuth）。
 		// 不要在这里重复注册 —— Gin 同 method + 同路径会 panic。

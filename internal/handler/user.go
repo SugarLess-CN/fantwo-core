@@ -329,7 +329,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	if !bindJSON(c, &in) {
 		return
 	}
-	view, e := h.svc.UpdateUser(c.Request.Context(), c.Param("id"), in)
+	view, e := h.svc.UpdateUser(c.Request.Context(), c.Param("id"), in, actorOf(c))
 	if e != nil {
 		response.Fail(c, e)
 		return

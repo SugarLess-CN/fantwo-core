@@ -663,10 +663,47 @@ func parseFlexTime(v string) (time.Time, error) {
 }
 
 // UpdateUser 管理员更新用户（资料 + 角色 + 状态）。
-func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserInput) (*UserView, *errcode.Err) {
+// selfUpdatableFields 普通用户**改自己**时允许的字段（对齐原 NestJS
+// `user.service.ts:877` 的 allowedFields）。
+//
+// 其余字段（password / role_ids / wallet / status / banned / ban_reason /
+// membership_* / invite_code）本人一律不能改：
+//
+//	· password 走 POST /user/password/change（要旧密码校验），从这里改等于绕过
+//	· role_ids / status / banned 是管理动作，本人改 = 提权 / 自我解封
+//	· wallet 是余额，本人改 = 直接造钱
+var selfUpdatableFields = map[string]bool{
+	"username": true, "nickname": true, "avatar": true, "description": true,
+	"background": true, "address": true, "gender": true, "birth_date": true,
+}
+
+func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserInput, actor Actor) (*UserView, *errcode.Err) {
 	if e := s.d.ready(); e != nil {
 		return nil, e
 	}
+	if id == "" {
+		return nil, errcode.ErrInvalidParam
+	}
+
+	// ---- 权限与字段白名单（对齐原 NestJS user.service.ts:864-892）----
+	//
+	// 原版两层防护都在 service：中间件只要求 `user:update`（人人都有），
+	// service 内再判「改别人要 user:manage」+「改自己只允许白名单字段」。
+	//
+	// 我们此前只看到中间件是 user:update 就判定「有提权风险」，把中间件收紧成
+	// user:manage —— 结果普通用户连改自己头像都 403（2026-11-28 用户实测报障）。
+	// 现在把防护放回正确的位置：中间件恢复 user:update，service 补这两层。
+	isAdmin := actor.Has("user:manage")
+	isSelf := actor.UserID != "" && actor.UserID == id
+	if !isSelf && !isAdmin {
+		return nil, errcode.ErrNoPermission
+	}
+	if isSelf && !isAdmin {
+		// 改自己且非管理员：非白名单字段**静默剔除**（不是报错）。
+		// 前端可能把整个 UserDto 回传（含 role_ids/wallet），报错会让「改昵称」这种正常操作失败。
+		restrictSelfUpdate(&in)
+	}
+
 	before, err := s.d.Users.FindPlainByID(s.d.DB, id)
 	if IsNotFound(err) {
 		return nil, errcode.ErrUserNotExist
@@ -1283,4 +1320,49 @@ func (s *UserService) followingIDs(ctx context.Context, userID string) ([]string
 		return nil, nil
 	}
 	return s.d.Users.FollowingIDs(s.d.DB, userID)
+}
+
+// restrictSelfUpdate 剔除普通用户改自己时不允许的字段（静默，不报错）。
+//
+// 与 selfUpdatableFields 配合：白名单之外的字段一律置 nil，
+// 后续 configFields 之外的写入逻辑自然不会处理它们。
+// role_ids 单独处理（它是切片，且只有管理员能改）。
+func restrictSelfUpdate(in *UpdateUserInput) {
+	if !selfUpdatableFields["username"] {
+		in.Username = nil
+	}
+	if !selfUpdatableFields["nickname"] {
+		in.Nickname = nil
+	}
+	if !selfUpdatableFields["avatar"] {
+		in.Avatar = nil
+	}
+	if !selfUpdatableFields["description"] {
+		in.Description = nil
+	}
+	if !selfUpdatableFields["background"] {
+		in.Background = nil
+	}
+	if !selfUpdatableFields["address"] {
+		in.Address = nil
+	}
+	if !selfUpdatableFields["gender"] {
+		in.Gender = nil
+	}
+	if !selfUpdatableFields["birth_date"] {
+		in.BirthDate = nil
+	}
+	// 以下与管理/资金相关，本人一律不可改
+	in.Password = nil
+	in.Wallet = nil
+	in.Status = nil
+	in.InviteCode = nil
+	in.Banned = nil
+	in.BanReason = nil
+	in.MembershipLevel = nil
+	in.MembershipLevelName = nil
+	in.MembershipStatus = nil
+	in.MembershipStartDate = nil
+	in.MembershipEndDate = nil
+	in.RoleIDs = nil
 }

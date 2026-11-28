@@ -16,6 +16,7 @@
 | F-008 | [OAuth state 失效与上游失败不可区分](F-008-OAuth-state失效与上游失败不可区分.md) | state 重放/伪造与上游失败都返回 `10008`，前端无法判断该做什么 | P1 | 2026-11-25 | ✅ 已修复（`20031`），同类 6 个哨兵共用 `10008` 待修 |
 | F-009 | [文章搜索 relevance 失效与列表误接 ES](F-009-文章搜索relevance失效与列表误接ES.md) | `sort_by` 映射缺 `relevance` 分支（默认值落到人工排序位）→ 热度排序失效；ES 接线误命中 `/article` 列表（未上线即拦下）。顺带修 `articleRowToAPI` map key camelCase（命名检查工具盲区） | P1 | 2026-11-27 | ✅ 已修复 |
 | F-010 | [装饰购买恒 10007](F-010-装饰购买恒10007.md) | `POST /decoration/purchase` 一律 500：0 元装饰被 `DeductBalance` 的 `amount<=0` 拒绝，余额不足返回普通 `error` 被 `fail()` 收敛成 `ErrInternal`。修：0 元跳过扣款 + 余额不足映射 `20019 points.insufficient` | P1 | 2026-11-28 | ✅ 已修复 |
+| F-011 | [普通用户改头像 403](F-011-普通用户改头像403.md) | `PATCH /user/{id}` 被 2026-11-25「安全收紧」从 `user:update` 改到 `user:manage`，导致普通用户改自己资料 403。**原 JS 的防护在 service 层（字段白名单），不在中间件**。修：中间件恢复 `user:update` + service 补 `actor` 判断与 `selfUpdatableFields` 白名单（wallet/status/role_ids 等静默剔除） | P1 | 2026-11-28 | ✅ 已修复 |
 
 ---
 
