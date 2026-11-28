@@ -9,6 +9,7 @@ package service
 import (
 	"time"
 
+	"errors"
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -242,8 +243,18 @@ func (s *DecorationService) Purchase(userID, decorationID string) (*dto.UserDeco
 	if s.wallet == nil {
 		return nil, errcode.ErrInternal.WithKey(i18n.DecorationWalletUnavailable)
 	}
-	if err := s.wallet.DeductBalance(userID, d.Price, "DECORATION", "购买装饰品："+d.Name); err != nil {
-		return nil, err
+	// 0 元装饰（免费发放）**不走扣款**：DeductBalance 对 amount<=0 会直接报错
+	// 「扣款金额必须大于 0」，原样透出会变成 10007 内部错误 —— 用户点购买永远失败。
+	if d.Price > 0 {
+		if err := s.wallet.DeductBalance(userID, d.Price, "DECORATION", "购买装饰品："+d.Name); err != nil {
+			// DeductBalance 返回的是**普通 error**（不是 *errcode.Err），原样透出会被
+			// handler 的 fail() 收敛成 10007「内部错误」，客户端既看不到「余额不足」
+			// 也没法引导充值。这里按语义翻译成对应的业务码。
+			if errors.Is(err, errInsufficientBalance) {
+				return nil, errcode.ErrInsufficientBalance
+			}
+			return nil, errcode.ErrInternal.WithKey(i18n.DecorationWalletUnavailable)
+		}
 	}
 	ud, err := s.grantModel(userID, d, model.DecorationObtainPurchase, "", "")
 	if err != nil {
