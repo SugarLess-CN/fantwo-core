@@ -155,6 +155,37 @@ func (r *RoleRepo) CountUsers(db *gorm.DB, roleID string) (int64, error) {
 	return n, err
 }
 
+// UserRoleNames 某用户当前生效的角色名（只算启用中的角色）。
+//
+// 为什么需要：JWT 里虽然带了 roles/permissions 快照，但那是**签发那一刻**的状态。
+// 管理员改了角色后，旧 token 里的权限不会变 —— 用户要重新登录才生效。
+// 权限判定改为每次从库里实时读，就不会有这个滞后窗口。
+func (r *RoleRepo) UserRoleNames(db *gorm.DB, userID string) ([]string, error) {
+	var names []string
+	err := db.Table("role").
+		Select("role.name").
+		Joins("JOIN user_roles ur ON ur.role_id = role.id").
+		Where("ur.user_id = ? AND role.is_active = ?", userID, true).
+		Pluck("role.name", &names).Error
+	return names, err
+}
+
+// UserPermissionNames 某用户当前生效的权限点名（去重）。
+//
+// 沿 role_permissions 关联查；只算启用中的角色。
+// 一次 JOIN 搞定，不分两次查（避免「角色变了但权限还是老的」这种中间态）。
+func (r *RoleRepo) UserPermissionNames(db *gorm.DB, userID string) ([]string, error) {
+	var names []string
+	err := db.Table("permission").
+		Select("DISTINCT permission.name").
+		Joins("JOIN role_permissions rp ON rp.permission_id = permission.id").
+		Joins("JOIN role ON role.id = rp.role_id").
+		Joins("JOIN user_roles ur ON ur.role_id = role.id").
+		Where("ur.user_id = ? AND role.is_active = ?", userID, true).
+		Pluck("permission.name", &names).Error
+	return names, err
+}
+
 // AssignRoleToUser 给用户挂角色（user_roles join 表，幂等）。
 func (r *RoleRepo) AssignRoleToUser(db *gorm.DB, userID, roleID string) error {
 	var n int64

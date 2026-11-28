@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -815,4 +816,6 @@ func authtokenBumpOne(ctx context.Context, d *Deps, userID string) {
 		return
 	}
 	authtoken.BumpPermVer(ctx, d.AuthTok, userID)
+	// 实时权限缓存也失效（改角色后立即生效，不用等 TTL）
+	middleware.InvalidateUserPermissions(userID)
 }

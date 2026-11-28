@@ -12,6 +12,7 @@ import (
 	"context"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/dto"
+	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
@@ -594,6 +595,10 @@ func (s *RoleService) bumpRoleUsers(ctx context.Context, roleID string) int {
 		return 0
 	}
 	authtoken.BumpPermVerMany(ctx, s.d.AuthTok, ids)
+	// 同时失效实时权限缓存 —— 否则权限变更最多要等 5 秒才生效。
+	// 两者并存：BumpPermVer 让旧 token 走「重新登录」路径，
+	// 缓存失效让已登录用户**立刻**用上新权限（不用重登）。
+	middleware.InvalidateUsersPermissions(ids)
 	return len(ids)
 }
 

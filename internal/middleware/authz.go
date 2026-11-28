@@ -48,7 +48,8 @@ func OptionalAuthV2(signer *jwtx.Signer, st authtoken.Store) gin.HandlerFunc {
 }
 
 // RequireAnyPermission 权限点校验（OR 关系，对齐原 PermissionGuard）。
-// claims 内权限来自 JWT；perm_ver 已在 JWTAuthV2 校验，这里不再查库。
+//
+// **权限来源是数据库实时值**（`ctxPermSource`），见 RequirePermissions 的说明。
 func RequireAnyPermission(required ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		claims := ClaimsFrom(c)
@@ -56,8 +57,9 @@ func RequireAnyPermission(required ...string) gin.HandlerFunc {
 			response.Fail(c, errcode.ErrNeedAuth)
 			return
 		}
+		perms, _ := currentPermissions(c, claims)
 		for _, req := range required {
-			for _, p := range claims.Permissions {
+			for _, p := range perms {
 				if p == req {
 					c.Next()
 					return

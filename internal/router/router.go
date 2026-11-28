@@ -16,6 +16,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/SugarLess-CN/fantwo-core/internal/middleware"
+	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 )
 
 // Option 路由依赖注入。
@@ -38,6 +39,10 @@ func New(opt Option) *gin.Engine {
 	r.Use(middleware.ZapRecovery(opt.Logger))
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(middleware.CORS())
+	// 实时权限来源：判定时从数据库读当前权限，而不是用 JWT 里的签发快照。
+	// 这样管理员改完角色后，对方下一次请求就生效（不用重新登录）。
+	// opt.DB 为 nil（降级/测试）时自动禁用，中间件回退到 JWT 快照。
+	middleware.SetPermissionSource(r, middleware.NewPermissionSource(opt.DB, repository.NewRoleRepo(), opt.Logger))
 
 	// 健康检查（不走 /api/v1 前缀，便于探针直连）
 	r.GET("/health", health)

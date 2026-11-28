@@ -41,7 +41,12 @@ func OptionalAuth(signer *jwtx.Signer) gin.HandlerFunc {
 }
 
 // RequirePermissions 权限点校验（RBAC，多个权限 OR 关系，对齐原 PermissionGuard）。
-// 依赖 JWTAuth 已注入 claims；claims 内 permissions 来自 JWT（guard 不查库）。
+//
+// **权限来源是数据库实时值**（`ctxPermSource`），不是 JWT 里的快照。
+// JWT 只负责「你是谁」，权限每次判定都按当前库里的角色/权限算 ——
+// 管理员改完角色后，对方下一次请求就生效，不需要重新登录。
+//
+// 查库失败时**回退到 JWT 快照**：权限查询故障不该让全站 403。
 func RequirePermissions(required ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw, exists := c.Get(CtxUserKey)
@@ -50,9 +55,10 @@ func RequirePermissions(required ...string) gin.HandlerFunc {
 			response.Fail(c, errcode.ErrUnauthorized)
 			return
 		}
+		perms, _ := currentPermissions(c, claims)
 		// OR 关系：任一命中即放行
 		for _, req := range required {
-			for _, p := range claims.Permissions {
+			for _, p := range perms {
 				if p == req {
 					c.Next()
 					return
