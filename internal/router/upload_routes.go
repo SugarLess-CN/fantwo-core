@@ -94,7 +94,7 @@ func RegisterUploadRoutes(v1 *gin.RouterGroup, opt Option) {
 // `/api/v1/uploads`）。要挂根级路径只能拿到 `*gin.Engine`，所以由 router.go 直接调用。
 //
 // 用户 2026-11-28 指定：上传产物对外地址**不带 /api/v1 这类中间路径**。
-// 配合 `Infra.publicBaseURL()` + `Infra.localURL()`，新写入的 URL 形如：
+// 配合 `Infra.uploadURL()` + `Infra.localURL()`，出参 URL 形如：
 //
 //	https://testend.cerylab.com/uploads/2026/11/28/ab/cd/xxx.png
 func RegisterPublicUploads(r *gin.Engine, opt Option) {

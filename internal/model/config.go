@@ -82,12 +82,12 @@ const (
 	ConfigKeyS3UseSSL             = "s3_use_ssl"
 	ConfigKeyS3ForcePathStyle     = "s3_force_path_style"
 	ConfigKeyCDNBaseURL           = "cdn_base_url"
-	// ConfigKeyUploadPublicBaseURL 上传产物对外访问的**基础地址**（本地与 S3 通用）。
+	// ConfigKeyUploadURL 上传产物对外访问的域名（如 https://testend.cerylab.com）。
 	//
-	// 为什么需要它：此前本地存储的 URL 用「请求 Host」拼（absolutizeURL），
-	// 于是返回给前端的地址取决于请求怎么打进来 —— 走反代是内网地址、走 127.0.0.1 是回环地址。
-	// 用户要求：不论本地还是远程存储，域名一律由后端配置决定。
-	ConfigKeyUploadPublicBaseURL = "upload_public_base_url"
+	// 极简模型（用户 2026-11-28 指定）：不论 local 还是 s3，
+	// 出参一律 upload_url + "/uploads/" + 相对路径。不看 CDN、不看请求 Host。
+	// 存储类型由 env STORAGE_DRIVER 决定（local / s3），不需要额外配置字段。
+	ConfigKeyUploadURL           = "upload_url"
 	ConfigKeySearchAddresses     = "search_addresses"
 	ConfigKeySearchUsername      = "search_username"
 	ConfigKeySearchPassword      = "search_password"
@@ -131,7 +131,7 @@ const (
 // storage_driver 这里用字符串字面量：它**没有 key 常量**（见上方常量块注释），
 // 作为启动期配置从不写种子、也从不进运行期可调范围。
 var ConfigStartupOnlyKeys = []string{
-	"storage_driver", // minio client 类型选择（local / s3），启动期决定
+	// storage_driver 已移入 DefaultConfigSeeds（用户 2026-11-28 要求作为可配字段）
 	ConfigKeyS3Endpoint,
 	ConfigKeyS3Bucket,
 	ConfigKeyS3Region,
@@ -285,13 +285,14 @@ func DefaultConfigSeeds() []ConfigSeed {
 
 		// 存储（非公开）：仅本地存储根目录。S3 七项为启动期配置，不写种子（见上方 key 常量块注释）。
 		{"storage_local_dir", "./uploads", "本地存储根目录", ConfigTypeString, ConfigGroupStorage, false},
+		{"storage_driver", "local", "存储类型（local / s3）", ConfigTypeString, ConfigGroupStorage, false},
 
 		// CDN（公开：前端拼接资源地址需要）
 		{"cdn_base_url", "", "CDN 加速域名前缀（如 https://cdn.example.com）", ConfigTypeString, ConfigGroupCDN, true},
 
 		// 上传产物对外基础地址（用户 2026-11-28 指定）：本地与远程存储**统一**用它拼 URL，
 		// 不再依赖请求 Host，也不再带 /api/v1 中间路径。
-		{ConfigKeyUploadPublicBaseURL, "", "上传产物对外基础地址（如 https://testend.cerylab.com）—— 本地与 S3 通用，留空则回退 CDN 前缀、再回退请求域名。不带 /api/v1，结尾不加斜杠", ConfigTypeString, ConfigGroupUpload, false},
+		{ConfigKeyUploadURL, "", "上传产物对外域名（如 https://testend.cerylab.com）—— 出参 = upload_url + /uploads/ + 相对路径，local 和 s3 通用", ConfigTypeString, ConfigGroupStorage, false},
 
 		// 广告位（公开）
 		{"advertisement_enabled", "false", "广告总开关", ConfigTypeBoolean, ConfigGroupAdvertisement, true},

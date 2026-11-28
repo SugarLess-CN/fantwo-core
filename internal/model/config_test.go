@@ -164,13 +164,14 @@ func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
 // = 78
 // +  2（2026-11-28：nick_id 策略开关 —— allow_modify / allow_duplicate）
 // = 80
-// +  1（2026-11-28：upload_public_base_url —— 上传产物对外基础地址）
-// = 81
+// +  1（2026-11-28：upload_url —— 上传产物对外域名）
+// +  1（2026-11-28：storage_driver 从启动期配置移入种子）
+// = 82
 //
 // 任何增删都应是有意为之 —— 数字对不上时先看 DefaultConfigSeeds 的取舍说明，别直接改这个常量。
 func TestDefaultConfigSeedsCount(t *testing.T) {
-	if got := len(DefaultConfigSeeds()); got != 81 {
-		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 81（增删种子请同步更新取舍说明与算式）", got)
+	if got := len(DefaultConfigSeeds()); got != 82 {
+		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 82（增删种子请同步更新取舍说明与算式）", got)
 	}
 }
 
@@ -182,7 +183,7 @@ func TestIsStartupOnlyConfigKey(t *testing.T) {
 		why  string
 	}{
 		// ① 启动期配置：8 项全部 true
-		{"storage_driver", true, "minio client 类型选择（无 key 常量，字面量）"},
+		{"storage_driver", false, "已移入种子（用户 2026-11-28），不再是 startup-only"},
 		{ConfigKeyS3Endpoint, true, "S3 Endpoint"},
 		{ConfigKeyS3Bucket, true, "S3 Bucket"},
 		{ConfigKeyS3Region, true, "S3 Region"},

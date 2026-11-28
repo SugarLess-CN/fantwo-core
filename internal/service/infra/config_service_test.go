@@ -418,7 +418,7 @@ func TestIsStartupOnlyRejected(t *testing.T) {
 		why     string
 	}{
 		// ① 8 个启动期 key：一律拒绝，且文案里必须点名 key
-		{"storage_driver", "storage_driver", true, "minio client 类型，启动期决定"},
+		{"storage_driver", "storage_driver", false, "已移入种子（用户 2026-11-28），运行期可配"},
 		{"s3_endpoint", model.ConfigKeyS3Endpoint, true, ""},
 		{"s3_bucket", model.ConfigKeyS3Bucket, true, ""},
 		{"s3_region", model.ConfigKeyS3Region, true, ""},
