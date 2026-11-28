@@ -54,6 +54,9 @@ func New(opt Option) *gin.Engine {
 
 		// 各业务域在此统一注册（见 registry.go；每域一行，勿交叉改动）
 		RegisterAll(v1, opt)
+		// 上传产物对外路径（/uploads/**，不带 /api/v1）—— 用户 2026-11-28 指定。
+		// 必须拿 engine 才能挂根级路径，所以不进 RegisterAll。
+		RegisterPublicUploads(r, opt)
 	}
 
 	return r

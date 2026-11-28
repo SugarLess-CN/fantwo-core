@@ -52,9 +52,16 @@ func RegisterUploadRoutes(v1 *gin.RouterGroup, opt Option) {
 	svc := infraUploadSvc(opt)
 	h := handler.NewUploadHandler(svc)
 
-	// 本地存储：暴露静态文件路由 /api/v1/uploads/*（CDN 模式由 cdn.base_url 直出，不走这里）
+	// 本地存储：暴露静态文件路由。
+	//
+	// **对外路径是 /uploads/\*\*（不带 /api/v1）** —— 用户 2026-11-28 指定：
+	// 上传产物地址不要出现 /api/v1 这样的中间路径。同时保留 /api/v1/uploads/\*\*
+	// 作为**存量兼容**（老数据里存的是旧 URL，删掉会让历史图片全部 404）。
 	if dir := svc.LocalDir(); dir != "" {
 		if err := os.MkdirAll(dir, 0o755); err == nil {
+			// 存量兼容：数据库里老数据存的是 /api/v1/uploads/... ，
+			// 保留这条路由否则历史图片全部 404。
+			// **新写入的 URL 只用 /uploads/**（见 RegisterPublicUploads）。
 			v1.Static("/uploads", dir)
 		}
 	}
@@ -78,4 +85,30 @@ func RegisterUploadRoutes(v1 *gin.RouterGroup, opt Option) {
 	g.POST("/migration/process", append(infraChain(opt, "upload:delete"), h.MigrationProcess)...)
 	g.POST("/migration/metadata", append(infraChain(opt, "upload:delete"), h.MigrationMetadata)...)
 	g.DELETE("/:id", append(infraChain(opt, "upload:delete"), h.Remove)...)
+}
+
+// RegisterPublicUploads 在**根路径**挂载 /uploads/** 静态文件服务。
+//
+// 为什么需要单独一个函数：`RegisterUploadRoutes` 拿到的是 `/api/v1` group，
+// 而 gin 的 RouterGroup 无法跳出自身前缀（`v1.Static("/uploads", dir)` 必然拼成
+// `/api/v1/uploads`）。要挂根级路径只能拿到 `*gin.Engine`，所以由 router.go 直接调用。
+//
+// 用户 2026-11-28 指定：上传产物对外地址**不带 /api/v1 这类中间路径**。
+// 配合 `Infra.publicBaseURL()` + `Infra.localURL()`，新写入的 URL 形如：
+//
+//	https://testend.cerylab.com/uploads/2026/11/28/ab/cd/xxx.png
+func RegisterPublicUploads(r *gin.Engine, opt Option) {
+	svc := infraUploadSvc(opt)
+	dir := svc.LocalDir()
+	if dir == "" {
+		// S3 驱动：文件不在本地，静态服务无意义（URL 由 s3AccessURL 生成）。
+		return
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		if opt.Logger != nil {
+			opt.Logger.Warn("创建上传目录失败，静态文件路由未挂载: " + err.Error())
+		}
+		return
+	}
+	r.Static("/uploads", dir)
 }

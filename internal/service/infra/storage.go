@@ -175,18 +175,55 @@ func (f *Infra) HandleUpload(files []*multipart.FileHeader, metadata []UploadMet
 	}
 	wg.Wait()
 
-	// URL 基准：本地存储且未配 CDN 时，以请求域名补全为绝对地址。
+	// URL 补全：主图、缩略图、original 三处都要 —— 漏掉缩略图会让前端拿到
+	// 相对路径 `/uploads/...`（原先只在主图上做，实测踩到）。
 	for i := range uploads {
-		uploads[i].URL = absolutizeURL(uploads[i].URL, baseURL)
+		f.absolutizeUpload(&uploads[i], baseURL)
 	}
 	// 回读：把异步/同步处理写入的 size / thumbnails / original / watermarked 带回响应
 	for i := range uploads {
 		if fresh, err := f.GetFileInfo(uploads[i].ID); err == nil {
 			uploads[i] = *fresh
-			uploads[i].URL = absolutizeURL(uploads[i].URL, baseURL)
+			f.absolutizeUpload(&uploads[i], baseURL)
 		}
 	}
 	return uploads, nil
+}
+
+// absolutizeUpload 把一条上传记录里**所有**对外 URL 补成绝对地址。
+//
+// 覆盖三处（历史上只处理了第一处，导致缩略图返回相对路径）：
+//
+//	· URL          主图
+//	· Thumbnails[] 四档缩略图（存库时是相对路径）
+//	· Original     保留原图（keepOriginal 场景）
+func (f *Infra) absolutizeUpload(up *model.Upload, baseURL string) {
+	up.URL = f.absolutizeURL(f.withUploadsPrefix(up.URL), baseURL)
+
+	// 缩略图存在 jsonb 列里（ThumbsJSON），解析 → 改 URL → 序列化回去。
+	// 只改内存对象，不写库（下次读出来仍是相对路径，再由这里补全，保证配置改了立刻生效）。
+	if up.ThumbsJSON != "" && up.ThumbsJSON != "null" {
+		var thumbs []model.UploadThumbnail
+		if json.Unmarshal([]byte(up.ThumbsJSON), &thumbs) == nil {
+			for i := range thumbs {
+				thumbs[i].URL = f.absolutizeURL(f.withUploadsPrefix(thumbs[i].URL), baseURL)
+			}
+			if b, err := json.Marshal(thumbs); err == nil {
+				up.ThumbsJSON = string(b)
+			}
+		}
+	}
+
+	// 保留原图（压缩后 keepOriginal 场景）
+	if up.OriginalJSON != "" && up.OriginalJSON != "null" {
+		var orig model.UploadOriginal
+		if json.Unmarshal([]byte(up.OriginalJSON), &orig) == nil {
+			orig.URL = f.absolutizeURL(f.withUploadsPrefix(orig.URL), baseURL)
+			if b, err := json.Marshal(orig); err == nil {
+				up.OriginalJSON = string(b)
+			}
+		}
+	}
 }
 
 // uploadOne 处理单个文件：校验 → hash 去重 → 落盘/上 S3 → 建记录 → 异步处理。
@@ -557,20 +594,37 @@ func (f *Infra) putS3(fh *multipart.FileHeader, key string) error {
 //
 // 无 CDN 时返回 /uploads/... 形式，由 handler 按请求域名补全为绝对地址
 // （对齐原 getFileUrl 用请求 baseUrl 拼接的语义）。
+// localURL 返回**纯相对路径**（如 2026/11/28/ab/cd/xxx.png），写入数据库 url 列。
+//
+// 用户 2026-11-28 指定：**库里只存相对路径，完整 URL 在出参时拼**。
+// 所以这里不拼域名、不拼 /uploads/ 前缀、不拼 CDN —— 那些全交给 absolutizeUpload。
+//
+// 好处：换域名 / 换 CDN / 换存储驱动时，**不用刷库**，改配置即生效。
 func (f *Infra) localURL(path string) string {
 	rel := path
-	// 本地根目录与写入同源（env 兜底 + DB 优先），否则改 DB 目录后 Rel 失败会拼出错误 URL。
+	// 本地根目录与写入同源（env 兜底 + DB 优先），否则改 DB 目录后 Rel 失败会拼出错误路径。
 	if dir := f.localDirRoot(); dir != "" {
 		if r, err := filepath.Rel(dir, path); err == nil {
 			rel = r
 		}
 	}
-	rel = strings.TrimPrefix(filepath.ToSlash(rel), "/")
-	if cdn := f.cdnBaseURL(); cdn != "" {
-		return strings.TrimRight(cdn, "/") + "/" + rel
+	return strings.TrimPrefix(filepath.ToSlash(rel), "/")
+}
+
+// withUploadsPrefix 给纯相对路径补 /uploads/ 前缀（本地存储的静态路由挂载点）。
+//
+// 库里存的是纯相对路径（2026/11/28/...），对外访问要走 /uploads/2026/11/28/...。
+// S3 的 key 本身带 uploads/ 前缀（putS3 里加的），不需要再补。
+// 已经是绝对 URL 或已带 /uploads/ 前缀的原样返回（兼容存量数据）。
+func (f *Infra) withUploadsPrefix(u string) string {
+	if u == "" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+		return u
 	}
-	// 无 CDN：走本服务内置静态文件路由（见 router/upload_routes.go 的 /uploads 静态挂载）
-	return "/api/v1/uploads/" + rel
+	u = strings.TrimPrefix(u, "/")
+	if strings.HasPrefix(u, "uploads/") || strings.HasPrefix(u, "api/v1/uploads/") {
+		return "/" + u
+	}
+	return "/uploads/" + u
 }
 
 // LocalDir 本地存储根目录（静态文件路由用；非本地驱动返回空串）。
@@ -581,12 +635,48 @@ func (f *Infra) LocalDir() string {
 	return f.localDirRoot()
 }
 
-// absolutizeURL 本地相对 URL 补全请求域名（handler 传入 baseURL；CDN/S3 绝对 URL 原样返回）。
-func absolutizeURL(u, baseURL string) string {
-	if baseURL == "" || u == "" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+// publicBaseURL 上传产物对外访问的**基础地址**，优先级：
+//
+//	upload_public_base_url（DB 优先）→ cdn_base_url → 空（调用方回退请求 Host）
+//
+// 为什么要配置而不能用请求 Host（用户 2026-11-28 指定）：
+// 走反向代理时 Host 可能是内网地址（如 http://10.0.0.5:3000），
+// 直接用请求 Host 拼出来的 URL 前端根本访问不到；而且同一个文件随请求来源
+// 返回不同 URL，缓存/CDN 都会错乱。域名必须由部署方在后台配置。
+func (f *Infra) publicBaseURL() string {
+	u := ""
+	if f.cfgSvc != nil {
+		u = f.cfgSvc.GetString(model.ConfigKeyUploadPublicBaseURL, "")
+	}
+	u = strings.TrimSpace(u)
+	if u == "" {
+		return f.cdnBaseURL()
+	}
+	// 容错：配置里若带了结尾斜杠或误填了 /api/v1，这里清掉，避免拼出双斜杠或旧路径。
+	u = strings.TrimRight(u, "/")
+	if strings.HasSuffix(u, "/api/v1") {
+		u = strings.TrimSuffix(u, "/api/v1")
+	}
+	return u
+}
+
+// absolutizeURL 相对 URL 补全为绝对地址。
+//
+// 域名来源（按优先级）：配置的 upload_public_base_url → cdn_base_url → 请求 baseURL（最后兜底）。
+// CDN/S3 返回的绝对 URL 原样返回，不再二次拼接。
+func (f *Infra) absolutizeURL(u, baseURL string) string {
+	if u == "" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
 		return u
 	}
-	return strings.TrimRight(baseURL, "/") + "/" + strings.TrimPrefix(u, "/")
+	base := f.publicBaseURL()
+	if base == "" {
+		// 未配置时回退请求域名 —— 保持旧部署可用，但这是**兜底**不是推荐用法。
+		base = baseURL
+	}
+	if base == "" {
+		return u
+	}
+	return strings.TrimRight(base, "/") + "/" + strings.TrimPrefix(u, "/")
 }
 
 // s3AccessURL 生成 S3 访问 URL（对齐 buildAccessUrl：CDN 优先 → path-style → 虚拟主机式）。
@@ -738,6 +828,9 @@ func (f *Infra) GetFileInfo(id string) (*model.Upload, error) {
 		}
 		return nil, errcode.ErrInternal.WithKeyf(i18n.CommonOperationFailed, "file query")
 	}
+	// 出参补全：库里只存纯相对路径，完整 URL 在这里拼（用户 2026-11-28 指定）。
+	// baseURL 传空 —— 域名一律由配置决定，不依赖请求 Host。
+	f.absolutizeUpload(&up, "")
 	return &up, nil
 }
 

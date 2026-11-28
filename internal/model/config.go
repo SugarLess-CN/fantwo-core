@@ -82,10 +82,16 @@ const (
 	ConfigKeyS3UseSSL             = "s3_use_ssl"
 	ConfigKeyS3ForcePathStyle     = "s3_force_path_style"
 	ConfigKeyCDNBaseURL           = "cdn_base_url"
-	ConfigKeySearchAddresses      = "search_addresses"
-	ConfigKeySearchUsername       = "search_username"
-	ConfigKeySearchPassword       = "search_password"
-	ConfigKeySearchArticlesIndex  = "search_articles_index"
+	// ConfigKeyUploadPublicBaseURL 上传产物对外访问的**基础地址**（本地与 S3 通用）。
+	//
+	// 为什么需要它：此前本地存储的 URL 用「请求 Host」拼（absolutizeURL），
+	// 于是返回给前端的地址取决于请求怎么打进来 —— 走反代是内网地址、走 127.0.0.1 是回环地址。
+	// 用户要求：不论本地还是远程存储，域名一律由后端配置决定。
+	ConfigKeyUploadPublicBaseURL = "upload_public_base_url"
+	ConfigKeySearchAddresses     = "search_addresses"
+	ConfigKeySearchUsername      = "search_username"
+	ConfigKeySearchPassword      = "search_password"
+	ConfigKeySearchArticlesIndex = "search_articles_index"
 )
 
 // 审核类配置 key（名字对齐原仓库 content-audit.service.ts 的 getCachedConfig，
@@ -282,6 +288,10 @@ func DefaultConfigSeeds() []ConfigSeed {
 
 		// CDN（公开：前端拼接资源地址需要）
 		{"cdn_base_url", "", "CDN 加速域名前缀（如 https://cdn.example.com）", ConfigTypeString, ConfigGroupCDN, true},
+
+		// 上传产物对外基础地址（用户 2026-11-28 指定）：本地与远程存储**统一**用它拼 URL，
+		// 不再依赖请求 Host，也不再带 /api/v1 中间路径。
+		{ConfigKeyUploadPublicBaseURL, "", "上传产物对外基础地址（如 https://testend.cerylab.com）—— 本地与 S3 通用，留空则回退 CDN 前缀、再回退请求域名。不带 /api/v1，结尾不加斜杠", ConfigTypeString, ConfigGroupUpload, false},
 
 		// 广告位（公开）
 		{"advertisement_enabled", "false", "广告总开关", ConfigTypeBoolean, ConfigGroupAdvertisement, true},
