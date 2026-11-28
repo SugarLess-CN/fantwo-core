@@ -21,7 +21,11 @@ type Claims struct {
 	Roles       []string `json:"roles,omitempty"`
 	Permissions []string `json:"perms,omitempty"`
 	// PermVer 权限版本号：签发时 Redis user:{id}:permver 的快照。
-	// 中间件比对不一致即 401 要求重新登录（权限变更时 bump，T-05b 方案）。
+	//
+	// ⚠️ 2026-11-28 起**不再作为拒绝请求的依据**：权限已改为从数据库实时读取
+	// （middleware/permsource.go），用户无需重登即可拿到新权限。
+	// 保留该字段是为了留一个单调递增的版本戳（将来要恢复「强制重登」可直接用）。
+	// 见 middleware/authz.go 的第 3 条说明。
 	PermVer int64 `json:"pv,omitempty"`
 	jwt.RegisteredClaims
 }

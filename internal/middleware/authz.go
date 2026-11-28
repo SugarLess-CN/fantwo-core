@@ -102,7 +102,9 @@ func CurrentToken(c *gin.Context) string {
 //
 // 错误码区分（客户端据此决定动作）：
 //   - 2001 ErrNeedAuth：缺 token / 验签失败 / 已登出 / 全端登出后失效 → 去登录；
-//   - 2002 ErrPermVersionStale：token 有效但权限版本落后 → 刷新 token 或重新登录。
+//
+// 注意：不再返回 2002 ErrPermVersionStale —— 权限已实时从库读，无需因版本不一致重登。
+// 该错误码仍保留定义（前端可能有 if (code === 2002) 的分支），但不主动抛出。
 func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jwtx.Claims, string, *errcode.Err) {
 	h := c.GetHeader("Authorization")
 	if h == "" {
@@ -127,13 +129,19 @@ func parseBearerV2(c *gin.Context, signer *jwtx.Signer, st authtoken.Store) (*jw
 			return nil, "", errcode.ErrNeedAuth
 		}
 	}
-	// 3) 权限版本比对：perm_ver 单调递增，**0 = 未设置或查询失败 → 跳过比对**。
-	// 与上面黑名单 / 全端登出同向 fail-open，避免 Redis 故障把已登录用户全站打死：
-	// 从未 bump 过的用户库里就没有 perm_ver key（读到 0），那种场景 token 里携带的也是 0，
-	// 所以「cur == 0 跳过」不会漏判任何真实发生过的权限变更 —— 变更必然伴随 bump，
-	// key 一定存在且 > 0，此时才走严格比对。
-	if cur := authtoken.PermVer(ctx, st, claims.UserID); cur != 0 && cur != claims.PermVer {
-		return nil, "", errcode.ErrPermVersionStale
-	}
+	// 3) 权限版本比对：**已停用**（2026-11-28）。
+	//
+	// 原来的作用是「权限变了就把旧 token 作废，逼用户重新登录」。
+	// 但权限判定现在改为从数据库实时读取（见 permsource.go），
+	// 用户不需要重登就能拿到新权限 —— 再因为版本不一致返回 401 就是纯多余的，
+	// 只会把用户踢下线而毫无收益。
+	//
+	// 真正的 token 失效需求由上面两条覆盖：
+	//   · 单端登出 → Blacklisted()
+	//   · 全端登出 / 改密 / 封号 → LogoutAllAt() 比 iat
+	//
+	// perm_ver 的**写入**保留（签发时仍记 pv、变更时仍 bump），
+	// 只是不再作为拒绝请求的依据 —— 万一将来需要「强制某用户重登」，
+	// 把这里的比对打开即可，不需要恢复签发侧的改动。
 	return claims, token, nil
 }

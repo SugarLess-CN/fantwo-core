@@ -614,7 +614,11 @@ func permNames(u *model.User) []string {
 	return out
 }
 
-// currentPermVer 当前权限版本号（签发时快照，登出/改密后 bump 使旧 token 失效）。
+// currentPermVer 当前权限版本号（签发时写进 token 的 pv 声明）。
+//
+// ⚠️ 它**不再**用于「使旧 token 失效」—— 那个机制已停用（见 middleware/authz.go 第 3 条）。
+// 登出用 Blacklist、全端登出/改密/封号用 LogoutAllAt，都不走 perm_ver。
+// 现在它的意义只剩：留一个单调递增的版本戳，将来若要恢复「强制重登」可以直接用。
 func currentPermVer(ctx context.Context, st authtoken.Store, userID string) int64 {
 	return authtoken.PermVer(ctx, st, userID)
 }

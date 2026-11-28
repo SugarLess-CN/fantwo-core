@@ -218,10 +218,16 @@ func TestJWTAuthV2RejectsBlacklisted(t *testing.T) {
 	}
 }
 
-// TestJWTAuthV2PermVersionMismatch 权限版本落后 → 401 / code=2002（要求刷新）。
+// TestJWTAuthV2PermVersionNoLongerRejects 权限版本落后**不再**拒绝请求（2026-11-28 变更）。
 //
-// 防的 bug：角色权限被收回后，旧 token 内仍带着旧 perms，越权一直有效到过期。
-func TestJWTAuthV2PermVersionMismatch(t *testing.T) {
+// 背景：权限判定已改为从数据库实时读取（permsource.go），
+// 用户不需要重登就能拿到新权限，所以因版本不一致返回 401 纯属多余，
+// 只会把用户踢下线而毫无收益。本用例锁住这个**新语义**，
+// 防止有人「顺手」把旧的 401 逻辑加回去。
+//
+// 真正需要 token 失效的场景由 Blacklist（单端登出）与 LogoutAllAt
+// （全端登出 / 改密 / 封号）覆盖，见下面两个用例。
+func TestJWTAuthV2PermVersionNoLongerRejects(t *testing.T) {
 	f := newAuthzFixture(t)
 	token, err := f.signer.GenerateWithPermVer("u-1", []string{"user"}, []string{"user:read"}, "d", "access", 0)
 	if err != nil {
@@ -230,17 +236,15 @@ func TestJWTAuthV2PermVersionMismatch(t *testing.T) {
 	if w := f.do(t, "/protected", "Bearer "+token); w.Code != http.StatusOK {
 		t.Fatalf("版本一致时应放行，实际 %d", w.Code)
 	}
-	// 模拟权限变更：bump 版本
+	// 模拟权限变更：bump 版本（token 里仍是 0）
 	authtoken.BumpPermVer(context.Background(), f.store, "u-1")
+
 	w := f.do(t, "/protected", "Bearer "+token)
-	if w.Code != http.StatusUnauthorized {
-		t.Fatalf("版本不一致应 401，实际 %d", w.Code)
+	if w.Code != http.StatusOK {
+		t.Fatalf("版本不一致**不应**再拒绝请求（权限已实时读库），实际 %d body=%s", w.Code, w.Body.String())
 	}
-	if !bodyHas(w.Body.String(), `"message":"`+string(i18n.AuthPermVersionStale)+`"`) {
-		t.Errorf("期望 message 返回 key %q，body=%s", string(i18n.AuthPermVersionStale), w.Body.String())
-	}
-	if !bodyHas(w.Body.String(), "20002") {
-		t.Errorf("期望业务码 20002，body=%s", w.Body.String())
+	if bodyHas(w.Body.String(), "20002") {
+		t.Errorf("不应再返回 20002 业务码，body=%s", w.Body.String())
 	}
 }
 
