@@ -3,23 +3,81 @@
 > 适用：给已经存在的用户补发 `nick_id`（对外展示号码）。
 > 脚本：`scripts/backfill-nick-id.sql`
 >
-> **本文档的命令已按实际环境填好：**
+> **本文档的命令已按实际环境填好（字面值，不用变量）：**
 > ```
-> 容器名  1Panel-postgresql-Oyls
-> 库名    见 §0（先确认，别猜）
-> 用户    postgres
+> 容器名    1Panel-postgresql-Oyls
+> 数据库用户  user_ceE5Jc
+> 库名      见 §0（POSTGRES_DB 未设，必须查）
 > ```
-> 下文所有命令可直接复制执行。`PG` 是容器名变量，若容器名变了改这一处即可。
+> PostgreSQL **18**（PGDATA=/var/lib/postgresql/18/docker）。
+>
+> 命令里统一用 `-e PGPASSWORD=...` 传密码，因为本地 socket 连接也可能走 md5/scram。
+>
+> ⚠️ **为什么不用 `$PG` / `$DB` 变量**：变量只在同一个 shell 会话里有效。
+> 复制粘贴时若漏了 `export`，命令会变成 `docker exec psql ...` 并报
+> `No such container: psql`（已被踩过一次）。所以全部写字面值。
 
 ---
 
-## 〇、先确认库名（30 秒）
+## 〇、先确认「用户名 + 库名」（1 分钟，别猜）
+
+容器里的超级用户**不一定叫 `postgres`** —— 1Panel 应用商店装的 PostgreSQL
+可能用了自定义用户（实测遇到过 `role "postgres" does not exist`）。
+
+### 0.1 实测到的容器环境变量
+
+```bash
+docker inspect 1Panel-postgresql-Oyls --format '{{range .Config.Env}}{{println .}}{{end}}' \
+  | grep -iE "POSTGRES|PGUSER|PGDATABASE"
+```
+
+本环境实际输出：
+
+```
+POSTGRES_PASSWORD=password_mZEC8w
+POSTGRES_USER=user_ceE5Jc
+PGDATA=/var/lib/postgresql/18/docker
+```
+
+**注意：没有 `POSTGRES_DB`** —— 所以库名不是从环境变量来的，必须查（见 0.2）。
+`POSTGRES_USER` = `user_ceE5Jc`，这就是 `-U` 的值。
+
+> 1Panel 应用商店装的 PostgreSQL **超管不叫 `postgres`**，
+> 直接 `-U postgres` 会报 `FATAL: role "postgres" does not exist`（已踩过）。
+
+### 0.2 列出现有库（确认 `-d` 的值）
+
+```bash
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -lqt \
+  | cut -d'|' -f1 | grep -vE "template|^\s*$" | sed 's/^ *//'
+```
+
+输出里找业务库（`fantwo_core` 或其它），那就是 `-d` 的值。
+
+（`-u postgres` 是**系统用户**，与数据库角色无关；若容器内也没有该用户会报错，
+那就看 0.3。）
+
+### 0.3 还不行：进容器用 psql 本地连接
+
+```bash
+docker exec -it 1Panel-postgresql-Oyls sh -c 'psql -U "$POSTGRES_USER" -lqt' | head
+```
+
+或者直接看数据目录属主反推：
+
+```bash
+docker exec 1Panel-postgresql-Oyls sh -c 'ls -ld /var/lib/postgresql/data'
+```
+
+---
+
+## 〇之二、再确认库名（30 秒）
 
 1panel 装的 PostgreSQL 可能建了多个库，**别猜**：
 
 ```bash
 export PG=1Panel-postgresql-Oyls
-docker exec $PG psql -U postgres -lqt \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -lqt \
   | cut -d'|' -f1 | grep -vE "template|^\s*$" | sed 's/^ *//'
 ```
 
@@ -30,12 +88,10 @@ postgres
 fantwo_core          ← 通常就是这个
 ```
 
-确认后设成变量，后面所有命令都用它：
+**然后：后续命令里的 `fantwo_core` 若与你看到的不一致，全文替换成实际库名。**
 
-```bash
-export PG=1Panel-postgresql-Oyls
-export DB=fantwo_core     # ← 改成你上一步看到的库名
-```
+> 不要用 `export DB=...` 再 `$DB` 的写法 —— 变量只在当前 shell 有效，
+> 换个终端或复制粘贴漏了就报 `No such container: psql`。
 
 ---
 
@@ -65,12 +121,12 @@ export DB=fantwo_core     # ← 改成你上一步看到的库名
 
 ```bash
 # 1) nick_id 列存在吗（应返回 1）
-docker exec $PG psql -U postgres -d $DB -t -A -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -t -A -c \
   "SELECT count(*) FROM information_schema.columns 
    WHERE table_name='user' AND column_name='nick_id'"
 
 # 2) 序列存在吗（应返回 1）
-docker exec $PG psql -U postgres -d $DB -t -A -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -t -A -c \
   "SELECT count(*) FROM pg_class WHERE relname='user_nick_id_seq'"
 ```
 
@@ -82,7 +138,7 @@ ERROR:  column "nick_id" does not exist
 ERROR:  relation "user_nick_id_seq" does not exist
 ```
 
-> 变量见 §0。`$PG` = `1Panel-postgresql-Oyls`，`$DB` = 你确认的库名。
+> 容器名 `1Panel-postgresql-Oyls`，库名默认 `fantwo_core`（见 §0 确认）。
 
 ---
 
@@ -91,7 +147,7 @@ ERROR:  relation "user_nick_id_seq" does not exist
 回填是**整表 UPDATE**，虽然幂等，但没有备份就没有后悔药：
 
 ```bash
-docker exec $PG pg_dump -U postgres -d $DB -t '"user"' \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls pg_dump -U user_ceE5Jc -d fantwo_core -t '"user"' \
   > user_backup_$(date +%Y%m%d_%H%M).sql
 
 # 确认备份文件非空（应有几百 KB 以上，取决于用户量）
@@ -105,7 +161,7 @@ ls -lh user_backup_*.sql
 ### 4.1 看会被发号的人与号段
 
 ```bash
-docker exec $PG psql -U postgres -d $DB -c "
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -c "
 WITH cur AS (
     SELECT GREATEST(
         10000,
@@ -126,7 +182,7 @@ LIMIT 20;
 ### 4.2 看规模
 
 ```bash
-docker exec $PG psql -U postgres -d $DB -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -c \
   "SELECT
      count(*) FILTER (WHERE nick_id IS NULL) AS 待发号,
      count(*) FILTER (WHERE nick_id IS NOT NULL) AS 已有号,
@@ -144,7 +200,7 @@ docker exec $PG psql -U postgres -d $DB -c \
 
 ```bash
 # 在项目根目录（scripts/ 的上一级）
-docker exec -i $PG psql -U postgres -d $DB < scripts/backfill-nick-id.sql
+docker exec -i -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core < scripts/backfill-nick-id.sql
 ```
 
 脚本自带 `BEGIN ... COMMIT`，中途任何一步报错都会整体回滚。
@@ -154,9 +210,9 @@ docker exec -i $PG psql -U postgres -d $DB < scripts/backfill-nick-id.sql
 ### 如果不是 docker 部署
 
 ```bash
-psql -U postgres -d fantwo_core -f scripts/backfill-nick-id.sql
+psql -U user_ceE5Jc -d fantwo_core -f scripts/backfill-nick-id.sql
 # 或带 host
-psql -h 127.0.0.1 -U postgres -d fantwo_core -f scripts/backfill-nick-id.sql
+psql -h 127.0.0.1 -U user_ceE5Jc -d fantwo_core -f scripts/backfill-nick-id.sql
 ```
 
 ---
@@ -167,21 +223,21 @@ psql -h 127.0.0.1 -U postgres -d fantwo_core -f scripts/backfill-nick-id.sql
 
 ```bash
 # ① 必须为 0：没有 NULL 残留
-docker exec $PG psql -U postgres -d $DB -t -A -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -t -A -c \
   "SELECT count(*) FROM \"user\" WHERE nick_id IS NULL"
 
 # ② 必须为 0 行：没有重号
-docker exec $PG psql -U postgres -d $DB -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -c \
   "SELECT nick_id, count(*), array_agg(username) FROM \"user\"
    WHERE nick_id IS NOT NULL GROUP BY nick_id HAVING count(*) > 1"
 
 # ③ 号段分布（确认起点合理）
-docker exec $PG psql -U postgres -d $DB -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -c \
   "SELECT min(nick_id) AS 最小, max(nick_id) AS 最大, count(*) AS 总数
    FROM \"user\" WHERE nick_id IS NOT NULL"
 
 # ④ 序列位置（下一个新注册会拿 last_value+1）
-docker exec $PG psql -U postgres -d $DB -t -A -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -t -A -c \
   "SELECT last_value FROM user_nick_id_seq"
 ```
 
@@ -218,11 +274,11 @@ curl -X POST http://127.0.0.1:3000/api/v1/user/register \
 
 ```bash
 # 方案 A：只把 nick_id 置空（想重跑）
-docker exec $PG psql -U postgres -d $DB -c \
+docker exec -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core -c \
   "UPDATE \"user\" SET nick_id = NULL"
 
 # 方案 B：整表恢复到备份
-docker exec -i $PG psql -U postgres -d $DB < user_backup_YYYYMMDD_HHMM.sql
+docker exec -i -e PGPASSWORD=password_mZEC8w 1Panel-postgresql-Oyls psql -U user_ceE5Jc -d fantwo_core < user_backup_YYYYMMDD_HHMM.sql
 ```
 
 > 方案 A 之后**必须重跑脚本或重启服务**，否则用户没有号码。
