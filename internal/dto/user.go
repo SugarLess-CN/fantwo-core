@@ -30,7 +30,11 @@ type RoleBriefDto struct {
 // certification 不在本结构里 —— 只有 GET /user/profile 会额外带它，见 UserProfileDto。
 type UserDto struct {
 	ID string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	// NickID 对外展示用的号码（**bigint 自增，从 10000 起**；可改、**允许重名**，唯一主键仍是 id）。
+	// NickID 对外展示用的号码（**bigint 自增，从 10001 起**；唯一主键仍是 id）。
+	//
+	// 是否可改 / 是否允许重名由**配置开关**决定（默认都关，见下）：
+	//   nick_id_allow_modify    false → 用户不能改，只能系统发号
+	//   nick_id_allow_duplicate false → 改号时查重，撞号 10005
 	//
 	// ⚠️ 必须与 NickIDStr **成对使用**：
 	//   · NickID      number —— 方便前端直接比较/排序，但超过 2^53-1 会丢精度
@@ -370,6 +374,12 @@ type OAuthBindingListDto struct {
 
 // UpdateProfileRequest 更新资料请求体（service.UpdateProfileInput，指针语义：nil 不改）。
 type UpdateProfileRequest struct {
+	// NickID 对外展示号码，**字符串形态**（bigint 会超 JS 的 2^53-1，传数字会丢精度）。
+	//
+	// ⚠️ 默认**不可修改**：配置 `nick_id_allow_modify=false` 时该字段被静默忽略，
+	// 只能由系统发号。开关通过 PATCH /config/group/nick_id 打开。
+	// 若 `nick_id_allow_duplicate=false`，改成他人已占用的号返回 10005。
+	NickID      *string `json:"nick_id" example:"10001234"`
 	Nickname    *string `json:"nickname" example:"新昵称"`
 	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
 	Description *string `json:"description" example:"一句话说明"`
@@ -503,7 +513,9 @@ type UpdateUserRequest struct {
 	// BirthDate 生日（"2006-01-02"）。
 	BirthDate *string `json:"birth_date" example:"1998-06-01"`
 
-	// ---- 资料 6 ----
+	// ---- 资料 7（含 nick_id）----
+	// NickID 对外展示号码，字符串形态（同 UpdateProfileRequest 的精度说明）。
+	NickID      *string `json:"nick_id" example:"10001234"`
 	Nickname    *string `json:"nickname" example:"爱丽丝"`
 	Avatar      *string `json:"avatar" example:"https://cdn.example.com/a.png"`
 	Description *string `json:"description" example:"一句话说明"`
