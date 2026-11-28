@@ -2,6 +2,40 @@
 
 > 适用：给已经存在的用户补发 `nick_id`（对外展示号码）。
 > 脚本：`scripts/backfill-nick-id.sql`
+>
+> **本文档的命令已按实际环境填好：**
+> ```
+> 容器名  1Panel-postgresql-Oyls
+> 库名    见 §0（先确认，别猜）
+> 用户    postgres
+> ```
+> 下文所有命令可直接复制执行。`PG` 是容器名变量，若容器名变了改这一处即可。
+
+---
+
+## 〇、先确认库名（30 秒）
+
+1panel 装的 PostgreSQL 可能建了多个库，**别猜**：
+
+```bash
+export PG=1Panel-postgresql-Oyls
+docker exec $PG psql -U postgres -lqt \
+  | cut -d'|' -f1 | grep -vE "template|^\s*$" | sed 's/^ *//'
+```
+
+输出示例：
+
+```
+postgres
+fantwo_core          ← 通常就是这个
+```
+
+确认后设成变量，后面所有命令都用它：
+
+```bash
+export PG=1Panel-postgresql-Oyls
+export DB=fantwo_core     # ← 改成你上一步看到的库名
+```
 
 ---
 
@@ -31,12 +65,12 @@
 
 ```bash
 # 1) nick_id 列存在吗（应返回 1）
-docker exec postgre psql -U postgres -d fantwo_core -t -A -c \
+docker exec $PG psql -U postgres -d $DB -t -A -c \
   "SELECT count(*) FROM information_schema.columns 
    WHERE table_name='user' AND column_name='nick_id'"
 
 # 2) 序列存在吗（应返回 1）
-docker exec postgre psql -U postgres -d fantwo_core -t -A -c \
+docker exec $PG psql -U postgres -d $DB -t -A -c \
   "SELECT count(*) FROM pg_class WHERE relname='user_nick_id_seq'"
 ```
 
@@ -48,7 +82,7 @@ ERROR:  column "nick_id" does not exist
 ERROR:  relation "user_nick_id_seq" does not exist
 ```
 
-> 容器名/库名按你的实际改：`postgre` 可能是 `1panel-postgres-xxx`，`fantwo_core` 可能是别的。
+> 变量见 §0。`$PG` = `1Panel-postgresql-Oyls`，`$DB` = 你确认的库名。
 
 ---
 
@@ -57,7 +91,7 @@ ERROR:  relation "user_nick_id_seq" does not exist
 回填是**整表 UPDATE**，虽然幂等，但没有备份就没有后悔药：
 
 ```bash
-docker exec postgre pg_dump -U postgres -d fantwo_core -t '"user"' \
+docker exec $PG pg_dump -U postgres -d $DB -t '"user"' \
   > user_backup_$(date +%Y%m%d_%H%M).sql
 
 # 确认备份文件非空（应有几百 KB 以上，取决于用户量）
@@ -71,7 +105,7 @@ ls -lh user_backup_*.sql
 ### 4.1 看会被发号的人与号段
 
 ```bash
-docker exec postgre psql -U postgres -d fantwo_core -c "
+docker exec $PG psql -U postgres -d $DB -c "
 WITH cur AS (
     SELECT GREATEST(
         10000,
@@ -92,7 +126,7 @@ LIMIT 20;
 ### 4.2 看规模
 
 ```bash
-docker exec postgre psql -U postgres -d fantwo_core -c \
+docker exec $PG psql -U postgres -d $DB -c \
   "SELECT
      count(*) FILTER (WHERE nick_id IS NULL) AS 待发号,
      count(*) FILTER (WHERE nick_id IS NOT NULL) AS 已有号,
@@ -110,7 +144,7 @@ docker exec postgre psql -U postgres -d fantwo_core -c \
 
 ```bash
 # 在项目根目录（scripts/ 的上一级）
-docker exec -i postgre psql -U postgres -d fantwo_core < scripts/backfill-nick-id.sql
+docker exec -i $PG psql -U postgres -d $DB < scripts/backfill-nick-id.sql
 ```
 
 脚本自带 `BEGIN ... COMMIT`，中途任何一步报错都会整体回滚。
@@ -133,21 +167,21 @@ psql -h 127.0.0.1 -U postgres -d fantwo_core -f scripts/backfill-nick-id.sql
 
 ```bash
 # ① 必须为 0：没有 NULL 残留
-docker exec postgre psql -U postgres -d fantwo_core -t -A -c \
+docker exec $PG psql -U postgres -d $DB -t -A -c \
   "SELECT count(*) FROM \"user\" WHERE nick_id IS NULL"
 
 # ② 必须为 0 行：没有重号
-docker exec postgre psql -U postgres -d fantwo_core -c \
+docker exec $PG psql -U postgres -d $DB -c \
   "SELECT nick_id, count(*), array_agg(username) FROM \"user\"
    WHERE nick_id IS NOT NULL GROUP BY nick_id HAVING count(*) > 1"
 
 # ③ 号段分布（确认起点合理）
-docker exec postgre psql -U postgres -d fantwo_core -c \
+docker exec $PG psql -U postgres -d $DB -c \
   "SELECT min(nick_id) AS 最小, max(nick_id) AS 最大, count(*) AS 总数
    FROM \"user\" WHERE nick_id IS NOT NULL"
 
 # ④ 序列位置（下一个新注册会拿 last_value+1）
-docker exec postgre psql -U postgres -d fantwo_core -t -A -c \
+docker exec $PG psql -U postgres -d $DB -t -A -c \
   "SELECT last_value FROM user_nick_id_seq"
 ```
 
@@ -184,11 +218,11 @@ curl -X POST http://127.0.0.1:3000/api/v1/user/register \
 
 ```bash
 # 方案 A：只把 nick_id 置空（想重跑）
-docker exec postgre psql -U postgres -d fantwo_core -c \
+docker exec $PG psql -U postgres -d $DB -c \
   "UPDATE \"user\" SET nick_id = NULL"
 
 # 方案 B：整表恢复到备份
-docker exec -i postgre psql -U postgres -d fantwo_core < user_backup_YYYYMMDD_HHMM.sql
+docker exec -i $PG psql -U postgres -d $DB < user_backup_YYYYMMDD_HHMM.sql
 ```
 
 > 方案 A 之后**必须重跑脚本或重启服务**，否则用户没有号码。
