@@ -25,6 +25,8 @@ import "time"
 type MessageUserBriefDto struct {
 	ID        string `json:"id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Username  string `json:"username" example:"xiaoming"`
+	NickID    int64  `json:"nick_id" example:"10001234"`
+	NickIDStr string `json:"nick_id_str" example:"10001234"`
 	Nickname  string `json:"nickname" example:"小明"`
 	Avatar    string `json:"avatar" example:"https://cdn.example.com/a.png"`
 	IsBlocked bool   `json:"is_blocked" example:"false"`

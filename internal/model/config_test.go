@@ -162,11 +162,13 @@ func TestSensitiveKeysNotInSeedsAreAllowed(t *testing.T) {
 //     且 qqbot_token_url 会命中 `_token` 命名兜底被误判为敏感 —— 详见种子清单注释）
 //
 // = 78
+// +  2（2026-11-28：nick_id 策略开关 —— allow_modify / allow_duplicate）
+// = 80
 //
 // 任何增删都应是有意为之 —— 数字对不上时先看 DefaultConfigSeeds 的取舍说明，别直接改这个常量。
 func TestDefaultConfigSeedsCount(t *testing.T) {
-	if got := len(DefaultConfigSeeds()); got != 78 {
-		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 78（增删种子请同步更新取舍说明与算式）", got)
+	if got := len(DefaultConfigSeeds()); got != 80 {
+		t.Errorf("DefaultConfigSeeds() 条数 = %d, want 80（增删种子请同步更新取舍说明与算式）", got)
 	}
 }
 

@@ -49,7 +49,20 @@ const (
 // User 用户表（原 user 表 / user.entity.ts）。
 type User struct {
 	BaseModel
-	Username            string     `gorm:"column:username;type:varchar(64);uniqueIndex;not null" json:"username" example:"alice"`
+	Username string `gorm:"column:username;type:varchar(64);uniqueIndex;not null" json:"username" example:"alice"`
+	// NickID 对外展示用的用户标识（**数字**，类似 QQ 号 / 微信号）。
+	//
+	// ⚠️ 两条硬约束：
+	//   ① **不是唯一标识** —— 唯一主键依旧是 `id`（uuid）。用户可以改、两个用户可以撞，
+	//      所以这里只有**普通索引**，绝不能加 uniqueIndex（否则重名会在 DB 层报 500）。
+	//   ② **bigint 不是 int** —— 它会被拿去当「对外号码」用，量级会超过 int32，
+	//      甚至可能超过 JS 的 `Number.MAX_SAFE_INTEGER`（2^53-1）。
+	//      因此对外输出必须同时给 `nick_id`（number）与 `nick_id_str`（string），
+	//      前端用 str 那一份做展示/传参，避免精度丢失（见 dto.UserDto 注释）。
+	//
+	// 空值语义：老用户没有该值时为 NULL（指针），对外 `nick_id` 出 0、`nick_id_str` 出 ""。
+	NickID *int64 `gorm:"column:nick_id;type:bigint;index:idx_user_nick_id" json:"nick_id" example:"10001234"`
+
 	Nickname            *string    `gorm:"column:nickname;type:varchar(64);uniqueIndex" json:"nickname" example:"爱丽丝"`
 	Password            string     `gorm:"column:password;type:varchar(255);not null" json:"-"`
 	Email               *string    `gorm:"column:email;type:varchar(128);uniqueIndex" json:"email" example:"alice@example.com"`

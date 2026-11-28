@@ -28,6 +28,32 @@ func (r *UserRepo) Create(db *gorm.DB, u *model.User) error {
 	return db.Create(u).Error
 }
 
+// ExistsNickID 该号码是否已被他人占用（nick_id 不唯一，这是**可选**的业务校验）。
+//
+// 只在配置 nick_id_allow_duplicate=false 时被调用；
+// excludeID 用于「改自己时不算自己占着」。
+func (r *UserRepo) ExistsNickID(db *gorm.DB, nickID int64, excludeID string) (bool, error) {
+	var n int64
+	q := db.Model(&model.User{}).Where("nick_id = ?", nickID)
+	if excludeID != "" {
+		q = q.Where("id <> ?", excludeID)
+	}
+	err := q.Count(&n).Error
+	return n > 0, err
+}
+
+// NextNickID 从序列取下一个对外展示号码（user.nick_id）。
+//
+// 必须走 SEQUENCE 而不是 max(nick_id)+1：并发注册时 `max+1` 会读到同一个 max，
+// 两个用户拿到同一个号；`nextval` 是原子且不依赖事务隔离级别。
+//
+// 序列在 migrations.ensureNickIDSequence 里创建（START WITH 10000）。
+func (r *UserRepo) NextNickID(db *gorm.DB) (int64, error) {
+	var v int64
+	err := db.Raw(`SELECT nextval('user_nick_id_seq')`).Scan(&v).Error
+	return v, err
+}
+
 // Save 全量保存。
 func (r *UserRepo) Save(db *gorm.DB, u *model.User) error { return db.Save(u).Error }
 
@@ -163,7 +189,9 @@ func (r *UserRepo) List(db *gorm.DB, page, limit int, keyword string) ([]model.U
 	q := db.Model(&model.User{})
 	if keyword != "" {
 		like := "%" + keyword + "%"
-		q = q.Where("username LIKE ? OR nickname LIKE ? OR email LIKE ?", like, like, like)
+		// nick_id 是 bigint，LIKE 需要先转 text；用户按号码片段搜索是常见操作（如「1」）。
+		q = q.Where("username LIKE ? OR nickname LIKE ? OR email LIKE ? OR CAST(nick_id AS TEXT) LIKE ?",
+			like, like, like, like)
 	}
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -185,7 +213,8 @@ func (r *UserRepo) ListByIDs(db *gorm.DB, ids []string, page, limit int, keyword
 	q := db.Model(&model.User{}).Where("id IN ?", ids)
 	if keyword != "" {
 		like := "%" + keyword + "%"
-		q = q.Where("username LIKE ? OR nickname LIKE ?", like, like)
+		q = q.Where("username LIKE ? OR nickname LIKE ? OR CAST(nick_id AS TEXT) LIKE ?",
+			like, like, like)
 	}
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err

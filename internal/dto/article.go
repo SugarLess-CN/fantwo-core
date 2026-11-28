@@ -18,6 +18,8 @@ import "time"
 type AuthorBriefDto struct {
 	ID         string `json:"id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
 	Nickname   string `json:"nickname" example:"小明"`
+	NickID     int64  `json:"nick_id" example:"10001234"`
+	NickIDStr  string `json:"nick_id_str" example:"10001234"`
 	Username   string `json:"username" example:"xiaoming"`
 	Avatar     string `json:"avatar" example:"https://cdn.example.com/a.png"`
 	IsFollowed bool   `json:"is_followed" example:"false"`

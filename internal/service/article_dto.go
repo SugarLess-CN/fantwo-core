@@ -78,6 +78,8 @@ func (a Actor) IsManager() bool {
 type AuthorBrief struct {
 	ID         string  `json:"id"`
 	Nickname   string  `json:"nickname,omitempty"`
+	NickID     int64   `json:"nick_id,omitempty"`
+	NickIDStr  string  `json:"nick_id_str,omitempty"`
 	Username   string  `json:"username,omitempty"`
 	Avatar     *string `json:"avatar,omitempty"`
 	IsFollowed bool    `json:"is_followed"`

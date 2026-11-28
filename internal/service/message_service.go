@@ -736,8 +736,11 @@ func metaValue(meta model.MessageJSON, keys ...string) interface{} {
 // nickname / avatar 是 model 层 *string，走 strOrEmpty 转值类型（空时 ""）。
 func briefUser(u *model.User, blocked map[string]struct{}) *UserBriefVO {
 	_, isBlocked := blocked[u.ID]
+	nickID, nickIDStr := nickIDPair(u.NickID)
 	return &UserBriefVO{
 		ID:        u.ID,
+		NickID:    nickID,
+		NickIDStr: nickIDStr,
 		Username:  u.Username,
 		Nickname:  strOrEmpty(u.Nickname),
 		Avatar:    strOrEmpty(u.Avatar),

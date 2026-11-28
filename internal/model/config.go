@@ -18,6 +18,10 @@ const (
 	ConfigTypeNumber  = "number"
 	ConfigTypeBoolean = "boolean"
 	ConfigTypeJSON    = "json"
+
+	// ---- 用户对外展示号码（nick_id）----
+	ConfigKeyNickIDAllowModify    = "nick_id_allow_modify"
+	ConfigKeyNickIDAllowDuplicate = "nick_id_allow_duplicate"
 )
 
 // 配置分组（原 config.group，默认 system）。
@@ -34,6 +38,7 @@ const (
 	ConfigGroupStorage       = "storage"
 	ConfigGroupCDN           = "cdn"
 	ConfigGroupOAuth         = "oauth"
+	ConfigGroupNickID        = "nick_id"
 	// ConfigGroupQqbot QQ 官方机器人（凭据 + 文案 + 关键字）。
 	ConfigGroupQqbot = "qqbot"
 )
@@ -352,6 +357,17 @@ func DefaultConfigSeeds() []ConfigSeed {
 		{oauthkit.ConfigKeyGitHubRedirectURI, "", "GitHub OAuth 回调地址（**填前端域名的回调页**，如 https://fantwo.cc/oauth/callback —— 平台回跳前端，前端拿 code 调 POST /user/oauth/github/callback）", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubScope, "read:user user:email", "GitHub 授权作用域", ConfigTypeString, ConfigGroupOAuth, true},
 		{oauthkit.ConfigKeyGitHubSuccessURL, "", "GitHub 登录成功后前端跳转地址", ConfigTypeString, ConfigGroupOAuth, true},
+
+		// ---- 用户对外展示号码（nick_id）----
+		//
+		// 两个开关，默认都关（用户 2026-11-28 指定「暂时不允许重复和修改」）：
+		//   nick_id_allow_modify    false → PATCH 传 nick_id 直接被忽略（只能由系统发号）
+		//   nick_id_allow_duplicate false → 改号时必须查重，撞了返回 10005 conflict
+		//
+		// 为什么要开关而不是写死：这两个是**产品策略**，不是技术约束。
+		// 将来若放开「像微信号一样自定义」，只需改配置不必改代码、不必发版。
+		{ConfigKeyNickIDAllowModify, "false", "允许用户修改 nick_id（false=只能系统发号）", ConfigTypeBoolean, ConfigGroupNickID, false},
+		{ConfigKeyNickIDAllowDuplicate, "false", "允许 nick_id 重复（false=改号时查重，撞号返回冲突）", ConfigTypeBoolean, ConfigGroupNickID, false},
 
 		// ---- QQ 官方机器人（BOT API v2，docs/29）----
 		// 键名唯一定义源见 pkg/qqbot/config_keys.go，这里只引用常量（不裸写字符串）。

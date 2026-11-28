@@ -216,6 +216,14 @@ func (s *AuthService) Register(ctx context.Context, in RegisterInput) (*model.Us
 		user.Roles = []model.Role{*role}
 	}
 	if err := s.d.DB.Transaction(func(tx *gorm.DB) error {
+		// 分配对外展示号码（10000 起自增）。
+		// 在事务内取号：SEQUENCE 的 nextval 不受事务回滚影响，取号本身是安全的；
+		// 这里放事务内只是为了与用户创建保持同一节奏，失败时整笔回滚。
+		if nickID, err := s.d.Users.NextNickID(tx); err == nil {
+			user.NickID = &nickID
+		} else {
+			s.d.Logger.Warn("register alloc nick_id failed, leave NULL", zapErr(err))
+		}
 		if err := s.d.Users.Create(tx, user); err != nil {
 			return err
 		}
@@ -655,6 +663,10 @@ func (s *AuthService) SmsLogin(ctx context.Context, phone, code, deviceID string
 		}
 		if role, rerr := s.d.Roles.FindByName(s.d.DB, model.RoleNameUser); rerr == nil {
 			user.Roles = []model.Role{*role}
+		}
+		// 分配对外展示号码（10000 起自增）；失败不阻断注册，留 NULL 由迁移回填。
+		if nickID, nerr := s.d.Users.NextNickID(s.d.DB); nerr == nil {
+			user.NickID = &nickID
 		}
 		if cerr := s.d.Users.Create(s.d.DB, user); cerr != nil {
 			s.d.Logger.Error("sms login auto register", zapErr(cerr))

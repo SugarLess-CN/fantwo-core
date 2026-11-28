@@ -489,6 +489,12 @@ func (s *OAuthService) createOAuthUser(provider, channel, openID, unionID string
 	// 桩实现（内存）逐条落，无事务语义 —— 事务边界本身不属于本服务层测试目标。
 	if _, isStub := acc.(interface{ createOAuthUserTx() bool }); !isStub {
 		if err := s.d.DB.Transaction(func(tx *gorm.DB) error {
+			// 分配对外展示号码（10000 起自增）；失败不阻断建号，留 NULL 由迁移回填。
+			if nickID, nerr := s.d.Users.NextNickID(tx); nerr == nil {
+				user.NickID = &nickID
+			} else {
+				s.d.Logger.Warn("oauth alloc nick_id failed, leave NULL", zapErr(nerr))
+			}
 			if err := s.d.Users.Create(tx, user); err != nil {
 				return err
 			}

@@ -51,7 +51,7 @@ func (r *UserAuthorResolver) ResolveAuthors(ctx context.Context, userIDs []strin
 		return out, nil
 	}
 	var users []model.User
-	if err := r.d.DB.Select("id", "username", "nickname", "avatar").
+	if err := r.d.DB.Select("id", "username", "nickname", "avatar", "nick_id").
 		Where("id IN ?", uniq).Find(&users).Error; err != nil {
 		r.d.Logger.Warn("ResolveAuthors 查询失败: " + err.Error())
 		return out, err
@@ -63,7 +63,11 @@ func (r *UserAuthorResolver) ResolveAuthors(ctx context.Context, userIDs []strin
 	decos := batchEquippedDecorations(r.d.DB, r.d.Logger, uniq)
 	for i := range users {
 		u := &users[i]
-		brief := AuthorBrief{ID: u.ID, Username: u.Username, Avatar: u.Avatar}
+		nickID, nickIDStr := nickIDPair(u.NickID)
+		brief := AuthorBrief{
+			ID: u.ID, Username: u.Username, Avatar: u.Avatar,
+			NickID: nickID, NickIDStr: nickIDStr,
+		}
 		if u.Nickname != nil && *u.Nickname != "" {
 			brief.Nickname = *u.Nickname
 		} else {

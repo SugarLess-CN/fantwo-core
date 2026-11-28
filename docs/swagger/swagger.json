@@ -17869,6 +17869,14 @@
                     "type": "boolean",
                     "example": false
                 },
+                "nick_id": {
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
+                },
                 "nickname": {
                     "type": "string",
                     "example": "小明"
@@ -21106,6 +21114,15 @@
                     "type": "string",
                     "example": "AB12CD"
                 },
+                "nick_id": {
+                    "description": "NickID 对外展示用的号码（**bigint 自增，从 10000 起**；可改、**允许重名**，唯一主键仍是 id）。\n\n⚠️ 必须与 NickIDStr **成对使用**：\n  · NickID      number —— 方便前端直接比较/排序，但超过 2^53-1 会丢精度\n  · NickIDStr   string —— **精确值**，展示与回传一律用它\n只给 number 的话，前端 JSON.parse 那一刻精度就已经丢了，之后无法补救。\n老用户没有该值时输出 0 / \"\"（不是 null）。",
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
+                },
                 "nickname": {
                     "description": "---- 字符串字段：值类型，空时 \"\"（不是 null、不是省略）----\n见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），\n转换发生在 service.buildUserView → strOrEmpty()。",
                     "type": "string",
@@ -21316,6 +21333,14 @@
                 "is_blocked": {
                     "type": "boolean",
                     "example": false
+                },
+                "nick_id": {
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
                 },
                 "nickname": {
                     "type": "string",
@@ -25942,6 +25967,15 @@
                     "type": "string",
                     "example": "AB12CD"
                 },
+                "nick_id": {
+                    "description": "NickID 对外展示用的号码（**bigint 自增，从 10000 起**；可改、**允许重名**，唯一主键仍是 id）。\n\n⚠️ 必须与 NickIDStr **成对使用**：\n  · NickID      number —— 方便前端直接比较/排序，但超过 2^53-1 会丢精度\n  · NickIDStr   string —— **精确值**，展示与回传一律用它\n只给 number 的话，前端 JSON.parse 那一刻精度就已经丢了，之后无法补救。\n老用户没有该值时输出 0 / \"\"（不是 null）。",
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
+                },
                 "nickname": {
                     "description": "---- 字符串字段：值类型，空时 \"\"（不是 null、不是省略）----\n见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），\n转换发生在 service.buildUserView → strOrEmpty()。",
                     "type": "string",
@@ -26097,6 +26131,15 @@
                     "type": "string",
                     "example": "AB12CD"
                 },
+                "nick_id": {
+                    "description": "NickID 对外展示用的号码（**bigint 自增，从 10000 起**；可改、**允许重名**，唯一主键仍是 id）。\n\n⚠️ 必须与 NickIDStr **成对使用**：\n  · NickID      number —— 方便前端直接比较/排序，但超过 2^53-1 会丢精度\n  · NickIDStr   string —— **精确值**，展示与回传一律用它\n只给 number 的话，前端 JSON.parse 那一刻精度就已经丢了，之后无法补救。\n老用户没有该值时输出 0 / \"\"（不是 null）。",
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
+                },
                 "nickname": {
                     "description": "---- 字符串字段：值类型，空时 \"\"（不是 null、不是省略）----\n见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），\n转换发生在 service.buildUserView → strOrEmpty()。",
                     "type": "string",
@@ -26183,6 +26226,14 @@
                 "level": {
                     "type": "integer",
                     "example": 3
+                },
+                "nick_id": {
+                    "type": "integer",
+                    "example": 10001234
+                },
+                "nick_id_str": {
+                    "type": "string",
+                    "example": "10001234"
                 },
                 "nickname": {
                     "type": "string",

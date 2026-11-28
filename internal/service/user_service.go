@@ -20,6 +20,7 @@ import (
 	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/authtoken"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/errcode"
+	"github.com/SugarLess-CN/fantwo-core/internal/pkg/i18n"
 	"github.com/SugarLess-CN/fantwo-core/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -54,8 +55,11 @@ type RoleBrief = dto.RoleBriefDto
 //   - 时间：*time.Time → *string（nil 保持 nil，靠 omitempty 整个字段不传）
 //   - 数组：Roles 显式初始化，空时序列化成 [] 而不是 null
 func buildUserView(u *model.User, masked bool, isMember bool) *UserView {
+	nickID, nickIDStr := nickIDPair(u.NickID)
 	v := &UserView{
 		ID:          u.ID,
+		NickID:      nickID,
+		NickIDStr:   nickIDStr,
 		Username:    u.Username,
 		Nickname:    strOrEmpty(u.Nickname),
 		Avatar:      strOrEmpty(u.Avatar),
@@ -180,6 +184,13 @@ func (s *UserService) Profile(ctx context.Context, userID string) (*dto.UserProf
 
 // UpdateProfileInput 资料更新入参（指针语义：nil 表示不改）。
 type UpdateProfileInput struct {
+	// NickID 对外展示号码，**字符串形态**。
+	//
+	// 为什么不是 int64：前端 JS 的 Number 超过 2^53-1 就丢精度，
+	// `{"nick_id": 9007199254740993}` 在 JSON.parse 那一步就已经变成 ...992 了。
+	// 所以入参收字符串，后端 parseNickID 再转 bigint。
+	// 空串 = 不修改该字段（指针为 nil 时调用方不会进来）。
+	NickID      *string `json:"nick_id"`
 	Nickname    *string `json:"nickname"`
 	Avatar      *string `json:"avatar"`
 	Description *string `json:"description"`
@@ -189,6 +200,74 @@ type UpdateProfileInput struct {
 	BirthDate   *string `json:"birth_date"`
 	Email       *string `json:"email"`
 	Phone       *string `json:"phone"`
+}
+
+// applyNickID 处理「修改 nick_id」的两个配置开关（用户 2026-11-28 指定）。
+//
+// 开关语义：
+//
+//	nick_id_allow_modify=false（默认）→ 传了 nick_id 也**静默忽略**，只能系统发号
+//	nick_id_allow_modify=true:
+//	    nick_id_allow_duplicate=false（默认）→ 允许改，但必须查重，撞号 → 10005 conflict
+//	    nick_id_allow_duplicate=true          → 允许改，且允许重名
+//
+// 为什么默认两个都关：号码是对外展示标识，批量乱改会让人对不上号；
+// 先关掉，等产品确认要「像微信号一样可自定义」再逐项打开，不必改代码。
+//
+// 返回 (value, set, err)：set=false 表示本次不写该字段（忽略或未传）。
+func (s *UserService) applyNickID(in *string, excludeUserID string) (int64, bool, *errcode.Err) {
+	if in == nil {
+		return 0, false, nil
+	}
+	if !s.allowNickIDModify() {
+		// 不允许修改：静默忽略，不报错 —— 前端可能整包回传 UserDto（含 nick_id），
+		// 报错会让「改昵称」这种正常操作失败。
+		return 0, false, nil
+	}
+	v, perr := parseNickID(*in)
+	if perr != nil {
+		return 0, false, errcode.ErrInvalidParam.WithKey(i18n.CommonBadRequest)
+	}
+	if v == nil {
+		return 0, false, nil
+	}
+	if !s.allowNickIDDuplicate() {
+		taken, e := s.d.Users.ExistsNickID(s.d.DB, *v, excludeUserID)
+		if e != nil {
+			s.d.Logger.Error("nick_id uniqueness check", zapErr(e))
+			return 0, false, errcode.ErrInternal
+		}
+		if taken {
+			return 0, false, errcode.ErrConflict.WithKey(i18n.CommonAlreadyExists)
+		}
+	}
+	return *v, true, nil
+}
+
+// allowNickIDModify 读 nick_id_allow_modify（默认 false）。
+func (s *UserService) allowNickIDModify() bool {
+	if s.d.Cfg == nil {
+		return false
+	}
+	return s.d.Cfg.GetBool(model.ConfigKeyNickIDAllowModify, false)
+}
+
+// allowNickIDDuplicate 读 nick_id_allow_duplicate（默认 false）。
+func (s *UserService) allowNickIDDuplicate() bool {
+	if s.d.Cfg == nil {
+		return false
+	}
+	return s.d.Cfg.GetBool(model.ConfigKeyNickIDAllowDuplicate, false)
+}
+
+// anyFieldProvided 请求体里是否带了**任意**一个可更新字段。
+//
+// 用途见 UpdateProfile 里 len(fields)==0 的分支：区分「什么都没传」与
+// 「传了但被策略全部忽略」—— 前者是客户端错误，后者应当是幂等成功。
+func (in UpdateProfileInput) anyFieldProvided() bool {
+	return in.NickID != nil || in.Nickname != nil || in.Avatar != nil ||
+		in.Description != nil || in.Background != nil || in.Address != nil ||
+		in.Gender != nil || in.BirthDate != nil || in.Email != nil || in.Phone != nil
 }
 
 // UpdateProfile 更新当前用户资料（仅本人，管理员改他人走 UpdateUser）。
@@ -206,6 +285,11 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 	}
 	wasComplete := isProfileComplete(before)
 	fields := map[string]interface{}{}
+	if v, ok, e := s.applyNickID(in.NickID, userID); e != nil {
+		return nil, e
+	} else if ok {
+		fields["nick_id"] = v
+	}
 	if in.Nickname != nil && *in.Nickname != "" {
 		fields["nickname"] = *in.Nickname
 	}
@@ -252,7 +336,18 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 		fields["phone"] = *in.Phone
 	}
 	if len(fields) == 0 {
-		return nil, errcode.ErrInvalidParam
+		// 「请求里带了字段，但全部被策略忽略」不等于「参数错误」。
+		//
+		// 具体场景：nick_id_allow_modify=false 时前端整包回传 UserDto（含 nick_id），
+		// 此时只有 nick_id 会被 applyNickID 静默忽略 → fields 为空。
+		// 若仍报 10008，用户只是点了个「保存」就收到「参数错误」，毫无道理。
+		//
+		// 所以分两种：
+		//   · 确实一个字段都没传   → 10008（客户端调用错误，保持原语义）
+		//   · 传了但全被忽略       → 幂等 no-op，返回当前资料
+		if !in.anyFieldProvided() {
+			return nil, errcode.ErrInvalidParam
+		}
 	}
 	if err := s.d.Users.UpdateFields(s.d.DB, userID, fields); err != nil {
 		return nil, errcode.ErrInternal
@@ -628,7 +723,9 @@ type UpdateUserInput struct {
 	Username  *string `json:"username"`
 	Password  *string `json:"password"`
 	BirthDate *string `json:"birth_date"`
-	// 资料 6
+	// 资料 7（含 nick_id）
+	// NickID 对外展示号码，字符串形态（JS 精度原因，见 UpdateProfileInput 注释）。
+	NickID      *string `json:"nick_id"`
 	Nickname    *string `json:"nickname"`
 	Avatar      *string `json:"avatar"`
 	Description *string `json:"description"`
@@ -675,6 +772,9 @@ func parseFlexTime(v string) (time.Time, error) {
 var selfUpdatableFields = map[string]bool{
 	"username": true, "nickname": true, "avatar": true, "description": true,
 	"background": true, "address": true, "gender": true, "birth_date": true,
+	// nick_id 是「对外展示号码」，用户自己可以改（原 NestJS 白名单没有它，
+	// 因为那时还没有这个字段；语义上它与 nickname 同级，属于资料不属管理）。
+	"nick_id": true,
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserInput, actor Actor) (*UserView, *errcode.Err) {
@@ -740,6 +840,11 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 		fields["birth_date"] = t
 	}
 	// ---- 资料 6 ----
+	if v, ok, e := s.applyNickID(in.NickID, id); e != nil {
+		return nil, e
+	} else if ok {
+		fields["nick_id"] = v
+	}
 	if in.Nickname != nil {
 		fields["nickname"] = *in.Nickname
 	}
@@ -1296,8 +1401,11 @@ func (s *UserService) ListUsersForSearch(ctx context.Context, actor Actor, page,
 			nick = u.Username
 		}
 		_, isFollowed := following[u.ID]
+		nickID, nickIDStr := nickIDPair(u.NickID)
 		out = append(out, &dto.UserSearchItemDto{
 			ID:             u.ID,
+			NickID:         nickID,
+			NickIDStr:      nickIDStr,
 			Username:       u.Username,
 			Nickname:       nick,
 			Avatar:         strOrEmpty(u.Avatar),

@@ -29,8 +29,17 @@ type RoleBriefDto struct {
 // 关注/粉丝列表项、登录响应里的 user 字段。
 // certification 不在本结构里 —— 只有 GET /user/profile 会额外带它，见 UserProfileDto。
 type UserDto struct {
-	ID       string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
-	Username string `json:"username" example:"alice"`
+	ID string `json:"id" example:"64b59ed4-1a2b-4c3d-8e9f-0123456789ab"`
+	// NickID 对外展示用的号码（**bigint 自增，从 10000 起**；可改、**允许重名**，唯一主键仍是 id）。
+	//
+	// ⚠️ 必须与 NickIDStr **成对使用**：
+	//   · NickID      number —— 方便前端直接比较/排序，但超过 2^53-1 会丢精度
+	//   · NickIDStr   string —— **精确值**，展示与回传一律用它
+	// 只给 number 的话，前端 JSON.parse 那一刻精度就已经丢了，之后无法补救。
+	// 老用户没有该值时输出 0 / ""（不是 null）。
+	NickID    int64  `json:"nick_id" example:"10001234"`
+	NickIDStr string `json:"nick_id_str" example:"10001234"`
+	Username  string `json:"username" example:"alice"`
 
 	// ---- 字符串字段：值类型，空时 ""（不是 null、不是省略）----
 	// 见 docs/21-JSON序列化规范.md §一。model 层保持 *string（数据库要区分 NULL），
@@ -738,6 +747,8 @@ type FavoriteDetailDto struct {
 // 只保留「卡片展示 + 关注态」需要的字段，与前端 UserSearchCard 的取数一致。
 type UserSearchItemDto struct {
 	ID          string `json:"id" example:"9f1d2e34-5678-4abc-9def-0123456789ab"`
+	NickID      int64  `json:"nick_id" example:"10001234"`
+	NickIDStr   string `json:"nick_id_str" example:"10001234"`
 	Username    string `json:"username" example:"alice"`
 	Nickname    string `json:"nickname" example:"爱丽丝"`
 	Avatar      string `json:"avatar" example:"https://cdn.example.com/a.png"`
