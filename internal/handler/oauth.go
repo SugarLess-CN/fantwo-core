@@ -54,7 +54,7 @@ func oauthLoginResult(c *gin.Context, svc *service.AuthService, user *model.User
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
-//	@Param			did query string false "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）" example(dev-abc123)
+//	@Param			did header string true "设备标识（**必填**，请求头 `did`，最长 128 字节）。OAuth 回调是浏览器 302 跳转、前端加不了自定义 header，所以必须在这一步随 state 存下，回调时后端取回用于签发双 token（refresh_token 与设备绑定）。缺失返回 20016 auth.device_id_required" example(dev-abc123)
 //	@Router		/user/oauth/wechat/web/url [get]
 //	@ID			WechatOAuthController_webURL
 func (h *AuthHandler) WechatWebURL(c *gin.Context) {
@@ -146,7 +146,7 @@ func (h *AuthHandler) WechatAppLogin(c *gin.Context) {
 //	@Tags		用户认证
 //	@Produce	json
 //	@Success	200	{object}	dto.ResponseBody{data=dto.OAuthURLDto}
-//	@Param			did query string false "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）" example(dev-abc123)
+//	@Param			did header string true "设备标识（**必填**，请求头 `did`，最长 128 字节）。OAuth 回调是浏览器 302 跳转、前端加不了自定义 header，所以必须在这一步随 state 存下，回调时后端取回用于签发双 token（refresh_token 与设备绑定）。缺失返回 20016 auth.device_id_required" example(dev-abc123)
 //	@Router		/user/oauth/qq/web/url [get]
 //	@ID			QqOAuthController_webURL
 func (h *AuthHandler) QQWebURL(c *gin.Context) {

@@ -15246,9 +15246,10 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "dev-abc123",
-                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "description": "设备标识（**必填**，请求头 ` + "`" + `did` + "`" + `，最长 128 字节）。OAuth 回调是浏览器 302 跳转、前端加不了自定义 header，所以必须在这一步随 state 存下，回调时后端取回用于签发双 token（refresh_token 与设备绑定）。缺失返回 20016 auth.device_id_required",
                         "name": "did",
-                        "in": "query"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -15401,9 +15402,10 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "dev-abc123",
-                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "description": "设备标识（**必填**，请求头 ` + "`" + `did` + "`" + `，最长 128 字节）。OAuth 回调是浏览器 302 跳转、前端加不了自定义 header，所以必须在这一步随 state 存下，回调时后端取回用于签发双 token（refresh_token 与设备绑定）。缺失返回 20016 auth.device_id_required",
                         "name": "did",
-                        "in": "query"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -15556,9 +15558,10 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "dev-abc123",
-                        "description": "设备标识（可选；回调时用它签发 token —— OAuth 回调是浏览器 302，前端加不了 header，故必须从 query 或 state 传）",
+                        "description": "设备标识（**必填**，请求头 ` + "`" + `did` + "`" + `，最长 128 字节）。OAuth 回调是浏览器 302 跳转、前端加不了自定义 header，所以必须在这一步随 state 存下，回调时后端取回用于签发双 token（refresh_token 与设备绑定）。缺失返回 20016 auth.device_id_required",
                         "name": "did",
-                        "in": "query"
+                        "in": "header",
+                        "required": true
                     }
                 ],
                 "responses": {

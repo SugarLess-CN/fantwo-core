@@ -16,11 +16,12 @@ func CORS() gin.HandlerFunc {
 		//   · `Device-Id`   —— 我们文档/curl 示例用的写法，也是 deviceIDOf 优先读的
 		//   · `device-id`   —— HTTP header 大小写不敏感，浏览器发的实际是规范化的形式
 		//   · `X-Device-Id` —— 历史遗留（原 NestJS 客户端用过 X- 前缀）
+		//   · `did`         —— 前端约定的简写（2026-11-28 用户明确「did 写在请求头里」）
 		// 2026-11-28 实测：AllowHeaders 里只有 X-Device-Id 时，前端发 Device-Id
 		// 的预检会被拒绝，而 deviceIDOf 又读不到 X-Device-Id → 跨域登录直接死锁。
 		AllowHeaders: []string{
 			"Origin", "Content-Length", "Content-Type", "Authorization",
-			"Device-Id", "device-id", "X-Device-Id",
+			"Device-Id", "device-id", "X-Device-Id", "did",
 		},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: false, // AllowAllOrigins 时必须为 false（gin-contrib/cors 约束）

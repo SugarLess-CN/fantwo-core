@@ -846,7 +846,30 @@ func stateDID(raw string) string {
 }
 
 // oauthAuthURL 取授权链接 + 签发 state（web 渠道通用）。
+// oauthMaxDIDLen device-id 的长度上限。
+//
+// did 会被原样存进 Redis 的 state 值里，不设上限的话客户端传一个 1MB 的串
+// 就能把每个 OAuth 流程的 Redis 占用放大到不可控（state 10 分钟 TTL，量一上来就是事故）。
+// 128 字节足够覆盖 UUID / 设备指纹 / 随机串等所有常见形态。
+const oauthMaxDIDLen = 128
+
 func (s *AuthService) oauthAuthURL(ctx context.Context, provider, channel, did string) (*dto.OAuthURLDto, *errcode.Err) {
+	// **device-id 必填**（用户 2026-11-28 明确规定）。
+	//
+	// 为什么在「取授权链接」这一步就判，而不是等回调：
+	//   · 回调是浏览器 302 跳转，前端加不了 header —— did 必须在这一步就随 state 存好；
+	//   · 若这里放过，用户要走完「扫码 → 授权 → 平台跳回」才在回调时报 20016，
+	//     等于让用户在两个页面间白跑一趟，而且错误看起来像「登录失败」而非「参数缺失」；
+	//   · refresh_token 与设备绑定（user_device 按 (user_id, device_id) 唯一），
+	//     没有 did 就签不出可用的双 token。
+	did = strings.TrimSpace(did)
+	if did == "" {
+		return nil, errcode.ErrDeviceIDRequired
+	}
+	if len(did) > oauthMaxDIDLen {
+		return nil, errcode.ErrInvalidParam.WithKey(i18n.CommonBadRequest)
+	}
+
 	p, e := s.oauthProvider(provider, channel)
 	if e != nil {
 		return nil, e
