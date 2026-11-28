@@ -154,7 +154,7 @@ func TestPrivateMessageVO_Recalled(t *testing.T) {
 // TestBriefUser_NilStrings 用户 nickname / avatar 为 NULL 时输出 ""。
 func TestBriefUser_NilStrings(t *testing.T) {
 	u := &model.User{BaseModel: model.BaseModel{ID: "u1"}, Username: "alice"}
-	out := assertNoNull(t, "UserBriefVO", briefUser(u, nil))
+	out := assertNoNull(t, "UserBriefVO", briefUser(u, nil, nil))
 	var got map[string]interface{}
 	_ = json.Unmarshal([]byte(out), &got)
 	if got["nickname"] != "" || got["avatar"] != "" {

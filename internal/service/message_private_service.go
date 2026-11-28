@@ -377,7 +377,7 @@ func (s *PrivateMessageService) Conversations(userID, cursor string, limit int) 
 			LastMessageAt: c.LastMessageAt,
 		}
 		if u, ok := users[cpID]; ok && u != nil {
-			item.Counterpart = briefUser(u, blocked)
+			item.Counterpart = briefUser(u, blocked, nil)
 		}
 		if c.LastMessageID != nil {
 			if lm, err := s.Priv.FindMessageByID(s.DB, *c.LastMessageID); err == nil && lm != nil {
@@ -693,7 +693,7 @@ func (s *PrivateMessageService) Blocks(userID string) (*BlockedUserListVO, error
 	for _, b := range rows {
 		item := BlockedUserVO{ID: b.ID, Reason: strOrEmpty(b.Reason), CreatedAt: b.CreatedAt}
 		if u, ok := users[b.BlockedUserID]; ok && u != nil {
-			item.BlockedUser = briefUser(u, map[string]struct{}{u.ID: {}})
+			item.BlockedUser = briefUser(u, map[string]struct{}{u.ID: {}}, nil)
 		}
 		out = append(out, item)
 	}
@@ -726,7 +726,7 @@ func (s *PrivateMessageService) ConversationSummary(userID, conversationID strin
 		LastMessageAt:  conv.LastMessageAt,
 	}
 	if u, ok := users[cpID]; ok && u != nil {
-		item.Counterpart = briefUser(u, blocked)
+		item.Counterpart = briefUser(u, blocked, nil)
 	}
 	if conv.LastMessageID != nil {
 		if lm, err := s.Priv.FindMessageByID(s.DB, *conv.LastMessageID); err == nil && lm != nil {
@@ -769,10 +769,10 @@ func (s *PrivateMessageService) toVOWith(m *model.PrivateMessage, users map[stri
 		vo.Payload = m.Payload
 	}
 	if u, ok := users[m.SenderID]; ok && u != nil {
-		vo.Sender = briefUser(u, blocked)
+		vo.Sender = briefUser(u, blocked, nil)
 	}
 	if u, ok := users[m.ReceiverID]; ok && u != nil {
-		vo.Receiver = briefUser(u, blocked)
+		vo.Receiver = briefUser(u, blocked, nil)
 	}
 	// 撤回后正文已清空，前端靠 isRecalled 渲染占位
 	return vo

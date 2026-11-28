@@ -90,12 +90,12 @@ type AuthorBrief struct {
 }
 
 // authorBriefDto 作者简要 → 对外 DTO（avatar 空指针转 ""，绝不输出 null）。
-func authorBriefDto(a AuthorBrief) dto.AuthorBriefDto {
+func authorBriefDto(a AuthorBrief, cfg ConfigReader) dto.AuthorBriefDto {
 	return dto.AuthorBriefDto{
 		ID:                  a.ID,
 		Nickname:            a.Nickname,
 		Username:            a.Username,
-		Avatar:              strOrEmpty(a.Avatar),
+		Avatar:              normalizeUploadURL(cfg, strOrEmpty(a.Avatar)),
 		IsFollowed:          a.IsFollowed,
 		EquippedDecorations: a.EquippedDecorations,
 	}

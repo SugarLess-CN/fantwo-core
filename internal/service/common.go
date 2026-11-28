@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/SugarLess-CN/fantwo-core/internal/model"
 	"github.com/SugarLess-CN/fantwo-core/internal/pkg/response"
 	"strconv"
 	"strings"
@@ -105,4 +106,78 @@ func parseNickID(s string) (*int64, error) {
 		return nil, err
 	}
 	return &v, nil
+}
+
+// ---- 上传产物 URL 规范化（出参统一）----
+//
+// 背景（2026-11-28 用户要求兼容旧代码）：
+// 历史上图片地址经历过四代格式，库里同时存在：
+//
+//	① http://testend.cerylab.com/api/v1/uploads/2026/11/28/x.png   绝对 + 中间路径（最老）
+//	② https://api.cerylab.com/uploads/2026/10/17/x.jpg            绝对（旧 JS 域名）
+//	③ /api/v1/uploads/2026/11/28/x.png                            根相对 + 中间路径
+//	④ 2026/11/28/x.png                                            纯相对（新规范）
+//
+// 出参时全部归一化成「upload_url + /uploads/ + 纯相对路径」，
+// 这样换域名 / 去掉 /api/v1 都不用刷库。
+//
+// ⚠️ 与 infra.stripToRelPath 逻辑一致，但两边不能共用一个函数：
+// user 域拿的是 *model.User（DB 列直接存 URL），infra 域处理的是 uploads 表，
+// 二者分属不同包的内部细节。宁可重复 15 行，也不为此把 util 提到更上层。
+
+// stripToRelPath 从任意格式的存量 URL 提取纯相对路径。
+func stripToRelPath(s string) string {
+	if s == "" {
+		return ""
+	}
+	// 绝对 URL：取 path 部分
+	if i := strings.Index(s, "://"); i >= 0 {
+		if j := strings.Index(s[i+3:], "/"); j >= 0 {
+			s = s[i+3+j:]
+		} else {
+			return ""
+		}
+	}
+	// 去掉查询串与锚点（S3 预签名会带 ?X-Amz-...）
+	if i := strings.IndexAny(s, "?#"); i >= 0 {
+		s = s[:i]
+	}
+	s = strings.TrimPrefix(s, "/")
+	// 剥掉可能嵌套的中间路径前缀
+	for {
+		trimmed := false
+		for _, p := range []string{"api/v1/uploads/", "uploads/"} {
+			if strings.HasPrefix(s, p) {
+				s = strings.TrimPrefix(s, p)
+				trimmed = true
+			}
+		}
+		if !trimmed {
+			break
+		}
+	}
+	return s
+}
+
+// normalizeUploadURL 把存量图片地址规范成「配置域名 + /uploads/ + 相对路径」。
+//
+// 空串原样返回空串（docs/21 字符串规则）。
+// cfg 为 nil 时退化为根相对路径（`/uploads/...`），本地开发可直接用。
+func normalizeUploadURL(cfg ConfigReader, raw string) string {
+	rel := stripToRelPath(raw)
+	if rel == "" {
+		return ""
+	}
+	base := ""
+	if cfg != nil {
+		base = strings.TrimSpace(cfg.GetString(model.ConfigKeyUploadURL, ""))
+		base = strings.TrimRight(base, "/")
+		if strings.HasSuffix(base, "/api/v1") {
+			base = strings.TrimSuffix(base, "/api/v1")
+		}
+	}
+	if base == "" {
+		return "/uploads/" + rel
+	}
+	return base + "/uploads/" + rel
 }

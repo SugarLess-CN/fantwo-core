@@ -640,20 +640,63 @@ func (f *Infra) uploadURL() string {
 // 极简公式（用户 2026-11-28）：upload_url + "/uploads/" + 相对路径。
 // 不看 CDN、不看请求 Host、不区分 local/s3 —— 统一走这一个公式。
 // upload_url 未配置时返回带 /uploads/ 前缀的相对路径（开发环境可直接访问）。
-func (f *Infra) absolutizeURL(relPath string) string {
+// stripToRelPath 从**任意格式**的存量 URL 里提取出纯相对路径。
+//
+// 为什么要兼容这么多种形态（2026-11-28 用户要求兼容旧代码）：
+// 历史上这个值经历过四代格式，库里同时存在：
+//
+//	① http://testend.cerylab.com/api/v1/uploads/2026/11/28/x.png   绝对 + 中间路径（最老）
+//	② https://api.cerylab.com/uploads/2026/10/17/x.jpg            绝对（旧 JS 版域名）
+//	③ /api/v1/uploads/2026/11/28/x.png                            根相对 + 中间路径
+//	④ 2026/11/28/x.png                                            纯相对（新规范）
+//
+// 全部归一化成 ④，再由 absolutizeURL 用**当前配置的 upload_url** 重拼。
+// 这样换域名、换 CDN、去掉 /api/v1 都不需要刷库。
+func stripToRelPath(s string) string {
+	if s == "" {
+		return ""
+	}
+	// ① ② 绝对 URL：取 path 部分（丢掉 scheme://host）
+	if i := strings.Index(s, "://"); i >= 0 {
+		if j := strings.Index(s[i+3:], "/"); j >= 0 {
+			s = s[i+3+j:]
+		} else {
+			return "" // 只有域名没有路径，无意义
+		}
+	}
+	// 去掉查询串与锚点（S3 预签名 URL 会带 ?X-Amz-...）
+	if i := strings.IndexAny(s, "?#"); i >= 0 {
+		s = s[:i]
+	}
+	s = strings.TrimPrefix(s, "/")
+	// ③ 中间路径前缀（可能重复嵌套，循环剥干净）
+	for {
+		trimmed := false
+		for _, p := range []string{"api/v1/uploads/", "uploads/"} {
+			if strings.HasPrefix(s, p) {
+				s = strings.TrimPrefix(s, p)
+				trimmed = true
+			}
+		}
+		if !trimmed {
+			break
+		}
+	}
+	return s
+}
+
+// absolutizeURL 出参 URL 的唯一构造点。
+//
+// 公式固定：upload_url + "/uploads/" + 纯相对路径。
+// 入参可以是任意历史格式（见 stripToRelPath），都会先归一化成纯相对路径。
+func (f *Infra) absolutizeURL(raw string) string {
+	relPath := stripToRelPath(raw)
 	if relPath == "" {
 		return ""
 	}
-	// 已经是绝对 URL 的原样返回（兼容存量数据）
-	if strings.HasPrefix(relPath, "http://") || strings.HasPrefix(relPath, "https://") {
-		return relPath
-	}
-	relPath = strings.TrimPrefix(relPath, "/")
-	// 去掉存量的 /api/v1/uploads/ 或 /uploads/ 前缀，只留纯相对路径
-	relPath = strings.TrimPrefix(relPath, "api/v1/uploads/")
-	relPath = strings.TrimPrefix(relPath, "uploads/")
 	base := f.uploadURL()
 	if base == "" {
+		// 未配置 upload_url：返回根相对路径，浏览器按当前域名解析（本地开发默认可用）。
 		return "/uploads/" + relPath
 	}
 	return base + "/uploads/" + relPath

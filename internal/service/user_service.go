@@ -54,7 +54,7 @@ type RoleBrief = dto.RoleBriefDto
 //   - 字符串：*string → string（nil 变 ""），对外不出现 null
 //   - 时间：*time.Time → *string（nil 保持 nil，靠 omitempty 整个字段不传）
 //   - 数组：Roles 显式初始化，空时序列化成 [] 而不是 null
-func buildUserView(u *model.User, masked bool, isMember bool) *UserView {
+func buildUserView(u *model.User, masked bool, isMember bool, cfg ConfigReader) *UserView {
 	nickID, nickIDStr := nickIDPair(u.NickID)
 	v := &UserView{
 		ID:          u.ID,
@@ -62,9 +62,9 @@ func buildUserView(u *model.User, masked bool, isMember bool) *UserView {
 		NickIDStr:   nickIDStr,
 		Username:    u.Username,
 		Nickname:    strOrEmpty(u.Nickname),
-		Avatar:      strOrEmpty(u.Avatar),
+		Avatar:      normalizeUploadURL(cfg, strOrEmpty(u.Avatar)),
 		Description: strOrEmpty(u.Description),
-		Background:  strOrEmpty(u.Background),
+		Background:  normalizeUploadURL(cfg, strOrEmpty(u.Background)),
 		Address:     strOrEmpty(u.Address),
 		Gender:      u.Gender,
 		Status:      u.Status,
@@ -169,7 +169,7 @@ func (s *UserService) Profile(ctx context.Context, userID string) (*dto.UserProf
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	base := buildUserView(user, true, isMembershipActive(user))
+	base := buildUserView(user, true, isMembershipActive(user), s.d.Cfg)
 	base.Config = s.configOf(ctx, userID)
 	// 自己看自己：is_followed 恒 false（不能出现「关注自己」）；装扮显示自己戴的。
 	base.EquippedDecorations = s.userDecorationsOne(userID)
@@ -360,7 +360,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, in Updat
 	if !wasComplete && isProfileComplete(user) {
 		publishProfileCompleted(userID)
 	}
-	return buildUserView(user, true, isMembershipActive(user)), nil
+	return buildUserView(user, true, isMembershipActive(user), s.d.Cfg), nil
 }
 
 // UpdateContactInput 修改联系方式入参（docs/28 §二 A4）。
@@ -428,7 +428,7 @@ func (s *UserService) UpdateContact(ctx context.Context, userID string, in Updat
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	view := buildUserView(user, true, isMembershipActive(user))
+	view := buildUserView(user, true, isMembershipActive(user), s.d.Cfg)
 	view.Config = s.configOf(ctx, userID)
 	return view, nil
 }
@@ -481,7 +481,7 @@ func (s *UserService) FindUser(ctx context.Context, id string, actor Actor) (*Us
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	view := buildUserView(user, true, isMembershipActive(user))
+	view := buildUserView(user, true, isMembershipActive(user), s.d.Cfg)
 	// ⚠️ 该端点是**公开**的（OptionalAuth，对齐原 JS 的 @NoAuth），所以敏感字段必须按「是不是自己」收：
 	//   · Config（佣金比例 / 隐私开关 / 通知偏好）—— 只有自己看自己才给；
 	//   · Wallet（真实余额）—— 只有自己看自己才给，他人一律 0。
@@ -532,7 +532,7 @@ func (s *UserService) ListUsers(ctx context.Context, in ListUsersInput) ([]*User
 	}
 	views := make([]*UserView, 0, len(users))
 	for i := range users {
-		views = append(views, buildUserView(&users[i], true, isMembershipActive(&users[i])))
+		views = append(views, buildUserView(&users[i], true, isMembershipActive(&users[i]), s.d.Cfg))
 	}
 	// 批量补齐列表项的关注态与佩戴装扮（各一次查询，不随行数增长）。
 	s.attachListContext(ctx, views, in.Actor)
@@ -711,7 +711,7 @@ func (s *UserService) CreateUser(ctx context.Context, in CreateUserInput) (*User
 	if err != nil {
 		return nil, errcode.ErrInternal
 	}
-	return buildUserView(user, false, isMembershipActive(user)), nil
+	return buildUserView(user, false, isMembershipActive(user), s.d.Cfg), nil
 }
 
 // UpdateUserInput 管理员更新用户入参（20 字段，指针语义 nil 不改）。
@@ -969,7 +969,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id string, in UpdateUserIn
 	if !wasComplete && isProfileComplete(user) {
 		publishProfileCompleted(id)
 	}
-	view := buildUserView(user, true, isMembershipActive(user))
+	view := buildUserView(user, true, isMembershipActive(user), s.d.Cfg)
 	view.Config = s.configOf(ctx, id) // 详情类返回，与 GET /user/{id} 一致
 	return view, nil
 }
@@ -1342,8 +1342,17 @@ var (
 )
 
 // ViewUser 对外暴露用户视图构造（handler 层拼装响应用；masked 控制手机/邮箱掩码）。
+//
+// 包级函数拿不到 Deps（没有 cfg），图片地址按「根相对路径」输出。
+// handler 若有 cfg 请用 ViewUserWithConfig —— 那样才会按 upload_url 拼绝对地址。
 func ViewUser(u *model.User, masked bool) *UserView {
-	return buildUserView(u, masked, isMembershipActive(u))
+	return buildUserView(u, masked, isMembershipActive(u), nil)
+}
+
+// ViewUserWithConfig 带配置的用户视图构造（图片地址按 upload_url 拼绝对地址）。
+// handler 层应优先用它，避免响应里出现「有的图是绝对地址、有的是相对路径」。
+func (s *UserService) ViewUserWithConfig(u *model.User, masked bool) *UserView {
+	return buildUserView(u, masked, isMembershipActive(u), s.d.Cfg)
 }
 
 // Deps 暴露共享依赖（handler 层构造其它 service 时复用同一套依赖）。
@@ -1408,7 +1417,7 @@ func (s *UserService) ListUsersForSearch(ctx context.Context, actor Actor, page,
 			NickIDStr:      nickIDStr,
 			Username:       u.Username,
 			Nickname:       nick,
-			Avatar:         strOrEmpty(u.Avatar),
+			Avatar:         normalizeUploadURL(s.d.Cfg, strOrEmpty(u.Avatar)),
 			Description:    strOrEmpty(u.Description),
 			ArticleCount:   u.ArticleCount,
 			FollowerCount:  u.FollowerCount,

@@ -169,7 +169,7 @@ func (s *ArticleService) BuildViews(ctx context.Context, rows []model.Article, a
 		// 作者
 		if r.AuthorID != nil {
 			if a, ok := authorMap[*r.AuthorID]; ok {
-				brief := authorBriefDto(a)
+				brief := authorBriefDto(a, nil)
 				v.Author = &brief
 			}
 		}

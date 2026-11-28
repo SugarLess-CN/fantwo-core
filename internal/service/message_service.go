@@ -703,11 +703,11 @@ func buildMessageVO(m *model.Message, users map[string]*model.User, blocked map[
 		vo.Metadata = m.Metadata
 	}
 	if u, ok := users[m.SenderID]; ok && u != nil {
-		vo.Sender = briefUser(u, blocked)
+		vo.Sender = briefUser(u, blocked, nil)
 	}
 	if m.ReceiverID != nil {
 		if u, ok := users[*m.ReceiverID]; ok && u != nil {
-			vo.Receiver = briefUser(u, blocked)
+			vo.Receiver = briefUser(u, blocked, nil)
 		}
 	}
 	// 源端把 metadata 里的业务键平铺到响应（articleId/commentId/targetId/targetType/notificationType）。
@@ -734,7 +734,7 @@ func metaValue(meta model.MessageJSON, keys ...string) interface{} {
 // briefUser 用户简要信息 + 拉黑标记。
 //
 // nickname / avatar 是 model 层 *string，走 strOrEmpty 转值类型（空时 ""）。
-func briefUser(u *model.User, blocked map[string]struct{}) *UserBriefVO {
+func briefUser(u *model.User, blocked map[string]struct{}, cfg ConfigReader) *UserBriefVO {
 	_, isBlocked := blocked[u.ID]
 	nickID, nickIDStr := nickIDPair(u.NickID)
 	return &UserBriefVO{
@@ -743,7 +743,7 @@ func briefUser(u *model.User, blocked map[string]struct{}) *UserBriefVO {
 		NickIDStr: nickIDStr,
 		Username:  u.Username,
 		Nickname:  strOrEmpty(u.Nickname),
-		Avatar:    strOrEmpty(u.Avatar),
+		Avatar:    normalizeUploadURL(cfg, strOrEmpty(u.Avatar)),
 		IsBlocked: isBlocked,
 	}
 }

@@ -640,7 +640,7 @@ func (s *CommentService) buildRenderCtx(ctx context.Context, actor Actor, cmts [
 			CreatedAt: p.CreatedAt,
 		}
 		if a, ok := rc.author[p.AuthorID]; ok {
-			ab := authorBriefDto(a)
+			ab := authorBriefDto(a, nil)
 			brief.Author = &ab
 		}
 		rc.parent[p.ID] = brief
@@ -770,7 +770,7 @@ func buildCommentView(c model.Comment, authorMap map[string]AuthorBrief, likedSe
 		UpdatedAt:  c.UpdatedAt,
 	}
 	if a, ok := authorMap[c.AuthorID]; ok {
-		brief := authorBriefDto(a)
+		brief := authorBriefDto(a, nil)
 		v.Author = &brief
 	}
 	return v
