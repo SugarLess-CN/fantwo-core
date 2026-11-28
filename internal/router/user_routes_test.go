@@ -179,6 +179,9 @@ func TestOAuthNotConfigured(t *testing.T) {
 	r := newTestRouter(t)
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/user/oauth/github/url", nil)
+	// did 必填（2026-11-28），且校验顺序在「配置齐全性」之前 —— 不带头会先吃 20016，
+	// 这条用例要验的是「未配置」，所以必须先把 did 补上。
+	req.Header.Set("did", "test-device")
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusBadRequest || !contains(w.Body.String(), "auth.oauth_not_configured") {
 		t.Errorf("期望 400 + message 返回 key auth.oauth_not_configured，实际 %d body=%s", w.Code, w.Body.String())

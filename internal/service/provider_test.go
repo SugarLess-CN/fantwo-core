@@ -114,7 +114,8 @@ func TestGithubAuthorizeURL(t *testing.T) {
 		oauthkit.ConfigKeyGitHubClientSecret: "secret",
 		oauthkit.ConfigKeyGitHubRedirectURI:  "https://api.example.com/api/v1/user/oauth/github/callback",
 	}
-	out, e := NewAuthService(d).GithubAuthURL(context.Background(), "")
+	// did 必填（2026-11-28）：传一个合法设备标识，否则在生成 URL 前就返回 20016。
+	out, e := NewAuthService(d).GithubAuthURL(context.Background(), "test-device")
 	if e != nil {
 		t.Fatalf("生成授权链接失败: %v", e)
 	}
